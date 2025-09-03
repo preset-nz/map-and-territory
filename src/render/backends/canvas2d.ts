@@ -128,7 +128,29 @@ export class Canvas2DBackend implements RenderBackend {
           let v = perlin.normalized2D(q * freq + ox, rax * freq + oy);
           v = Math.pow(v, gamma);
           if (v < clampMin || v > clampMax) return; // transparent outside range
-          const g = Math.floor(v * 255 * intensity);
+          const mode = (st.mode ?? 'shape') as 'shape' | 'paint';
+          if (mode === 'shape') {
+            const g = Math.floor(v * 255 * intensity);
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const ang = startAngle + i * (Math.PI / 3);
+              const px = cx + Math.cos(ang) * r;
+              const py = cy + Math.sin(ang) * r;
+              if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fillStyle = `rgb(${g},${g},${g})`;
+            ctx.fill();
+            return;
+          }
+          const terrain = (st.terrain ?? 'plains') as 'water'|'desert'|'plains'|'hills';
+          const colorMap: Record<string, string> = {
+            water: '#3b5bfd',
+            desert: '#e6c767',
+            plains: '#7abd5a',
+            hills: '#8b6f4a',
+          };
+          const fill = colorMap[terrain] ?? '#7abd5a';
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
             const ang = startAngle + i * (Math.PI / 3);
@@ -137,7 +159,7 @@ export class Canvas2DBackend implements RenderBackend {
             if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
           }
           ctx.closePath();
-          ctx.fillStyle = `rgb(${g},${g},${g})`;
+          ctx.fillStyle = fill;
           ctx.fill();
         };
         if (orientation === 'flat') {

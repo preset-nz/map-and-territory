@@ -12,20 +12,22 @@ export interface HexNoiseState {
   gamma: number; // >0 contrast curve
   min: number; // 0..1 lower threshold (transparent below)
   max: number; // 0..1 upper threshold (transparent above)
+  mode?: 'shape' | 'paint';
+  terrain?: 'water' | 'desert' | 'plains' | 'hills';
 }
 
 export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
   title: 'Hex Noise',
   // Note: main renderers draw this layer explicitly; adapter kept for parity/future bridge
   getInvalidationKey(state) {
-    return `hexnoise:${state.seed ?? ''}:${state.frequency ?? ''}:${state.offsetX ?? ''}:${state.offsetY ?? ''}:${state.intensity ?? ''}:${state.gamma ?? ''}:${state.min ?? ''}:${state.max ?? ''}`;
+    return `hexnoise:${state.mode ?? ''}:${state.terrain ?? ''}:${state.seed ?? ''}:${state.frequency ?? ''}:${state.offsetX ?? ''}:${state.offsetY ?? ''}:${state.intensity ?? ''}:${state.gamma ?? ''}:${state.min ?? ''}:${state.max ?? ''}`;
   },
 };
 
 export const HexNoiseType = {
   id: 'hexnoise',
   title: 'Hex Noise',
-  defaultState: { seed: 'seed', frequency: 0.15, offsetX: 0, offsetY: 0, intensity: 1, gamma: 1, min: 0, max: 1 },
+  defaultState: { seed: 'seed', frequency: 0.15, offsetX: 0, offsetY: 0, intensity: 1, gamma: 1, min: 0, max: 1, mode: 'shape', terrain: 'plains' },
   adapter: HexNoiseAdapter,
   policy: { canDelete: true, canDuplicate: true },
 } as const;
@@ -36,6 +38,18 @@ registerPropertySchema('layer:hexnoise', {
       id: 'noise',
       title: 'Hex Noise',
       rows: [
+        [
+          { kind: 'select', id: 'mode', label: 'Mode', path: 'mode', options: [
+            { value: 'shape', label: 'Shape (Grayscale)' },
+            { value: 'paint', label: 'Paint (Terrain)' },
+          ]},
+          { kind: 'select', id: 'terrain', label: 'Terrain', path: 'terrain', options: [
+            { value: 'water', label: 'Water' },
+            { value: 'desert', label: 'Desert' },
+            { value: 'plains', label: 'Plains' },
+            { value: 'hills', label: 'Hills' },
+          ]},
+        ],
         [
           { kind: 'text', id: 'seed', label: 'Seed', path: 'seed' },
           { kind: 'number', id: 'frequency', label: 'Frequency', path: 'frequency', min: 0.01, max: 5, step: 0.01 },
