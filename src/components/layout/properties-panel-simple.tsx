@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ColorField, SelectField, PropertyLabel } from '@/components/properties';
+import { getPropertySchema } from '@/properties/registry';
 import { Separator } from '@/components/ui/separator';
 
 import { useLayoutStore } from '@/stores/layout';
@@ -49,7 +50,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       <div className="p-3 space-y-4 overflow-auto">
         <CampaignProperties />
         <MapProperties />
-        <PaperLayerProperties />
+        <LayerPropertiesGeneric />
       </div>
     </div>
   );
@@ -169,7 +170,7 @@ const MapProperties: React.FC = () => {
   );
 };
 
-const PaperLayerProperties: React.FC = () => {
+const LayerPropertiesGeneric: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
   const project = useProjectStore((s) => s.current);
   const updateLayerState = useProjectStore((s) => s.updateLayerState);
@@ -177,24 +178,50 @@ const PaperLayerProperties: React.FC = () => {
   const map = project.maps.find((m) => m.id === project.activeMapId);
   if (!map) return null;
   const layer = (map.layers ?? []).find((l) => l.id === selection.id);
-  if (!layer || layer.type !== 'paper') return null;
-  const st = layer.state as any;
-  const aspect = st?.aspect ?? '16:10';
-  const color = st?.color ?? '#ffffff';
-  const reset = () => updateLayerState(layer.id, { aspect: '16:10', color: '#ffffff' });
+  if (!layer) return null;
+  const scope = `layer:${layer.type}`;
+  const schema = getPropertySchema(scope);
+  if (!schema) return null;
+  const getVal = (path: string) => (layer.state as any)?.[path];
+  const setVal = (path: string, val: any) => updateLayerState(layer.id, { [path]: val });
   return (
-    <Group title="Paper" actions={<Button size="sm" variant="outline" onClick={reset}>Reset</Button>}>
-      <SelectField
-        label="Aspect Ratio"
-        value={aspect}
-        options={[
-          { value: 'square', label: 'Square (1:1)' },
-          { value: '4:3', label: '4:3' },
-          { value: '16:10', label: '16:10' },
-        ]}
-        onChange={(v) => updateLayerState(layer.id, { aspect: v })}
-      />
-      <ColorField label="Color" value={color} onChange={(v) => updateLayerState(layer.id, { color: v })} />
-    </Group>
+    <>
+      {schema.groups.map((g) => (
+        <Group key={g.id} title={g.title}>
+          {g.rows.map((row, idx) => {
+            const fields = Array.isArray(row) ? row : [row];
+            return (
+              <div key={idx} className={fields.length > 1 ? 'grid grid-cols-2 gap-2' : ''}>
+                {fields.map((f) => {
+                  if (f.kind === 'select') {
+                    const v = getVal(f.path) ?? '';
+                    return (
+                      <SelectField key={f.id} label={f.label} value={v} options={(f as any).options} onChange={(val) => setVal(f.path, val)} />
+                    );
+                  }
+                  if (f.kind === 'color') {
+                    const v = getVal(f.path) ?? '#ffffff';
+                    return (
+                      <ColorField key={f.id} label={f.label} value={v} onChange={(val) => setVal(f.path, val)} />
+                    );
+                  }
+                  if (f.kind === 'number') {
+                    const v = Number(getVal(f.path) ?? 0);
+                    return (
+                      <div key={f.id}>
+                        <FieldLabel label={f.label || f.id} />
+                        <Input type="number" value={v} min={(f as any).min} max={(f as any).max} step={(f as any).step ?? 1}
+                               onChange={(e) => setVal(f.path, Number(e.target.value))} />
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            );
+          })}
+        </Group>
+      ))}
+    </>
   );
 };

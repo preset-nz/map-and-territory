@@ -132,9 +132,13 @@ export const CanvasViewport: React.FC = () => {
       const availW = cw - paddingX * 2;
       const availH = ch - paddingY * 2;
       const { aw, ah } = parseAspect(aspect as any);
-      const scale = Math.min(availW / aw, availH / ah);
-      const paperW = aw * scale;
-      const paperH = ah * scale;
+      // Width-first sizing: use available width, then cap by available height if needed
+      let paperW = availW;
+      let paperH = (paperW * ah) / aw;
+      if (paperH > availH) {
+        paperH = availH;
+        paperW = (paperH * aw) / ah;
+      }
       const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
       const paperY = paddingY;
       // Paper
@@ -149,34 +153,36 @@ export const CanvasViewport: React.FC = () => {
       const layer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
       if (layer) {
         const st = layer.state || {};
-        const r = Math.max(6, st.size || 24);
+        const r = Math.max(4, st.size || 16);
         const color = st.color || '#000000';
-        const alpha = st.alpha ?? 0.2;
+        const alpha = st.alpha ?? 0.25;
         const rot = st.rotation || 0;
-        const off = document.createElement('canvas');
-        const vx = r * 1.5; const vy = Math.sin(Math.PI / 3) * r;
-        off.width = Math.max(1, Math.floor(vx * dpr * 2));
-        off.height = Math.max(1, Math.floor(vy * dpr * 2));
-        const octx = off.getContext('2d');
-        if (octx) {
-          octx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          octx.strokeStyle = color; octx.globalAlpha = alpha; octx.lineWidth = 1;
-          const drawHexAt = (x: number, y: number) => {
-            octx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const a = Math.PI / 6 + i * (Math.PI / 3);
-              const px = x + Math.cos(a) * r; const py = y + Math.sin(a) * r;
-              if (i === 0) octx.moveTo(px, py); else octx.lineTo(px, py);
-            }
-            octx.closePath(); octx.stroke();
-          };
-          drawHexAt(vx * 0.5, vy); drawHexAt(0, 0); drawHexAt(vx, vy * 2);
-          const pattern = ctx.createPattern(off, 'repeat');
-          if (pattern) {
-            ctx.translate(paperW / 2, paperH / 2); ctx.rotate(rot); ctx.translate(-paperW / 2, -paperH / 2);
-            ctx.fillStyle = pattern; ctx.fillRect(0, 0, paperW, paperH);
+        const hexH = Math.sin(Math.PI / 3) * r * 2;
+        const colStep = r * 1.5;
+        const rowStep = hexH / 2;
+        ctx.save();
+        ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 1 / dpr;
+        ctx.translate(paperW / 2, paperH / 2); ctx.rotate(rot); ctx.translate(-paperW / 2, -paperH / 2);
+        const cols = Math.ceil(paperW / colStep) + 2;
+        const rows = Math.ceil(paperH / rowStep) + 2;
+        const drawHex = (cx: number, cy: number) => {
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const ang = Math.PI / 6 + i * (Math.PI / 3);
+            const px = cx + Math.cos(ang) * r;
+            const py = cy + Math.sin(ang) * r;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath(); ctx.stroke();
+        };
+        for (let c = -1; c < cols; c++) {
+          for (let ri = -1; ri < rows; ri++) {
+            const x = c * colStep;
+            const y = ri * rowStep * 2 + ((c & 1) ? rowStep : 0);
+            drawHex(x, y);
           }
         }
+        ctx.restore();
       }
       ctx.restore();
 
@@ -199,11 +205,11 @@ export const CanvasViewport: React.FC = () => {
 
   return (
     <div className="h-full w-full overflow-hidden">
-      <div className="pt-4 px-6 min-h-[60vh]" ref={containerRef}>
+      <div className="pt-4 px-6 h-full min-h-[60vh]" ref={containerRef}>
         {!active ? (
           <div className="p-8 text-sm text-muted-foreground">No active map.</div>
         ) : (
-          <canvas ref={canvasRef} className="w-full h-[60vh]" />
+          <canvas ref={canvasRef} className="w-full h-full" />
         )}
       </div>
     </div>

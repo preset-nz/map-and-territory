@@ -31,13 +31,13 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ensureCommand } from '@/lib/commands';
 import { useProjectStore } from '@/stores/project';
 import { useSelectionStore } from '@/stores/selection';
+import { useLayoutStore } from '@/stores/layout';
 import { loadPlugin } from '@/plugin/loader';
 import { newCampaignManifest, newCampaignModule } from '@/plugin/builtin/new-campaign';
 import { mapCrudManifest, mapCrudModule } from '@/plugin/builtin/map-crud';
 
 import { BaseLayoutProps } from '@/types/layout';
 import { cn } from '@/lib/utils';
-import { useLayoutStore } from '@/stores/layout';
 
 // ============================================================================
 // AppLayout Component
@@ -97,6 +97,15 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   useEffect(() => {
     loadPlugin(newCampaignManifest, newCampaignModule);
     loadPlugin(mapCrudManifest, mapCrudModule);
+  }, []);
+
+  // Sync selection count for status bar
+  useEffect(() => {
+    const unsub = useSelectionStore.subscribe((s) => s.selection, (sel) => {
+      const count = sel.kind === 'none' ? 0 : 1;
+      useLayoutStore.getState().setSelectionCount(count);
+    });
+    return () => { unsub(); };
   }, []);
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));

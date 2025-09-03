@@ -108,41 +108,45 @@ export class Canvas2DBackend implements RenderBackend {
     const grid = frame.layers.find((l) => l.visible && l.type === 'hexgrid');
     for (const l of nonGrid) {
       if (!l.visible || l.type === 'paper') continue;
-      if (l.type === 'hexgrid') {
-        const st = l.state as any;
-        const r = Math.max(6, st.size || 24);
-        const color = st.color || '#000000';
-        const alpha = st.alpha ?? 0.2;
-        const rot = st.rotation || 0;
-        const pattern = this.makeHexPattern(r, color, alpha, frame.pixelRatio || 1);
-        if (pattern) {
-          ctx.save();
-          ctx.translate(paperW / 2, paperH / 2);
-          ctx.rotate(rot);
-          ctx.translate(-paperW / 2, -paperH / 2);
-          ctx.fillStyle = pattern;
-          ctx.fillRect(0, 0, paperW, paperH);
-          ctx.restore();
-        }
-      }
       // Other layer types can be added here or drawn via future adapter bridge
     }
     if (grid) {
       const st = grid.state as any;
-      const r = Math.max(6, st.size || 24);
-      const color = st.color || '#000000';
-      const alpha = st.alpha ?? 0.2;
-      const rot = st.rotation || 0;
-      const pattern = this.makeHexPattern(r, color, alpha, frame.pixelRatio || 1);
-      if (pattern) {
-        ctx.save();
-        ctx.translate(paperW / 2, paperH / 2);
-        ctx.rotate(rot);
-        ctx.translate(-paperW / 2, -paperH / 2);
-        ctx.fillStyle = pattern;
-        ctx.fillRect(0, 0, paperW, paperH);
-        ctx.restore();
+      const r = Math.max(4, st.size || 16);
+      const stroke = st.color || '#000000';
+      const a = st.alpha ?? 0.25;
+      const dpr2 = frame.pixelRatio || 1;
+      const hexH = Math.sin(Math.PI / 3) * r * 2;
+      const colStep = r * 1.5;
+      const rowStep = hexH / 2;
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 1 / dpr2;
+      ctx.translate(paperW / 2, paperH / 2);
+      ctx.rotate(st.rotation || 0);
+      ctx.translate(-paperW / 2, -paperH / 2);
+      const cols = Math.ceil(paperW / colStep) + 2;
+      const rows = Math.ceil(paperH / rowStep) + 2;
+      const drawHex = (cx: number, cy: number) => {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const ang = Math.PI / 6 + i * (Math.PI / 3);
+          const px = cx + Math.cos(ang) * r;
+          const py = cy + Math.sin(ang) * r;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      };
+      for (let c = -1; c < cols; c++) {
+        for (let ri = -1; ri < rows; ri++) {
+          const x = c * colStep;
+          const y = ri * rowStep * 2 + ((c & 1) ? rowStep : 0);
+          drawHex(x, y);
+        }
       }
+      ctx.restore();
     }
 
     // Draw outline on top for emphasis

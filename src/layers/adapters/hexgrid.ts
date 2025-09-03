@@ -1,4 +1,5 @@
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
+import { registerPropertySchema } from '@/properties/registry';
 
 export interface HexgridState {
   size: number; // hex radius in px
@@ -57,16 +58,44 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   drawMain(ctx, state, env: RenderEnv) {
     const { w, h } = env.size;
     const { size, rotation, color, alpha } = state;
-    const r = Math.max(6, size || 24);
-    const pattern = makePattern(r, color || '#000000', alpha ?? 0.2, env.pixelRatio || 1);
-    if (!pattern) return;
+    const r = Math.max(4, size || 16);
+    const stroke = color || '#000000';
+    const a = alpha ?? 0.25;
+    const dpr = env.pixelRatio || 1;
+    const hexH = Math.sin(Math.PI / 3) * r * 2; // height of hex
+    const colStep = r * 1.5; // x step between columns
+    const rowStep = hexH / 2; // y half-step
+
     ctx.save();
-    // Rotate pattern around paper center
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1 / dpr;
     ctx.translate(w / 2, h / 2);
     ctx.rotate(rotation || 0);
     ctx.translate(-w / 2, -h / 2);
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, w, h);
+
+    const cols = Math.ceil(w / colStep) + 2;
+    const rows = Math.ceil(h / rowStep) + 2;
+
+    const drawHex = (cx: number, cy: number) => {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const ang = Math.PI / 6 + i * (Math.PI / 3);
+        const px = cx + Math.cos(ang) * r;
+        const py = cy + Math.sin(ang) * r;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    };
+
+    for (let c = -1; c < cols; c++) {
+      for (let ri = -1; ri < rows; ri++) {
+        const x = c * colStep;
+        const y = ri * rowStep * 2 + ((c & 1) ? rowStep : 0);
+        drawHex(x, y);
+      }
+    }
     ctx.restore();
   },
 };
@@ -78,3 +107,17 @@ export const HexgridType = {
   adapter: HexgridAdapter,
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;
+
+// Register hexgrid properties schema
+registerPropertySchema('layer:hexgrid', {
+  groups: [
+    {
+      id: 'hexgrid',
+      title: 'Hex Grid',
+      rows: [
+        { kind: 'number', id: 'size', label: 'Hex Size', path: 'size', min: 4, max: 200, step: 1 },
+        { kind: 'color', id: 'color', label: 'Line Color', path: 'color' },
+      ],
+    },
+  ],
+});
