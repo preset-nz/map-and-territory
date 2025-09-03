@@ -21,7 +21,7 @@ export { default as AppLayout, LayoutProvider, FullscreenLayout, CenteredLayout,
 export { default as AppHeader } from './app-header';
 export { default as AppSidebar } from './app-sidebar';
 export { default as AppToolbar } from './app-toolbar';
-export { default as PropertiesPanel } from './properties-panel-simple';
+export { default as PropertiesPanel } from './properties-panel';
 export { default as StatusBar } from './status-bar';
 export { default as MainContent, ContentContainer, ContentGrid, PageHeader, ContentSection, ContentLoading, ContentError } from './main-content';
 

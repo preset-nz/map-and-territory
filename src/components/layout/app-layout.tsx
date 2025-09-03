@@ -23,7 +23,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import AppHeader from './app-header';
 import AppSidebar from './app-sidebar';
 import AppToolbar from './app-toolbar';
-import PropertiesPanel from './properties-panel-simple';
+import PropertiesPanel from './properties-panel';
 import MainContent from './main-content';
 import { AuthErrorBoundary } from '../providers/auth-provider';
 import StatusBar from './status-bar';
