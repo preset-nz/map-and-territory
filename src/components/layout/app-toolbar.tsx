@@ -36,6 +36,8 @@ export const AppToolbar: React.FC = () => {
   // Use store state instead of local state
   const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
   const togglePropertiesPanel = useLayoutStore((state) => state.togglePropertiesPanel);
+  // Track active map reactively to toggle plugin button enablement
+  const activeMapId = useProjectStore((s) => s.current?.activeMapId);
 
   // Commands come from plugin loader; no local registration here
 
@@ -117,8 +119,7 @@ export const AppToolbar: React.FC = () => {
                   {items.map((item, idx) => {
                     const aria = item.label || item.command;
                     const Icon = resolveIcon(item.icon);
-                    const project = useProjectStore.getState().current;
-                    const hasMapAndSelected = !!(project && project.activeMapId);
+                    const hasMapAndSelected = !!activeMapId;
                     const isHexNoiseAdd = item.command === 'layer.hexnoise.add';
                     const disabled = isHexNoiseAdd ? !hasMapAndSelected : false;
                     return (

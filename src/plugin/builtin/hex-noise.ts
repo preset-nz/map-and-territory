@@ -15,9 +15,9 @@ export const hexNoiseManifest: PluginManifest = {
     ],
     toolbar: [
       {
-        group: 'layers',
+        group: 'scene',
         items: [
-          { type: 'button', command: 'layer.hexnoise.add', icon: 'lucide:layers', label: 'Hex Noise', order: 10 },
+          { type: 'button', command: 'layer.hexnoise.add', icon: 'lucide:layers', label: 'Hex Noise', order: 2 },
         ],
       },
     ],
@@ -50,4 +50,3 @@ export const hexNoiseModule: PluginModule = {
     },
   },
 };
-
