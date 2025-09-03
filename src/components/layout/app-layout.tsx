@@ -190,7 +190,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                 className="min-h-0"
               >
                 <div className="h-full min-h-0 flex flex-col">
-                  <MainContent scrollable padding="none" className="bg-green-50">
+                  <MainContent scrollable padding="none">
                     {children}
                   </MainContent>
                 </div>

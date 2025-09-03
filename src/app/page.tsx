@@ -1,5 +1,5 @@
-import PaperViewport from '@/components/map/paper-viewport';
+import CanvasViewport from '@/components/map/canvas-viewport';
 
 export default function Home() {
-  return <PaperViewport />;
+  return <CanvasViewport />;
 }

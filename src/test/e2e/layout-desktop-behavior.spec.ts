@@ -23,7 +23,7 @@ test.describe('Desktop layout behavior', () => {
     await main.evaluate((el) => { el.scrollTop = 0 })
     const beforeTop = await main.evaluate((el) => el.scrollTop)
     // Scroll the main area by a large amount
-    await main.evaluate((el) => { el.scrollTop = 2000 })
+    await main.evaluate((el) => { el.scrollTop = 200 })
     const afterTop = await main.evaluate((el) => el.scrollTop)
     expect(afterTop).toBeGreaterThan(beforeTop)
 

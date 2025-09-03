@@ -4,6 +4,8 @@ export interface RenderEnv {
   zoom: number;
   pixelRatio: number;
   size: { w: number; h: number };
+  paperRect: { x: number; y: number; w: number; h: number };
+  camera: { x: number; y: number; zoom: number };
 }
 
 export interface LayerAdapter<State = unknown> {
