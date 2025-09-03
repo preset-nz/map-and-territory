@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '@/stores/project';
 import { getLayerType } from '@/layers/registry';
 import type { RenderEnv } from '@/layers/types';
+import { shallow } from 'zustand/shallow';
 
 function parseAspect(aspect: 'square' | '4:3' | '16:10'): { aw: number; ah: number } {
   switch (aspect) {
@@ -18,29 +19,41 @@ function parseAspect(aspect: 'square' | '4:3' | '16:10'): { aw: number; ah: numb
 }
 
 export const CanvasViewport: React.FC = () => {
-  const project = useProjectStore((s) => s.current);
-  const active = useMemo(() => {
-    if (!project) return null;
-    return project.maps.find((m) => m.id === project.activeMapId) ?? null;
-  }, [project]);
+  // Select minimal store state without constructing new objects to keep SSR snapshot stable
+  const current = useProjectStore((s) => s.current);
+  const activeId = current?.activeMapId ?? null;
+  const maps = current?.maps ?? [];
+
+  const active = useMemo(() => (activeId ? maps.find((m) => m.id === activeId) ?? null : null), [activeId, maps]);
+  const aspect = active?.paper?.aspect ?? '16:10';
+  const paperColor = active?.paper?.color ?? '#ffffff';
+  const layers = active?.layers ?? [];
+  const layersKey = useMemo(() => layers.map((l) => {
+    if (l.type === 'hexgrid') {
+      const st = l.state as any;
+      return `hx:${l.visible?'1':'0'}:${st.size}:${st.rotation}:${st.color}:${st.alpha ?? 0.2}`;
+    }
+    return `${l.type}:${l.visible?'1':'0'}`;
+  }).join('|'), [layers]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  const lastCanvasDimsRef = useRef<{ dpr: number; w: number; h: number }>({ dpr: 0, w: 0, h: 0 });
 
-  // Resize observer
+  // Window resize (avoid continuous ResizeObserver churn on portal animations)
   useEffect(() => {
     const el = containerRef.current; if (!el) return;
-    const obs = new ResizeObserver((entries) => {
-      for (const e of entries) {
-        const cr = e.contentRect;
-        const nw = Math.floor(cr.width);
-        const nh = Math.floor(cr.height);
-        setSize((prev) => (prev.w === nw && prev.h === nh ? prev : { w: nw, h: nh }));
-      }
-    });
-    obs.observe(el);
-    return () => obs.disconnect();
+    const compute = () => {
+      const rect = el.getBoundingClientRect();
+      const nw = Math.floor(rect.width);
+      const nh = Math.floor(rect.height);
+      setSize((prev) => (prev.w === nw && prev.h === nh ? prev : { w: nw, h: nh }));
+    };
+    compute();
+    const onResize = () => requestAnimationFrame(compute);
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   // Draw
@@ -54,28 +67,36 @@ export const CanvasViewport: React.FC = () => {
       const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
       const cw = Math.max(1, size.w);
       const ch = Math.max(1, size.h);
-      canvas.style.width = `${cw}px`;
-      canvas.style.height = `${ch}px`;
-      canvas.width = Math.floor(cw * dpr);
-      canvas.height = Math.floor(ch * dpr);
+      // Only touch canvas bitmap when dimensions actually change
+      const last = lastCanvasDimsRef.current;
+      if (last.dpr !== dpr || last.w !== cw || last.h !== ch) {
+        canvas.style.width = `${cw}px`;
+        canvas.style.height = `${ch}px`;
+        canvas.width = Math.floor(cw * dpr);
+        canvas.height = Math.floor(ch * dpr);
+        lastCanvasDimsRef.current = { dpr, w: cw, h: ch };
+      }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       // Clear
       ctx.clearRect(0, 0, cw, ch);
 
-      // Compute paper rect (90% width, top-aligned)
-      const paddingX = cw * 0.05;
-      const availableW = cw * 0.9;
-      const { aw, ah } = parseAspect(active?.paper?.aspect ?? '16:10');
-      const paperW = availableW;
-      const paperH = (paperW * ah) / aw;
-      const paperX = paddingX;
-      const paperY = 16; // small top padding
+      // Compute paper rect to fit within container (top-aligned, centered horizontally)
+      const paddingX = Math.max(12, cw * 0.05);
+      const paddingY = 12;
+      const availableW = cw - paddingX * 2;
+      const availableH = ch - paddingY * 2;
+      const { aw, ah } = parseAspect(aspect as any);
+      const scale = Math.min(availableW / aw, availableH / ah);
+      const paperW = aw * scale;
+      const paperH = ah * scale;
+      const paperX = paddingX + Math.max(0, (availableW - paperW) / 2);
+      const paperY = paddingY; // top-aligned
 
       // Paper fill (screen space)
-      const paperColor = active?.paper?.color ?? '#ffffff';
+      const color = paperColor;
       ctx.save();
-      ctx.fillStyle = paperColor;
+      ctx.fillStyle = color;
       ctx.fillRect(paperX, paperY, paperW, paperH);
       ctx.restore();
 
@@ -96,9 +117,9 @@ export const CanvasViewport: React.FC = () => {
       };
 
       // Draw non-paper layers
-      if (active?.layers) {
-        for (const l of active.layers) {
-          if (!l.visible || l.type === 'paper' || l.type === 'hexgrid') continue; // temporarily disable hexgrid draw for INP diagnostics
+      if (layers && layers.length) {
+        for (const l of layers as any[]) {
+          if (!l.visible || l.type === 'paper') continue;
           const def = getLayerType(l.type);
           def?.adapter.drawMain?.(ctx, l.state, env);
         }
@@ -107,18 +128,16 @@ export const CanvasViewport: React.FC = () => {
       ctx.restore();
     });
     return () => cancelAnimationFrame(raf);
-  }, [project, active, size.w, size.h]);
+  }, [aspect, paperColor, layersKey, size.w, size.h]);
 
   return (
-    <div className="h-full w-full overflow-auto">
-      <div className="pt-6 px-6 pb-24" ref={containerRef}>
-        {!project || !active ? (
+    <div className="h-full w-full overflow-hidden">
+      <div className="pt-4 px-6" ref={containerRef}>
+        {!active ? (
           <div className="p-8 text-sm text-muted-foreground">No active map.</div>
         ) : (
-          <canvas ref={canvasRef} className="w-full h-[60vh] border rounded-md shadow-sm" />
+          <canvas ref={canvasRef} className="w-full h-full" />
         )}
-        {/* Small spacer to maintain scrollability without heavy paint */}
-        <div className="h-64" aria-hidden="true" />
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
 import { getLayerPolicy, getLayerType, registerLayerType } from '@/layers/registry';
 import { PaperType } from '@/layers/adapters/paper';
 import { HexgridType } from '@/layers/adapters/hexgrid';
@@ -59,9 +58,7 @@ function uuid(): string {
 }
 
 export const useProjectStore = create<ProjectStoreState>()(
-  devtools(
-    persist(
-      (set, get) => ({
+  (set, get) => ({
         current: null,
         createEmpty: (params) => {
           const name = (params?.name ?? 'Untitled Campaign').trim() || 'Untitled Campaign';
@@ -229,11 +226,5 @@ export const useProjectStore = create<ProjectStoreState>()(
           const map = cur.maps.find((m) => m.id === cur.activeMapId); if (!map) return;
           set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, name } : l)) } : m)) } });
         },
-      }),
-      {
-        name: 'map-territory-project',
-        partialize: (state) => ({ current: state.current }),
-      }
-    )
-  )
+      })
 );
