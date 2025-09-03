@@ -121,3 +121,62 @@ interface PresetSummary { id: string; name: string; updatedAt: number; scope: 'u
 - Where to show a current preset indicator (badge vs. tooltip) without adding clutter?
 - How to reconcile presets when multiple nodes are selected with mixed types (likely: filter to intersection, or per-type sections)?
 - Do we want per-tool presets available directly in tool palettes (likely yes, as a follow-up)?
+
+---
+
+## Manage Presets — Short UI Spec (MVP)
+
+### Entry Points
+- Properties panel menu: “Manage Presets…”
+- Optional global settings menu: “Presets”
+
+### Layout
+- Modal dialog (Radix Dialog) sized ~640×520.
+- Header: title “Manage Presets”, scope tabs, node type filter.
+- Body: two-column layout
+  - Left: Preset List (virtualized list)
+  - Right: Details Pane (preview + metadata)
+- Footer: primary actions (Apply, Close), secondary (Export, Import)
+
+### Controls
+- Scope Tabs: [User] [Campaign]
+- Node Type Filter: dropdown (e.g., All types, Map, layer:paper, layer:hexgrid…)
+- Search: text filter by name/tags (debounced)
+- List Items: name, nodeType badge, updatedAt, scope icon; star for Favorite
+- Selection: single selection (MVP)
+
+### Actions
+- Apply (enabled when compatible with current selection)
+- Rename (inline on list or in details)
+- Delete (with confirm)
+- Duplicate (creates copy with “Copy” suffix)
+- Export (selected → JSON)
+- Import (file → adds to current scope if compatible)
+- Favorite toggle (pins to top in Apply menu)
+
+### Details Pane
+- Fields: Name (editable), Node Type (readonly), Updated, Scope
+- Payload Preview: collapsible JSON view (read-only)
+- Compatibility: shows “Compatible with current selection” or reason why not
+
+### Empty States & Errors
+- No presets: invite to “Save as Preset” from properties menu
+- Import error: show validation errors (unknown nodeType, schema mismatch)
+- Compatibility warning: disable Apply and show reason
+
+### Keyboard & A11y
+- Arrow up/down to navigate list; Enter to Apply
+- Esc closes dialog; focus management returns to invoker
+- Screen-reader labels for list items and actions; role=listbox semantics
+
+### Persistence
+- Favorite flag stored alongside preset metadata
+- Last used filters (scope, type, search) remembered in local storage
+
+### Performance
+- Virtualize list for large collections
+- Lazy load by nodeType; previews load on selection
+
+### Non-Goals (MVP)
+- Bulk selection/actions
+- Partial preset editor UI (follow-up)
