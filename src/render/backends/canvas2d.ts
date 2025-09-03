@@ -65,9 +65,12 @@ export class Canvas2DBackend implements RenderBackend {
   render(frame: SceneFrame) {
     const ctx = this.ctx; if (!ctx) return;
     const { w: cw, h: ch } = frame.size;
-    // Reset transform for pixelRatio; draw in CSS px units
-    ctx.setTransform(frame.pixelRatio || 1, 0, 0, frame.pixelRatio || 1, 0, 0);
-    ctx.clearRect(0, 0, cw, ch);
+    const dpr = frame.pixelRatio || 1;
+    // Clear in device pixels with identity transform
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, Math.floor(cw * dpr), Math.floor(ch * dpr));
+    // Now draw in CSS pixels by applying dpr transform
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Compute paperRect: fill width with left/right/top spacing, top-aligned; ensure it fits height
     const paddingX = Math.max(12, cw * 0.05);
@@ -84,14 +87,10 @@ export class Canvas2DBackend implements RenderBackend {
     const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
     const paperY = paddingY; // top-aligned
 
-    // Draw paper (screen space)
+    // Draw paper fill (screen space)
     ctx.save();
     ctx.fillStyle = frame.paper.color || '#ffffff';
     ctx.fillRect(paperX, paperY, paperW, paperH);
-    // Outline for emphasis
-    ctx.strokeStyle = 'rgba(100,116,139,0.8)'; // slate-500
-    ctx.lineWidth = 2 / (frame.pixelRatio || 1);
-    ctx.strokeRect(paperX + ctx.lineWidth / 2, paperY + ctx.lineWidth / 2, paperW - ctx.lineWidth, paperH - ctx.lineWidth);
     ctx.restore();
 
     // Clip to paper
@@ -145,6 +144,14 @@ export class Canvas2DBackend implements RenderBackend {
         ctx.restore();
       }
     }
+
+    // Draw outline on top for emphasis
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3 / dpr; // ~3px in CSS pixels
+    ctx.strokeRect(paperX + ctx.lineWidth / 2, paperY + ctx.lineWidth / 2, paperW - ctx.lineWidth, paperH - ctx.lineWidth);
+    ctx.restore();
 
     ctx.restore();
   }

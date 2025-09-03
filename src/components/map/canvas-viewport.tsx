@@ -177,6 +177,19 @@ export const CanvasViewport: React.FC = () => {
         }
       }
       ctx.restore();
+
+      // Draw paper outline on top (outside clip)
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3 / dpr;
+      ctx.strokeRect(
+        paperX + ctx.lineWidth / 2,
+        paperY + ctx.lineWidth / 2,
+        paperW - ctx.lineWidth,
+        paperH - ctx.lineWidth
+      );
+      ctx.restore();
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);

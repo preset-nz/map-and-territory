@@ -120,16 +120,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   >
                     <span className="text-sm">{m.name}</span>
                   </button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    aria-label={m.visible ? 'Hide Map' : 'Show Map'}
-                    title={m.visible ? 'Hide Map' : 'Show Map'}
-                    onClick={() => setMapVisibility(m.id, !m.visible)}
-                  >
-                    {m.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  </Button>
+                  {/* Map-level visibility toggle removed (only one map visible at a time) */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -144,7 +135,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 {project.activeMapId === m.id && (
                   <div className="ml-2 mt-1 space-y-1">
                     <div className="text-xs text-muted-foreground px-2">Layers</div>
-                    {(m.layers ?? []).map((l) => (
+                    {(() => {
+                      const order = (t: string) => (t === 'hexgrid' ? 0 : t === 'paper' ? 2 : 1);
+                      const layers = [...(m.layers ?? [])].sort((a, b) => order(a.type) - order(b.type));
+                      return layers.map((l) => (
                       <div key={l.id} className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50">
                         <div className="flex-1 truncate text-sm">{l.name ?? l.type}</div>
                         {l.type !== 'paper' && (
@@ -184,7 +178,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                           </>
                         )}
                       </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 )}
               </div>
