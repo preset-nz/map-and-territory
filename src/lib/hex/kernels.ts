@@ -50,8 +50,10 @@ export function line(a: Axial, b: Axial): Axial[] {
     if (xDiff > yDiff && xDiff > zDiff) fx = -fy - fz;
     else if (yDiff > zDiff) fy = -fx - fz;
     else fz = -fx - fy;
-    results.push({ q: fx, r: fz });
+    // normalize -0 to 0 for stable equality semantics
+    const q = fx === 0 ? 0 : fx;
+    const r = fz === 0 ? 0 : fz;
+    results.push({ q, r });
   }
   return results;
 }
-
