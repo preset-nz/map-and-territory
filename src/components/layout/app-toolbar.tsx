@@ -20,6 +20,7 @@ import { getToolbarContributions } from '@/plugin/loader';
 // Creative tool icons
 import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose } from 'lucide-react';
 import { resolveIcon } from '@/lib/icon-resolver';
+import { useProjectStore } from '@/stores/project';
 
 // Dynamic toolbar contributions are rendered from the plugin loader
 
@@ -116,6 +117,10 @@ export const AppToolbar: React.FC = () => {
                   {items.map((item, idx) => {
                     const aria = item.label || item.command;
                     const Icon = resolveIcon(item.icon);
+                    const project = useProjectStore.getState().current;
+                    const hasMapAndSelected = !!(project && project.activeMapId);
+                    const isHexNoiseAdd = item.command === 'layer.hexnoise.add';
+                    const disabled = isHexNoiseAdd ? !hasMapAndSelected : false;
                     return (
                       <Button
                         key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
@@ -123,6 +128,7 @@ export const AppToolbar: React.FC = () => {
                         size="sm"
                         className="h-8 w-8 p-0"
                         aria-label={aria}
+                        disabled={disabled}
                         onClick={() => executeCommand(item.command).catch(console.error)}
                       >
                         <Icon className="h-4 w-4" />

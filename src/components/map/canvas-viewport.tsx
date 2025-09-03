@@ -9,6 +9,7 @@ import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
 import { useLayoutStore } from '@/stores/layout';
 import { fromPoint as hexFromPoint } from '@/lib/hex';
+import { createPerlinNoise } from '@/lib/noise';
 
 function parseAspect(aspect: 'square' | '4:3' | '16:10'): { aw: number; ah: number } {
   switch (aspect) {
@@ -152,10 +153,73 @@ export const CanvasViewport: React.FC = () => {
       ctx.fillStyle = paperColor;
       ctx.fillRect(paperX, paperY, paperW, paperH);
       ctx.restore();
-      // Clip & draw hexgrid fast pattern
+      // Clip & draw layers (hex noise, then hexgrid)
       ctx.save();
       ctx.beginPath(); ctx.rect(paperX, paperY, paperW, paperH); ctx.clip();
       ctx.translate(paperX, paperY);
+      // Hex Noise layer (draw before grid if present)
+      const noiseLayer = layers.find((l: any) => l.type === 'hexnoise' && l.visible) as any;
+      if (noiseLayer) {
+        const gridLayer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
+        const st = noiseLayer.state || {};
+        const orientation = (gridLayer?.state?.orientation) === 'flat' ? 'flat' : 'pointy';
+        const r = Math.max(4, gridLayer?.state?.size || 16);
+        const sqrt3 = Math.sqrt(3);
+        const perlin = createPerlinNoise(st.seed ?? 'seed');
+        const freq = Number(st.frequency ?? 0.15);
+        const ox = Number(st.offsetX ?? 0);
+        const oy = Number(st.offsetY ?? 0);
+        const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
+        const drawHexFill = (cx: number, cy: number, startAngle: number, aq: number, ar: number) => {
+          const v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
+          const g = Math.floor(v * 255 * intensity);
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const ang = startAngle + i * (Math.PI / 3);
+            const px = cx + Math.cos(ang) * r;
+            const py = cy + Math.sin(ang) * r;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fillStyle = `rgb(${g},${g},${g})`;
+          ctx.fill();
+        };
+        if (orientation === 'flat') {
+          const colStep = 1.5 * r;
+          const rowStep = sqrt3 * r;
+          const cols = Math.ceil(paperW / colStep) + 2;
+          const rows = Math.ceil(paperH / rowStep) + 2;
+          const centerX = paperW / 2;
+          const centerY = paperH / 2;
+          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+          for (let c = cmin; c <= cmax; c++) {
+            const yOffset = (c & 1) ? (rowStep / 2) : 0;
+            for (let ri = rmin; ri <= rmax; ri++) {
+              const x = c * colStep + centerX;
+              const y = ri * rowStep + yOffset + centerY;
+              drawHexFill(x, y, 0, c, ri);
+            }
+          }
+        } else {
+          const colStep = sqrt3 * r;
+          const rowStep = 1.5 * r;
+          const cols = Math.ceil(paperW / colStep) + 2;
+          const rows = Math.ceil(paperH / rowStep) + 2;
+          const centerX = paperW / 2;
+          const centerY = paperH / 2;
+          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+          for (let ri = rmin; ri <= rmax; ri++) {
+            const xOffset = (ri & 1) ? (colStep / 2) : 0;
+            for (let c = cmin; c <= cmax; c++) {
+              const x = c * colStep + xOffset + centerX;
+              const y = ri * rowStep + centerY;
+              drawHexFill(x, y, -Math.PI / 6, c, ri);
+            }
+          }
+        }
+      }
       const layer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
       if (layer) {
         const st = layer.state || {};

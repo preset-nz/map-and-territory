@@ -1,4 +1,5 @@
 import type { RenderBackend, SceneFrame } from '@/render/types';
+import { createPerlinNoise } from '@/lib/noise';
 
 function parseAspect(aspect: 'square' | '4:3' | '16:10'): { aw: number; ah: number } {
   switch (aspect) {
@@ -108,7 +109,71 @@ export class Canvas2DBackend implements RenderBackend {
     const grid = frame.layers.find((l) => l.visible && l.type === 'hexgrid');
     for (const l of nonGrid) {
       if (!l.visible || l.type === 'paper') continue;
-      // Other layer types can be added here or drawn via future adapter bridge
+      if (l.type === 'hexnoise') {
+        const st = l.state as any;
+        const grid = frame.layers.find((x) => x.visible && x.type === 'hexgrid');
+        const orientation = (grid?.state as any)?.orientation === 'flat' ? 'flat' : 'pointy';
+        const r = Math.max(4, (grid?.state as any)?.size || 16);
+        const sqrt3 = Math.sqrt(3);
+        // set up noise
+        const perlin = createPerlinNoise(st.seed ?? 'seed');
+        const freq = Number(st.frequency ?? 0.15);
+        const ox = Number(st.offsetX ?? 0);
+        const oy = Number(st.offsetY ?? 0);
+        const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
+        const drawHex = (cx: number, cy: number, startAngle: number, q: number, rax: number) => {
+          const v = perlin.normalized2D(q * freq + ox, rax * freq + oy);
+          const g = Math.floor(v * 255 * intensity);
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const ang = startAngle + i * (Math.PI / 3);
+            const px = cx + Math.cos(ang) * r;
+            const py = cy + Math.sin(ang) * r;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fillStyle = `rgb(${g},${g},${g})`;
+          ctx.fill();
+        };
+        if (orientation === 'flat') {
+          const colStep = 1.5 * r;
+          const rowStep = sqrt3 * r;
+          const cols = Math.ceil(paperW / colStep) + 2;
+          const rows = Math.ceil(paperH / rowStep) + 2;
+          const centerX = paperW / 2;
+          const centerY = paperH / 2;
+          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+          for (let c = cmin; c <= cmax; c++) {
+            const yOffset = (c & 1) ? (rowStep / 2) : 0;
+            for (let ri = rmin; ri <= rmax; ri++) {
+              const x = c * colStep + centerX;
+              const y = ri * rowStep + yOffset + centerY;
+              const q = c; const rax = ri; // axial indices aligned to tiling
+              drawHex(x, y, 0, q, rax);
+            }
+          }
+        } else {
+          const colStep = sqrt3 * r;
+          const rowStep = 1.5 * r;
+          const cols = Math.ceil(paperW / colStep) + 2;
+          const rows = Math.ceil(paperH / rowStep) + 2;
+          const centerX = paperW / 2;
+          const centerY = paperH / 2;
+          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+          for (let ri = rmin; ri <= rmax; ri++) {
+            const xOffset = (ri & 1) ? (colStep / 2) : 0;
+            for (let c = cmin; c <= cmax; c++) {
+              const x = c * colStep + xOffset + centerX;
+              const y = ri * rowStep + centerY;
+              // For pointy layout, axial mapping differs; approximate with r=ri, q=c
+              const q = c; const rax = ri;
+              drawHex(x, y, -Math.PI / 6, q, rax);
+            }
+          }
+        }
+      }
     }
     if (grid) {
       const st = grid.state as any;
