@@ -136,9 +136,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   <div className="ml-2 mt-1 space-y-1">
                     <div className="text-xs text-muted-foreground px-2">Layers</div>
                     {(() => {
-                      const order = (t: string) => (t === 'hexgrid' ? 0 : t === 'paper' ? 2 : 1);
-                      const layers = [...(m.layers ?? [])].sort((a, b) => order(a.type) - order(b.type));
-                      return layers.map((l) => (
+                      const layersArr = m.layers ?? [];
+                      const hex = layersArr.find((l) => l.type === 'hexgrid');
+                      const paper = layersArr.find((l) => l.type === 'paper');
+                      const others = layersArr.filter((l) => l.type !== 'hexgrid' && l.type !== 'paper');
+                      const ordered = [hex, ...others, paper].filter(Boolean) as typeof layersArr;
+                      return ordered.map((l) => (
                       <div key={l.id} className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50">
                         <button
                           className="flex-1 text-left truncate"
