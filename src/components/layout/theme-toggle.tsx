@@ -12,7 +12,7 @@
  * - Smooth transitions and visual feedback
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -251,6 +251,17 @@ export const SimpleThemeToggle: React.FC<{
 }> = ({ className, size = 'md' }) => {
   const theme = useLayoutStore((state) => state.theme);
   const setTheme = useLayoutStore((state) => state.setTheme);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Apply theme to document when theme changes (and after mount to avoid SSR mismatch)
+  useEffect(() => {
+    if (!mounted) return;
+    applyTheme(theme);
+  }, [theme, mounted]);
 
   // Toggle between light and dark (ignore system)
   const toggleTheme = () => {
@@ -259,8 +270,8 @@ export const SimpleThemeToggle: React.FC<{
   };
 
   // Get current resolved theme for icon
-  const resolvedTheme = theme === 'system' ? getSystemTheme() : theme;
-  const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon;
+  const resolvedTheme = theme === 'system' ? (mounted ? getSystemTheme() : 'light') : theme;
+  const ThemeIcon = mounted ? (resolvedTheme === 'dark' ? Sun : Moon) : Monitor;
 
   return (
     <Button
@@ -272,7 +283,7 @@ export const SimpleThemeToggle: React.FC<{
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className
       )}
-      aria-label={`Switch to ${resolvedTheme === 'light' ? 'dark' : 'light'} theme`}
+      aria-label={mounted ? `Switch to ${resolvedTheme === 'light' ? 'dark' : 'light'} theme` : 'Toggle theme'}
     >
       <ThemeIcon className="h-4 w-4" />
     </Button>

@@ -45,7 +45,7 @@ export interface PreferencesActions {
  * Default preferences values
  */
 export const DEFAULT_PREFERENCES: LayoutPreferences = {
-  theme: 'system',
+  theme: 'dark',
   sidebarWidth: 280,
   persistCollapsed: true,
 } as const;

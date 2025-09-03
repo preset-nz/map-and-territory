@@ -68,10 +68,15 @@ T-008 [S] Layer Reorder + Rename
 - Links: src/stores/project/index.ts, src/components/layout/app-sidebar.tsx
 - Acceptance: Users can reorder and rename; tests ensure correct persistence and rendering order.
 
-T-009 [S] Theming Audit + Dark Mode Toggle
-- Goal: Run audit, fix token/contrast issues, expose toggle in header.
-- Links: theming_audit_checklist.md, src/components/layout/app-header.tsx
-- Acceptance: Checklist complete; all views readable in dark and light; toggle persists preference.
+T-009a [S] Dark Mode Toggle — Status: Done
+- Goal: Expose a visible toggle in the header; persist via layout store.
+- Links: src/components/layout/app-header.tsx, src/components/layout/theme-toggle.tsx
+- Acceptance: Toggle switches light/dark instantly; persists across reloads.
+
+T-009b [S] Theming Audit
+- Goal: Run checklist, fix token/contrast issues; verify components.
+- Links: theming_audit_checklist.md
+- Acceptance: Checklist complete; all views readable in dark and light; tokens updated.
 
 T-010 [S] Camera Zoom/Pan
 - Goal: Add camera state with zoom/pan; integrate into renderers and pointer→hex.

@@ -2,7 +2,7 @@
 
 - Layering model: make stacking intuitive and consistent across sidebar, renderers, and insertion/duplication. Decide canonical order (array order vs. fixed sentinels), fix insertion semantics, and add tests + UI indicators (e.g., z-order badges/arrows).
 - Theming audit: run `guidance/process/theming_audit_checklist.md` and address findings (tokens, contrast, states, dark-mode gaps).
-- Dark mode toggle: expose a visible toggle in header; wire to `useLayoutStore().theme` and verify all views in dark.
+- Dark mode toggle: expose a visible toggle in header; wire to `useLayoutStore().theme` and verify all views in dark. (Done)
 - Plugin toolbar: remove any hardcoded tool buttons; ensure the toolbar is fully contribution-driven (commands + groups + order), with disabled tooltips and capability gating.
 - Terrain colors injection: remove hardcoded colors from renderers; source from a map “setting”/palette or theme tokens. Provide a small API/context for layers to read current palette.
 - Layer rename: enable inline renaming in the scene panel (store already supports `renameLayer`).

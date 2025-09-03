@@ -33,6 +33,7 @@ import { useLayoutStore } from '@/stores/layout';
 import { useAuth } from '@/components/providers/auth-provider';
 import { AppHeaderProps } from '@/types/layout';
 import { useProjectStore } from '@/stores/project';
+import { SimpleThemeToggle } from '@/components/layout/theme-toggle';
 
 // ============================================================================
 // Navigation Configuration
@@ -159,6 +160,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right section: User controls */}
         <div className="flex items-center justify-end space-x-2">
+          <SimpleThemeToggle />
           {renderUserDropdown()}
         </div>
       </div>
