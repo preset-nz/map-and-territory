@@ -123,17 +123,27 @@ export const AppToolbar: React.FC = () => {
                     const isHexNoiseAdd = item.command === 'layer.hexnoise.add';
                     const disabled = isHexNoiseAdd ? !hasMapAndSelected : false;
                     return (
-                      <Button
-                        key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        aria-label={aria}
-                        disabled={disabled}
-                        onClick={() => executeCommand(item.command).catch(console.error)}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </Button>
+                      <Tooltip key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            aria-label={aria}
+                            disabled={disabled}
+                            onClick={() => executeCommand(item.command).catch(console.error)}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          {disabled && isHexNoiseAdd ? (
+                            <span>Select a map to add a layer</span>
+                          ) : (
+                            <span>{item.label || item.command}</span>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
                     );
                   })}
                   {gi < groups.length - 1 && (

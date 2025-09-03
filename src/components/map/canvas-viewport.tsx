@@ -36,19 +36,9 @@ export const CanvasViewport: React.FC = () => {
   const paperColor = (paperLayer?.state as any)?.color ?? active?.paper?.color ?? '#ffffff';
   const layers = active?.layers ?? [];
   const layersKey = useMemo(() => layers.map((l) => {
-    if (l.type === 'hexgrid') {
-      const st = l.state as any;
-      return `hx:${l.visible ? '1' : '0'}:${st.size}:${st.orientation}:${st.color}:${st.alpha ?? 1}:${st.lineWidth ?? 1}`;
-    }
-    if (l.type === 'hexnoise') {
-      const st = l.state as any;
-      return `hxnoise:${l.visible ? '1' : '0'}:${st.seed ?? ''}:${st.frequency ?? ''}:${st.offsetX ?? ''}:${st.offsetY ?? ''}:${st.intensity ?? ''}`;
-    }
-    if (l.type === 'paper') {
-      const st = l.state as any;
-      return `paper:${st.aspect}:${st.color}`;
-    }
-    return `${l.type}:${l.visible ? '1' : '0'}`;
+    const t = getLayerType(l.type as any);
+    const key = t?.adapter?.getInvalidationKey?.(l.state) ?? JSON.stringify(l.state ?? {});
+    return `${l.type}:${l.visible ? '1' : '0'}:${key}`;
   }).join('|'), [layers]);
 
   const containerRef = useRef<HTMLDivElement>(null);

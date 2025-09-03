@@ -123,6 +123,10 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
     }
     ctx.restore();
   },
+  getInvalidationKey(state) {
+    const s = state;
+    return `hexgrid:${s.size}:${s.orientation}:${s.color}:${s.alpha ?? 1}:${s.lineWidth ?? 1}`;
+  },
 };
 
 export const HexgridType = {

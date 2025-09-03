@@ -14,6 +14,9 @@ export interface HexNoiseState {
 export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
   title: 'Hex Noise',
   // Note: main renderers draw this layer explicitly; adapter kept for parity/future bridge
+  getInvalidationKey(state) {
+    return `hexnoise:${state.seed ?? ''}:${state.frequency ?? ''}:${state.offsetX ?? ''}:${state.offsetY ?? ''}:${state.intensity ?? ''}`;
+  },
 };
 
 export const HexNoiseType = {
@@ -43,4 +46,3 @@ registerPropertySchema('layer:hexnoise', {
     },
   ],
 });
-

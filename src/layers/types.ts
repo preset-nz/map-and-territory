@@ -16,6 +16,8 @@ export interface LayerAdapter<State = unknown> {
   drawSceneView?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
   // Optional hit testing for selection tools
   hitTest?: (pt: { x: number; y: number }, state: State, env: RenderEnv) => boolean;
+  // Optional invalidation key — used by host to detect visual-impacting changes
+  getInvalidationKey?: (state: State) => string;
   // Optional (de)serialization
   serialize?: (state: State) => unknown;
   deserialize?: (raw: unknown) => State;

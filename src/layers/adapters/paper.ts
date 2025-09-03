@@ -15,6 +15,9 @@ export const PaperAdapter: LayerAdapter<PaperState> = {
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
   },
+  getInvalidationKey(state) {
+    return `paper:${state.aspect}:${state.color}`;
+  },
 };
 
 export const PaperType = {
