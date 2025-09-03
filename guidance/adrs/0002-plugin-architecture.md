@@ -27,6 +27,9 @@ deciders: Core Orchestrator, Plugin Architect, Security Lead, UI Lead
 4) Stable App API Surface
 - Narrow, versioned `AppAPI` exposed to plugins; selector-oriented and independent from internal store shape.
 
+AppAPI Utilities (initial):
+- `util.newId(): string` — returns a UUIDv7 string. Single source of truth for IDs across core and plugins. See `guidance/reference/new_id_helper.md` and ADR-0012.
+
 5) Progressive Isolation
 - MVP: in-process ESM module loading with Content Security Policy restricting remote code.
 - Phase 2: optional Worker-based isolation with a proxied `AppAPI` across `postMessage`.
@@ -58,4 +61,3 @@ deciders: Core Orchestrator, Plugin Architect, Security Lead, UI Lead
 
 - Define a minimal plugin authoring guide and examples in `docs/plugins/` after MVP.
 - Evaluate Worker isolation performance impacts on rendering-heavy plugins.
-
