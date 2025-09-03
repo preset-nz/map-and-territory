@@ -140,7 +140,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                       const layers = [...(m.layers ?? [])].sort((a, b) => order(a.type) - order(b.type));
                       return layers.map((l) => (
                       <div key={l.id} className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50">
-                        <div className="flex-1 truncate text-sm">{l.name ?? l.type}</div>
+                        <button
+                          className="flex-1 text-left truncate"
+                          onClick={() => useSelectionStore.getState().selectLayer(l.id)}
+                        >
+                          <span className="text-sm">{l.name ?? l.type}</span>
+                        </button>
                         {l.type !== 'paper' && (
                           <Button
                             variant="ghost"

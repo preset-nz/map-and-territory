@@ -2,6 +2,7 @@ import type { LayerAdapter } from '@/layers/types';
 
 export interface PaperState {
   color: string; // hex
+  aspect: 'square' | '4:3' | '16:10';
 }
 
 export const PaperAdapter: LayerAdapter<PaperState> = {
@@ -18,7 +19,7 @@ export const PaperAdapter: LayerAdapter<PaperState> = {
 export const PaperType = {
   id: 'paper',
   title: 'Paper',
-  defaultState: { color: '#ffffff' },
+  defaultState: { color: '#ffffff', aspect: '16:10' },
   adapter: PaperAdapter,
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;

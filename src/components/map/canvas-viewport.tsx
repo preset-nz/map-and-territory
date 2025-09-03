@@ -27,8 +27,10 @@ export const CanvasViewport: React.FC = () => {
   const maps = current?.maps ?? [];
 
   const active = useMemo(() => (activeId ? maps.find((m) => m.id === activeId) ?? null : null), [activeId, maps]);
-  const aspect = active?.paper?.aspect ?? '16:10';
-  const paperColor = active?.paper?.color ?? '#ffffff';
+  // Derive paper aspect/color from Paper layer state if present; fallback to map.paper
+  const paperLayer = useMemo(() => (active ? (active.layers ?? []).find((l) => l.type === 'paper') ?? null : null), [active]);
+  const aspect = (paperLayer?.state as any)?.aspect ?? active?.paper?.aspect ?? '16:10';
+  const paperColor = (paperLayer?.state as any)?.color ?? active?.paper?.color ?? '#ffffff';
   const layers = active?.layers ?? [];
   const layersKey = useMemo(() => layers.map((l) => {
     if (l.type === 'hexgrid') {

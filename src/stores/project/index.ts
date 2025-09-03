@@ -43,6 +43,7 @@ interface ProjectStoreState {
   moveLayer: (layerId: string, toIndex: number) => void;
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   renameLayer: (layerId: string, name: string) => void;
+  updateLayerState: (layerId: string, patch: any) => void;
 }
 
 function uuid(): string {
@@ -225,6 +226,11 @@ export const useProjectStore = create<ProjectStoreState>()(
           const cur = get().current; if (!cur) return;
           const map = cur.maps.find((m) => m.id === cur.activeMapId); if (!map) return;
           set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, name } : l)) } : m)) } });
+        },
+        updateLayerState: (layerId, patch) => {
+          const cur = get().current; if (!cur) return;
+          const map = cur.maps.find((m) => m.id === cur.activeMapId); if (!map) return;
+          set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, state: { ...(l.state as any), ...(patch as any) } } : l)) } : m)) } });
         },
       })
 );

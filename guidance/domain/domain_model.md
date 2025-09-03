@@ -9,10 +9,11 @@ Purpose: establish a clear, testable domain model that drives state, persistence
 
 ### Campaign
 - Fields
-  - `id: string` — stable UUID
+  - `id: string` — UUIDv7
   - `version: number` — schema version for migrations
   - `name: string`
   - `description?: string`
+  - `notes?: string` — freeform, multi-line user notes
   - `maps: Map[]`
   - `activeMapId: string | null`
 - Invariants
@@ -24,6 +25,7 @@ Purpose: establish a clear, testable domain model that drives state, persistence
   - `id: string`
   - `name: string`
   - `description?: string`
+  - `notes?: string` — freeform, multi-line map notes
   - `visible: boolean` — included in editors/navigation; not a render toggle for individual views
   - `paper: { aspect: 'square' | '4:3' | '16:10'; color: string }` — paper/aspect metadata
   - `layers: Layer[]` — ordered top‑to‑bottom
@@ -36,6 +38,8 @@ Purpose: establish a clear, testable domain model that drives state, persistence
   - `id: string`
   - `type: string` — references a registered layer type (plugin registry)
   - `name?: string`
+  - `description?: string`
+  - `notes?: string` — freeform, multi-line; e.g., how this layer is used
   - `visible: boolean`
   - `opacity?: number` — default 1.0; [0..1]
   - `blendMode?: BlendMode` — default `normal`
@@ -82,6 +86,9 @@ interface LayerDefinition<State> {
   - patchState(patch)
 - Invariants enforced by layer policy (e.g., Paper maxInstances=1)
 
+Notes
+- Add `setNotes(entityRef, text)` for Campaign, Map, and Layer. Properties Panel should surface a read/write Notes field for the selected entity.
+
 ## Events & Diffs (for rendering adapters)
 - Events emitted after domain mutations; adapters consume and translate to render ops.
 ```ts
@@ -124,6 +131,43 @@ interface LayerDefinition<State> {
 - Define a normalized chunk model for tile layers to support partial updates and culling.
 - Introduce BlendMode enum that maps to CSS/Canvas/Pixi backends consistently.
 - Formalize a path‑based patching API (`patch(layerId, path, value)`).
+
+## Core Layer Types (Built‑in)
+
+Establish Paper and Hex Grid as first‑class layer types in the domain and registry. Their states are serializable and validated.
+
+### Paper Layer
+- Type ID: `layer:paper`
+- Policy: `{ canDelete: true, canDuplicate: true, maxInstances: 1 }`
+- Default placement: bottom of stack on new Map
+- State (example)
+```ts
+interface PaperState {
+  aspect: 'square' | '4:3' | '16:10';
+  color: string;          // hex color token
+  texture?: string;       // optional texture id (SVG/pattern)
+  intensity?: number;     // 0..1 blend strength
+  grain?: number;         // 0..1 amount of paper grain
+}
+```
+
+### Hex Grid Layer
+- Type ID: `layer:hexgrid`
+- Policy: `{ canDelete: true, canDuplicate: true }`
+- State (example)
+```ts
+interface HexGridState {
+  size: number;               // hex size in px or map-units
+  orientation: 'pointy' | 'flat';
+  color: string;              // stroke color
+  opacity?: number;           // 0..1
+  showCoords?: boolean;
+  offset?: { x: number; y: number };
+}
+```
+
+Notes
+- These match our current built‑ins and provide a stable reference for presets and properties. Plugins should follow the same pattern: stable `type` id + validated `state`.
 
 ## Alignment
 - Matches current `src/stores/project` structure and layer registry.

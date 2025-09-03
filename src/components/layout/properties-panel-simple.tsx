@@ -49,6 +49,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       <div className="p-3 space-y-4 overflow-auto">
         <CampaignProperties />
         <MapProperties />
+        <PaperLayerProperties />
       </div>
     </div>
   );
@@ -150,21 +151,7 @@ const MapProperties: React.FC = () => {
           aria-label="Map Description"
         />
       </div>
-      <SelectField
-        label="Paper Aspect Ratio"
-        value={map.paper?.aspect ?? '16:10'}
-        options={[
-          { value: 'square', label: 'Square (1:1)' },
-          { value: '4:3', label: '4:3' },
-          { value: '16:10', label: '16:10' },
-        ]}
-        onChange={(v) => setMapPaperAspect(map.id, v as any)}
-      />
-      <ColorField
-        label="Paper Color"
-        value={map.paper?.color ?? '#ffffff'}
-        onChange={(v) => setMapPaperColor(map.id, v)}
-      />
+      {/* Paper controls moved to Paper layer */}
       <div>
         <PropertyLabel text="Visibility" />
         <div className="mt-1">
@@ -178,6 +165,36 @@ const MapProperties: React.FC = () => {
           </Button>
         </div>
       </div>
+    </Group>
+  );
+};
+
+const PaperLayerProperties: React.FC = () => {
+  const selection = useSelectionStore((s) => s.selection);
+  const project = useProjectStore((s) => s.current);
+  const updateLayerState = useProjectStore((s) => s.updateLayerState);
+  if (selection.kind !== 'layer' || !project) return null;
+  const map = project.maps.find((m) => m.id === project.activeMapId);
+  if (!map) return null;
+  const layer = (map.layers ?? []).find((l) => l.id === selection.id);
+  if (!layer || layer.type !== 'paper') return null;
+  const st = layer.state as any;
+  const aspect = st?.aspect ?? '16:10';
+  const color = st?.color ?? '#ffffff';
+  const reset = () => updateLayerState(layer.id, { aspect: '16:10', color: '#ffffff' });
+  return (
+    <Group title="Paper" actions={<Button size="sm" variant="outline" onClick={reset}>Reset</Button>}>
+      <SelectField
+        label="Aspect Ratio"
+        value={aspect}
+        options={[
+          { value: 'square', label: 'Square (1:1)' },
+          { value: '4:3', label: '4:3' },
+          { value: '16:10', label: '16:10' },
+        ]}
+        onChange={(v) => updateLayerState(layer.id, { aspect: v })}
+      />
+      <ColorField label="Color" value={color} onChange={(v) => updateLayerState(layer.id, { color: v })} />
     </Group>
   );
 };
