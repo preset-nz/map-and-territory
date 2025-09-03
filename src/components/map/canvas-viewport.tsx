@@ -155,13 +155,13 @@ export const CanvasViewport: React.FC = () => {
         const st = layer.state || {};
         const r = Math.max(4, st.size || 16);
         const color = st.color || '#000000';
-        const alpha = st.alpha ?? 0.25;
+        const alpha = st.alpha ?? 1;
         const rot = st.rotation || 0;
         const hexH = Math.sin(Math.PI / 3) * r * 2;
         const colStep = r * 1.5;
         const rowStep = hexH / 2;
         ctx.save();
-        ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 1 / dpr;
+        ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 1; // CSS px
         ctx.translate(paperW / 2, paperH / 2); ctx.rotate(rot); ctx.translate(-paperW / 2, -paperH / 2);
         const cols = Math.ceil(paperW / colStep) + 2;
         const rows = Math.ceil(paperH / rowStep) + 2;

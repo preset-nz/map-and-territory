@@ -114,7 +114,7 @@ export class Canvas2DBackend implements RenderBackend {
       const st = grid.state as any;
       const r = Math.max(4, st.size || 16);
       const stroke = st.color || '#000000';
-      const a = st.alpha ?? 0.25;
+      const a = st.alpha ?? 1;
       const dpr2 = frame.pixelRatio || 1;
       const hexH = Math.sin(Math.PI / 3) * r * 2;
       const colStep = r * 1.5;
@@ -122,7 +122,7 @@ export class Canvas2DBackend implements RenderBackend {
       ctx.save();
       ctx.globalAlpha = a;
       ctx.strokeStyle = stroke;
-      ctx.lineWidth = 1 / dpr2;
+      ctx.lineWidth = 1; // CSS pixel width for clear visibility
       ctx.translate(paperW / 2, paperH / 2);
       ctx.rotate(st.rotation || 0);
       ctx.translate(-paperW / 2, -paperH / 2);

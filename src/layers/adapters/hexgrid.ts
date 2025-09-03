@@ -103,7 +103,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
 export const HexgridType = {
   id: 'hexgrid',
   title: 'Hex Grid',
-  defaultState: { size: 24, rotation: 0, color: '#000000', alpha: 0.2 },
+  defaultState: { size: 24, rotation: 0, color: '#000000', alpha: 1 },
   adapter: HexgridAdapter,
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;
