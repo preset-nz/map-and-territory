@@ -88,6 +88,10 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.save();
     ctx.fillStyle = frame.paper.color || '#ffffff';
     ctx.fillRect(paperX, paperY, paperW, paperH);
+    // Outline for emphasis
+    ctx.strokeStyle = 'rgba(100,116,139,0.8)'; // slate-500
+    ctx.lineWidth = 2 / (frame.pixelRatio || 1);
+    ctx.strokeRect(paperX + ctx.lineWidth / 2, paperY + ctx.lineWidth / 2, paperW - ctx.lineWidth, paperH - ctx.lineWidth);
     ctx.restore();
 
     // Clip to paper
@@ -100,8 +104,10 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.scale(frame.camera.zoom || 1, frame.camera.zoom || 1);
     ctx.translate(-(frame.camera.x || 0), -(frame.camera.y || 0));
 
-    // Draw non-paper layers (support hexgrid directly here)
-    for (const l of frame.layers) {
+    // Draw non-paper layers; grid last
+    const nonGrid = frame.layers.filter((l) => l.visible && l.type !== 'paper' && l.type !== 'hexgrid');
+    const grid = frame.layers.find((l) => l.visible && l.type === 'hexgrid');
+    for (const l of nonGrid) {
       if (!l.visible || l.type === 'paper') continue;
       if (l.type === 'hexgrid') {
         const st = l.state as any;
@@ -121,6 +127,23 @@ export class Canvas2DBackend implements RenderBackend {
         }
       }
       // Other layer types can be added here or drawn via future adapter bridge
+    }
+    if (grid) {
+      const st = grid.state as any;
+      const r = Math.max(6, st.size || 24);
+      const color = st.color || '#000000';
+      const alpha = st.alpha ?? 0.2;
+      const rot = st.rotation || 0;
+      const pattern = this.makeHexPattern(r, color, alpha, frame.pixelRatio || 1);
+      if (pattern) {
+        ctx.save();
+        ctx.translate(paperW / 2, paperH / 2);
+        ctx.rotate(rot);
+        ctx.translate(-paperW / 2, -paperH / 2);
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, paperW, paperH);
+        ctx.restore();
+      }
     }
 
     ctx.restore();

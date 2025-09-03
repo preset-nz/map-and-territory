@@ -219,7 +219,7 @@ export const useProjectStore = create<ProjectStoreState>()(
         setLayerVisibility: (layerId, visible) => {
           const cur = get().current; if (!cur) return;
           const map = cur.maps.find((m) => m.id === cur.activeMapId); if (!map) return;
-          set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, visible } : l)) } : m)) } });
+          set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, visible: l.type === 'paper' ? true : visible } : l)) } : m)) } });
         },
         renameLayer: (layerId, name) => {
           const cur = get().current; if (!cur) return;

@@ -147,38 +147,42 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                     {(m.layers ?? []).map((l) => (
                       <div key={l.id} className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50">
                         <div className="flex-1 truncate text-sm">{l.name ?? l.type}</div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          aria-label={l.visible ? 'Hide Layer' : 'Show Layer'}
-                          title={l.visible ? 'Hide Layer' : 'Show Layer'}
-                          onClick={() => setLayerVisibility(l.id, !l.visible)}
-                        >
-                          {l.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          aria-label="Duplicate Layer"
-                          title="Duplicate Layer"
-                          onClick={() => duplicateLayer(l.id)}
-                          disabled={l.type === 'paper' || l.type === 'hexgrid'}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          aria-label="Delete Layer"
-                          title="Delete Layer"
-                          onClick={() => removeLayer(l.id)}
-                          disabled={l.type === 'paper' || l.type === 'hexgrid'}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        {l.type !== 'paper' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            aria-label={l.visible ? 'Hide Layer' : 'Show Layer'}
+                            title={l.visible ? 'Hide Layer' : 'Show Layer'}
+                            onClick={() => setLayerVisibility(l.id, !l.visible)}
+                          >
+                            {l.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </Button>
+                        )}
+                        {l.type !== 'paper' && l.type !== 'hexgrid' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              aria-label="Duplicate Layer"
+                              title="Duplicate Layer"
+                              onClick={() => duplicateLayer(l.id)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              aria-label="Delete Layer"
+                              title="Delete Layer"
+                              onClick={() => removeLayer(l.id)}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
