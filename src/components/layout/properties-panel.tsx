@@ -87,14 +87,7 @@ const MapProperties: React.FC = () => {
         <FieldLabel label="Description" />
         <Textarea value={map.description ?? ''} onChange={(e) => setMapDescription(map.id, e.target.value)} placeholder="Optional description" rows={4} aria-label="Map Description" />
       </div>
-      <div>
-        <PropertyLabel text="Visibility" />
-        <div className="mt-1">
-          <Button variant={map.visible ? 'default' : 'outline'} size="sm" onClick={() => useProjectStore.getState().setMapVisibility(map.id, !map.visible)} aria-pressed={map.visible}>
-            {map.visible ? 'Visible' : 'Hidden'}
-          </Button>
-        </div>
-      </div>
+      {/* Map visibility control removed; visibility implied by active selection */}
     </Group>
   );
 };
