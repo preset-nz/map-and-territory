@@ -63,7 +63,7 @@ interface LayerDefinition<State> {
 ```
 
 ## Identifiers & Addressing
-- IDs: UUIDv4 or crypto.randomUUID
+- IDs: UUIDv7 preferred for new entities (see ADR-0012). Accept UUIDv4 for existing data.
 - Addressing paths (stable across stores and renderer diffs):
   - Campaign: `campaign:{id}`
   - Map: `map:{mapId}`
