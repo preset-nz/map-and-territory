@@ -164,8 +164,13 @@ export const CanvasViewport: React.FC = () => {
         const ox = Number(st.offsetX ?? 0);
         const oy = Number(st.offsetY ?? 0);
         const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
+        const gamma = Math.max(0.0001, Number(st.gamma ?? 1));
+        const clampMin = Math.max(0, Math.min(1, Number(st.min ?? 0)));
+        const clampMax = Math.max(0, Math.min(1, Number(st.max ?? 1)));
         const drawHexFill = (cx: number, cy: number, startAngle: number, aq: number, ar: number) => {
-          const v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
+          let v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
+          v = Math.pow(v, gamma);
+          if (v < clampMin || v > clampMax) return;
           const g = Math.floor(v * 255 * intensity);
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {

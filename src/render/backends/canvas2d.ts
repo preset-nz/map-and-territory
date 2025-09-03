@@ -121,8 +121,13 @@ export class Canvas2DBackend implements RenderBackend {
         const ox = Number(st.offsetX ?? 0);
         const oy = Number(st.offsetY ?? 0);
         const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
+        const gamma = Math.max(0.0001, Number(st.gamma ?? 1));
+        const clampMin = Math.max(0, Math.min(1, Number(st.min ?? 0)));
+        const clampMax = Math.max(0, Math.min(1, Number(st.max ?? 1)));
         const drawHex = (cx: number, cy: number, startAngle: number, q: number, rax: number) => {
-          const v = perlin.normalized2D(q * freq + ox, rax * freq + oy);
+          let v = perlin.normalized2D(q * freq + ox, rax * freq + oy);
+          v = Math.pow(v, gamma);
+          if (v < clampMin || v > clampMax) return; // transparent outside range
           const g = Math.floor(v * 255 * intensity);
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
