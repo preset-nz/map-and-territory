@@ -103,7 +103,7 @@ T-015 [M] Save/Load Campaign
   - Save downloads JSON with version field; Load restores project/maps/layers; tests for round‑trip.
   - Optional localStorage autosave enabled behind a toggle.
 
-T-016 [S] Remove Map Visibility Control in Properties
+T-016 [S] Remove Map Visibility Control in Properties — Status: Done
 - Goal: Eliminate redundant map visibility toggle in properties; rely on active map selection.
 - Links: src/components/layout/properties-panel.tsx
 - Acceptance: Control removed; tests updated.
@@ -118,4 +118,3 @@ Dependencies & Order
 Working Notes
 - Keep SOLID/CUPID: Layer adapters remain small and composable; AppAPI stays narrow and selector‑based.
 - Platform thinking: early investment in layering, invalidation, and AppAPI yields long‑term extensibility.
-

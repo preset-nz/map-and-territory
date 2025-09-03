@@ -7,7 +7,7 @@
 - Terrain colors injection: remove hardcoded colors from renderers; source from a map “setting”/palette or theme tokens. Provide a small API/context for layers to read current palette.
 - Layer rename: enable inline renaming in the scene panel (store already supports `renameLayer`).
 - Layer reorder: add drag-and-drop or up/down controls in the scene panel (store has `moveLayer`).
-- Map properties: remove “visibility” control from the map item in the properties panel; keep map visibility implicit via selection/active map.
+- Map properties: remove “visibility” control from the map item in the properties panel; keep map visibility implicit via selection/active map. (Done)
 - Layers UX: design pass on layers panel (grouping, icons, reordering affordances, lock/visibility consistency, insertion feedback) with a short spec + mocks.
 - Map “setting” palettes: define map-level settings (e.g., high fantasy vs. grimdark) to control terrain categories and colors; noise paint mode should read from these palettes.
 - Hex lib polish: add dual-ended slider UI for clamp min/max and consider remap-within-range option.
