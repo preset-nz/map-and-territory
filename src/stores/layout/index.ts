@@ -62,8 +62,8 @@ interface CompleteLayoutStore {
   // Status bar
   statusBarVisible: boolean;
   
-  // Mouse coordinates for status
-  mousePosition: { x: number; y: number };
+  // Mouse coordinates for status (optionally include hex axial coords)
+  mousePosition: { x: number; y: number; hex?: { q: number; r: number } | null };
   
   // Selection state
   selectionCount: number;
@@ -100,7 +100,7 @@ interface CompleteLayoutStore {
   
   // Status bar actions
   toggleStatusBar: () => void;
-  setMousePosition: (x: number, y: number) => void;
+  setMousePosition: (x: number, y: number, hex?: { q: number; r: number } | null) => void;
   setSelectionCount: (count: number) => void;
   
   resetLayout: () => void;
@@ -291,9 +291,9 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
             });
           },
 
-          setMousePosition: (x: number, y: number) => {
+          setMousePosition: (x: number, y: number, hex?: { q: number; r: number } | null) => {
             set((state) => {
-              state.mousePosition = { x, y };
+              state.mousePosition = { x, y, hex: typeof hex === 'undefined' ? state.mousePosition.hex : hex };
             });
           },
 

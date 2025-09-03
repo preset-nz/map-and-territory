@@ -10,16 +10,29 @@ Hex-centric tools and layers (terrain paint, fog-of-war) require reliable coordi
 ## Decision
 
 1) Public Hex Geometry in `AppAPI.hex`
-- `fromPoint(x: number, y: number): { q: number; r: number } | null`
-- `toPoint(q: number, r: number): { x: number; y: number }`
-- `distance(a: {q,r}, b: {q,r}): number`
-- `neighbors(q: number, r: number): Array<{q:number;r:number}>`
-- `ring(center: {q,r}, radius: number): Array<{q,r}>`
-- `cone(center: {q,r}, dir: 0|1|2|3|4|5, radius: number, spread60s: number): Array<{q,r}>`
+- Orientation: support pointy-top and flat-top only; no arbitrary rotation.
+- Layout: calculations take an explicit `layout` value (size, origin, orientation) to avoid hidden global state.
+- API surface (minimal, composable):
+  - `fromPoint(point: {x:number;y:number}, layout: Layout): Axial | null`
+  - `toPoint(hex: Axial, layout: Layout): { x: number; y: number }`
+  - `round(frac: Cube): Axial` (cube rounding helper)
+  - `distance(a: Axial, b: Axial): number`
+  - `neighbors(h: Axial): Axial[]`
+  - `diagonals(h: Axial): Axial[]`
+  - `ring(center: Axial, radius: number): Axial[]`
+  - `range(center: Axial, radius: number): Axial[]`
+  - `line(a: Axial, b: Axial): Axial[]`
+  - Conversions: `axial↔cube`, `axial↔offset` (odd-r/odd-q per orientation)
+
+  Types:
+  - `type Orientation = 'pointy' | 'flat'`
+  - `interface Layout { orientation: Orientation; size: number; origin: { x: number; y: number } }`
+  - `interface Axial { q: number; r: number }`
+  - `interface Cube { x: number; y: number; z: number }`
 
 2) Pointer→Hex Routing
-- Canvas pointer events provide `{q,r}` alongside pixel coordinates when a `hexgrid` layer is present and visible. If absent or disabled, return `null` and tools should degrade gracefully.
-- Calculations respect active hexgrid layer parameters (size, rotation, origin) via the public API, not internal store coupling.
+- Pointer events provide `{q,r}` alongside pixel coordinates when a `hexgrid` layer is visible. If absent/disabled, return `null` and degrade gracefully.
+- Calculations respect active hexgrid layer parameters via `layout` (size, origin, orientation). Rotation is not supported by design.
 
 3) Independence & Versioning
 - `AppAPI.hex` remains selector-oriented and versioned per ADR-0002, avoiding leakage of internal store shapes.
@@ -43,6 +56,13 @@ Hex-centric tools and layers (terrain paint, fog-of-war) require reliable coordi
 
 ## Follow-ups
 
+- Credit: Implementation follows the excellent reference by Amit Patel (Red Blob Games). See references below.
 - Evaluate continuous-angle cones (float radians) if needed; keep initial API discrete (6 facings) for simplicity.
 - Consider exposing range/line-of-sight helpers once kernels are validated in production.
 
+## References
+
+- Red Blob Games — Hexagonal Grids: Concepts and Implementation
+  - https://www.redblobgames.com/grids/hexagons/
+  - https://www.redblobgames.com/grids/hexagons/implementation.html
+  - Copyright © Amit Patel; referenced with attribution.

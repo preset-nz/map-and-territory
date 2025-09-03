@@ -88,6 +88,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         <span>X: {mousePosition.x}, Y: {mousePosition.y}</span>
       </div>
       
+      <Separator orientation="vertical" className="h-4" />
+      
+      {/* Hex Coordinates */}
+      <div className="flex items-center gap-1">
+        <span className="font-medium">Hex:</span>
+        <span>{mousePosition.hex ? `${mousePosition.hex.q}, ${mousePosition.hex.r}` : '—'}</span>
+      </div>
+      
       {/* Spacer */}
       <div className="flex-1" />
       

@@ -7,6 +7,8 @@ import type { RenderEnv } from '@/layers/types';
 import { shallow } from 'zustand/shallow';
 import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
+import { useLayoutStore } from '@/stores/layout';
+import { fromPoint as hexFromPoint } from '@/lib/hex';
 
 function parseAspect(aspect: 'square' | '4:3' | '16:10'): { aw: number; ah: number } {
   switch (aspect) {
@@ -35,7 +37,7 @@ export const CanvasViewport: React.FC = () => {
   const layersKey = useMemo(() => layers.map((l) => {
     if (l.type === 'hexgrid') {
       const st = l.state as any;
-      return `hx:${l.visible ? '1' : '0'}:${st.size}:${st.rotation}:${st.color}:${st.alpha ?? 1}:${st.lineWidth ?? 1}`;
+      return `hx:${l.visible ? '1' : '0'}:${st.size}:${st.orientation}:${st.color}:${st.alpha ?? 1}:${st.lineWidth ?? 1}`;
     }
     if (l.type === 'paper') {
       const st = l.state as any;
@@ -160,30 +162,53 @@ export const CanvasViewport: React.FC = () => {
         const r = Math.max(4, st.size || 16);
         const color = st.color || '#000000';
         const alpha = st.alpha ?? 1;
-        const rot = st.rotation || 0;
-        const hexH = Math.sin(Math.PI / 3) * r * 2;
-        const colStep = r * 1.5;
-        const rowStep = hexH / 2;
+        const orientation = st.orientation === 'flat' ? 'flat' : 'pointy';
+        const sqrt3 = Math.sqrt(3);
         ctx.save();
         ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, st.lineWidth ?? 1); // CSS px
-        ctx.translate(paperW / 2, paperH / 2); ctx.rotate(rot); ctx.translate(-paperW / 2, -paperH / 2);
-        const cols = Math.ceil(paperW / colStep) + 2;
-        const rows = Math.ceil(paperH / rowStep) + 2;
-        const drawHex = (cx: number, cy: number) => {
+        const drawHex = (cx: number, cy: number, startAngle: number) => {
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
-            const ang = Math.PI / 6 + i * (Math.PI / 3);
+            const ang = startAngle + i * (Math.PI / 3);
             const px = cx + Math.cos(ang) * r;
             const py = cy + Math.sin(ang) * r;
             if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
           }
           ctx.closePath(); ctx.stroke();
         };
-        for (let c = -1; c < cols; c++) {
-          for (let ri = -1; ri < rows; ri++) {
-            const x = c * colStep;
-            const y = ri * rowStep * 2 + ((c & 1) ? rowStep : 0);
-            drawHex(x, y);
+        if (orientation === 'flat') {
+          const colStep = 1.5 * r;
+          const rowStep = sqrt3 * r;
+          const cols = Math.ceil(paperW / colStep) + 2;
+          const rows = Math.ceil(paperH / rowStep) + 2;
+          const centerX = paperW / 2;
+          const centerY = paperH / 2;
+          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+          for (let c = cmin; c <= cmax; c++) {
+            const yOffset = (c & 1) ? (rowStep / 2) : 0;
+            for (let ri = rmin; ri <= rmax; ri++) {
+              const x = c * colStep + centerX;
+              const y = ri * rowStep + yOffset + centerY;
+              drawHex(x, y, 0);
+            }
+          }
+        } else {
+          const colStep = sqrt3 * r;
+          const rowStep = 1.5 * r;
+          const cols = Math.ceil(paperW / colStep) + 2;
+          const rows = Math.ceil(paperH / rowStep) + 2;
+          const centerX = paperW / 2;
+          const centerY = paperH / 2;
+          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+          for (let ri = rmin; ri <= rmax; ri++) {
+            const xOffset = (ri & 1) ? (colStep / 2) : 0;
+            for (let c = cmin; c <= cmax; c++) {
+              const x = c * colStep + xOffset + centerX;
+              const y = ri * rowStep + centerY;
+              drawHex(x, y, -Math.PI / 6);
+            }
           }
         }
         ctx.restore();
@@ -207,13 +232,47 @@ export const CanvasViewport: React.FC = () => {
     return () => cancelAnimationFrame(raf);
   }, [useWorker, aspect, paperColor, layersKey, size.w, size.h]);
 
+  // Pointer → hex routing (main thread)
+  const setMousePosition = useLayoutStore((s) => s.setMousePosition);
+  const onPointerMove: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    // Recompute paper rect (same as draw)
+    const cw = rect.width; const ch = rect.height;
+    const paddingX = Math.max(12, cw * 0.05);
+    const paddingY = 12;
+    const availW = cw - paddingX * 2;
+    const availH = ch - paddingY * 2;
+    const parseAspect = (aspect: 'square'|'4:3'|'16:10') => aspect === 'square' ? { aw:1, ah:1 } : aspect === '4:3' ? { aw:4, ah:3 } : { aw:16, ah:10 };
+    const { aw, ah } = parseAspect(aspect as any);
+    let paperW = availW; let paperH = (paperW * ah) / aw;
+    if (paperH > availH) { paperH = availH; paperW = (paperH * aw) / ah; }
+    const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
+    const paperY = paddingY;
+    const px = mx - paperX; const py = my - paperY;
+    // Default: outside or no grid
+    let hex: { q: number; r: number } | null = null;
+    if (px >= 0 && py >= 0 && px <= paperW && py <= paperH) {
+      const layer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
+      if (layer) {
+        const st = layer.state || {};
+        const layout = { orientation: st.orientation === 'flat' ? 'flat' : 'pointy', size: Math.max(4, st.size || 16), origin: { x: paperW / 2, y: paperH / 2 } } as const;
+        const h = hexFromPoint({ x: px, y: py }, layout);
+        hex = h;
+      }
+    }
+    setMousePosition(Math.round(mx), Math.round(my), hex);
+  };
+
   return (
     <div className="h-full w-full overflow-hidden">
       <div className="pt-4 px-6 h-full min-h-[60vh]" ref={containerRef}>
         {!active ? (
           <div className="p-8 text-sm text-muted-foreground">No active map.</div>
         ) : (
-          <canvas ref={canvasRef} className="w-full h-full" />
+          <canvas ref={canvasRef} className="w-full h-full" onPointerMove={onPointerMove} />
         )}
       </div>
     </div>

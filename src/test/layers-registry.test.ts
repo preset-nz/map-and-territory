@@ -16,10 +16,10 @@ describe('Layer Registry', () => {
       defaultState: { color: '#ffffff' },
       adapter: PaperAdapter,
     };
-    const hex: LayerType<{ size: number; rotation: number; color: string }> = {
+    const hex: LayerType<{ size: number; orientation: 'pointy'|'flat'; color: string }> = {
       id: 'hexgrid',
       title: 'Hex Grid',
-      defaultState: { size: 24, rotation: 0, color: '#000000' },
+      defaultState: { size: 24, orientation: 'pointy', color: '#000000' },
       adapter: HexgridAdapter,
     };
 
@@ -34,4 +34,3 @@ describe('Layer Registry', () => {
     unregisterLayerType('hexgrid');
   });
 });
-

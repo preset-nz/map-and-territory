@@ -115,23 +115,16 @@ export class Canvas2DBackend implements RenderBackend {
       const r = Math.max(4, st.size || 16);
       const stroke = st.color || '#000000';
       const a = st.alpha ?? 1;
-      const dpr2 = frame.pixelRatio || 1;
-      const hexH = Math.sin(Math.PI / 3) * r * 2;
-      const colStep = r * 1.5;
-      const rowStep = hexH / 2;
+      const orientation = st.orientation === 'flat' ? 'flat' : 'pointy';
+      const sqrt3 = Math.sqrt(3);
       ctx.save();
       ctx.globalAlpha = a;
       ctx.strokeStyle = stroke;
       ctx.lineWidth = Math.max(1, st.lineWidth ?? 1); // CSS pixel width
-      ctx.translate(paperW / 2, paperH / 2);
-      ctx.rotate(st.rotation || 0);
-      ctx.translate(-paperW / 2, -paperH / 2);
-      const cols = Math.ceil(paperW / colStep) + 2;
-      const rows = Math.ceil(paperH / rowStep) + 2;
-      const drawHex = (cx: number, cy: number) => {
+      const drawHex = (cx: number, cy: number, startAngle: number) => {
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-          const ang = Math.PI / 6 + i * (Math.PI / 3);
+          const ang = startAngle + i * (Math.PI / 3);
           const px = cx + Math.cos(ang) * r;
           const py = cy + Math.sin(ang) * r;
           if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
@@ -139,11 +132,39 @@ export class Canvas2DBackend implements RenderBackend {
         ctx.closePath();
         ctx.stroke();
       };
-      for (let c = -1; c < cols; c++) {
-        for (let ri = -1; ri < rows; ri++) {
-          const x = c * colStep;
-          const y = ri * rowStep * 2 + ((c & 1) ? rowStep : 0);
-          drawHex(x, y);
+      if (orientation === 'flat') {
+        const colStep = 1.5 * r;
+        const rowStep = sqrt3 * r;
+        const cols = Math.ceil(paperW / colStep) + 2;
+        const rows = Math.ceil(paperH / rowStep) + 2;
+        const centerX = paperW / 2;
+        const centerY = paperH / 2;
+        const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+        const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+        for (let c = cmin; c <= cmax; c++) {
+          const yOffset = (c & 1) ? (rowStep / 2) : 0;
+          for (let ri = rmin; ri <= rmax; ri++) {
+            const x = c * colStep + centerX;
+            const y = ri * rowStep + yOffset + centerY;
+            drawHex(x, y, 0);
+          }
+        }
+      } else {
+        const colStep = sqrt3 * r;
+        const rowStep = 1.5 * r;
+        const cols = Math.ceil(paperW / colStep) + 2;
+        const rows = Math.ceil(paperH / rowStep) + 2;
+        const centerX = paperW / 2;
+        const centerY = paperH / 2;
+        const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+        const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+        for (let ri = rmin; ri <= rmax; ri++) {
+          const xOffset = (ri & 1) ? (colStep / 2) : 0;
+          for (let c = cmin; c <= cmax; c++) {
+            const x = c * colStep + xOffset + centerX;
+            const y = ri * rowStep + centerY;
+            drawHex(x, y, -Math.PI / 6);
+          }
         }
       }
       ctx.restore();
