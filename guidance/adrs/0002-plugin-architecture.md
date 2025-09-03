@@ -46,6 +46,21 @@ AppAPI Utilities (initial):
 - Documentation and types become part of the public developer experience (DX) for plugin authors.
 - Some overhead in manifest design and capability gating, balanced by maintainability and safety.
 
+## Render Invalidation & Redraw Contracts (MVP)
+
+- Host rendering (worker and fallback) issues redraws when specific dependencies change: paper aspect/color, canvas dimensions, and a `layersKey` string derived from the visible layers.
+- For core layers, `layersKey` includes relevant state fields that affect visuals:
+  - `paper`: `aspect`, `color`
+  - `hexgrid`: `size`, `orientation`, `color`, `alpha`, `lineWidth`
+  - Example plugin layer `hexnoise`: `seed`, `frequency`, `offsetX`, `offsetY`, `intensity`
+- Adding new layer types: ensure the host includes your layer’s visual fields in `layersKey`; otherwise UI property changes won’t trigger a render.
+  - Short-term: update `layersKey` composition in the host.
+  - Future: layer adapters may expose `getInvalidationKey(state): string` to let the host remain generic and avoid per-type code.
+
+Notes
+- Keep invalidation keys complete but minimal; avoid including non-visual or fast-flapping fields.
+- Even if React re-renders, the renderer only submits a new frame when these dependencies change.
+
 ## Alternatives Considered
 
 - Ad-hoc plugin hooks (rejected): too coupled, brittle, and hard to test.
