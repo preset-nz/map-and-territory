@@ -35,13 +35,12 @@ describe('Hex Noise plugin insertion rules', () => {
     await executeCommand('layer.hexnoise.add');
     const layers = useProjectStore.getState().current!.maps[0].layers!;
     const target = layers.find((l) => l.type === 'hexnoise')!;
+    const beforeIdx = layers.findIndex((l) => l.id === target.id);
     useSelectionStore.getState().selectLayer(target.id);
     await executeCommand('layer.hexnoise.add');
     const after = useProjectStore.getState().current!.maps[0].layers!;
-    const firstIdx = after.findIndex((l) => l.id === target.id);
-    const others = after.filter((l) => l.type === 'hexnoise' && l.id !== target.id);
-    const secondIdx = after.findIndex((l) => l.id === others[0].id);
-    expect(secondIdx).toBe(firstIdx + 1);
+    const newNoise = after.find((l) => l.type === 'hexnoise' && l.id !== target.id)!;
+    const newIdx = after.findIndex((l) => l.id === newNoise.id);
+    expect(newIdx).toBe(beforeIdx); // inserted above (before) the selected layer
   });
 });
-

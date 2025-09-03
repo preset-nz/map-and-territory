@@ -151,11 +151,11 @@ export const CanvasViewport: React.FC = () => {
       ctx.save();
       ctx.beginPath(); ctx.rect(paperX, paperY, paperW, paperH); ctx.clip();
       ctx.translate(paperX, paperY);
-      // Hex Noise layer (draw before grid if present)
-      const noiseLayer = layers.find((l: any) => l.type === 'hexnoise' && l.visible) as any;
-      if (noiseLayer) {
+      // Hex Noise layers (draw before grid if present), in array order
+      const noiseLayers = layers.filter((l: any) => l.type === 'hexnoise' && l.visible) as any[];
+      for (const nl of noiseLayers) {
         const gridLayer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
-        const st = noiseLayer.state || {};
+        const st = nl.state || {};
         const orientation = (gridLayer?.state?.orientation) === 'flat' ? 'flat' : 'pointy';
         const r = Math.max(4, gridLayer?.state?.size || 16);
         const sqrt3 = Math.sqrt(3);

@@ -45,7 +45,7 @@ export const hexNoiseModule: PluginModule = {
       let targetIndex = layers.length; // default append
       if (sel.kind === 'layer') {
         const idx = layers.findIndex((l) => l.id === sel.id);
-        if (idx >= 0) targetIndex = idx + 1; // insert just above the selected layer
+        if (idx >= 0) targetIndex = idx; // insert above (before) selected layer
       } else if (sel.kind === 'map') {
         // insert just below grid (i.e., immediately before the hexgrid layer)
         const hexIdx = layers.findIndex((l) => l.type === 'hexgrid');

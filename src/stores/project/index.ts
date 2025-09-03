@@ -207,7 +207,7 @@ export const useProjectStore = create<ProjectStoreState>()(
           const copy: LayerInstance = { ...layer, id: uuid(), name: `${layer.name ?? ''} Copy`.trim() };
           const layers = [...(map.layers ?? [])];
           const idx = layers.findIndex((l) => l.id === layerId);
-          const insertAt = idx >= 0 ? idx + 1 : layers.length;
+          const insertAt = idx >= 0 ? idx : layers.length;
           layers.splice(insertAt, 0, copy);
           set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)) } });
           return copy.id;
