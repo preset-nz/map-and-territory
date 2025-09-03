@@ -161,7 +161,7 @@ export const CanvasViewport: React.FC = () => {
         const colStep = r * 1.5;
         const rowStep = hexH / 2;
         ctx.save();
-        ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 1; // CSS px
+        ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, st.lineWidth ?? 1); // CSS px
         ctx.translate(paperW / 2, paperH / 2); ctx.rotate(rot); ctx.translate(-paperW / 2, -paperH / 2);
         const cols = Math.ceil(paperW / colStep) + 2;
         const rows = Math.ceil(paperH / rowStep) + 2;

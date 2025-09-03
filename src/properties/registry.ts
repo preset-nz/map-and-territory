@@ -1,4 +1,4 @@
-export type FieldKind = 'select' | 'color' | 'text' | 'textarea' | 'number';
+export type FieldKind = 'select' | 'color' | 'text' | 'textarea' | 'number' | 'slider';
 
 export interface BaseField {
   kind: FieldKind;
@@ -16,8 +16,9 @@ export interface ColorFieldDef extends BaseField { kind: 'color'; }
 export interface TextFieldDef extends BaseField { kind: 'text'; placeholder?: string }
 export interface TextareaFieldDef extends BaseField { kind: 'textarea'; placeholder?: string; rows?: number }
 export interface NumberFieldDef extends BaseField { kind: 'number'; min?: number; max?: number; step?: number }
+export interface SliderFieldDef extends BaseField { kind: 'slider'; min?: number; max?: number; step?: number }
 
-export type FieldDef = SelectFieldDef | ColorFieldDef | TextFieldDef | TextareaFieldDef | NumberFieldDef;
+export type FieldDef = SelectFieldDef | ColorFieldDef | TextFieldDef | TextareaFieldDef | NumberFieldDef | SliderFieldDef;
 
 export interface PropertyGroupDef {
   id: string;

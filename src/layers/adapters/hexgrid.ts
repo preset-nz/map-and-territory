@@ -103,7 +103,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
 export const HexgridType = {
   id: 'hexgrid',
   title: 'Hex Grid',
-  defaultState: { size: 24, rotation: 0, color: '#000000', alpha: 1 },
+  defaultState: { size: 24, rotation: 0, color: '#000000', alpha: 1, lineWidth: 1 },
   adapter: HexgridAdapter,
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;
@@ -115,7 +115,8 @@ registerPropertySchema('layer:hexgrid', {
       id: 'hexgrid',
       title: 'Hex Grid',
       rows: [
-        { kind: 'number', id: 'size', label: 'Hex Size', path: 'size', min: 4, max: 200, step: 1 },
+        { kind: 'slider', id: 'size', label: 'Hex Size', path: 'size', min: 20, max: 120, step: 1 },
+        { kind: 'slider', id: 'lineWidth', label: 'Line Width', path: 'lineWidth', min: 1, max: 8, step: 1 },
         { kind: 'color', id: 'color', label: 'Line Color', path: 'color' },
       ],
     },

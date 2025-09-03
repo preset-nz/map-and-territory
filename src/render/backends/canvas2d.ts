@@ -122,7 +122,7 @@ export class Canvas2DBackend implements RenderBackend {
       ctx.save();
       ctx.globalAlpha = a;
       ctx.strokeStyle = stroke;
-      ctx.lineWidth = 1; // CSS pixel width for clear visibility
+      ctx.lineWidth = Math.max(1, st.lineWidth ?? 1); // CSS pixel width
       ctx.translate(paperW / 2, paperH / 2);
       ctx.rotate(st.rotation || 0);
       ctx.translate(-paperW / 2, -paperH / 2);

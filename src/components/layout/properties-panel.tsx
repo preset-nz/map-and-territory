@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ColorField, SelectField, PropertyLabel } from '@/components/properties';
+import { Slider } from '@/components/ui/slider';
 import { getPropertySchema } from '@/properties/registry';
 import { Separator } from '@/components/ui/separator';
 
@@ -135,6 +136,15 @@ const LayerPropertiesGeneric: React.FC = () => {
                       </div>
                     );
                   }
+                  if (f.kind === 'slider') {
+                    const v = Number(getVal(f.path) ?? 0);
+                    return (
+                      <div key={f.id}>
+                        <FieldLabel label={f.label || f.id} />
+                        <Slider value={v} min={(f as any).min} max={(f as any).max} step={(f as any).step ?? 1} onChange={(val) => setVal(f.path, val)} />
+                      </div>
+                    );
+                  }
                   return null;
                 })}
               </div>
@@ -145,4 +155,3 @@ const LayerPropertiesGeneric: React.FC = () => {
     </>
   );
 };
-
