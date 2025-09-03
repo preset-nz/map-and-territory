@@ -38,12 +38,19 @@ export const hexNoiseModule: PluginModule = {
       // create layer
       const id = useProjectStore.getState().addLayer('hexnoise', 'Hex Noise');
       if (!id) return;
-      // move to be after paper and before hexgrid
+      const sel = useSelectionStore.getState().selection;
       const cur = useProjectStore.getState().current!;
       const m = cur.maps.find((mm) => mm.id === activeMapId)!;
       const layers = m.layers ?? [];
-      const hexIdx = layers.findIndex((l) => l.type === 'hexgrid');
-      const targetIndex = hexIdx >= 0 ? hexIdx : 1; // 0=paper
+      let targetIndex = layers.length; // default append
+      if (sel.kind === 'layer') {
+        const idx = layers.findIndex((l) => l.id === sel.id);
+        if (idx >= 0) targetIndex = idx + 1; // insert just above the selected layer
+      } else if (sel.kind === 'map') {
+        // insert just below grid (i.e., immediately before the hexgrid layer)
+        const hexIdx = layers.findIndex((l) => l.type === 'hexgrid');
+        targetIndex = hexIdx >= 0 ? hexIdx : 1; // fallback just after paper
+      }
       useProjectStore.getState().moveLayer(id, targetIndex);
       // select the new layer in scene tree
       useSelectionStore.getState().selectLayer(id);
