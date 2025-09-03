@@ -4,10 +4,9 @@
 The codebase currently generates identifiers via `crypto.randomUUID()` (UUIDv4) or a fallback helper. We want k-sortable, time-ordered IDs to improve data locality, debugging, and potential storage/index performance, while remaining globally unique and standards-based.
 
 ## Decision
-- Adopt UUIDv7 for new entity identifiers (Campaign, Map, Layer, future Items) going forward.
-- Continue accepting existing UUIDv4 IDs in persisted projects. No breaking changes to parsers.
-- Provide a small ID helper that emits UUIDv7 when available, falling back to UUIDv4.
-- Do not change existing IDs; migration is not required. Mixed v4/v7 is acceptable.
+- Adopt UUIDv7 for all entity identifiers (Campaign, Map, Layer, future Items).
+- Provide a small ID helper that emits UUIDv7. No fallback needed in greenfield contexts; tests can stub if unavailable.
+- Enforce UUIDv7 in schema validation for new data.
 
 ## Rationale
 - UUIDv7 is IETF draft standard (time-ordered) and widely supported across ecosystems.
@@ -16,9 +15,8 @@ The codebase currently generates identifiers via `crypto.randomUUID()` (UUIDv4) 
 - Privacy: timestamp presence is acceptable for our domain; millisecond granularity is sufficient and beneficial for ordering.
 
 ## Consequences
-- Implementing a small UUIDv7 generator (or library) for environments where native v7 is absent.
+- Implement a UUIDv7 generator (or use a small library) where native v7 is absent.
 - Some tools may not yet recognize v7 specifically; treat as generic UUID.
-- Persisted data may contain a mix of v4/v7 — parsers must not assume version.
 
 ## Alternatives Considered
 - UUIDv4 only: widely available but not time-sortable.
@@ -26,9 +24,9 @@ The codebase currently generates identifiers via `crypto.randomUUID()` (UUIDv4) 
 - Snowflake/KSUID: good properties but introduce additional complexity and assumptions.
 
 ## Migration
-- No mass migration. New objects use v7; existing v4 remain intact.
-- Update documentation and domain model to reference UUIDv7 as the preferred format.
-- Add a runtime helper `newId()` that prefers v7 and falls back to v4.
+- None required (greenfield). All new data must use UUIDv7.
+- Update documentation and domain model to reference UUIDv7 as the required format.
+- Add a runtime helper `newId()` that emits v7.
 
 ## Validation
 - Ensure IDs are unique across rapid creations (burst testing).

@@ -15,7 +15,7 @@ export interface MapDoc { id: string; name: string; createdAt: number; updatedAt
 export interface LayerDoc { id: string; type: string; name?: string; visible: boolean; locked?: boolean; state: unknown; }
 ```
 
-- IDs: ULIDs or UUID v7. Names default to "Map 1", "Map 2", etc.
+- IDs: UUID v7 (time-ordered). Names default to "Map 1", "Map 2", etc.
 - Required layers on map create: `paper`, `hexgrid`, `terrain`.
 
 ## AppAPI Extensions
