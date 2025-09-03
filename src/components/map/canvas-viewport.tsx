@@ -35,9 +35,13 @@ export const CanvasViewport: React.FC = () => {
   const layersKey = useMemo(() => layers.map((l) => {
     if (l.type === 'hexgrid') {
       const st = l.state as any;
-      return `hx:${l.visible?'1':'0'}:${st.size}:${st.rotation}:${st.color}:${st.alpha ?? 0.2}`;
+      return `hx:${l.visible ? '1' : '0'}:${st.size}:${st.rotation}:${st.color}:${st.alpha ?? 1}:${st.lineWidth ?? 1}`;
     }
-    return `${l.type}:${l.visible?'1':'0'}`;
+    if (l.type === 'paper') {
+      const st = l.state as any;
+      return `paper:${st.aspect}:${st.color}`;
+    }
+    return `${l.type}:${l.visible ? '1' : '0'}`;
   }).join('|'), [layers]);
 
   const containerRef = useRef<HTMLDivElement>(null);

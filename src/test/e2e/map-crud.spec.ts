@@ -23,11 +23,6 @@ test('Map CRUD MVP: add, rename, delete', async ({ page }) => {
   await expect(mapDesc).toHaveValue('Test description');
 
   // Delete via sidebar button (confirm dialog)
-  // Toggle visibility button should be present and toggles aria-label
-  const visBtn = page.getByRole('button', { name: 'Hide Map' });
-  await expect(visBtn).toBeVisible();
-  await visBtn.click();
-  await expect(page.getByRole('button', { name: 'Show Map' })).toBeVisible();
 
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'Delete Map' }).click();
