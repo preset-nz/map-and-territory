@@ -4,7 +4,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { ColorField, SelectField, PropertyLabel } from '@/components/properties';
+import { ColorField, SelectField } from '@/components/properties';
 import { Slider } from '@/components/ui/slider';
 import { getPropertySchema } from '@/properties/registry';
 import { Separator } from '@/components/ui/separator';
@@ -101,8 +101,8 @@ const LayerPropertiesGeneric: React.FC = () => {
   const layer = (map.layers ?? []).find((l) => l.id === selection.id); if (!layer) return null;
   const scope = `layer:${layer.type}`;
   const schema = getPropertySchema(scope); if (!schema) return null;
-  const getVal = (path: string) => (layer.state as any)?.[path];
-  const setVal = (path: string, val: any) => updateLayerState(layer.id, { [path]: val });
+  const getVal = (path: string) => (layer.state as Record<string, unknown> | undefined)?.[path as keyof Record<string, unknown>];
+  const setVal = (path: string, val: unknown) => updateLayerState(layer.id, { [path]: val });
   return (
     <>
       {schema.groups.map((g) => (
@@ -114,18 +114,18 @@ const LayerPropertiesGeneric: React.FC = () => {
                 {fields.map((f) => {
                   if (f.kind === 'select') {
                     const v = getVal(f.path) ?? '';
-                    return <SelectField key={f.id} label={f.label} value={v} options={(f as any).options} onChange={(val) => setVal(f.path, val)} />;
+                    return <SelectField key={f.id} label={f.label} value={String(v)} options={f.options} onChange={(val) => setVal(f.path, val)} />;
                   }
                   if (f.kind === 'color') {
                     const v = getVal(f.path) ?? '#ffffff';
-                    return <ColorField key={f.id} label={f.label} value={v} onChange={(val) => setVal(f.path, val)} />;
+                    return <ColorField key={f.id} label={f.label} value={String(v)} onChange={(val) => setVal(f.path, val)} />;
                   }
                   if (f.kind === 'number') {
                     const v = Number(getVal(f.path) ?? 0);
                     return (
                       <div key={f.id}>
                         <FieldLabel label={f.label || f.id} />
-                        <Input type="number" value={v} min={(f as any).min} max={(f as any).max} step={(f as any).step ?? 1} onChange={(e) => setVal(f.path, Number(e.target.value))} />
+                        <Input type="number" value={v} min={f.min} max={f.max} step={f.step ?? 1} onChange={(e) => setVal(f.path, Number(e.target.value))} />
                       </div>
                     );
                   }
@@ -134,7 +134,7 @@ const LayerPropertiesGeneric: React.FC = () => {
                     return (
                       <div key={f.id}>
                         <FieldLabel label={f.label || f.id} />
-                        <Slider value={v} min={(f as any).min} max={(f as any).max} step={(f as any).step ?? 1} onChange={(val) => setVal(f.path, val)} />
+                        <Slider value={v} min={f.min} max={f.max} step={f.step ?? 1} onChange={(val) => setVal(f.path, val)} />
                       </div>
                     );
                   }

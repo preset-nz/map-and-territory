@@ -8,8 +8,8 @@ import { hexNoiseManifest, hexNoiseModule } from '@/plugin/builtin/hex-noise';
 describe('Hex Noise plugin insertion rules', () => {
   beforeEach(() => {
     // reset stores
-    useProjectStore.setState({ current: null } as any);
-    useSelectionStore.setState({ selection: { kind: 'none' } } as any);
+    useProjectStore.setState({ current: null });
+    useSelectionStore.setState({ selection: { kind: 'none' } });
   });
 
   it('inserts just below hexgrid when a map is selected', async () => {

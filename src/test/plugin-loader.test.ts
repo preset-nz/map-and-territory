@@ -19,14 +19,14 @@ describe('Plugin Loader (stub)', () => {
       },
     };
 
-    const module: PluginModule = {
+    const pluginModule: PluginModule = {
       commands: {
         // Return void to match command contract (no value expected)
         'test.hello': () => {},
       },
     };
 
-    await loadPlugin(manifest, module);
+    await loadPlugin(manifest, pluginModule);
     expect(hasCommand('test.hello')).toBe(true);
     const toolbar = getToolbarContributions();
     expect(toolbar.find((t) => t.command === 'test.hello')).toBeTruthy();

@@ -12,50 +12,7 @@ export interface HexgridState {
   origin?: { x: number; y: number }; // future use
 }
 
-// Simple pattern cache for performance
-const patternCache = new Map<string, CanvasPattern>();
-
-function makePattern(r: number, color: string, alpha: number, dpr: number): CanvasPattern | null {
-  const key = `${dpr}:${r}:${color}:${alpha}`;
-  const cached = patternCache.get(key);
-  if (cached) return cached;
-  const off = document.createElement('canvas');
-  // Basic pointy-top hex metrics
-  const vx = r * 1.5;
-  const vy = Math.sin(Math.PI / 3) * r; // half height
-  const tileW = Math.max(1, Math.floor(vx * 2));
-  const tileH = Math.max(1, Math.floor(vy * 2));
-  off.width = Math.floor(tileW * dpr);
-  off.height = Math.floor(tileH * dpr);
-  const ctx = off.getContext('2d');
-  if (!ctx) return null;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.strokeStyle = color;
-  ctx.globalAlpha = alpha;
-  ctx.lineWidth = 1;
-
-  // Helper to draw a single flat-top hex outline (for tiny pattern fill only)
-  const drawHexAt = (x: number, y: number) => {
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = 0 + i * (Math.PI / 3);
-      const px = x + Math.cos(a) * r;
-      const py = y + Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.stroke();
-  };
-
-  // Draw a small set that tiles reasonably; seams are acceptable for MVP
-  drawHexAt(vx * 0.5, vy); // center-ish
-  drawHexAt(0, 0);
-  drawHexAt(vx, vy * 2);
-
-  const pattern = ctx.createPattern(off, 'repeat');
-  if (pattern) patternCache.set(key, pattern);
-  return pattern;
-}
+// (removed unused pattern cache helper)
 
 export const HexgridAdapter: LayerAdapter<HexgridState> = {
   title: 'Hex Grid',

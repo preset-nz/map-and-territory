@@ -23,7 +23,8 @@ export interface SelectFieldProps {
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, options, onChange, className }) => {
-  const buttonId = id ?? React.useId();
+  const generatedId = React.useId();
+  const buttonId = id ?? generatedId;
   const current = options.find((o) => o.value === value) ?? options[0];
   return (
     <div className={cn('flex flex-col gap-1', className)}>
@@ -47,4 +48,3 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, opti
 };
 
 export default SelectField;
-

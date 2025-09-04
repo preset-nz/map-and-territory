@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fromPoint, toPoint, axialToCube, cubeToAxial, round, distance } from '@/lib/hex';
+import { fromPoint, toPoint, axialToCube, cubeToAxial, distance } from '@/lib/hex';
 
 describe('hex lib basics', () => {
   const pointy = { orientation: 'pointy' as const, size: 24, origin: { x: 0, y: 0 } };
@@ -31,4 +31,3 @@ describe('hex lib basics', () => {
     expect(distance(a, b)).toBe(distance(b, a));
   });
 });
-

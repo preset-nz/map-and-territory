@@ -11,7 +11,6 @@
 import React from 'react';
 
 // Render custom lightweight sidebar to work inside PanelGroup without fixed positioning
-import { Separator } from '@/components/ui/separator';
 
 import { useLayoutStore } from '@/stores/layout';
 import { AppSidebarProps } from '@/types/layout';
@@ -21,31 +20,11 @@ import { Button } from '@/components/ui/button';
 import { executeCommand } from '@/lib/commands';
 import { Trash, Eye, EyeOff, Copy } from 'lucide-react';
 
-// Icons for creative tools
-import {
-  Map,
-  Layers,
-  Plus,
-  MoreHorizontal,
-} from 'lucide-react';
-
 // ============================================================================
 // Mock Data - Scene Structure
 // ============================================================================
 
-const MOCK_SCENES = [
-  {
-    id: 'current-map',
-    name: 'Cursed Swampland',
-    type: 'hexmap',
-    active: true,
-    layers: [
-      { id: 'terrain', name: 'Terrain', visible: true },
-      { id: 'features', name: 'Features', visible: true },
-      { id: 'annotations', name: 'Annotations', visible: false },
-    ],
-  },
-];
+// (removed mock scenes; real project state drives UI)
 
 // ============================================================================
 // AppSidebar - Scene View Panel
@@ -64,7 +43,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   const selectCampaign = useSelectionStore((s) => s.selectCampaign);
   const selectMap = useSelectionStore((s) => s.selectMap);
   const projectSelectMap = useProjectStore((s) => s.selectMap);
-  const setMapVisibility = useProjectStore((s) => s.setMapVisibility);
+  // const setMapVisibility = useProjectStore((s) => s.setMapVisibility);
   const setLayerVisibility = useProjectStore((s) => s.setLayerVisibility);
   const duplicateLayer = useProjectStore((s) => s.duplicateLayer);
   const removeLayer = useProjectStore((s) => s.removeLayer);

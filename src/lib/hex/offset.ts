@@ -9,10 +9,9 @@ export function axialToOffset(
   if (variant.endsWith('-r')) {
     // row offset (pointy-top typical)
     const odd = variant.startsWith('odd');
-    const col = a.q + ((a.r + (odd ? (a.r & 1) : ((a.r & 1) ^ 1))) >> 1) - ((odd ? 1 : 0) ? 0 : 0); // simplified later
-    // Simpler, standard mapping:
-    const col2 = a.q + ((a.r - (odd ? (a.r & 1) : 0)) >> 1);
-    return { col: col2, row: a.r };
+    // Standard mapping:
+    const col = a.q + ((a.r - (odd ? (a.r & 1) : 0)) >> 1);
+    return { col, row: a.r };
   } else {
     // column offset (flat-top typical)
     const odd = variant.startsWith('odd');
@@ -38,4 +37,3 @@ export function offsetToAxial(
     return { q, r };
   }
 }
-

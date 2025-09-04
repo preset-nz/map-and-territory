@@ -10,7 +10,8 @@ export interface CheckboxFieldProps {
 }
 
 export const CheckboxField: React.FC<CheckboxFieldProps> = ({ id, label, checked, onChange, className }) => {
-  const inputId = id ?? React.useId();
+  const generatedId = React.useId();
+  const inputId = id ?? generatedId;
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <input
@@ -26,4 +27,3 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ id, label, checked
 };
 
 export default CheckboxField;
-

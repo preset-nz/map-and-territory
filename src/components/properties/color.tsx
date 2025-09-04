@@ -17,7 +17,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 const DEFAULT_PRESETS = ['#ffffff', '#f8f5e7', '#efe7d3', '#f5f5f5', '#e5e7eb', '#cccccc', '#000000'];
 
 export const ColorField: React.FC<ColorFieldProps> = ({ id, label, value, onChange, readOnly, className, presets = DEFAULT_PRESETS }) => {
-  const inputId = id ?? React.useId();
+  const generatedId = React.useId();
+  const inputId = id ?? generatedId;
   const swatchStyle: React.CSSProperties = { backgroundColor: value };
   return (
     <div className={cn('flex flex-col gap-1', className)}>

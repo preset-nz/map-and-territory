@@ -30,7 +30,7 @@ export const PaperViewport: React.FC = () => {
         ) : (
           <div
             style={{
-              aspectRatio: aspectToStyle(active.paper?.aspect ?? '16:10') as any,
+              aspectRatio: aspectToStyle(active.paper?.aspect ?? '16:10'),
               backgroundColor: active.paper?.color ?? '#ffffff',
             }}
             className="w-[90%] max-w-[1400px] mx-auto rounded-md shadow-sm border"

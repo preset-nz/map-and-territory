@@ -11,7 +11,7 @@ export interface PaperSpec {
   color: string;
 }
 
-export interface SceneLayer<State = any> {
+export interface SceneLayer<State = unknown> {
   id: string;
   type: LayerTypeId;
   visible: boolean;
@@ -39,4 +39,3 @@ export type RenderMessage =
   | { type: 'resize'; size: { w: number; h: number }; pixelRatio: number }
   | { type: 'render'; frame: SceneFrame }
   | { type: 'destroy' };
-

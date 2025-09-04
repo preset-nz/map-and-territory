@@ -43,13 +43,13 @@ interface ProjectStoreState {
   moveLayer: (layerId: string, toIndex: number) => void;
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   renameLayer: (layerId: string, name: string) => void;
-  updateLayerState: (layerId: string, patch: any) => void;
+  updateLayerState: (layerId: string, patch: Record<string, unknown>) => void;
 }
 
 function uuid(): string {
   // Use crypto.randomUUID if available, fallback to simple random
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return (crypto as any).randomUUID();
+    return (crypto as { randomUUID?: () => string }).randomUUID?.() ?? '';
   }
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -92,8 +92,8 @@ export const useProjectStore = create<ProjectStoreState>()(
           const name = params?.name ?? 'Untitled Map';
           const description = params?.description ?? '';
           // Ensure core layer types are registered
-          registerLayerType(PaperType as any);
-          registerLayerType(HexgridType as any);
+          registerLayerType(PaperType);
+          registerLayerType(HexgridType);
           if (!cur) {
             // Create a default campaign if none exists
             const project: Project = {
@@ -109,8 +109,8 @@ export const useProjectStore = create<ProjectStoreState>()(
           const next = get().current!;
           const id = uuid();
           const baseLayers: LayerInstance[] = [
-            { id: uuid(), type: 'paper', name: 'Paper', visible: true, state: (PaperType as any).defaultState },
-            { id: uuid(), type: 'hexgrid', name: 'Hex Grid', visible: true, state: (HexgridType as any).defaultState },
+            { id: uuid(), type: 'paper', name: 'Paper', visible: true, state: PaperType.defaultState },
+            { id: uuid(), type: 'hexgrid', name: 'Hex Grid', visible: true, state: HexgridType.defaultState },
           ];
           const maps = [...next.maps, { id, name, description, visible: true, paper: { aspect: '16:10', color: '#ffffff' }, layers: baseLayers }];
           set({ current: { ...next, maps, activeMapId: id } });
@@ -234,7 +234,8 @@ export const useProjectStore = create<ProjectStoreState>()(
         updateLayerState: (layerId, patch) => {
           const cur = get().current; if (!cur) return;
           const map = cur.maps.find((m) => m.id === cur.activeMapId); if (!map) return;
-          set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, state: { ...(l.state as any), ...(patch as any) } } : l)) } : m)) } });
+          const isRecord = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
+          set({ current: { ...cur, maps: cur.maps.map((m) => (m === map ? { ...m, layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, state: isRecord(l.state) ? { ...l.state, ...patch } : patch } : l)) } : m)) } });
         },
       })
 );
