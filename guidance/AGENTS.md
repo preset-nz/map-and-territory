@@ -4,7 +4,7 @@ This folder aggregates product, tech, and process guidance. Documents are MECE a
 
 - Product: `product_brief.md`
 - Tech: `tech_stack.md`
-- Process: `process/AGENTS.md`
+- Process: `process/AGENTS.md` (includes `process/code-reviewer-typescript.md`)
 - Decisions: `adrs/`
 - Features: `feature/`
 

@@ -7,6 +7,7 @@ Stacking note: this AGENTS.md complements `/guidance/AGENTS.md`. Prefer these so
 - Next.js + TS How‑To: `nextjs_typescript_feature_implementation.md`
 - Sizing: `complexity_effort_classification.md`
 - Docs structure: `documentation_structure.md`
+- Code review: `code-reviewer-typescript.md`
 
 MECE intent
 
