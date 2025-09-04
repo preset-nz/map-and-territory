@@ -47,7 +47,6 @@ test.describe('Desktop layout behavior', () => {
       .or(page.locator('aside:has-text("Selection Tool")'))
 
     await expect(propsPanel).toBeVisible()
-    const before = await propsPanel.evaluate((el) => el.scrollTop)
     await propsPanel.evaluate((el) => { el.scrollTop = 2000 })
     const after = await propsPanel.evaluate((el) => el.scrollTop)
     expect(after).toBeGreaterThanOrEqual(0)
@@ -62,6 +61,7 @@ test.describe('Desktop layout behavior', () => {
     const before = await scrollContainer.evaluate((el) => el.scrollTop)
     await scrollContainer.evaluate((el) => { el.scrollTop = 2000 })
     const after = await scrollContainer.evaluate((el) => el.scrollTop)
+    // Allow equal in case content is shorter than container in CI
     expect(after).toBeGreaterThanOrEqual(before)
   })
 })

@@ -26,16 +26,19 @@ export const CanvasViewport: React.FC = () => {
   // Select minimal store state without constructing new objects to keep SSR snapshot stable
   const current = useProjectStore((s) => s.current);
   const activeId = current?.activeMapId ?? null;
-  const maps = current?.maps ?? [];
+  const maps = current?.maps;
 
-  const active = useMemo(() => (activeId ? maps.find((m) => m.id === activeId) ?? null : null), [activeId, maps]);
+  const active = useMemo(() => {
+    const list = maps ?? [];
+    return activeId ? list.find((m) => m.id === activeId) ?? null : null;
+  }, [activeId, maps]);
   // Derive paper aspect/color from Paper layer state if present; fallback to map.paper
   const paperLayer = useMemo(() => (active ? (active.layers ?? []).find((l) => l.type === 'paper') ?? null : null), [active]);
   type Aspect = 'square' | '4:3' | '16:10';
   const aspect: Aspect = (paperLayer?.state as { aspect?: Aspect } | undefined)?.aspect ?? active?.paper?.aspect ?? '16:10';
   const paperColor = (paperLayer?.state as { color?: string } | undefined)?.color ?? active?.paper?.color ?? '#ffffff';
-  const layers = active?.layers ?? [];
-  const layersKey = useMemo(() => layers.map((l) => {
+  const layers = active?.layers;
+  const layersKey = useMemo(() => (layers ?? []).map((l) => {
     const t = getLayerType(l.type);
     const key = t?.adapter?.getInvalidationKey?.(l.state) ?? JSON.stringify(l.state ?? {});
     return `${l.type}:${l.visible ? '1' : '0'}:${key}`;
@@ -106,7 +109,7 @@ export const CanvasViewport: React.FC = () => {
       layers: layers.map((l) => ({ id: l.id, type: l.type, visible: l.visible, state: l.state })),
     };
     svc.render(frame);
-  }, [aspect, paperColor, layersKey, size.w, size.h]);
+  }, [aspect, paperColor, layersKey, size.w, size.h, layers]);
 
   // Fallback main-thread draw when worker unavailable
   useEffect(() => {
@@ -315,7 +318,7 @@ export const CanvasViewport: React.FC = () => {
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [useWorker, aspect, paperColor, layersKey, size.w, size.h]);
+  }, [useWorker, aspect, paperColor, layersKey, size.w, size.h, layers]);
 
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
