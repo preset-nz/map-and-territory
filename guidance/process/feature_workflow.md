@@ -38,3 +38,11 @@ Merge to `main` only when the first three exist, reference the same level, and P
 ## Templates
 
 Use the templates in `guidance/templates/*.template.md` to bootstrap each file.
+
+## Commit & PR Hygiene
+
+- Use Conventional Commits to satisfy commitlint and avoid retries:
+  - Examples: `docs(process): add role processes`, `feat(ui): add layer name field`, `test(e2e): assert numbering`.
+- Don’t commit to `main`; pre-commit blocks it. Work on a feature branch like `feat/layer-naming`.
+- Keep commits scoped: one logical change per commit; guidance vs feature in separate commits.
+- Ensure staged files pass format/lint hooks; Prettier and ESLint run on staged files.

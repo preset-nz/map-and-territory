@@ -45,11 +45,11 @@ export const hexNoiseModule: PluginModule = {
         // Try to insert above selection; if target is top anchor, fall back to just below grid
         let id = useProjectStore
           .getState()
-          .insertLayerAbove(sel.id, "hexnoise", "Hex Noise");
+          .insertLayerAbove(sel.id, "hexnoise");
         if (!id) {
           id = useProjectStore
             .getState()
-            .insertLayerBeforeTopAnchor("hexnoise", "Hex Noise");
+            .insertLayerBeforeTopAnchor("hexnoise");
         }
         if (!id) return;
         useSelectionStore.getState().selectLayer(id);
@@ -57,7 +57,7 @@ export const hexNoiseModule: PluginModule = {
       } else if (sel.kind === "map") {
         const id = useProjectStore
           .getState()
-          .insertLayerBeforeTopAnchor("hexnoise", "Hex Noise");
+          .insertLayerBeforeTopAnchor("hexnoise");
         if (!id) return;
         useSelectionStore.getState().selectLayer(id);
         return;
@@ -65,7 +65,7 @@ export const hexNoiseModule: PluginModule = {
       // Fallback when nothing is selected: treat as map-level insert
       const id = useProjectStore
         .getState()
-        .insertLayerBeforeTopAnchor("hexnoise", "Hex Noise");
+        .insertLayerBeforeTopAnchor("hexnoise");
       if (!id) return;
       useSelectionStore.getState().selectLayer(id);
     },

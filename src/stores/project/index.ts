@@ -7,6 +7,7 @@ import {
 import { PaperType } from "@/layers/adapters/paper";
 import { HexgridType } from "@/layers/adapters/hexgrid";
 import type { LayerInstance } from "@/layers/types";
+import { nextNumberedName } from "@/stores/project/naming";
 
 export interface Project {
   id: string;
@@ -286,7 +287,14 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
-      name: name ?? def.title,
+      name:
+        (name && name.trim()) ||
+        nextNumberedName(
+          def.title,
+          (map.layers ?? [])
+            .filter((l) => l.type === typeId)
+            .map((l) => l.name ?? ""),
+        ),
       visible: true,
       state: def.defaultState,
     };
@@ -319,7 +327,14 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
-      name: name ?? def.title,
+      name:
+        (name && name.trim()) ||
+        nextNumberedName(
+          def.title,
+          (map.layers ?? [])
+            .filter((l) => l.type === typeId)
+            .map((l) => l.name ?? ""),
+        ),
       visible: true,
       state: def.defaultState,
     };
@@ -353,7 +368,14 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
-      name: name ?? def.title,
+      name:
+        (name && name.trim()) ||
+        nextNumberedName(
+          def.title,
+          (map.layers ?? [])
+            .filter((l) => l.type === typeId)
+            .map((l) => l.name ?? ""),
+        ),
       visible: true,
       state: def.defaultState,
     };
