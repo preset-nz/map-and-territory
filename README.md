@@ -60,10 +60,10 @@ This repo uses Husky + lint-staged to run commit-time checks:
 Setup (one-time):
 ```bash
 pnpm add -D husky lint-staged
-pnpm husky         # initializes .husky and hook shims
+pnpm run prepare   # initializes Husky hooks
 ```
 
-Husky runs `.husky/pre-commit`, which delegates to `scripts/pre-commit.sh` and then runs lint-staged.
+Husky runs `.husky/pre-commit`, which delegates to `scripts/pre-commit.sh` and then runs lint-staged. This hook uses a bash shebang and does not rely on deprecated `husky.sh` shims.
 
 Prefer Husky?
 - Keep the existing `.githooks` for now. If you want Husky later:
