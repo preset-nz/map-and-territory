@@ -80,3 +80,4 @@ Product Designer, Software Architect, Programme Manager with Platform Thinking
 - **Tech Stack**: `guidance/tech_stack.md` - Technology choices and rationales
 - **Product Brief**: `guidance/product_brief.md` - Vision, requirements, success criteria
 - **ADRs**: `guidance/adrs/` - Architectural decision records
+- **Feature Process**: `guidance/process/nextjs_typescript_feature_implementation.md` - Next.js + TS implementation flow
