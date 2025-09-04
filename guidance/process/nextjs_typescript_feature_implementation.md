@@ -1,5 +1,7 @@
 # Next.js + TypeScript Feature Implementation Guide
 
+Scope: source of truth for implementing features in this repo using Next.js App Router + TypeScript. Excludes repo‑wide standards and detailed testing rules.
+
 Combines our senior Next.js and senior TypeScript practices into a single, repo‑specific process for implementing features. Use this alongside `guidance/process/implementation_standards.md` and `guidance/process/testing_standards.md`.
 
 ## Scope & Inputs

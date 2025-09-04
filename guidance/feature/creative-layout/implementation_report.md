@@ -3,7 +3,7 @@
 - Feature: guidance/feature/creative-layout-phase-2.md
 - Complexity: Level 3 (Complex)
 - Orchestration Workflow: guidance/process/orchestration_workflows.md (Complex Features)
-- Senior Agent Reference: .claude/agents/senior-developer-nextjs.md
+- Implementation Process Reference: guidance/process/nextjs_typescript_feature_implementation.md
 
 ## Summary
 
@@ -39,4 +39,3 @@ Phase 2 implementation is integrated. Header and toolbar span full width, scene 
 
 - Retained shadcn/ui SidebarProvider but layered custom store-driven visibility for full hide/show. Keeps idiomatic API while achieving creative-tool UX.
 - Integrated `react-resizable-panels@^3` to align with current ecosystem and props.
-

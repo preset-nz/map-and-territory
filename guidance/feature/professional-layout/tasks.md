@@ -13,6 +13,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 1: Foundation & Type System
 
 #### 1. Create core TypeScript interfaces and types
+
 - Define `LayoutState`, `LayoutActions`, and `BreadcrumbItem` interfaces
 - Create auth context types (`AuthContextValue`)
 - Define component prop interfaces (`AppLayoutProps`, `AppHeaderProps`, etc.)
@@ -21,6 +22,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: TypeScript compilation passes, interfaces match design spec
 
 #### 2. Implement NoOpAuthProvider with full auth interface
+
 - Create auth context with no-op implementation
 - Implement login/logout functions that resolve without action
 - Add proper TypeScript types and error boundaries
@@ -32,6 +34,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 2: Zustand State Management
 
 #### 3. Create layout Zustand store with persistence
+
 - Implement core layout state management with sidebar, preferences, navigation
 - Add persistence layer with localStorage integration
 - Include devtools configuration for debugging
@@ -41,6 +44,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Store actions update state correctly, persistence works across sessions
 
 #### 4. Implement store actions for sidebar and preference management
+
 - Add sidebar toggle, variant switching, and width adjustment actions
 - Implement theme switching and preference persistence actions
 - Create navigation and breadcrumb management actions
@@ -50,6 +54,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: All actions update state as expected, no side effects
 
 #### 5. Create LayoutProvider component for React integration
+
 - Bridge Zustand store with React component tree
 - Handle store initialization and default values
 - Add proper error boundaries for store failures
@@ -61,6 +66,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 3: Core Layout Components
 
 #### 6. Implement AppHeader component with branding and global actions
+
 - Create fixed header with proper desktop spacing
 - Add title, branding, and action slot support
 - Integrate with layout store for theme awareness
@@ -70,6 +76,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Header renders correctly, integrates with layout state
 
 #### 7. Build AppSidebar using shadcn/ui Sidebar component
+
 - Implement collapsible sidebar with icon/full modes
 - Create sidebar sections (navigation, tools, layers)
 - Add proper desktop keyboard navigation
@@ -79,6 +86,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Sidebar toggles correctly, keyboard navigation works, sections render
 
 #### 8. Create MainContent component for primary work area
+
 - Implement content area with optional contextual header
 - Add proper CSS Grid layout for desktop optimization
 - Ensure responsive behavior within desktop constraints
@@ -90,6 +98,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 4: Layout Orchestration
 
 #### 9. Build root AppLayout component with CSS Grid
+
 - Create main layout orchestration with header, sidebar, content areas
 - Implement desktop-focused responsive behavior
 - Add layout error boundaries and fallback UI
@@ -99,6 +108,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Layout renders correctly, error boundaries catch failures
 
 #### 10. Integrate layout system with Next.js App Router
+
 - Update `src/app/layout.tsx` to use AppLayout as client component wrapper
 - Ensure proper SSR compatibility and hydration
 - Add layout providers in correct order
@@ -110,6 +120,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 5: Component Integration & Polish
 
 #### 11. Implement sidebar navigation sections
+
 - Create NavigationSection with route-aware active states
 - Add ToolPaletteSection for future editor tools
 - Implement LayerManagementSection for future layer system
@@ -119,6 +130,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Sections render in sidebar, navigation states work correctly
 
 #### 12. Add breadcrumb navigation and content header
+
 - Implement breadcrumb component using layout store navigation state
 - Create ContentHeader with breadcrumbs and action slots
 - Integrate with MainContent component
@@ -128,6 +140,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Breadcrumbs update with navigation, content header integrates properly
 
 #### 13. Implement theme switching and persistence
+
 - Add theme toggle component in header or sidebar
 - Connect theme state to Tailwind CSS theme classes
 - Ensure theme persistence across sessions
@@ -139,6 +152,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 6: Testing & Validation
 
 #### 14. Create comprehensive unit tests for all components
+
 - Test AppLayout, AppHeader, AppSidebar, MainContent rendering
 - Test component props and state integration
 - Test error boundaries and fallback behavior
@@ -148,6 +162,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: All components pass unit tests, coverage >90%
 
 #### 15. Implement Zustand store unit tests
+
 - Test all store actions and state updates
 - Test persistence layer integration
 - Test store composition patterns for future extensibility
@@ -157,6 +172,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: All store operations pass tests, persistence works correctly
 
 #### 16. Build integration tests for layout system
+
 - Test full layout system integration with Next.js
 - Test sidebar state synchronization with UI components
 - Test auth provider integration with layout
@@ -166,6 +182,7 @@ This document provides the implementation roadmap for the Professional Layout Sy
 - **Validation**: Full layout system works end-to-end, no integration issues
 
 #### 17. Implement accessibility and performance tests
+
 - Test keyboard navigation through all layout components
 - Validate screen reader compatibility and WCAG compliance
 - Test layout rendering performance and state update performance
@@ -177,8 +194,9 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ### Phase 7: Documentation & Future Preparation
 
 #### 18. Create store composition utilities for future integration
+
 - Implement useEditorStores composition hook pattern
-- Add store combination utilities for complex operations  
+- Add store combination utilities for complex operations
 - Document store integration patterns for future scene/selection stores
 - **Requirements**: Technical Design store composition, Future extensibility
 - **Dependencies**: Task 3 (layout store)
@@ -188,7 +206,8 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ## Task Dependencies Summary
 
 **Critical Path**: Tasks 1 → 3 → 5 → 9 → 10 → 16
-**Parallel Development**: 
+**Parallel Development**:
+
 - Tasks 6, 7, 8 can be developed in parallel after Task 5
 - Tasks 14, 15 can be developed in parallel with component tasks
 - Tasks 11, 12, 13 can be developed after core components
@@ -196,8 +215,9 @@ This document provides the implementation roadmap for the Professional Layout Sy
 ## Success Criteria
 
 Implementation is complete when:
+
 - All 18 tasks pass validation criteria
-- Full test suite runs without failures  
+- Full test suite runs without failures
 - Layout system integrates seamlessly with Next.js App Router
 - Desktop-focused professional interface provides smooth user experience
 - Store architecture supports future scene and selection management integration
@@ -205,8 +225,9 @@ Implementation is complete when:
 - Accessibility standards fully met with keyboard navigation support
 - TypeScript compilation passes with full type coverage
 
-**Agent Assignment Recommendations**:
-- **senior-developer-typescript**: Tasks 1-5, 15, 18 (types, stores, testing)
-- **senior-developer-nextjs**: Tasks 6-14, 16-17 (components, integration, testing)
+**Implementation References**:
+
+- Use `guidance/process/nextjs_typescript_feature_implementation.md` for Next.js + TS workflow.
+- Testing expectations: `guidance/process/testing_standards.md`.
 
 This implementation plan provides a clear roadmap for building the Professional Layout System with proper separation of concerns, comprehensive testing, and future extensibility built into the architecture.
