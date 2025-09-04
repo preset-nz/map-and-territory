@@ -1,12 +1,18 @@
-import type { RenderBackend, SceneFrame } from '@/render/types';
-import { createPerlinNoise } from '@/lib/noise';
+import type { RenderBackend, SceneFrame } from "@/render/types";
+import { getLayerType } from "@/layers/registry";
 
-function parseAspect(aspect: 'square' | '4:3' | '16:10'): { aw: number; ah: number } {
+function parseAspect(aspect: "square" | "4:3" | "16:10"): {
+  aw: number;
+  ah: number;
+} {
   switch (aspect) {
-    case 'square': return { aw: 1, ah: 1 };
-    case '4:3': return { aw: 4, ah: 3 };
-    case '16:10':
-    default: return { aw: 16, ah: 10 };
+    case "square":
+      return { aw: 1, ah: 1 };
+    case "4:3":
+      return { aw: 4, ah: 3 };
+    case "16:10":
+    default:
+      return { aw: 16, ah: 10 };
   }
 }
 
@@ -18,7 +24,7 @@ export class Canvas2DBackend implements RenderBackend {
 
   init(canvas: OffscreenCanvas, pixelRatio: number) {
     this.pixelRatio = Math.max(1, pixelRatio || 1);
-    this.ctx = canvas.getContext('2d');
+    this.ctx = canvas.getContext("2d");
   }
 
   resize(size: { w: number; h: number }, pixelRatio: number) {
@@ -28,43 +34,11 @@ export class Canvas2DBackend implements RenderBackend {
     this.canvasH = size.h;
   }
 
-  // Simple pattern cache for hexgrid
-  private patternCache = new Map<string, CanvasPattern>();
-
-  private makeHexPattern(r: number, color: string, alpha: number, dpr: number): CanvasPattern | null {
-    const key = `${dpr}:${r}:${color}:${alpha}`;
-    const cached = this.patternCache.get(key);
-    if (cached) return cached;
-    const off = new OffscreenCanvas(Math.max(1, Math.floor(r * 3 * dpr)), Math.max(1, Math.floor(r * 2 * dpr)));
-    const ctx = off.getContext('2d');
-    if (!ctx) return null;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.strokeStyle = color;
-    ctx.globalAlpha = alpha;
-    ctx.lineWidth = 1;
-    const vx = r * 1.5;
-    const vy = Math.sin(Math.PI / 3) * r;
-    const drawHexAt = (x: number, y: number) => {
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const a = Math.PI / 6 + i * (Math.PI / 3);
-        const px = x + Math.cos(a) * r;
-        const py = y + Math.sin(a) * r;
-        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    };
-    drawHexAt(vx * 0.5, vy);
-    drawHexAt(0, 0);
-    drawHexAt(vx, vy * 2);
-    const pattern = ctx.createPattern(off as unknown as CanvasImageSource, 'repeat');
-    if (pattern) this.patternCache.set(key, pattern);
-    return pattern;
-  }
+  // (Removed old pattern cache and helpers; adapters render directly)
 
   render(frame: SceneFrame) {
-    const ctx = this.ctx; if (!ctx) return;
+    const ctx = this.ctx;
+    if (!ctx) return;
     const { w: cw, h: ch } = frame.size;
     const dpr = frame.pixelRatio || 1;
     // Clear in device pixels with identity transform
@@ -73,15 +47,25 @@ export class Canvas2DBackend implements RenderBackend {
     // Now draw in CSS pixels by applying dpr transform
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+    // Determine paper from layer state (fallback to frame.paper) and compute paperRect
+    const paperLayer = frame.layers.find((l) => l.type === "paper");
+    const paperAspect =
+      (paperLayer?.state as { aspect?: "square" | "4:3" | "16:10" } | undefined)
+        ?.aspect ?? frame.paper.aspect;
+    const paperColor =
+      (paperLayer?.state as { color?: string } | undefined)?.color ??
+      frame.paper.color;
+
     // Compute paperRect: fill width with left/right/top spacing, top-aligned; ensure it fits height
     const paddingX = Math.max(12, cw * 0.05);
     const paddingY = 12;
     const availW = Math.max(0, cw - paddingX * 2);
     const availH = Math.max(0, ch - paddingY * 2);
-    const { aw, ah } = parseAspect(frame.paper.aspect);
+    const { aw, ah } = parseAspect(paperAspect);
     let paperW = availW;
     let paperH = (paperW * ah) / aw;
-    if (paperH > availH) { // If too tall, fit height instead
+    if (paperH > availH) {
+      // If too tall, fit height instead
       paperH = availH;
       paperW = (paperH * aw) / ah;
     }
@@ -90,7 +74,7 @@ export class Canvas2DBackend implements RenderBackend {
 
     // Draw paper fill (screen space)
     ctx.save();
-    ctx.fillStyle = frame.paper.color || '#ffffff';
+    ctx.fillStyle = paperColor || "#ffffff";
     ctx.fillRect(paperX, paperY, paperW, paperH);
     ctx.restore();
 
@@ -104,170 +88,57 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.scale(frame.camera.zoom || 1, frame.camera.zoom || 1);
     ctx.translate(-(frame.camera.x || 0), -(frame.camera.y || 0));
 
-    // Draw non-paper layers; grid last
-    const nonGrid = frame.layers.filter((l) => l.visible && l.type !== 'paper' && l.type !== 'hexgrid');
-    const grid = frame.layers.find((l) => l.visible && l.type === 'hexgrid');
-    for (const l of nonGrid) {
-      if (!l.visible || l.type === 'paper') continue;
-      if (l.type === 'hexnoise') {
-        const st = l.state as Record<string, unknown>;
-        const grid = frame.layers.find((x) => x.visible && x.type === 'hexgrid');
-        const orientation = (grid?.state as Record<string, unknown> | undefined)?.orientation === 'flat' ? 'flat' : 'pointy';
-        const r = Math.max(4, Number((grid?.state as Record<string, unknown> | undefined)?.size ?? 16));
-        const sqrt3 = Math.sqrt(3);
-        // set up noise
-        const perlin = createPerlinNoise((st.seed as string | number | undefined) ?? 'seed');
-        const freq = Math.max(0, Number(st.frequency ?? 0.15));
-        const ox = Number(st.offsetX ?? 0);
-        const oy = Number(st.offsetY ?? 0);
-        const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
-        const gamma = Math.max(0.0001, Number(st.gamma ?? 1));
-        const clampMin = Math.max(0, Math.min(1, Number(st.min ?? 0)));
-        const clampMax = Math.max(0, Math.min(1, Number(st.max ?? 1)));
-        const drawHex = (cx: number, cy: number, startAngle: number, q: number, rax: number) => {
-          let v = perlin.normalized2D(q * freq + ox, rax * freq + oy);
-          v = Math.pow(v, gamma);
-          if (v < clampMin || v > clampMax) return; // transparent outside range
-          const mode = (st.mode as 'shape' | 'paint' | undefined) ?? 'shape';
-          if (mode === 'shape') {
-            const g = Math.floor(v * 255 * intensity);
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const ang = startAngle + i * (Math.PI / 3);
-              const px = cx + Math.cos(ang) * r;
-              const py = cy + Math.sin(ang) * r;
-              if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.fillStyle = `rgb(${g},${g},${g})`;
-            ctx.fill();
-            return;
-          }
-          const terrain = (st.terrain as 'water'|'desert'|'plains'|'hills' | undefined) ?? 'plains';
-          const colorMap: Record<string, string> = {
-            water: '#3b5bfd',
-            desert: '#e6c767',
-            plains: '#7abd5a',
-            hills: '#8b6f4a',
-          };
-          const fill = colorMap[terrain] ?? '#7abd5a';
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-            const ang = startAngle + i * (Math.PI / 3);
-            const px = cx + Math.cos(ang) * r;
-            const py = cy + Math.sin(ang) * r;
-            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.fillStyle = fill;
-          ctx.fill();
-        };
-        if (orientation === 'flat') {
-          const colStep = 1.5 * r;
-          const rowStep = sqrt3 * r;
-          const cols = Math.ceil(paperW / colStep) + 2;
-          const rows = Math.ceil(paperH / rowStep) + 2;
-          const centerX = paperW / 2;
-          const centerY = paperH / 2;
-          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
-          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
-          for (let c = cmin; c <= cmax; c++) {
-            const yOffset = (c & 1) ? (rowStep / 2) : 0;
-            for (let ri = rmin; ri <= rmax; ri++) {
-              const x = c * colStep + centerX;
-              const y = ri * rowStep + yOffset + centerY;
-              const q = c; const rax = ri; // axial indices aligned to tiling
-              drawHex(x, y, 0, q, rax);
-            }
-          }
-        } else {
-          const colStep = sqrt3 * r;
-          const rowStep = 1.5 * r;
-          const cols = Math.ceil(paperW / colStep) + 2;
-          const rows = Math.ceil(paperH / rowStep) + 2;
-          const centerX = paperW / 2;
-          const centerY = paperH / 2;
-          const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
-          const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
-          for (let ri = rmin; ri <= rmax; ri++) {
-            const xOffset = (ri & 1) ? (colStep / 2) : 0;
-            for (let c = cmin; c <= cmax; c++) {
-              const x = c * colStep + xOffset + centerX;
-              const y = ri * rowStep + centerY;
-              // For pointy layout, axial mapping differs; approximate with r=ri, q=c
-              const q = c; const rax = ri;
-              drawHex(x, y, -Math.PI / 6, q, rax);
-            }
-          }
+    // Build env and delegate drawing to adapters in array order (bottom -> top)
+    const gridLayer = frame.layers.find((l) => l.type === "hexgrid");
+    const gridHint = gridLayer
+      ? {
+          size: Math.max(
+            4,
+            Number(
+              (gridLayer.state as Record<string, unknown>)?.["size"] ?? 16,
+            ),
+          ),
+          orientation: ((gridLayer.state as Record<string, unknown>)?.[
+            "orientation"
+          ] === "flat"
+            ? "flat"
+            : "pointy") as "pointy" | "flat",
         }
+      : undefined;
+
+    const env = {
+      zoom: frame.camera.zoom || 1,
+      pixelRatio: dpr,
+      size: { w: paperW, h: paperH },
+      paperRect: { x: paperX, y: paperY, w: paperW, h: paperH },
+      camera: frame.camera,
+      grid: gridHint,
+    } as const;
+
+    for (const l of frame.layers) {
+      if (!l.visible) continue;
+      const type = getLayerType(l.type);
+      const draw = type?.adapter?.drawMain;
+      if (typeof draw === "function") {
+        draw(
+          ctx as unknown as CanvasRenderingContext2D,
+          l.state as unknown,
+          env,
+        );
       }
-    }
-    if (grid) {
-      const st = grid.state as Record<string, unknown>;
-      const r = Math.max(4, Number(st.size ?? 16));
-      const stroke = String(st.color ?? '#000000');
-      const a = Number(st.alpha ?? 1);
-      const orientation = st.orientation === 'flat' ? 'flat' : 'pointy';
-      const sqrt3 = Math.sqrt(3);
-      ctx.save();
-      ctx.globalAlpha = a;
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = Math.max(1, st.lineWidth ?? 1); // CSS pixel width
-      const drawHex = (cx: number, cy: number, startAngle: number) => {
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-          const ang = startAngle + i * (Math.PI / 3);
-          const px = cx + Math.cos(ang) * r;
-          const py = cy + Math.sin(ang) * r;
-          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      };
-      if (orientation === 'flat') {
-        const colStep = 1.5 * r;
-        const rowStep = sqrt3 * r;
-        const cols = Math.ceil(paperW / colStep) + 2;
-        const rows = Math.ceil(paperH / rowStep) + 2;
-        const centerX = paperW / 2;
-        const centerY = paperH / 2;
-        const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
-        const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
-        for (let c = cmin; c <= cmax; c++) {
-          const yOffset = (c & 1) ? (rowStep / 2) : 0;
-          for (let ri = rmin; ri <= rmax; ri++) {
-            const x = c * colStep + centerX;
-            const y = ri * rowStep + yOffset + centerY;
-            drawHex(x, y, 0);
-          }
-        }
-      } else {
-        const colStep = sqrt3 * r;
-        const rowStep = 1.5 * r;
-        const cols = Math.ceil(paperW / colStep) + 2;
-        const rows = Math.ceil(paperH / rowStep) + 2;
-        const centerX = paperW / 2;
-        const centerY = paperH / 2;
-        const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
-        const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
-        for (let ri = rmin; ri <= rmax; ri++) {
-          const xOffset = (ri & 1) ? (colStep / 2) : 0;
-          for (let c = cmin; c <= cmax; c++) {
-            const x = c * colStep + xOffset + centerX;
-            const y = ri * rowStep + centerY;
-            drawHex(x, y, -Math.PI / 6);
-          }
-        }
-      }
-      ctx.restore();
     }
 
     // Draw outline on top for emphasis
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = "#000000";
     ctx.lineWidth = 3 / dpr; // ~3px in CSS pixels
-    ctx.strokeRect(paperX + ctx.lineWidth / 2, paperY + ctx.lineWidth / 2, paperW - ctx.lineWidth, paperH - ctx.lineWidth);
+    ctx.strokeRect(
+      paperX + ctx.lineWidth / 2,
+      paperY + ctx.lineWidth / 2,
+      paperW - ctx.lineWidth,
+      paperH - ctx.lineWidth,
+    );
     ctx.restore();
 
     ctx.restore();

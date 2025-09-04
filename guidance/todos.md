@@ -1,5 +1,6 @@
 ## TODOs
 
+- Workflow: document agent Git workflow in `AGENTS.md` (branch naming, lint/test gates, PR protocol). (Done)
 - Layering model: make stacking intuitive and consistent across sidebar, renderers, and insertion/duplication. Decide canonical order (array order vs. fixed sentinels), fix insertion semantics, and add tests + UI indicators (e.g., z-order badges/arrows).
 - Theming audit: run `guidance/process/theming_audit_checklist.md` and address findings (tokens, contrast, states, dark-mode gaps).
 - Dark mode toggle: expose a visible toggle in header; wire to `useLayoutStore().theme` and verify all views in dark. (Done)

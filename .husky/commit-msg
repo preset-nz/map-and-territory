@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Validate commit message using local commitlint
+pnpm commitlint --edit "$1"
+

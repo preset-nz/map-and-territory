@@ -6,16 +6,30 @@ export interface RenderEnv {
   size: { w: number; h: number };
   paperRect: { x: number; y: number; w: number; h: number };
   camera: { x: number; y: number; zoom: number };
+  // Optional hints derived by render host (e.g., for layers that coordinate with grid)
+  grid?: { size: number; orientation: "pointy" | "flat" };
 }
 
 export interface LayerAdapter<State = unknown> {
   title: string;
   // Draw into main viewport canvas
-  drawMain?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
+  drawMain?: (
+    ctx: CanvasRenderingContext2D,
+    state: State,
+    env: RenderEnv,
+  ) => void;
   // Optional scene/overview rendering
-  drawSceneView?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
+  drawSceneView?: (
+    ctx: CanvasRenderingContext2D,
+    state: State,
+    env: RenderEnv,
+  ) => void;
   // Optional hit testing for selection tools
-  hitTest?: (pt: { x: number; y: number }, state: State, env: RenderEnv) => boolean;
+  hitTest?: (
+    pt: { x: number; y: number },
+    state: State,
+    env: RenderEnv,
+  ) => boolean;
   // Optional invalidation key — used by host to detect visual-impacting changes
   getInvalidationKey?: (state: State) => string;
   // Optional (de)serialization

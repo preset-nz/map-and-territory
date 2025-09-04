@@ -1,23 +1,27 @@
-import type { PluginManifest, PluginModule } from '@/plugin/types';
-import { registerLayerType } from '@/layers/registry';
-import { HexNoiseType } from '@/layers/adapters/hex-noise';
-import { useProjectStore } from '@/stores/project';
-import { useSelectionStore } from '@/stores/selection';
+import type { PluginManifest, PluginModule } from "@/plugin/types";
+import { registerLayerType } from "@/layers/registry";
+import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { useProjectStore } from "@/stores/project";
+import { useSelectionStore } from "@/stores/selection";
 
 export const hexNoiseManifest: PluginManifest = {
-  id: 'app.plugins.hex-noise',
-  name: 'Hex Noise Layer',
-  version: '0.1.0',
-  apiVersion: '1.0',
+  id: "app.plugins.hex-noise",
+  name: "Hex Noise Layer",
+  version: "0.1.0",
+  apiVersion: "1.0",
   contributes: {
-    commands: [
-      { id: 'layer.hexnoise.add', title: 'Add Hex Noise Layer' },
-    ],
+    commands: [{ id: "layer.hexnoise.add", title: "Add Hex Noise Layer" }],
     toolbar: [
       {
-        group: 'scene',
+        group: "scene",
         items: [
-          { type: 'button', command: 'layer.hexnoise.add', icon: 'lucide:layers', label: 'Hex Noise', order: 2 },
+          {
+            type: "button",
+            command: "layer.hexnoise.add",
+            icon: "lucide:layers",
+            label: "Hex Noise",
+            order: 2,
+          },
         ],
       },
     ],
@@ -29,30 +33,40 @@ export const hexNoiseModule: PluginModule = {
     registerLayerType(HexNoiseType);
   },
   commands: {
-    'layer.hexnoise.add': () => {
+    "layer.hexnoise.add": () => {
       const project = useProjectStore.getState().current;
       const activeMapId = project?.activeMapId ?? null;
       if (!project || !activeMapId) return; // disabled state should prevent this
       const map = project.maps.find((m) => m.id === activeMapId);
       if (!map) return;
-      // create layer
-      const id = useProjectStore.getState().addLayer('hexnoise', 'Hex Noise');
-      if (!id) return;
+      // insert according to selection semantics
       const sel = useSelectionStore.getState().selection;
-      const cur = useProjectStore.getState().current!;
-      const m = cur.maps.find((mm) => mm.id === activeMapId)!;
-      const layers = m.layers ?? [];
-      let targetIndex = layers.length; // default append
-      if (sel.kind === 'layer') {
-        const idx = layers.findIndex((l) => l.id === sel.id);
-        if (idx >= 0) targetIndex = idx; // insert above (before) selected layer
-      } else if (sel.kind === 'map') {
-        // insert just below grid (i.e., immediately before the hexgrid layer)
-        const hexIdx = layers.findIndex((l) => l.type === 'hexgrid');
-        targetIndex = hexIdx >= 0 ? hexIdx : 1; // fallback just after paper
+      if (sel.kind === "layer") {
+        // Try to insert above selection; if target is top anchor, fall back to just below grid
+        let id = useProjectStore
+          .getState()
+          .insertLayerAbove(sel.id, "hexnoise", "Hex Noise");
+        if (!id) {
+          id = useProjectStore
+            .getState()
+            .insertLayerBeforeTopAnchor("hexnoise", "Hex Noise");
+        }
+        if (!id) return;
+        useSelectionStore.getState().selectLayer(id);
+        return;
+      } else if (sel.kind === "map") {
+        const id = useProjectStore
+          .getState()
+          .insertLayerBeforeTopAnchor("hexnoise", "Hex Noise");
+        if (!id) return;
+        useSelectionStore.getState().selectLayer(id);
+        return;
       }
-      useProjectStore.getState().moveLayer(id, targetIndex);
-      // select the new layer in scene tree
+      // Fallback when nothing is selected: treat as map-level insert
+      const id = useProjectStore
+        .getState()
+        .insertLayerBeforeTopAnchor("hexnoise", "Hex Noise");
+      if (!id) return;
       useSelectionStore.getState().selectLayer(id);
     },
   },

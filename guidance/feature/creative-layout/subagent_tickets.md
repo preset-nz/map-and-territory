@@ -2,7 +2,7 @@
 
 Reference: guidance/feature/creative-layout-phase-2.md
 Lead: Orchestrator (Product Designer, Software Architect, Programme Manager)
-Primary Implementer: @senior-developer-nextjs
+Primary Implementer: follow `guidance/process/nextjs_typescript_feature_implementation.md`
 QA: @test-automation-vitest, @test-automation-runner (Playwright)
 
 ## Ticket 1: Vitest/Playwright Runner Separation
@@ -65,6 +65,6 @@ QA: @test-automation-vitest, @test-automation-runner (Playwright)
 
 ## Review Gates
 
-- Conform to `.claude/agents/senior-developer-nextjs.md`
+- Conform to `guidance/process/nextjs_typescript_feature_implementation.md`
 - All changes pass full test suite and lint
 - Orchestrator review before merge
