@@ -15,27 +15,22 @@ Gritty, analog‑style hexmap editor for TTRPGs — built with Next.js.
 
 ## Overview
 
-Map & Territory is a hexmap editor aimed at producing atmospheric, hand‑made looking maps for tabletop RPGs (think Mörk Borg / Death in Space vibes) while providing a clean, professional editing experience.
+Map & Territory is a hexmap editor focused on a clean, professional editing experience. The editor itself is polished; the goal is to enable creating maps with an analog, gritty feel over time.
 
-Project context, goals, and design philosophy live in `guidance/product_brief.md`.
+Project context, goals, and design philosophy: `guidance/product_brief.md`.
 
-## Features
+## Current Scope
 
-- Hex grid core: axial/cube coordinates, layout (pointy/flat), neighbors, rounding.
-- Layered editing model for terrain, features, annotations, and effects.
-- Multi‑document projects for campaigns and related maps.
-- Plugin‑friendly architecture with a simple public API surface.
-- Export targets: PNG/SVG (planned), JSON project format.
-- Keyboard‑first workflow; panels and toolbars for power users.
+- Editor app scaffold in Next.js with a polished UI foundation.
+- Foundational hex grid primitives used by the editor.
+- Unit and E2E testing setup (Vitest, Playwright).
+- Guidance and ADRs to steer architecture and product direction.
 
 Status: early learning project; see `guidance/tickets.md` and `guidance/todos.md` for active work and roadmap.
 
 ## Tech Stack
 
-- Next.js 15, React 19, TypeScript
-- pnpm, ESLint, Prettier
-- Vitest (+ jsdom) for unit tests; Playwright for E2E
-- Tailwind CSS (via PostCSS)
+See `guidance/tech_stack.md` for details and rationale.
 
 ## Getting Started
 
@@ -65,7 +60,7 @@ All contributions should keep the test suite green.
 
 ## Project Structure
 
-- `src/lib/hex/`: Hex grid primitives (axial/cube math, layouts, neighbors).
+- `src/`: Application source.
 - `public/`: Static assets.
 - `guidance/`: Product brief, ADRs, features, and process docs.
 
