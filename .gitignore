@@ -42,3 +42,9 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 Trace-*.json
+\n+# repo hygiene: private guidance and agent files
+AGENTS.md
+CLAUDE.md
+CORE.md
+.claude/
+guidance/process/
