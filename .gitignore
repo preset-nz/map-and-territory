@@ -1,50 +1,68 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+##
+# Project .gitignore (Next.js + Node + JetBrains)
+# See: https://help.github.com/articles/ignoring-files/
+##
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# OS / IDE
 .DS_Store
-*.pem
+.idea/
+*.iml
 
-# debug
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Build output
+.next/
+out/
+build/
+dist/
+
+# Testing and coverage
+coverage/
+.nyc_output
+/playwright-report/
+/test-results/
+Trace-*.json
+
+# Logs and debug
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# Environment files
 .env*
 
-# vercel
+# Tool caches
+.eslintcache
+.stylelintcache
+.cache
+.parcel-cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.npm
+.node_repl_history
+
+# Platform
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
-/playwright-report/
-/test-results/
-Trace-*.json
-\n+# repo hygiene: private guidance and agent files
+
+# Certificates and keys (keep out of VCS)
+*.pem
+
+# Internal private docs (keep local only)
 AGENTS.md
 CLAUDE.md
 CORE.md
 .claude/
 guidance/process/
+
