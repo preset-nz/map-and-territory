@@ -7,11 +7,10 @@
  * Positioned below header, spans full width.
  */
 
-import React, { useEffect, useSyncExternalStore } from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { LucideIcon } from 'lucide-react';
 
 import { useLayoutStore } from '@/stores/layout';
 import { executeCommand } from '@/lib/commands';
@@ -29,7 +28,8 @@ import { useProjectStore } from '@/stores/project';
 // ============================================================================
 
 export const AppToolbar: React.FC = () => {
-  const EMPTY: ReadonlyArray<ReturnType<typeof getToolbarContributions>[number]> = [];
+  type ToolbarItem = ReturnType<typeof getToolbarContributions>[number];
+  const EMPTY: ReadonlyArray<ToolbarItem> = [];
   const isOpen = useLayoutStore((state) => state.isOpen);
   const toggleSidebar = useLayoutStore((state) => state.toggleSidebar);
   
@@ -93,12 +93,12 @@ export const AppToolbar: React.FC = () => {
             // getServerSnapshot
             () => EMPTY
           )
-            .reduce((acc: Array<{ group: string; items: typeof EMPTY }>, item) => {
+            .reduce((acc: Array<{ group: string; items: ToolbarItem[] }>, item) => {
               const g = acc.find((x) => x.group === item.group);
               if (g) {
-                (g.items as any).push(item);
+                g.items.push(item);
               } else {
-                acc.push({ group: item.group, items: [item] as any });
+                acc.push({ group: item.group, items: [item] });
               }
               return acc;
             }, [])
@@ -108,7 +108,7 @@ export const AppToolbar: React.FC = () => {
               return a.group.localeCompare(b.group);
             })
             .map((group, gi, groups) => {
-              const items = (group.items as any as ReturnType<typeof getToolbarContributions>).slice().sort((a, b) => {
+              const items = group.items.slice().sort((a, b) => {
                 const oa = a.order ?? 0;
                 const ob = b.order ?? 0;
                 if (oa !== ob) return oa - ob;

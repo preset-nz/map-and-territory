@@ -29,7 +29,8 @@ export interface Int3DProps extends NumberFieldBaseProps {
 }
 
 export const Int1D: React.FC<Int1DProps> = ({ id, label, value, onChange, readOnly, className }) => {
-  const inputId = id ?? React.useId();
+  const generatedId = React.useId();
+  const inputId = id ?? generatedId;
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label ? <label htmlFor={inputId} className="text-xs text-foreground">{label}</label> : null}
@@ -47,7 +48,8 @@ export const Int1D: React.FC<Int1DProps> = ({ id, label, value, onChange, readOn
 };
 
 export const Int2D: React.FC<Int2DProps> = ({ id, label, value, onChange, readOnly, className }) => {
-  const baseId = id ?? React.useId();
+  const generatedId = React.useId();
+  const baseId = id ?? generatedId;
   const [x, y] = value;
   const update = (nx: number, ny: number) => onChange?.([nx, ny]);
   return (
@@ -68,7 +70,8 @@ export const Int2D: React.FC<Int2DProps> = ({ id, label, value, onChange, readOn
 };
 
 export const Int3D: React.FC<Int3DProps> = ({ id, label, value, onChange, readOnly, className }) => {
-  const baseId = id ?? React.useId();
+  const generatedId = React.useId();
+  const baseId = id ?? generatedId;
   const [x, y, z] = value;
   const update = (nx: number, ny: number, nz: number) => onChange?.([nx, ny, nz]);
   return (
@@ -112,7 +115,8 @@ export interface Float3DProps extends NumberFieldBaseProps {
 }
 
 export const Float1D: React.FC<Float1DProps> = ({ id, label, value, onChange, readOnly, className, step = 0.01 }) => {
-  const inputId = id ?? React.useId();
+  const generatedId = React.useId();
+  const inputId = id ?? generatedId;
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label ? <label htmlFor={inputId} className="text-xs text-foreground">{label}</label> : null}
@@ -129,7 +133,8 @@ export const Float1D: React.FC<Float1DProps> = ({ id, label, value, onChange, re
 };
 
 export const Float2D: React.FC<Float2DProps> = ({ id, label, value, onChange, readOnly, className, step = 0.01 }) => {
-  const baseId = id ?? React.useId();
+  const generatedId = React.useId();
+  const baseId = id ?? generatedId;
   const [x, y] = value;
   const update = (nx: number, ny: number) => onChange?.([nx, ny]);
   return (
@@ -150,7 +155,8 @@ export const Float2D: React.FC<Float2DProps> = ({ id, label, value, onChange, re
 };
 
 export const Float3D: React.FC<Float3DProps> = ({ id, label, value, onChange, readOnly, className, step = 0.01 }) => {
-  const baseId = id ?? React.useId();
+  const generatedId = React.useId();
+  const baseId = id ?? generatedId;
   const [x, y, z] = value;
   const update = (nx: number, ny: number, nz: number) => onChange?.([nx, ny, nz]);
   return (
@@ -174,5 +180,5 @@ export const Float3D: React.FC<Float3DProps> = ({ id, label, value, onChange, re
   );
 };
 
-export default { Int1D, Int2D, Int3D, Float1D, Float2D, Float3D };
-
+const NumberFields = { Int1D, Int2D, Int3D, Float1D, Float2D, Float3D };
+export default NumberFields;

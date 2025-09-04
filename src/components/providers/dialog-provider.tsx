@@ -44,13 +44,20 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [promptValue, setPromptValue] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const open = useCallback(<K extends DialogKind, T extends unknown>(kind: K, opts: any): Promise<T> => {
-    return new Promise<T>((resolve) => {
-      setError(null);
-      if (kind === 'prompt') setPromptValue(opts?.defaultValue ?? '');
-      setState({ kind: kind as any, opts, resolve });
-    });
-  }, []);
+  const open = useCallback(
+    <TResult,>(kind: DialogKind, opts: BaseOptions | PromptOptions): Promise<TResult> => {
+      return new Promise<TResult>((resolve) => {
+        setError(null);
+        if (kind === 'prompt') setPromptValue((opts as PromptOptions)?.defaultValue ?? '');
+        if (kind === 'prompt') {
+          setState({ kind: 'prompt', opts: opts as PromptOptions, resolve });
+        } else if (kind === 'confirm' || kind === 'alert') {
+          setState({ kind, opts: opts as BaseOptions, resolve });
+        }
+      });
+    },
+    []
+  );
 
   const api: DialogAPI = useMemo(() => ({
     alert: (opts) => open('alert', opts) as Promise<void>,
@@ -82,10 +89,16 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const openBool = state.kind !== 'idle';
-  const title = (state as any).opts?.title ?? (state.kind === 'alert' ? 'Notice' : state.kind === 'confirm' ? 'Confirm' : 'Input');
-  const desc = (state as any).opts?.description as string | undefined;
-  const confirmText = (state as any).opts?.confirmText ?? (state.kind === 'alert' ? 'OK' : 'Confirm');
-  const cancelText = (state as any).opts?.cancelText ?? 'Cancel';
+  const title = state.kind === 'prompt' || state.kind === 'confirm' || state.kind === 'alert'
+    ? (state.opts.title ?? (state.kind === 'alert' ? 'Notice' : state.kind === 'confirm' ? 'Confirm' : 'Input'))
+    : 'Dialog';
+  const desc = state.kind === 'prompt' || state.kind === 'confirm' || state.kind === 'alert' ? state.opts.description : undefined;
+  const confirmText = state.kind === 'prompt' || state.kind === 'confirm' || state.kind === 'alert'
+    ? (state.opts.confirmText ?? (state.kind === 'alert' ? 'OK' : 'Confirm'))
+    : 'OK';
+  const cancelText = state.kind === 'prompt' || state.kind === 'confirm' || state.kind === 'alert'
+    ? (state.opts.cancelText ?? 'Cancel')
+    : 'Cancel';
 
   return (
     <DialogContext.Provider value={api}>
@@ -120,4 +133,3 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 };
 
 export default DialogProvider;
-

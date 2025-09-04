@@ -1,5 +1,5 @@
 import type { Axial, Layout, Point } from './types';
-import { axialToCube, round } from './coords';
+import { round } from './coords';
 
 const SQRT3 = Math.sqrt(3);
 
@@ -45,4 +45,3 @@ export function corners(center: Point, layout: Layout): Point[] {
   }
   return pts;
 }
-

@@ -27,9 +27,8 @@ export const mapCrudModule: PluginModule = {
     'app.map.new': async () => {
       await executeCommand('host.action.newMap');
     },
-    'app.map.delete': async (payload?: any) => {
+    'app.map.delete': async (payload?: unknown) => {
       await executeCommand('host.action.deleteMap', payload);
     },
   },
 };
-

@@ -26,7 +26,7 @@ export const hexNoiseManifest: PluginManifest = {
 
 export const hexNoiseModule: PluginModule = {
   activate: () => {
-    registerLayerType(HexNoiseType as any);
+    registerLayerType(HexNoiseType);
   },
   commands: {
     'layer.hexnoise.add': () => {

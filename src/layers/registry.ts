@@ -1,9 +1,9 @@
 import type { LayerType, LayerTypeId, LayerPolicy } from './types';
 
-const layerTypes = new Map<LayerTypeId, LayerType<any>>();
+const layerTypes = new Map<LayerTypeId, LayerType<unknown>>();
 
 export function registerLayerType<T>(def: LayerType<T>) {
-  layerTypes.set(def.id, def as LayerType<any>);
+  layerTypes.set(def.id, def as LayerType<unknown>);
 }
 
 export function unregisterLayerType(id: LayerTypeId) {

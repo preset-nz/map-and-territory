@@ -12,12 +12,11 @@ export class RenderService {
     if (!offscreen) return false; // fallback: not supported
     this.offscreen = offscreen as OffscreenCanvas;
     try {
-      // eslint-disable-next-line no-restricted-globals
       this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-      const initMsg: RenderMessage = { type: 'init', canvas: this.offscreen, pixelRatio } as any;
-      this.worker.postMessage(initMsg, [this.offscreen as any]);
+      const initMsg: RenderMessage = { type: 'init', canvas: this.offscreen, pixelRatio };
+      this.worker.postMessage(initMsg, [this.offscreen]);
       return true;
-    } catch (e) {
+    } catch {
       this.worker?.terminate();
       this.worker = null;
       this.offscreen = null;
@@ -27,18 +26,18 @@ export class RenderService {
 
   resize(size: { w: number; h: number }, pixelRatio: number) {
     if (!this.worker) return;
-    const msg: RenderMessage = { type: 'resize', size, pixelRatio } as any;
+    const msg: RenderMessage = { type: 'resize', size, pixelRatio };
     this.worker.postMessage(msg);
   }
 
   render(frame: SceneFrame) {
     if (!this.worker) return;
-    const msg: RenderMessage = { type: 'render', frame } as any;
+    const msg: RenderMessage = { type: 'render', frame };
     this.worker.postMessage(msg);
   }
 
   destroy() {
-    this.worker?.postMessage({ type: 'destroy' } as any);
+    this.worker?.postMessage({ type: 'destroy' });
     this.worker?.terminate();
     this.worker = null;
     this.offscreen = null;

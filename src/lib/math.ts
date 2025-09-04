@@ -31,4 +31,5 @@ export function lerp(a: number, b: number, t: number): number {
   return a + t * (b - a);
 }
 
-export default { fit, fit01, lerp, clamp };
+const math = { fit, fit01, lerp, clamp };
+export default math;

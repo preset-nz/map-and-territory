@@ -1,7 +1,6 @@
 import type { LayerAdapter } from '@/layers/types';
 import { registerPropertySchema } from '@/properties/registry';
-import { createPerlinNoise } from '@/lib/noise';
-import { corners as hexCorners, fromPoint as hexFromPoint } from '@/lib/hex';
+// (no direct adapter drawing; rendering handled elsewhere)
 
 export interface HexNoiseState {
   seed: string | number;

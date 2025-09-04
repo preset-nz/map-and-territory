@@ -6,7 +6,7 @@ import { useLayoutStore } from '@/stores/layout';
 describe('SimpleThemeToggle', () => {
   beforeEach(() => {
     // reset store theme to light for deterministic test
-    useLayoutStore.setState({ theme: 'light' } as any);
+    useLayoutStore.setState({ theme: 'light' });
     // clear classes
     document.documentElement.classList.remove('light', 'dark');
   });
@@ -33,4 +33,3 @@ describe('SimpleThemeToggle', () => {
     });
   });
 });
-

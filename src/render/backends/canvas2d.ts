@@ -58,7 +58,7 @@ export class Canvas2DBackend implements RenderBackend {
     drawHexAt(vx * 0.5, vy);
     drawHexAt(0, 0);
     drawHexAt(vx, vy * 2);
-    const pattern = ctx.createPattern(off as any, 'repeat');
+    const pattern = ctx.createPattern(off as unknown as CanvasImageSource, 'repeat');
     if (pattern) this.patternCache.set(key, pattern);
     return pattern;
   }
@@ -110,14 +110,14 @@ export class Canvas2DBackend implements RenderBackend {
     for (const l of nonGrid) {
       if (!l.visible || l.type === 'paper') continue;
       if (l.type === 'hexnoise') {
-        const st = l.state as any;
+        const st = l.state as Record<string, unknown>;
         const grid = frame.layers.find((x) => x.visible && x.type === 'hexgrid');
-        const orientation = (grid?.state as any)?.orientation === 'flat' ? 'flat' : 'pointy';
-        const r = Math.max(4, (grid?.state as any)?.size || 16);
+        const orientation = (grid?.state as Record<string, unknown> | undefined)?.orientation === 'flat' ? 'flat' : 'pointy';
+        const r = Math.max(4, Number((grid?.state as Record<string, unknown> | undefined)?.size ?? 16));
         const sqrt3 = Math.sqrt(3);
         // set up noise
-        const perlin = createPerlinNoise(st.seed ?? 'seed');
-        const freq = Number(st.frequency ?? 0.15);
+        const perlin = createPerlinNoise((st.seed as string | number | undefined) ?? 'seed');
+        const freq = Math.max(0, Number(st.frequency ?? 0.15));
         const ox = Number(st.offsetX ?? 0);
         const oy = Number(st.offsetY ?? 0);
         const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
@@ -128,7 +128,7 @@ export class Canvas2DBackend implements RenderBackend {
           let v = perlin.normalized2D(q * freq + ox, rax * freq + oy);
           v = Math.pow(v, gamma);
           if (v < clampMin || v > clampMax) return; // transparent outside range
-          const mode = (st.mode ?? 'shape') as 'shape' | 'paint';
+          const mode = (st.mode as 'shape' | 'paint' | undefined) ?? 'shape';
           if (mode === 'shape') {
             const g = Math.floor(v * 255 * intensity);
             ctx.beginPath();
@@ -143,7 +143,7 @@ export class Canvas2DBackend implements RenderBackend {
             ctx.fill();
             return;
           }
-          const terrain = (st.terrain ?? 'plains') as 'water'|'desert'|'plains'|'hills';
+          const terrain = (st.terrain as 'water'|'desert'|'plains'|'hills' | undefined) ?? 'plains';
           const colorMap: Record<string, string> = {
             water: '#3b5bfd',
             desert: '#e6c767',
@@ -203,10 +203,10 @@ export class Canvas2DBackend implements RenderBackend {
       }
     }
     if (grid) {
-      const st = grid.state as any;
-      const r = Math.max(4, st.size || 16);
-      const stroke = st.color || '#000000';
-      const a = st.alpha ?? 1;
+      const st = grid.state as Record<string, unknown>;
+      const r = Math.max(4, Number(st.size ?? 16));
+      const stroke = String(st.color ?? '#000000');
+      const a = Number(st.alpha ?? 1);
       const orientation = st.orientation === 'flat' ? 'flat' : 'pointy';
       const sqrt3 = Math.sqrt(3);
       ctx.save();

@@ -3,8 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '@/stores/project';
 import { getLayerType } from '@/layers/registry';
-import type { RenderEnv } from '@/layers/types';
-import { shallow } from 'zustand/shallow';
+// import type { RenderEnv } from '@/layers/types';
 import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
 import { useLayoutStore } from '@/stores/layout';
@@ -32,11 +31,12 @@ export const CanvasViewport: React.FC = () => {
   const active = useMemo(() => (activeId ? maps.find((m) => m.id === activeId) ?? null : null), [activeId, maps]);
   // Derive paper aspect/color from Paper layer state if present; fallback to map.paper
   const paperLayer = useMemo(() => (active ? (active.layers ?? []).find((l) => l.type === 'paper') ?? null : null), [active]);
-  const aspect = (paperLayer?.state as any)?.aspect ?? active?.paper?.aspect ?? '16:10';
-  const paperColor = (paperLayer?.state as any)?.color ?? active?.paper?.color ?? '#ffffff';
+  type Aspect = 'square' | '4:3' | '16:10';
+  const aspect: Aspect = (paperLayer?.state as { aspect?: Aspect } | undefined)?.aspect ?? active?.paper?.aspect ?? '16:10';
+  const paperColor = (paperLayer?.state as { color?: string } | undefined)?.color ?? active?.paper?.color ?? '#ffffff';
   const layers = active?.layers ?? [];
   const layersKey = useMemo(() => layers.map((l) => {
-    const t = getLayerType(l.type as any);
+    const t = getLayerType(l.type);
     const key = t?.adapter?.getInvalidationKey?.(l.state) ?? JSON.stringify(l.state ?? {});
     return `${l.type}:${l.visible ? '1' : '0'}:${key}`;
   }).join('|'), [layers]);
@@ -101,7 +101,7 @@ export const CanvasViewport: React.FC = () => {
     const frame: SceneFrame = {
       size: { w: cw, h: ch },
       pixelRatio: dpr,
-      paper: { aspect: aspect as any, color: paperColor },
+      paper: { aspect, color: paperColor },
       camera: { x: 0, y: 0, zoom: 1 },
       layers: layers.map((l) => ({ id: l.id, type: l.type, visible: l.visible, state: l.state })),
     };
@@ -132,7 +132,7 @@ export const CanvasViewport: React.FC = () => {
       const paddingY = 12;
       const availW = cw - paddingX * 2;
       const availH = ch - paddingY * 2;
-      const { aw, ah } = parseAspect(aspect as any);
+      const { aw, ah } = parseAspect(aspect);
       // Width-first sizing: use available width, then cap by available height if needed
       let paperW = availW;
       let paperH = (paperW * ah) / aw;
@@ -152,12 +152,12 @@ export const CanvasViewport: React.FC = () => {
       ctx.beginPath(); ctx.rect(paperX, paperY, paperW, paperH); ctx.clip();
       ctx.translate(paperX, paperY);
       // Hex Noise layers (draw before grid if present), in array order
-      const noiseLayers = layers.filter((l: any) => l.type === 'hexnoise' && l.visible) as any[];
+      const noiseLayers = layers.filter((l) => l.type === 'hexnoise' && l.visible);
       for (const nl of noiseLayers) {
-        const gridLayer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
-        const st = nl.state || {};
-        const orientation = (gridLayer?.state?.orientation) === 'flat' ? 'flat' : 'pointy';
-        const r = Math.max(4, gridLayer?.state?.size || 16);
+        const gridLayer = layers.find((l) => l.type === 'hexgrid' && l.visible);
+        const st = (nl.state ?? {}) as Record<string, unknown>;
+        const orientation = (gridLayer?.state as Record<string, unknown> | undefined)?.orientation === 'flat' ? 'flat' : 'pointy';
+        const r = Math.max(4, Number((gridLayer?.state as Record<string, unknown> | undefined)?.size ?? 16));
         const sqrt3 = Math.sqrt(3);
         const perlin = createPerlinNoise(st.seed ?? 'seed');
         const freq = Number(st.frequency ?? 0.15);
@@ -171,7 +171,7 @@ export const CanvasViewport: React.FC = () => {
           let v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
           v = Math.pow(v, gamma);
           if (v < clampMin || v > clampMax) return;
-          const mode = (st.mode ?? 'shape') as 'shape' | 'paint';
+          const mode = (st.mode as 'shape' | 'paint' | undefined) ?? 'shape';
           if (mode === 'shape') {
             const g = Math.floor(v * 255 * intensity);
             ctx.beginPath();
@@ -186,7 +186,7 @@ export const CanvasViewport: React.FC = () => {
             ctx.fill();
             return;
           }
-          const terrain = (st.terrain ?? 'plains') as 'water'|'desert'|'plains'|'hills';
+          const terrain = (st.terrain as 'water'|'desert'|'plains'|'hills' | undefined) ?? 'plains';
           const colorMap: Record<string, string> = {
             water: '#3b5bfd',
             desert: '#e6c767',
@@ -241,12 +241,12 @@ export const CanvasViewport: React.FC = () => {
           }
         }
       }
-      const layer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
+      const layer = layers.find((l) => l.type === 'hexgrid' && l.visible);
       if (layer) {
-        const st = layer.state || {};
-        const r = Math.max(4, st.size || 16);
-        const color = st.color || '#000000';
-        const alpha = st.alpha ?? 1;
+        const st = (layer.state ?? {}) as Record<string, unknown>;
+        const r = Math.max(4, Number(st.size ?? 16));
+        const color = String(st.color ?? '#000000');
+        const alpha = Number(st.alpha ?? 1);
         const orientation = st.orientation === 'flat' ? 'flat' : 'pointy';
         const sqrt3 = Math.sqrt(3);
         ctx.save();
@@ -330,8 +330,8 @@ export const CanvasViewport: React.FC = () => {
     const paddingY = 12;
     const availW = cw - paddingX * 2;
     const availH = ch - paddingY * 2;
-    const parseAspect = (aspect: 'square'|'4:3'|'16:10') => aspect === 'square' ? { aw:1, ah:1 } : aspect === '4:3' ? { aw:4, ah:3 } : { aw:16, ah:10 };
-    const { aw, ah } = parseAspect(aspect as any);
+    const parseAspect = (a: 'square'|'4:3'|'16:10') => a === 'square' ? { aw:1, ah:1 } : a === '4:3' ? { aw:4, ah:3 } : { aw:16, ah:10 };
+    const { aw, ah } = parseAspect(aspect);
     let paperW = availW; let paperH = (paperW * ah) / aw;
     if (paperH > availH) { paperH = availH; paperW = (paperH * aw) / ah; }
     const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
@@ -340,10 +340,10 @@ export const CanvasViewport: React.FC = () => {
     // Default: outside or no grid
     let hex: { q: number; r: number } | null = null;
     if (px >= 0 && py >= 0 && px <= paperW && py <= paperH) {
-      const layer = layers.find((l: any) => l.type === 'hexgrid' && l.visible) as any;
+      const layer = layers.find((l) => l.type === 'hexgrid' && l.visible);
       if (layer) {
-        const st = layer.state || {};
-        const layout = { orientation: st.orientation === 'flat' ? 'flat' : 'pointy', size: Math.max(4, st.size || 16), origin: { x: paperW / 2, y: paperH / 2 } } as const;
+        const st = (layer.state ?? {}) as Record<string, unknown>;
+        const layout = { orientation: st.orientation === 'flat' ? 'flat' : 'pointy', size: Math.max(4, Number(st.size ?? 16)), origin: { x: paperW / 2, y: paperH / 2 } } as const;
         const h = hexFromPoint({ x: px, y: py }, layout);
         hex = h;
       }

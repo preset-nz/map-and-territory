@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { RenderMessage, SceneFrame } from '@/render/types';
+import type { RenderMessage } from '@/render/types';
 import { Canvas2DBackend } from '@/render/backends/canvas2d';
 
 let backend: Canvas2DBackend | null = null;
@@ -14,14 +14,14 @@ function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
 function handleResize(msg: Extract<RenderMessage, { type: 'resize' }>) {
   if (canvasRef) {
     // Resize bitmap to device pixels
-    (canvasRef as any).width = Math.max(1, Math.floor(msg.size.w * (msg.pixelRatio || 1)));
-    (canvasRef as any).height = Math.max(1, Math.floor(msg.size.h * (msg.pixelRatio || 1)));
+    canvasRef.width = Math.max(1, Math.floor(msg.size.w * (msg.pixelRatio || 1)));
+    canvasRef.height = Math.max(1, Math.floor(msg.size.h * (msg.pixelRatio || 1)));
   }
   backend?.resize(msg.size, msg.pixelRatio);
 }
 
 function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
-  backend?.render(msg.frame as SceneFrame);
+  backend?.render(msg.frame);
 }
 
 function handleDestroy() {

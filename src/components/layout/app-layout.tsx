@@ -15,8 +15,8 @@
  * - Accessibility compliance and keyboard navigation
  */
 
-import React, { useEffect, useMemo, useRef, useCallback } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -83,8 +83,8 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
       useProjectStore.getState().selectMap(id);
       useSelectionStore.getState().selectMap(id);
     });
-    ensureCommand('host.action.deleteMap', async (payload?: any) => {
-      const id = payload?.id as string | undefined;
+    ensureCommand('host.action.deleteMap', async (payload?: unknown) => {
+      const id = (payload as { id?: string } | undefined)?.id;
       if (!id) return;
       // MVP: simple confirm; replace with Radix dialog later
       if (window.confirm('Delete this map? This cannot be undone.')) {
@@ -126,7 +126,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
     if (propsPanelWidthPx) {
       propsPctRef.current = clamp(Math.round((propsPanelWidthPx / vw) * 100), 20, 35);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [scenePanelWidthPx, propsPanelWidthPx, vw]);
 
   // Controlled layout that adapts to which panels are present
@@ -142,7 +142,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   }, [isOpen, propertiesPanelOpen, initialScene, initialProps]);
 
   // Persist sizes when layout changes (drag end or normalization)
-  const handleLayout = undefined;
+  // handled inline in onResize callbacks above
   
   return (
     <TooltipProvider>
