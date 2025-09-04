@@ -60,7 +60,6 @@ next-env.d.ts
 *.pem
 
 # Internal private docs (keep local only)
-AGENTS.md
 CLAUDE.md
 CORE.md
 .claude/
