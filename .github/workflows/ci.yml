@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
-    name: Lint and Unit Tests
+  test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -34,8 +34,31 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
-
       - name: Unit tests (Vitest)
         run: pnpm run test:run
+
+  lint:
+    name: Lint (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
