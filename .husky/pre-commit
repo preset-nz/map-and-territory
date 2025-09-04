@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Custom checks (branch protection, large files, CRLF)
-bash scripts/pre-commit.sh
+# Custom checks (branch protection, large files, CRLF) in Node for portability
+node scripts/pre-commit.mjs
 
 # Format + lint staged files
 pnpm lint-staged
