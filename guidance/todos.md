@@ -1,12 +1,11 @@
 ## TODOs
 
+- NEXT — Layer naming UX: default numbering + properties‑panel rename. When inserting a layer without a provided name, default to `<Layer Title> <n>` where `n` is the next available number for that type within the active map (e.g., `Hex Noise 1`, `Hex Noise 2`). Add a `Name` field for selected layer in the Properties panel (parity with Campaign/Map) wired to `renameLayer`. Optional later: inline rename in scene panel (click/F2) if needed after parity lands. E2E: create 2 Hex Noise layers and assert numbered names; rename via Properties persists; duplicate preserves “Copy” suffix and does not renumber others.
 - Workflow: document agent Git workflow in `AGENTS.md` (branch naming, lint/test gates, PR protocol). (Done)
-- Layering model: make stacking intuitive and consistent across sidebar, renderers, and insertion/duplication. Decide canonical order (array order vs. fixed sentinels), fix insertion semantics, and add tests + UI indicators (e.g., z-order badges/arrows).
+- Layering model: align implementation and UI with ADR‑0013 (anchors + insertion semantics). Verify array order is the single source of truth, anchors are fixed (paper bottom, hexgrid top), and scene panel mirrors top‑of‑render at top of list. Add/confirm tests. (Done)
 - Theming audit: run `guidance/process/theming_audit_checklist.md` and address findings (tokens, contrast, states, dark-mode gaps).
-- Dark mode toggle: expose a visible toggle in header; wire to `useLayoutStore().theme` and verify all views in dark. (Done)
 - Plugin toolbar: remove any hardcoded tool buttons; ensure the toolbar is fully contribution-driven (commands + groups + order), with disabled tooltips and capability gating.
 - Terrain colors injection: remove hardcoded colors from renderers; source from a map “setting”/palette or theme tokens. Provide a small API/context for layers to read current palette.
-- Layer rename: enable inline renaming in the scene panel (store already supports `renameLayer`).
 - Layer reorder: add drag-and-drop or up/down controls in the scene panel (store has `moveLayer`).
 - Map properties: remove “visibility” control from the map item in the properties panel; keep map visibility implicit via selection/active map. (Done)
 - Layers UX: design pass on layers panel (grouping, icons, reordering affordances, lock/visibility consistency, insertion feedback) with a short spec + mocks.

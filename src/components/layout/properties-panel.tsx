@@ -1,26 +1,37 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { ColorField, SelectField } from '@/components/properties';
-import { Slider } from '@/components/ui/slider';
-import { getPropertySchema } from '@/properties/registry';
-import { Separator } from '@/components/ui/separator';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { ColorField, SelectField } from "@/components/properties";
+import { Slider } from "@/components/ui/slider";
+import { getPropertySchema } from "@/properties/registry";
+import { Separator } from "@/components/ui/separator";
 
-import { useLayoutStore } from '@/stores/layout';
-import { useSelectionStore } from '@/stores/selection';
-import { useProjectStore } from '@/stores/project';
+import { useLayoutStore } from "@/stores/layout";
+import { useSelectionStore } from "@/stores/selection";
+import { useProjectStore } from "@/stores/project";
 
-interface PropertiesPanelProps { className?: string }
+interface PropertiesPanelProps {
+  className?: string;
+}
 
-export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ className = '' }) => {
-  const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
+export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
+  className = "",
+}) => {
+  const propertiesPanelOpen = useLayoutStore(
+    (state) => state.propertiesPanelOpen,
+  );
   if (!propertiesPanelOpen) return null;
   return (
-    <div className={`h-full w-full border-l bg-background flex flex-col min-h-0 ${className}`} data-testid="properties-panel">
-      <div className="p-3 border-b text-xs font-medium text-muted-foreground">Properties</div>
+    <div
+      className={`h-full w-full border-l bg-background flex flex-col min-h-0 ${className}`}
+      data-testid="properties-panel"
+    >
+      <div className="p-3 border-b text-xs font-medium text-muted-foreground">
+        Properties
+      </div>
       <div className="p-3 space-y-4 overflow-auto">
         <CampaignProperties />
         <MapProperties />
@@ -36,10 +47,16 @@ const FieldLabel: React.FC<{ label: string }> = ({ label }) => (
   <div className="text-xs text-foreground mb-1">{label}</div>
 );
 
-const Group: React.FC<{ title: string; children: React.ReactNode; actions?: React.ReactNode }> = ({ title, children, actions }) => (
+const Group: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+}> = ({ title, children, actions }) => (
   <div>
     <div className="flex items-center justify-between mb-2">
-      <div className="text-[11px] uppercase tracking-wide text-foreground">{title}</div>
+      <div className="text-[11px] uppercase tracking-wide text-foreground">
+        {title}
+      </div>
       {actions}
     </div>
     <div className="space-y-3">{children}</div>
@@ -52,16 +69,27 @@ const CampaignProperties: React.FC = () => {
   const project = useProjectStore((s) => s.current);
   const rename = useProjectStore((s) => s.rename);
   const setDescription = useProjectStore((s) => s.setDescription);
-  if (selection.kind !== 'campaign' || !project) return null;
+  if (selection.kind !== "campaign" || !project) return null;
   return (
     <Group title="Campaign">
       <div>
         <FieldLabel label="Name" />
-        <Input value={project.name} onChange={(e) => rename(e.target.value)} placeholder="Untitled Campaign" aria-label="Campaign Name" />
+        <Input
+          value={project.name}
+          onChange={(e) => rename(e.target.value)}
+          placeholder="Untitled Campaign"
+          aria-label="Campaign Name"
+        />
       </div>
       <div>
         <FieldLabel label="Description" />
-        <Textarea value={project.description ?? ''} onChange={(e) => setDescription(e.target.value)} placeholder="Optional description" rows={5} aria-label="Campaign Description" />
+        <Textarea
+          value={project.description ?? ""}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Optional description"
+          rows={5}
+          aria-label="Campaign Description"
+        />
       </div>
     </Group>
   );
@@ -74,18 +102,40 @@ const MapProperties: React.FC = () => {
   const setMapDescription = useProjectStore((s) => s.setMapDescription);
   const setMapPaperAspect = useProjectStore((s) => s.setMapPaperAspect);
   const setMapPaperColor = useProjectStore((s) => s.setMapPaperColor);
-  if (selection.kind !== 'map' || !project) return null;
-  const map = project.maps.find((m) => m.id === selection.id); if (!map) return null;
-  const resetPaper = () => { setMapPaperAspect(map.id, '16:10'); setMapPaperColor(map.id, '#ffffff'); };
+  if (selection.kind !== "map" || !project) return null;
+  const map = project.maps.find((m) => m.id === selection.id);
+  if (!map) return null;
+  const resetPaper = () => {
+    setMapPaperAspect(map.id, "16:10");
+    setMapPaperColor(map.id, "#ffffff");
+  };
   return (
-    <Group title="Map" actions={<Button size="sm" variant="outline" onClick={resetPaper}>Reset Paper</Button>}>
+    <Group
+      title="Map"
+      actions={
+        <Button size="sm" variant="outline" onClick={resetPaper}>
+          Reset Paper
+        </Button>
+      }
+    >
       <div>
         <FieldLabel label="Title" />
-        <Input value={map.name} onChange={(e) => renameMap(map.id, e.target.value)} placeholder="Untitled Map" aria-label="Map Title" />
+        <Input
+          value={map.name}
+          onChange={(e) => renameMap(map.id, e.target.value)}
+          placeholder="Untitled Map"
+          aria-label="Map Title"
+        />
       </div>
       <div>
         <FieldLabel label="Description" />
-        <Textarea value={map.description ?? ''} onChange={(e) => setMapDescription(map.id, e.target.value)} placeholder="Optional description" rows={4} aria-label="Map Description" />
+        <Textarea
+          value={map.description ?? ""}
+          onChange={(e) => setMapDescription(map.id, e.target.value)}
+          placeholder="Optional description"
+          rows={4}
+          aria-label="Map Description"
+        />
       </div>
       {/* Map visibility control removed; visibility implied by active selection */}
     </Group>
@@ -96,45 +146,97 @@ const LayerPropertiesGeneric: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
   const project = useProjectStore((s) => s.current);
   const updateLayerState = useProjectStore((s) => s.updateLayerState);
-  if (selection.kind !== 'layer' || !project) return null;
-  const map = project.maps.find((m) => m.id === project.activeMapId); if (!map) return null;
-  const layer = (map.layers ?? []).find((l) => l.id === selection.id); if (!layer) return null;
+  const renameLayer = useProjectStore((s) => s.renameLayer);
+  if (selection.kind !== "layer" || !project) return null;
+  const map = project.maps.find((m) => m.id === project.activeMapId);
+  if (!map) return null;
+  const layer = (map.layers ?? []).find((l) => l.id === selection.id);
+  if (!layer) return null;
   const scope = `layer:${layer.type}`;
-  const schema = getPropertySchema(scope); if (!schema) return null;
-  const getVal = (path: string) => (layer.state as Record<string, unknown> | undefined)?.[path as keyof Record<string, unknown>];
-  const setVal = (path: string, val: unknown) => updateLayerState(layer.id, { [path]: val });
+  const schema = getPropertySchema(scope);
+  if (!schema) return null;
+  const getVal = (path: string) =>
+    (layer.state as Record<string, unknown> | undefined)?.[
+      path as keyof Record<string, unknown>
+    ];
+  const setVal = (path: string, val: unknown) =>
+    updateLayerState(layer.id, { [path]: val });
   return (
     <>
+      <Group title="Layer">
+        <div>
+          <FieldLabel label="Name" />
+          <Input
+            aria-label="Layer Name"
+            value={layer.name ?? ""}
+            onChange={(e) => renameLayer(layer.id, e.target.value)}
+            placeholder="Layer Name"
+          />
+        </div>
+      </Group>
       {schema.groups.map((g) => (
         <Group key={g.id} title={g.title}>
           {g.rows.map((row, idx) => {
             const fields = Array.isArray(row) ? row : [row];
             return (
-              <div key={idx} className={fields.length > 1 ? 'grid grid-cols-2 gap-2' : ''}>
+              <div
+                key={idx}
+                className={fields.length > 1 ? "grid grid-cols-2 gap-2" : ""}
+              >
                 {fields.map((f) => {
-                  if (f.kind === 'select') {
-                    const v = getVal(f.path) ?? '';
-                    return <SelectField key={f.id} label={f.label} value={String(v)} options={f.options} onChange={(val) => setVal(f.path, val)} />;
+                  if (f.kind === "select") {
+                    const v = getVal(f.path) ?? "";
+                    return (
+                      <SelectField
+                        key={f.id}
+                        label={f.label}
+                        value={String(v)}
+                        options={f.options}
+                        onChange={(val) => setVal(f.path, val)}
+                      />
+                    );
                   }
-                  if (f.kind === 'color') {
-                    const v = getVal(f.path) ?? '#ffffff';
-                    return <ColorField key={f.id} label={f.label} value={String(v)} onChange={(val) => setVal(f.path, val)} />;
+                  if (f.kind === "color") {
+                    const v = getVal(f.path) ?? "#ffffff";
+                    return (
+                      <ColorField
+                        key={f.id}
+                        label={f.label}
+                        value={String(v)}
+                        onChange={(val) => setVal(f.path, val)}
+                      />
+                    );
                   }
-                  if (f.kind === 'number') {
+                  if (f.kind === "number") {
                     const v = Number(getVal(f.path) ?? 0);
                     return (
                       <div key={f.id}>
                         <FieldLabel label={f.label || f.id} />
-                        <Input type="number" value={v} min={f.min} max={f.max} step={f.step ?? 1} onChange={(e) => setVal(f.path, Number(e.target.value))} />
+                        <Input
+                          type="number"
+                          value={v}
+                          min={f.min}
+                          max={f.max}
+                          step={f.step ?? 1}
+                          onChange={(e) =>
+                            setVal(f.path, Number(e.target.value))
+                          }
+                        />
                       </div>
                     );
                   }
-                  if (f.kind === 'slider') {
+                  if (f.kind === "slider") {
                     const v = Number(getVal(f.path) ?? 0);
                     return (
                       <div key={f.id}>
                         <FieldLabel label={f.label || f.id} />
-                        <Slider value={v} min={f.min} max={f.max} step={f.step ?? 1} onChange={(val) => setVal(f.path, val)} />
+                        <Slider
+                          value={v}
+                          min={f.min}
+                          max={f.max}
+                          step={f.step ?? 1}
+                          onChange={(val) => setVal(f.path, val)}
+                        />
                       </div>
                     );
                   }
