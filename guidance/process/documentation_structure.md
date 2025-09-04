@@ -12,6 +12,7 @@ guidance/feature/{feature_name}/
 │   ├── requirements.md              # Product Owner: business needs & user stories
 │   ├── solutions_design.md          # Lead Developer: technical architecture
 │   ├── tasks.md                     # Production Coordinator: task breakdown
+│   ├── correlation_report.md        # Pre‑prod QA (optional): inconsistencies & fixes
 │   └── delegation_log.md            # Agent tracking & decisions
 ├── ux/                              # UX Designer artifacts (Level 2+ features)
 │   ├── user-journey.md             # User experience mapping
@@ -49,6 +50,14 @@ guidance/feature/{feature_name}/
 - Task dependencies and execution order
 - Complexity-appropriate detail level
 - Progress tracking with clear status indicators
+
+### correlation_report.md (Pre‑prod QA — optional)
+
+Purpose: Correlate the three artifacts; highlight inconsistencies and required edits. Not a QA plan.
+
+- Level consistency, scope symmetry, AC traceability
+- Naming/versioning alignment and interface/contract cross‑check
+- Red flags and required edits before implementation/merge
 
 ### ux/ Directory (UX Designer)
 
