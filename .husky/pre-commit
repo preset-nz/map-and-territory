@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Custom checks (branch protection, large files, CRLF)
+bash scripts/pre-commit.sh || exit 1
+
+# Format + lint staged files
+pnpm lint-staged
+

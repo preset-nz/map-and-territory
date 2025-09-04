@@ -50,6 +50,36 @@ pnpm build
 pnpm start
 ```
 
+## Git Hooks
+
+This repo uses Husky + lint-staged to run commit-time checks:
+- Block commits directly to `main`.
+- Prevent committing large files (>10MB) or CRLF line endings.
+- Format and lint staged files (Prettier + ESLint).
+
+Setup (one-time):
+```bash
+pnpm add -D husky lint-staged
+pnpm husky         # initializes .husky and hook shims
+```
+
+Husky runs `.husky/pre-commit`, which delegates to `scripts/pre-commit.sh` and then runs lint-staged.
+
+Prefer Husky?
+- Keep the existing `.githooks` for now. If you want Husky later:
+  1) Install: `pnpm add -D husky` (and optionally `lint-staged`)
+  2) Init: `pnpm husky` (or `npx husky init`)
+  3) Create `.husky/pre-commit` that delegates to our script:
+     ```sh
+     #!/usr/bin/env sh
+     . "$(dirname "$0")/_/husky.sh"
+     .githooks/pre-commit
+     ```
+  This reuses the same checks without duplicating logic.
+
+Editor settings
+- Project ships with `.editorconfig` for LF line endings, UTF‑8, final newline, and 2‑space indentation.
+
 ## Testing
 
 - Unit: `pnpm test` or `pnpm test:run`
