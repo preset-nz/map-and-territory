@@ -11,17 +11,6 @@ References
 
 ---
 
-T-001 [M] Layering Model Foundation (Order + Semantics) — Status: Done
-
-- Goal: Canonical z‑order and consistent behavior across sidebar, renderers, insertion, duplication.
-- Scope: Decide anchors (e.g., paper bottom, grid top), others by array order. Normalize add/duplicate insertion; align scene panel rendering; add tests.
-- Dependencies: none
-- Links: guidance/todos.md, src/components/layout/app-sidebar.tsx, src/stores/project/index.ts
-- Acceptance:
-  - Canonical order documented in ADR‑0013.
-  - Insertion/duplication match spec with unit + integration tests.
-  - Scene panel shows order consistent with array; renderer iterates in array order.
-
 T-002 [M] Plugin Toolbar Contract — Contribution‑Only
 
 - Goal: Remove hardcoded tool buttons; toolbar fully driven by plugin contributions and capability checks.
@@ -77,12 +66,6 @@ T-008 [S] Layer Reorder + Rename
 - Links: src/stores/project/index.ts, src/components/layout/app-sidebar.tsx
 - Acceptance: Users can reorder and rename; tests ensure correct persistence and rendering order.
 
-T-009a [S] Dark Mode Toggle — Status: Done
-
-- Goal: Expose a visible toggle in the header; persist via layout store.
-- Links: src/components/layout/app-header.tsx, src/components/layout/theme-toggle.tsx
-- Acceptance: Toggle switches light/dark instantly; persists across reloads.
-
 T-009b [S] Theming Audit
 
 - Goal: Run checklist, fix token/contrast issues; verify components.
@@ -125,16 +108,10 @@ T-015 [M] Save/Load Campaign
   - Save downloads JSON with version field; Load restores project/maps/layers; tests for round‑trip.
   - Optional localStorage autosave enabled behind a toggle.
 
-T-016 [S] Remove Map Visibility Control in Properties — Status: Done
-
-- Goal: Eliminate redundant map visibility toggle in properties; rely on active map selection.
-- Links: src/components/layout/properties-panel.tsx
-- Acceptance: Control removed; tests updated.
-
 Dependencies & Order
 
-- Phase 1: T-001, T-002, T-003, T-004, T-005, T-015
-- Phase 2: T-006, T-007, T-008, T-009, T-010, T-016
+- Phase 1: T-002, T-003, T-004, T-005, T-015
+- Phase 2: T-006, T-007, T-008, T-009b, T-010
 - Phase 3: T-011, T-012, T-013, T-014
 
 ---
