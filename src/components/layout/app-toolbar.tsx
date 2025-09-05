@@ -1,25 +1,35 @@
-'use client';
+"use client";
 
 /**
  * AppToolbar - Creative Tool Horizontal Toolbar
- * 
+ *
  * Icon-based toolbar for creative hexmap editing tools.
  * Positioned below header, spans full width.
  */
 
-import React, { useSyncExternalStore } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useSyncExternalStore } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import { useLayoutStore } from '@/stores/layout';
-import { executeCommand } from '@/lib/commands';
-import { getToolbarContributions } from '@/plugin/loader';
+import { useLayoutStore } from "@/stores/layout";
+import { executeCommand } from "@/lib/commands";
+import { getToolbarContributions } from "@/plugin/loader";
 
 // Creative tool icons
-import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose } from 'lucide-react';
-import { resolveIcon } from '@/lib/icon-resolver';
-import { useProjectStore } from '@/stores/project';
+import {
+  PanelLeftOpen,
+  PanelLeftClose,
+  PanelRightOpen,
+  PanelRightClose,
+} from "lucide-react";
+import { resolveIcon } from "@/lib/icon-resolver";
+import { resolvePreconditions } from "@/plugin/capabilities";
+import { useProjectStore } from "@/stores/project";
 
 // Dynamic toolbar contributions are rendered from the plugin loader
 
@@ -32,12 +42,17 @@ export const AppToolbar: React.FC = () => {
   const EMPTY: ReadonlyArray<ToolbarItem> = [];
   const isOpen = useLayoutStore((state) => state.isOpen);
   const toggleSidebar = useLayoutStore((state) => state.toggleSidebar);
-  
+
   // Use store state instead of local state
-  const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
-  const togglePropertiesPanel = useLayoutStore((state) => state.togglePropertiesPanel);
-  // Track active map reactively to toggle plugin button enablement
+  const propertiesPanelOpen = useLayoutStore(
+    (state) => state.propertiesPanelOpen,
+  );
+  const togglePropertiesPanel = useLayoutStore(
+    (state) => state.togglePropertiesPanel,
+  );
+  // Subscribe to active map to trigger re-render when gating might change
   const activeMapId = useProjectStore((s) => s.current?.activeMapId);
+  void activeMapId; // subscribe for re-render on active map changes
 
   // Commands come from plugin loader; no local registration here
 
@@ -51,7 +66,7 @@ export const AppToolbar: React.FC = () => {
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="sm" 
+              size="sm"
               className="h-8 w-8 p-0"
               onClick={toggleSidebar}
               aria-label="Toggle Scene Panel"
@@ -79,32 +94,35 @@ export const AppToolbar: React.FC = () => {
             // subscribe to toolbar updates
             (cb) => {
               const handler = () => cb();
-              if (typeof window !== 'undefined') {
-                window.addEventListener('plugin:toolbar-updated', handler);
+              if (typeof window !== "undefined") {
+                window.addEventListener("plugin:toolbar-updated", handler);
               }
               return () => {
-                if (typeof window !== 'undefined') {
-                  window.removeEventListener('plugin:toolbar-updated', handler);
+                if (typeof window !== "undefined") {
+                  window.removeEventListener("plugin:toolbar-updated", handler);
                 }
               };
             },
             // getSnapshot
             () => getToolbarContributions(),
             // getServerSnapshot
-            () => EMPTY
+            () => EMPTY,
           )
-            .reduce((acc: Array<{ group: string; items: ToolbarItem[] }>, item) => {
-              const g = acc.find((x) => x.group === item.group);
-              if (g) {
-                g.items.push(item);
-              } else {
-                acc.push({ group: item.group, items: [item] });
-              }
-              return acc;
-            }, [])
+            .reduce(
+              (acc: Array<{ group: string; items: ToolbarItem[] }>, item) => {
+                const g = acc.find((x) => x.group === item.group);
+                if (g) {
+                  g.items.push(item);
+                } else {
+                  acc.push({ group: item.group, items: [item] });
+                }
+                return acc;
+              },
+              [],
+            )
             .sort((a, b) => {
-              if (a.group === 'campaign' && b.group !== 'campaign') return -1;
-              if (b.group === 'campaign' && a.group !== 'campaign') return 1;
+              if (a.group === "campaign" && b.group !== "campaign") return -1;
+              if (b.group === "campaign" && a.group !== "campaign") return 1;
               return a.group.localeCompare(b.group);
             })
             .map((group, gi, groups) => {
@@ -112,18 +130,22 @@ export const AppToolbar: React.FC = () => {
                 const oa = a.order ?? 0;
                 const ob = b.order ?? 0;
                 if (oa !== ob) return oa - ob;
-                return (a.label || a.command).localeCompare(b.label || b.command);
+                return (a.label || a.command).localeCompare(
+                  b.label || b.command,
+                );
               });
               return (
                 <React.Fragment key={`grp:${group.group}`}>
                   {items.map((item, idx) => {
                     const aria = item.label || item.command;
                     const Icon = resolveIcon(item.icon);
-                    const hasMapAndSelected = !!activeMapId;
-                    const isHexNoiseAdd = item.command === 'layer.hexnoise.add';
-                    const disabled = isHexNoiseAdd ? !hasMapAndSelected : false;
+                    // Host-evaluated preconditions via capability registry
+                    const result = resolvePreconditions(item.enableWhen);
+                    const disabled = !result.enabled;
                     return (
-                      <Tooltip key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}>
+                      <Tooltip
+                        key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
+                      >
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
@@ -131,14 +153,20 @@ export const AppToolbar: React.FC = () => {
                             className="h-8 w-8 p-0"
                             aria-label={aria}
                             disabled={disabled}
-                            onClick={() => executeCommand(item.command).catch(console.error)}
+                            onClick={() =>
+                              executeCommand(item.command).catch(console.error)
+                            }
                           >
                             <Icon className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
-                          {disabled && isHexNoiseAdd ? (
-                            <span>Select a map to add a layer</span>
+                          {disabled ? (
+                            <span>
+                              {item.disabledReason ||
+                                result.reason ||
+                                "Unavailable"}
+                            </span>
                           ) : (
                             <span>{item.label || item.command}</span>
                           )}
@@ -154,13 +182,12 @@ export const AppToolbar: React.FC = () => {
             })}
         </div>
 
-
         {/* Spacer */}
         <div className="flex-1" />
 
         {/* Properties Panel Toggle */}
         <Separator orientation="vertical" className="h-6" />
-        
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

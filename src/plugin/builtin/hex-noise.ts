@@ -21,6 +21,8 @@ export const hexNoiseManifest: PluginManifest = {
             icon: "lucide:layers",
             label: "Hex Noise",
             order: 2,
+            enableWhen: ["hasActiveMap"],
+            disabledReason: "Select a map to add a layer",
           },
         ],
       },

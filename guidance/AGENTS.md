@@ -12,3 +12,7 @@ Editing rules
 
 - Keep docs concise and reference existing sources; do not duplicate standards or testing rules.
 - Prefer linking to `process/implementation_standards.md`, `process/testing_standards.md`, or `process/nextjs_typescript_feature_implementation.md` when relevant.
+
+Platform‑First MVP
+
+- We ship small, safe slices that establish durable seams (typed contracts, registries) so future features go faster. See `process/implementation_standards.md#platform-first-mvp-policy`.

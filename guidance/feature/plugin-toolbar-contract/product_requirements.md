@@ -12,12 +12,14 @@ level: 2
 - Plugins must contribute tools declaratively with predictable grouping/ordering.
 - Host must handle enablement (disabled + reason) via capability checks for clear UX.
 
-## In Scope
+## In Scope (MVP)
 
-- Contract for plugin-contributed toolbar items (groups, order, icon, label, command).
-- Capability-based enablement: disabled state with tooltip reason when preconditions fail.
-- Deterministic render order (group, then order, then label/command) and stable updates.
-- Remove remaining hardcoded tool buttons from the app toolbar.
+- Contract for plugin-contributed toolbar items (group, order, icon, label, command).
+- Lightweight capability registry with tokenized enablement: `enableWhen: CapabilityToken[]`.
+  - Implemented tokens now: `hasActiveMap`, `hasProject`/`hasCampaign`, `hasActiveLayer`, `selectionIs:<kind>`.
+  - Unknown tokens are ignored (treated as enabled) to preserve forward compatibility.
+- Deterministic render order (group → order → label/command) and stable updates.
+- Remove any command-specific gating from the toolbar (no hardcoded command ids).
 
 ## Out of Scope
 
@@ -27,14 +29,15 @@ level: 2
 
 ## Acceptance Criteria
 
-- [ ] No hardcoded tool buttons remain in `src/components/layout/app-toolbar.tsx`.
-- [ ] Plugins render solely from contributions; groups and items sort deterministically.
-- [ ] Capability checks drive `disabled` with tooltip reason when unmet (e.g., "Select a map to add a layer").
-- [ ] Contract documented and linked from ADR-0002 and 0006; examples provided.
-- [ ] Unit + integration tests cover ordering and enablement; E2E probes enable/disable states.
+- [ ] Toolbar renders solely from contributions; groups and items sort deterministically.
+- [ ] Gating uses tokenized `enableWhen` evaluated by the host registry (at least `hasActiveMap`).
+- [ ] Disabled state shows `disabledReason` from manifest or a host default.
+- [ ] No command-specific checks remain in `app-toolbar.tsx`.
+- [ ] Hex Noise button is disabled without an active map; enabled after creating one (E2E passes).
+- [ ] Contract documented in types and examples updated in built-in plugins.
 
 ## Risks & Assumptions
 
-- Keep plugin API narrow to avoid leaking host state shape; use named capability tokens.
-- Backward compatibility: existing plugins without preconditions still work (default enabled).
-- UX risk if reasons are inconsistent; provide host-side defaults for common tokens.
+- Keep API narrow; MVP supports only `activeMap`. Broaden later with a capability registry.
+- Backward compatibility: items without `enableWhen` remain enabled.
+- UX: provide a sensible default disabled text when `disabledReason` is absent.

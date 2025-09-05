@@ -13,13 +13,13 @@ Combines our senior Next.js and senior TypeScript practices into a single, repo�
 ## Pre‑Implementation Checklist
 
 - Identify impacted areas under `src/` (e.g., `app/`, `components/`, `stores/`, `plugin/`).
-- Define types first in `src/types/…` and interfaces for any new contracts.
+- Platform‑First MVP: define the seam first — add/adjust types in `src/types/…` (or `@/plugin/types`) and introduce registries/contracts that future features can extend.
 - Decide Server vs Client component boundaries; prefer Server Components for data/IO.
 - Plan tests and fixtures up front (see Testing section).
 
 ## Implementation Flow
 
-1. Types & Contracts: add/update types in `src/types/` and public API surfaces under `@/…`.
+1. Types & Contracts (Platform‑First): add/update types in `src/types/` and public API surfaces under `@/…`; create minimal registries/seams with one concrete use.
 2. Next.js App Router:
 
 - Prefer Server Components for data fetching; wrap with a small Client component only for interactivity.
@@ -67,7 +67,7 @@ export function ExampleClient({ initial }: { initial: Data }) {
 
 ## Testing
 
-- Unit/Integration: Vitest (`vitest.config.ts`) with jsdom. Coverage threshold ≥80% enforced; run `pnpm test:coverage`.
+- Unit/Integration: Vitest (`vitest.config.ts`) with jsdom. Coverage ≥80% enforced; tests double as living contracts for seams.
 - RTL for component behavior; avoid testing implementation details.
 - E2E: Playwright specs under `src/test/e2e`; run `pnpm test:e2e` (dev server auto‑starts per `playwright.config.ts`).
 - Process and examples: `guidance/process/testing_standards.md`.
