@@ -8,7 +8,7 @@ import type { LayerAdapter } from "@/layers/types";
 import RenderService from "@/render/service";
 import type { SceneFrame } from "@/render/types";
 import { useLayoutStore } from "@/stores/layout";
-import { fromPoint as hexFromPoint } from "@/lib/hex";
+import { AppAPI } from "@/appapi";
 import { createPerlinNoise } from "@/lib/noise";
 
 function parseAspect(aspect: "square" | "4:3" | "16:10"): {
@@ -458,7 +458,7 @@ export const CanvasViewport: React.FC = () => {
           size: Math.max(4, Number(st.size ?? 16)),
           origin: { x: paperW / 2, y: paperH / 2 },
         } as const;
-        const h = hexFromPoint({ x: px, y: py }, layout);
+        const h = AppAPI.hex.fromPoint({ x: px, y: py }, layout);
         hex = h;
       }
     }

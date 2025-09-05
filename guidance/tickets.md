@@ -11,15 +11,6 @@ References
 
 ---
 
-T-004 [M] AppAPI.hex + Pointer Routing
-
-- Goal: Surface hex library via AppAPI and route pointer→hex through it.
-- Dependencies: ADR-0007
-- Links: ADR-0007, src/lib/hex/\*, public AppAPI surface (to be added)
-- Acceptance:
-  - AppAPI.hex exposes fromPoint/toPoint + kernels.
-  - Pointer events use AppAPI; integration tests validate hex coordinates.
-
 T-005 [M] E2E Baseline
 
 - Goal: Guard core flows.

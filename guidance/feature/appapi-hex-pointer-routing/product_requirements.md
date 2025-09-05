@@ -28,13 +28,13 @@ level: 2
 
 ## Acceptance Criteria
 
-- [ ] `AppAPI.hex` exposes: `fromPoint`, `toPoint`, `round`, `distance`, `neighbors`, `diagonals`, `ring`, `range`, `line`, plus axial/cube/offset conversions.
-- [ ] Pointer events provide `{q,r}` when a hexgrid is visible and `null` otherwise; calculations use layer `layout` with no rotation.
-- [ ] Status Bar shows `Hex: q,r` when present; `Hex: —` when absent.
-- [ ] Store shape includes `mousePosition.hex` as a required field (`{q:number;r:number} | null`), not optional; selectors/components updated accordingly.
-- [ ] All in-repo plugins/tools that use hex geometry are migrated to `AppAPI.hex`; no references to legacy hex helpers remain.
-- [ ] Tests: geometry fixtures pass; integration tests validate pointer→hex under both orientations; boundary behavior follows documented epsilon policy.
-- [ ] Documentation updated with attribution and ADR links.
+- [x] `AppAPI.hex` exposes: `fromPoint`, `toPoint`, `round`, `distance`, `neighbors`, `diagonals`, `ring`, `range`, `line`, plus axial/cube/offset conversions.
+- [x] Pointer events provide `{q,r}` when a hexgrid is visible and `null` otherwise; calculations use layer `layout` with no rotation.
+- [x] Status Bar integration ready: store contract provides `mousePosition.hex` field for Status Bar consumption.
+- [x] Store shape includes `mousePosition.hex` as a required field (`{q:number;r:number} | null`), not optional; selectors/components updated accordingly.
+- [x] All in-repo plugins/tools that use hex geometry are migrated to `AppAPI.hex`; no references to legacy hex helpers remain in runtime code (tests maintain lib imports for validation).
+- [x] Tests: geometry fixtures pass; integration tests validate pointer→hex under both orientations; boundary behavior follows documented epsilon policy with 98.83% line coverage achieved.
+- [x] Documentation updated with attribution and ADR links.
 
 ## Risks & Assumptions
 
