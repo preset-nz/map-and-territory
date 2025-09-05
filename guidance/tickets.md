@@ -11,24 +11,6 @@ References
 
 ---
 
-T-002 [M] Plugin Toolbar Contract — Contribution‑Only
-
-- Goal: Remove hardcoded tool buttons; toolbar fully driven by plugin contributions and capability checks.
-- Dependencies: none
-- Links: ADR-0002, src/components/layout/app-toolbar.tsx, src/plugin/loader.ts
-- Acceptance:
-  - No hardcoded tool buttons remain; contributions render deterministically by group/order.
-  - Disabled state with tooltip for unmet preconditions.
-
-T-003 [M] Invalidation API — Required for Visual Layers
-
-- Goal: Formalize adapter.getInvalidationKey(state) as required; host uses only adapter‑provided keys.
-- Dependencies: none
-- Links: ADR-0002, src/layers/types.ts, all adapters
-- Acceptance:
-  - All visual layers implement getInvalidationKey; host no longer composes ad‑hoc keys.
-  - Property changes redraw without hacks; tests in place.
-
 T-004 [M] AppAPI.hex + Pointer Routing
 
 - Goal: Surface hex library via AppAPI and route pointer→hex through it.
@@ -110,7 +92,7 @@ T-015 [M] Save/Load Campaign
 
 Dependencies & Order
 
-- Phase 1: T-002, T-003, T-004, T-005, T-015
+- Phase 1: T-004, T-005, T-015
 - Phase 2: T-006, T-007, T-008, T-009b, T-010
 - Phase 3: T-011, T-012, T-013, T-014
 

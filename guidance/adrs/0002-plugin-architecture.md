@@ -13,24 +13,30 @@ deciders: Core Orchestrator, Plugin Architect, Security Lead, UI Lead
 
 ## Decision
 
-1) Declarative Plugin Manifest
+1. Declarative Plugin Manifest
+
 - Plugins declare capabilities and contributions (commands, toolbar, tools, layers, properties, panels).
 - The platform validates capabilities and only exposes the corresponding `AppAPI` facets.
 
-2) Commands-First Integration
+2. Commands-First Integration
+
 - UI elements (toolbar items) bind to commands by ID for decoupling and testability.
 - Plugins register command handlers in their module entry under their namespace.
 
-3) Slot-Based UI Composition
+3. Slot-Based UI Composition
+
 - Named slots for toolbar groups, properties sections, and panels provide predictable placement and ordering.
 
-4) Stable App API Surface
+4. Stable App API Surface
+
 - Narrow, versioned `AppAPI` exposed to plugins; selector-oriented and independent from internal store shape.
 
 AppAPI Utilities (initial):
+
 - `util.newId(): string` — returns a UUIDv7 string. Single source of truth for IDs across core and plugins. See `guidance/reference/new_id_helper.md` and ADR-0012.
 
-5) Progressive Isolation
+5. Progressive Isolation
+
 - MVP: in-process ESM module loading with Content Security Policy restricting remote code.
 - Phase 2: optional Worker-based isolation with a proxied `AppAPI` across `postMessage`.
 
@@ -49,15 +55,13 @@ AppAPI Utilities (initial):
 ## Render Invalidation & Redraw Contracts (MVP)
 
 - Host rendering (worker and fallback) issues redraws when specific dependencies change: paper aspect/color, canvas dimensions, and a `layersKey` string derived from the visible layers.
-- For core layers, `layersKey` includes relevant state fields that affect visuals:
-  - `paper`: `aspect`, `color`
-  - `hexgrid`: `size`, `orientation`, `color`, `alpha`, `lineWidth`
-  - Example plugin layer `hexnoise`: `seed`, `frequency`, `offsetX`, `offsetY`, `intensity`
-- Adding new layer types: ensure the host includes your layer’s visual fields in `layersKey`; otherwise UI property changes won’t trigger a render.
-  - Short-term: update `layersKey` composition in the host.
-  - Future: layer adapters may expose `getInvalidationKey(state): string` to let the host remain generic and avoid per-type code.
+- All visual layer adapters MUST implement `getInvalidationKey(state): string`.
+- The host composes `layersKey` strictly from `(type, visible, adapter.getInvalidationKey(state))` and does not inspect layer state.
+- Adapter keys must be deterministic and change only when visuals change.
+- Adding new layer types: implement `getInvalidationKey` using only visually salient fields. The host requires it; no fallback exists.
 
 Notes
+
 - Keep invalidation keys complete but minimal; avoid including non-visual or fast-flapping fields.
 - Even if React re-renders, the renderer only submits a new frame when these dependencies change.
 
