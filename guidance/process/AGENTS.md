@@ -12,3 +12,7 @@ Stacking note: this AGENTS.md complements `/guidance/AGENTS.md`. Prefer these so
 MECE intent
 
 - Each document owns one topic and links to the others. If a change seems to fit two places, pick the canonical source and add a link from the other.
+
+Platform‑First MVP
+
+- Agents prioritize defining seams (typed contracts/registries) and delivering one concrete use. Growth is additive, with tests acting as living contracts. See `implementation_standards.md#platform-first-mvp-policy`.

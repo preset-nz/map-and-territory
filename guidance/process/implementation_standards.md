@@ -13,8 +13,7 @@ All code must meet these baseline requirements regardless of complexity:
 - **SOLID Principles**: Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion
 - **CUPID Properties**: Composable, understandable, predictable, idiomatic, domain-based
 - **Clear Interfaces**: Well-defined boundaries between system components
-- **Minimal Viable Implementation**: Start simple, add complexity only when needed
-- **Platform Thinking**: Balance YAGNI with optionality for future extensibility and reuse potential
+- **Platform‑First MVP**: Ship the smallest slice that establishes durable seams (typed contracts, registries) so future features accelerate. Start simple, but design for additive growth.
 
 ### Security Standards
 
@@ -53,6 +52,34 @@ All code must meet these baseline requirements regardless of complexity:
 
 - For patterns and step‑by‑step guidance, use `guidance/process/nextjs_typescript_feature_implementation.md`.
 - Keep pages and layouts lean; push data work to Server Components; minimize client bundles.
+
+## Platform‑First MVP Policy
+
+Purpose: emphasize platform economics without overbuilding. Each feature should ship a minimal vertical slice while establishing explicit seams that compound future speed.
+
+### Three Rules
+
+- **Define the Seam**: Introduce a public contract first (types, interfaces, registries) with narrow scope.
+- **Implement the Minimum**: Support the first concrete use case end‑to‑end; leave additional cases as typed, additive space.
+- **Lock with Tests**: Add unit/integration (and E2E if applicable) that act as living contracts for the seam.
+
+### Expansion Triggers
+
+- Add more cases/tokens only when the next 1–2 planned features need them.
+- Broaden semantics or grammar only behind an ADR when contracts materially change.
+
+### PR Checklist (must answer “yes”)
+
+- Is there a clear seam (typed contract/registry) instead of ad‑hoc conditionals?
+- Is only the minimum necessary capability implemented now?
+- Do tests assert the contract (not implementation details)?
+- Is growth additive (no breaking changes to callers/plugins)?
+
+### Examples
+
+- Toolbar capabilities: define `CapabilityToken` union + `enableWhen` and implement `hasActiveMap` now; add `selectionIs:*`, `hasActiveLayer`, `canAddLayer:*` later.
+- Persistence: versioned JSON schema with a `version` field; implement v1, add migrations later.
+- Rendering: adapter interface with `getInvalidationKey`; implement for first layer, require for new layers later.
 
 ## Architecture Standards
 
