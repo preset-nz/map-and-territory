@@ -1,9 +1,9 @@
 /**
  * Layout Types - Main Export Index
- * 
+ *
  * This file provides clean exports for all layout-related types,
  * maintaining backwards compatibility while enabling focused imports.
- * 
+ *
  * Architecture: Focused type files with single responsibility,
  * composed into complete interfaces through this index file.
  */
@@ -12,19 +12,19 @@
 // Re-export Individual Domain Types
 // ============================================================================
 
-export * from './sidebar';
-export * from './preferences';
-export * from './navigation';
-export * from './components';
+export * from "./sidebar";
+export * from "./preferences";
+export * from "./navigation";
+export * from "./components";
 
 // ============================================================================
 // Composed State Interfaces
 // ============================================================================
 
-import { SidebarState, SidebarActions } from './sidebar';
-import { LayoutPreferences, PreferencesActions } from './preferences';
-import { NavigationState, NavigationActions } from './navigation';
-import type { LayoutPreferences as _LP } from './preferences';
+import { SidebarState, SidebarActions } from "./sidebar";
+import { LayoutPreferences, PreferencesActions } from "./preferences";
+import { NavigationState, NavigationActions } from "./navigation";
+import type { LayoutPreferences as _LP } from "./preferences";
 
 /**
  * Complete layout state interface combining all state slices
@@ -49,7 +49,11 @@ export interface LayoutState {
   };
   /** Status information */
   status?: {
-    mousePosition: { x: number; y: number };
+    mousePosition: {
+      x: number;
+      y: number;
+      hex: { q: number; r: number } | null;
+    };
     selectionCount: number;
   };
 }
@@ -57,10 +61,10 @@ export interface LayoutState {
 /**
  * Complete layout actions interface combining all action slices
  */
-export interface LayoutActions extends 
-  SidebarActions, 
-  PreferencesActions, 
-  NavigationActions {
+export interface LayoutActions
+  extends SidebarActions,
+    PreferencesActions,
+    NavigationActions {
   /** Reset layout to default state */
   resetLayout: () => void;
   /** Load saved preferences from persistence layer */
@@ -76,9 +80,9 @@ export interface LayoutStore extends LayoutState, LayoutActions {}
 // Composed Default Values
 // ============================================================================
 
-import { DEFAULT_SIDEBAR_STATE } from './sidebar';
-import { DEFAULT_PREFERENCES } from './preferences';
-import { DEFAULT_NAVIGATION_STATE } from './navigation';
+import { DEFAULT_SIDEBAR_STATE } from "./sidebar";
+import { DEFAULT_PREFERENCES } from "./preferences";
+import { DEFAULT_NAVIGATION_STATE } from "./navigation";
 
 /**
  * Complete default layout state combining all defaults
@@ -94,14 +98,18 @@ export const DEFAULT_LAYOUT_STATE: LayoutState = {
 // ============================================================================
 
 // Re-export commonly used interfaces with original names for compatibility
-export type { BreadcrumbItem } from './navigation';
-export type { AppSidebarProps, AppHeaderProps, MainContentProps } from './components';
-export type { BaseLayoutProps, LayoutProviderProps } from './components';
+export type { BreadcrumbItem } from "./navigation";
+export type {
+  AppSidebarProps,
+  AppHeaderProps,
+  MainContentProps,
+} from "./components";
+export type { BaseLayoutProps, LayoutProviderProps } from "./components";
 
 // Re-export constants for compatibility
-export { SIDEBAR_WIDTH_CONSTRAINTS } from './sidebar';
-export { isValidTheme } from './preferences';
-export { isValidSidebarVariant, isValidSidebarCollapsible } from './sidebar';
+export { SIDEBAR_WIDTH_CONSTRAINTS } from "./sidebar";
+export { isValidTheme } from "./preferences";
+export { isValidSidebarVariant, isValidSidebarCollapsible } from "./sidebar";
 
 // ============================================================================
 // Convenience Public Types
@@ -111,4 +119,4 @@ export { isValidSidebarVariant, isValidSidebarCollapsible } from './sidebar';
  * Canonical Theme type for the layout system.
  * Exported for consumers and tests to avoid duplicate local aliases.
  */
-export type Theme = _LP['theme'];
+export type Theme = _LP["theme"];

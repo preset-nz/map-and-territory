@@ -1,28 +1,28 @@
 /**
  * Layout Stores - Main Export Index and Composed Store
- * 
+ *
  * This file provides a complete layout store implementation using
  * focused slices for maintainability, while maintaining backwards
  * compatibility with the previous monolithic store interface.
- * 
+ *
  * Architecture: Focused store slices composed into a complete store
  * with selective persistence and development utilities.
  */
 
-import { create } from 'zustand';
-import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { create } from "zustand";
+import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
-import { LayoutState, DEFAULT_LAYOUT_STATE } from '../../types/layout';
+import { LayoutState, DEFAULT_LAYOUT_STATE } from "../../types/layout";
 
 // ============================================================================
 // Re-export Individual Slices
 // ============================================================================
 
-export * from './sidebar-store';
-export * from './preferences-store';
-export * from './navigation-store';
-export * from './composition';
+export * from "./sidebar-store";
+export * from "./preferences-store";
+export * from "./navigation-store";
+export * from "./composition";
 
 // ============================================================================
 // Complete Layout Store Implementation
@@ -34,14 +34,14 @@ export * from './composition';
 interface CompleteLayoutStore {
   // Sidebar state
   isOpen: boolean;
-  variant: 'sidebar' | 'inset';
-  collapsible: 'icon' | 'none';
-  
+  variant: "sidebar" | "inset";
+  collapsible: "icon" | "none";
+
   // Preferences state
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   sidebarWidth: number;
   persistCollapsed: boolean;
-  
+
   // Navigation state
   activeSection: string;
   breadcrumb: Array<{
@@ -50,39 +50,41 @@ interface CompleteLayoutStore {
     icon?: React.ReactNode;
     isCurrent?: boolean;
   }>;
-  
+
   // Creative tool state
   activeTool: string;
   propertiesPanelOpen: boolean;
-  
+
   // Panel widths
   scenePanelWidth: number;
   propertiesPanelWidth: number;
-  
+
   // Status bar
   statusBarVisible: boolean;
-  
-  // Mouse coordinates for status (optionally include hex axial coords)
-  mousePosition: { x: number; y: number; hex?: { q: number; r: number } | null };
-  
+
+  // Mouse coordinates for status (include hex axial coords when applicable)
+  mousePosition: { x: number; y: number; hex: { q: number; r: number } | null };
+
   // Selection state
   selectionCount: number;
-  
+
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setSidebarVariant: (variant: 'sidebar' | 'inset') => void;
-  setSidebarCollapsible: (collapsible: 'icon' | 'none') => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setSidebarVariant: (variant: "sidebar" | "inset") => void;
+  setSidebarCollapsible: (collapsible: "icon" | "none") => void;
+  setTheme: (theme: "light" | "dark" | "system") => void;
   setSidebarWidth: (width: number) => void;
   setPersistCollapsed: (persist: boolean) => void;
   setActiveSection: (section: string) => void;
-  setBreadcrumb: (items: Array<{
-    label: string;
-    href?: string;
-    icon?: React.ReactNode;
-    isCurrent?: boolean;
-  }>) => void;
+  setBreadcrumb: (
+    items: Array<{
+      label: string;
+      href?: string;
+      icon?: React.ReactNode;
+      isCurrent?: boolean;
+    }>,
+  ) => void;
   addBreadcrumb: (item: {
     label: string;
     href?: string;
@@ -93,23 +95,27 @@ interface CompleteLayoutStore {
   setActiveTool: (tool: string) => void;
   togglePropertiesPanel: () => void;
   setPropertiesPanelOpen: (open: boolean) => void;
-  
+
   // Panel sizing actions
   setScenePanelWidth: (width: number) => void;
   setPropertiesPanelWidth: (width: number) => void;
-  
+
   // Status bar actions
   toggleStatusBar: () => void;
-  setMousePosition: (x: number, y: number, hex?: { q: number; r: number } | null) => void;
+  setMousePosition: (
+    x: number,
+    y: number,
+    hex?: { q: number; r: number } | null,
+  ) => void;
   setSelectionCount: (count: number) => void;
-  
+
   resetLayout: () => void;
   loadPreferences: () => void;
 }
 
 /**
  * Main layout store implementation combining all focused slices
- * 
+ *
  * Uses immer middleware for immutable updates, devtools for debugging,
  * and selective persistence to avoid storing ephemeral state.
  */
@@ -124,21 +130,21 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
           ...DEFAULT_LAYOUT_STATE.sidebar,
           ...DEFAULT_LAYOUT_STATE.preferences,
           ...DEFAULT_LAYOUT_STATE.navigation,
-          
+
           // Creative tool defaults
-          activeTool: 'select',
+          activeTool: "select",
           propertiesPanelOpen: true,
-          
+
           // Panel width defaults
           scenePanelWidth: 280,
           propertiesPanelWidth: 320,
-          
+
           // Status bar defaults
           statusBarVisible: true,
-          
+
           // Mouse position defaults
-          mousePosition: { x: 0, y: 0 },
-          
+          mousePosition: { x: 0, y: 0, hex: null },
+
           // Selection defaults
           selectionCount: 0,
 
@@ -211,7 +217,7 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
               state.breadcrumb.forEach((breadcrumb) => {
                 breadcrumb.isCurrent = false;
               });
-              
+
               // Add new item as current
               state.breadcrumb.push({
                 ...item,
@@ -261,7 +267,8 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
               state.isOpen = DEFAULT_LAYOUT_STATE.sidebar.isOpen;
               state.variant = DEFAULT_LAYOUT_STATE.sidebar.variant;
               state.collapsible = DEFAULT_LAYOUT_STATE.sidebar.collapsible;
-              state.activeSection = DEFAULT_LAYOUT_STATE.navigation.activeSection;
+              state.activeSection =
+                DEFAULT_LAYOUT_STATE.navigation.activeSection;
               state.breadcrumb = DEFAULT_LAYOUT_STATE.navigation.breadcrumb;
               // Keep existing preferences
             });
@@ -291,9 +298,13 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
             });
           },
 
-          setMousePosition: (x: number, y: number, hex?: { q: number; r: number } | null) => {
+          setMousePosition: (
+            x: number,
+            y: number,
+            hex: { q: number; r: number } | null,
+          ) => {
             set((state) => {
-              state.mousePosition = { x, y, hex: typeof hex === 'undefined' ? state.mousePosition.hex : hex };
+              state.mousePosition = { x, y, hex };
             });
           },
 
@@ -311,7 +322,7 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
             // This is handled automatically by the persist middleware
             // This method is provided for explicit preference refresh if needed
             const currentState = get();
-            console.log('Current layout preferences:', {
+            console.log("Current layout preferences:", {
               theme: currentState.theme,
               sidebarWidth: currentState.sidebarWidth,
               persistCollapsed: currentState.persistCollapsed,
@@ -320,14 +331,14 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
               statusBarVisible: currentState.statusBarVisible,
             });
           },
-        }))
+        })),
       ),
       {
         // ================================================================
         // Persistence Configuration
         // ================================================================
-        name: 'map-territory-layout',
-        
+        name: "map-territory-layout",
+
         /**
          * Selective persistence - only persist user preferences and
          * sidebar state (if persistCollapsed is true)
@@ -341,8 +352,8 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
             },
             sidebar: {
               // Only persist sidebar open state if user wants it persisted
-              isOpen: state.persistCollapsed 
-                ? state.isOpen 
+              isOpen: state.persistCollapsed
+                ? state.isOpen
                 : DEFAULT_LAYOUT_STATE.sidebar.isOpen,
               variant: state.variant,
               collapsible: state.collapsible,
@@ -368,15 +379,15 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
         /**
          * Skip hydration on SSR to prevent hydration mismatches
          */
-        skipHydration: typeof window === 'undefined',
-      }
+        skipHydration: typeof window === "undefined",
+      },
     ),
     {
       // Devtools configuration
-      name: 'LayoutStore',
-      enabled: process.env.NODE_ENV === 'development',
-    }
-  )
+      name: "LayoutStore",
+      enabled: process.env.NODE_ENV === "development",
+    },
+  ),
 );
 
 // ============================================================================
@@ -433,15 +444,27 @@ export const getLayoutState = (): LayoutState => {
  */
 export const subscribeToLayoutChanges = <T>(
   selector: (state: LayoutState) => T,
-  callback: (value: T, previousValue: T) => void
+  callback: (value: T, previousValue: T) => void,
 ) => {
   return useLayoutStore.subscribe(
-    (state) => selector({
-      sidebar: { isOpen: state.isOpen, variant: state.variant, collapsible: state.collapsible },
-      preferences: { theme: state.theme, sidebarWidth: state.sidebarWidth, persistCollapsed: state.persistCollapsed },
-      navigation: { activeSection: state.activeSection, breadcrumb: state.breadcrumb },
-    }),
-    callback
+    (state) =>
+      selector({
+        sidebar: {
+          isOpen: state.isOpen,
+          variant: state.variant,
+          collapsible: state.collapsible,
+        },
+        preferences: {
+          theme: state.theme,
+          sidebarWidth: state.sidebarWidth,
+          persistCollapsed: state.persistCollapsed,
+        },
+        navigation: {
+          activeSection: state.activeSection,
+          breadcrumb: state.breadcrumb,
+        },
+      }),
+    callback,
   );
 };
 
@@ -461,10 +484,10 @@ export const resetLayoutStore = () => {
  * Development-only function to log current store state
  * @param label - Optional label for the log
  */
-export const debugLayoutState = (label = 'Layout State') => {
-  if (process.env.NODE_ENV === 'development') {
+export const debugLayoutState = (label = "Layout State") => {
+  if (process.env.NODE_ENV === "development") {
     console.group(label);
-    console.log('Current state:', getLayoutState());
+    console.log("Current state:", getLayoutState());
     console.groupEnd();
   }
 };
@@ -528,7 +551,12 @@ export const useSidebarActions = () => {
   const setSidebarOpen = useLayoutStore((s) => s.setSidebarOpen);
   const setSidebarVariant = useLayoutStore((s) => s.setSidebarVariant);
   const setSidebarCollapsible = useLayoutStore((s) => s.setSidebarCollapsible);
-  return { toggleSidebar, setSidebarOpen, setSidebarVariant, setSidebarCollapsible };
+  return {
+    toggleSidebar,
+    setSidebarOpen,
+    setSidebarVariant,
+    setSidebarCollapsible,
+  };
 };
 
 /**
@@ -567,7 +595,9 @@ export const useToolState = () =>
 export const useToolActions = () => {
   const setActiveTool = useLayoutStore((s) => s.setActiveTool);
   const togglePropertiesPanel = useLayoutStore((s) => s.togglePropertiesPanel);
-  const setPropertiesPanelOpen = useLayoutStore((s) => s.setPropertiesPanelOpen);
+  const setPropertiesPanelOpen = useLayoutStore(
+    (s) => s.setPropertiesPanelOpen,
+  );
   return { setActiveTool, togglePropertiesPanel, setPropertiesPanelOpen };
 };
 
@@ -586,7 +616,9 @@ export const usePanelState = () =>
  */
 export const usePanelActions = () => {
   const setScenePanelWidth = useLayoutStore((s) => s.setScenePanelWidth);
-  const setPropertiesPanelWidth = useLayoutStore((s) => s.setPropertiesPanelWidth);
+  const setPropertiesPanelWidth = useLayoutStore(
+    (s) => s.setPropertiesPanelWidth,
+  );
   const toggleStatusBar = useLayoutStore((s) => s.toggleStatusBar);
   return { setScenePanelWidth, setPropertiesPanelWidth, toggleStatusBar };
 };

@@ -4,6 +4,8 @@ Scope: repository-wide implementation rules and quality gates. Excludes testing 
 
 This document defines the technical standards and best practices that apply to all implementation work. These standards ensure consistency, maintainability, and quality across all features.
 
+Phase Context: during the active Forward‑Ever phase we do not introduce feature flags or back‑compat scaffolding for core seams; migrate all consumers within the ticket (see `guidance/process/forward_ever_phase.md`).
+
 ## Universal Code Quality Standards
 
 All code must meet these baseline requirements regardless of complexity:

@@ -4,6 +4,8 @@ Scope: source of truth for implementing features in this repo using Next.js App 
 
 Combines our senior Next.js and senior TypeScript practices into a single, repo‑specific process for implementing features. Use this alongside `guidance/process/implementation_standards.md` and `guidance/process/testing_standards.md`.
 
+Current Phase Policy: see `guidance/process/forward_ever_phase.md` (no flags/back‑compat; migrate consumers in‑ticket).
+
 ## Scope & Inputs
 
 - Start with the problem statement in `guidance/product_brief.md` and related tickets.
