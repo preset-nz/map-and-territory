@@ -3,6 +3,7 @@ import { registerLayerType } from "@/layers/registry";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
 import { useProjectStore } from "@/stores/project";
 import { useSelectionStore } from "@/stores/selection";
+import { AppAPI } from "@/appapi";
 
 export const hexNoiseManifest: PluginManifest = {
   id: "app.plugins.hex-noise",
@@ -54,6 +55,20 @@ export const hexNoiseModule: PluginModule = {
             .insertLayerBeforeTopAnchor("hexnoise");
         }
         if (!id) return;
+        // Initialize defaults: paint mode and first terrain entry color
+        try {
+          const entries = AppAPI.palette.list();
+          const first = entries[0];
+          if (first) {
+            useProjectStore.getState().updateLayerState(id, {
+              mode: "paint",
+              terrainId: first.id,
+              paintColor: first.color,
+            });
+          } else {
+            useProjectStore.getState().updateLayerState(id, { mode: "paint" });
+          }
+        } catch {}
         useSelectionStore.getState().selectLayer(id);
         return;
       } else if (sel.kind === "map") {
@@ -61,6 +76,19 @@ export const hexNoiseModule: PluginModule = {
           .getState()
           .insertLayerBeforeTopAnchor("hexnoise");
         if (!id) return;
+        try {
+          const entries = AppAPI.palette.list();
+          const first = entries[0];
+          if (first) {
+            useProjectStore.getState().updateLayerState(id, {
+              mode: "paint",
+              terrainId: first.id,
+              paintColor: first.color,
+            });
+          } else {
+            useProjectStore.getState().updateLayerState(id, { mode: "paint" });
+          }
+        } catch {}
         useSelectionStore.getState().selectLayer(id);
         return;
       }
@@ -69,6 +97,19 @@ export const hexNoiseModule: PluginModule = {
         .getState()
         .insertLayerBeforeTopAnchor("hexnoise");
       if (!id) return;
+      try {
+        const entries = AppAPI.palette.list();
+        const first = entries[0];
+        if (first) {
+          useProjectStore.getState().updateLayerState(id, {
+            mode: "paint",
+            terrainId: first.id,
+            paintColor: first.color,
+          });
+        } else {
+          useProjectStore.getState().updateLayerState(id, { mode: "paint" });
+        }
+      } catch {}
       useSelectionStore.getState().selectLayer(id);
     },
   },

@@ -58,21 +58,38 @@ export const AppAPI = {
     },
     // Lists terrain entries from the active setting (MVP: default Doom Forge until settings UI lands)
     list(category?: BaseTerrainType) {
-      const setting = TerrainSettings.DOOM_FORGE; // TODO: wire campaign/map setting selection in T-012
+      const cur = useProjectStore.getState().current;
+      const active = cur?.activeMapId ?? null;
+      const map = cur?.maps.find((m) => m.id === active);
+      const settingId = map?.settingId || cur?.settingId || "doom-forge";
+      const setting =
+        TerrainSettings.getAllSettings().find((s) => s.id === settingId) ??
+        TerrainSettings.DOOM_FORGE;
       return category
         ? setting.terrains.filter((t) => t.baseType === category)
         : setting.terrains.slice();
     },
     // Returns color by terrain entry id from the active setting; falls back to category fill
     fillById(id: string) {
-      const setting = TerrainSettings.DOOM_FORGE;
+      const cur = useProjectStore.getState().current;
+      const active = cur?.activeMapId ?? null;
+      const map = cur?.maps.find((m) => m.id === active);
+      const settingId = map?.settingId || cur?.settingId || "doom-forge";
+      const setting =
+        TerrainSettings.getAllSettings().find((s) => s.id === settingId) ??
+        TerrainSettings.DOOM_FORGE;
       const t = setting.terrains.find((x) => x.id === id);
       if (t) return t.color;
       // Fallback: use category fill via resolved palette
-      const cur = useProjectStore.getState().current;
-      const active = cur?.activeMapId ?? null;
       const palette = resolvePalette(cur, active);
       return resolveTerrainFill(palette, "plains");
+    },
+    // Returns active setting id (map → campaign → default)
+    settingId() {
+      const cur = useProjectStore.getState().current;
+      const active = cur?.activeMapId ?? null;
+      const map = cur?.maps.find((m) => m.id === active);
+      return map?.settingId || cur?.settingId || "doom-forge";
     },
   },
 } as const;

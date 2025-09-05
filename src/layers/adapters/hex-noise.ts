@@ -15,6 +15,10 @@ export interface HexNoiseState {
   max: number; // 0..1 upper threshold (transparent above)
   mode?: "shape" | "paint";
   terrain?: "water" | "plains" | "forest" | "hills" | "mountains";
+  // When painting, allow selecting a specific terrain entry from active setting
+  terrainId?: string;
+  // Cache resolved color for terrainId to avoid cross-thread API calls
+  paintColor?: string;
 }
 
 export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
@@ -60,29 +64,33 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
         ctx.fill();
         return;
       }
-      const terrain = (state.terrain as string | undefined) ?? "plains";
-      const key = (():
-        | "water"
-        | "plains"
-        | "forest"
-        | "hills"
-        | "mountains" => {
-        switch (terrain) {
-          case "water":
-          case "plains":
-          case "forest":
-          case "hills":
-          case "mountains":
-            return terrain;
-          default:
-            return "plains";
-        }
-      })();
-      const fromEnv =
-        env.palette?.terrain?.[
-          key as "water" | "plains" | "forest" | "hills" | "mountains"
-        ]?.fill;
-      const fill = fromEnv || DefaultPalette.terrain.plains.fill;
+      // Prefer explicit paintColor (from selected terrainId), fall back to palette by base type
+      let fill = state.paintColor;
+      if (!fill) {
+        const terrain = (state.terrain as string | undefined) ?? "plains";
+        const key = (():
+          | "water"
+          | "plains"
+          | "forest"
+          | "hills"
+          | "mountains" => {
+          switch (terrain) {
+            case "water":
+            case "plains":
+            case "forest":
+            case "hills":
+            case "mountains":
+              return terrain;
+            default:
+              return "plains";
+          }
+        })();
+        const fromEnv =
+          env.palette?.terrain?.[
+            key as "water" | "plains" | "forest" | "hills" | "mountains"
+          ]?.fill;
+        fill = fromEnv || DefaultPalette.terrain.plains.fill;
+      }
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
         const ang = startAngle + i * (Math.PI / 3);
@@ -156,6 +164,8 @@ export const HexNoiseType = {
     max: 1,
     mode: "shape",
     terrain: "plains",
+    terrainId: undefined,
+    paintColor: undefined,
   },
   adapter: HexNoiseAdapter,
   policy: { canDelete: true, canDuplicate: true },
@@ -180,31 +190,10 @@ registerPropertySchema("layer:hexnoise", {
           },
           {
             kind: "select",
-            id: "terrain",
+            id: "terrainId",
             label: "Terrain",
-            path: "terrain",
-            options: [
-              {
-                value: "water",
-                label: DefaultPalette.terrain.water.label ?? "Water",
-              },
-              {
-                value: "plains",
-                label: DefaultPalette.terrain.plains.label ?? "Plains",
-              },
-              {
-                value: "forest",
-                label: DefaultPalette.terrain.forest.label ?? "Forest",
-              },
-              {
-                value: "hills",
-                label: DefaultPalette.terrain.hills.label ?? "Hills",
-              },
-              {
-                value: "mountains",
-                label: DefaultPalette.terrain.mountains.label ?? "Mountains",
-              },
-            ],
+            path: "terrainId",
+            options: [{ value: "", label: "— Select Terrain —" }],
           },
         ],
         [
