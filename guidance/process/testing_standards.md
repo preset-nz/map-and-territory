@@ -68,6 +68,12 @@ Regardless of complexity level, all features must meet these baseline testing re
 - **Test Isolation**: Ensure tests run independently and don't affect each other
 - **Performance Monitoring**: Use Vitest's performance testing capabilities where relevant
 
+### Playwright E2E
+
+- Specs live under `src/test/e2e`.
+- Local run: `CI=1 PORT=3211 pnpm test:e2e` (dev server auto-starts) This prevent's AI from getting stuck if there are errors.
+- CI run: `CI=1 PORT=3211 pnpm test:e2e` (sets a fixed port and disables server reuse via `CI=1`).
+
 ## Plugin Testing Requirements
 
 ### Plugin Compatibility

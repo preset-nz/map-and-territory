@@ -4,7 +4,19 @@ feature: Invalidation API — Required for Visual Layers
 author: @georg
 date: 2025-09-05
 level: 2
+status: COMPLETE - Implementation deployed
 ---
+
+> ⚠️ **IMPLEMENTATION STATUS**: This feature is already fully implemented and working in the codebase.
+> See `code_review.md` for detailed analysis of the existing implementation.
+>
+> **Key Implementation Locations**:
+>
+> - Interface: `src/layers/types.ts:35`
+> - Host Logic: `src/components/map/canvas-viewport.tsx:41-48`
+> - Adapters: `src/layers/adapters/*.ts`
+> - Tests: `src/test/invalidation-keys.test.ts`
+> - Documentation: ADR-0002 lines 55-67
 
 ## Overview & Assumptions
 
@@ -44,6 +56,7 @@ level: 2
 
 - E2E (Playwright):
   - Adjust a property (e.g., Hexgrid size) and assert a visual probe changes (pixel hash or DOM marker) once per change.
+  - Run locally with `pnpm test:e2e`; in CI use `CI=1 PORT=3211 pnpm test:e2e` to bind a fixed port and avoid server reuse.
 
 ## Impact/Risks
 

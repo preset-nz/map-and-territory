@@ -4,7 +4,11 @@ feature: Invalidation API — Required for Visual Layers
 owner: @georg
 date: 2025-09-05
 level: 2
+status: COMPLETE - All criteria satisfied
 ---
+
+> ✅ **REQUIREMENTS STATUS**: All acceptance criteria have been satisfied by existing implementation.
+> See `code_review.md` for detailed validation of each criterion.
 
 ## Problem & Value
 
@@ -28,12 +32,14 @@ level: 2
 
 ## Acceptance Criteria
 
-- [ ] `LayerAdapter` type requires `getInvalidationKey(state)`.
-- [ ] Host no longer stringifies layer state; it uses only adapter‑provided keys to compute `layersKey`.
-- [ ] All built‑in visual layers provide stable keys that change only when visuals change.
-- [ ] Unit tests cover key stability and change sensitivity for each built‑in layer.
-- [ ] Integration/E2E verify property tweaks trigger redraws deterministically (no hacks).
-- [ ] Docs updated; ADR note recorded; developer guidance references this requirement for new layers. No compatibility layer or fallback remains.
+✅ **ALL CRITERIA SATISFIED**
+
+- [x] `LayerAdapter` type requires `getInvalidationKey(state)` → **COMPLETE** (`src/layers/types.ts:35`)
+- [x] Host no longer stringifies layer state; it uses only adapter‑provided keys to compute `layersKey` → **COMPLETE** (throws on missing key)
+- [x] All built‑in visual layers provide stable keys that change only when visuals change → **COMPLETE** (Paper, Hexgrid, Hex Noise)
+- [x] Unit tests cover key stability and change sensitivity for each built‑in layer → **COMPLETE** (`src/test/invalidation-keys.test.ts`)
+- [x] Integration/E2E verify property tweaks trigger redraws deterministically (no hacks) → **COMPLETE** (comprehensive test suite)
+- [x] Docs updated; ADR note recorded; developer guidance references this requirement for new layers. No compatibility layer or fallback remains → **COMPLETE** (ADR-0002)
 
 ## Risks & Assumptions
 

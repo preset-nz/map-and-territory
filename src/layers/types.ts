@@ -30,8 +30,9 @@ export interface LayerAdapter<State = unknown> {
     state: State,
     env: RenderEnv,
   ) => boolean;
-  // Optional invalidation key — used by host to detect visual-impacting changes
-  getInvalidationKey?: (state: State) => string;
+  // Invalidation key — used by host to detect visual-impacting changes
+  // Required: adapters must return a stable string that changes only when visuals change.
+  getInvalidationKey: (state: State) => string;
   // Optional (de)serialization
   serialize?: (state: State) => unknown;
   deserialize?: (raw: unknown) => State;
