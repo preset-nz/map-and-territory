@@ -113,6 +113,7 @@ export class Canvas2DBackend implements RenderBackend {
       paperRect: { x: paperX, y: paperY, w: paperW, h: paperH },
       camera: frame.camera,
       grid: gridHint,
+      palette: frame.palette,
     } as const;
 
     for (const l of frame.layers) {

@@ -54,7 +54,7 @@ test.describe("Hex Noise — Mode Switching", () => {
       .getByTestId("properties-panel")
       .getByLabel("Terrain", { exact: true });
     await terrainButton.click();
-    await page.getByRole("menuitem", { name: "Desert" }).click();
+    await page.getByRole("menuitem", { name: "Ash Thickets" }).click();
 
     await page.waitForTimeout(200);
     const after = await canvas.screenshot();

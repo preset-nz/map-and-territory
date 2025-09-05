@@ -1,5 +1,7 @@
 export type LayerTypeId = string;
 
+import type { MapPalette } from "@/palettes/types";
+
 export interface RenderEnv {
   zoom: number;
   pixelRatio: number;
@@ -8,6 +10,7 @@ export interface RenderEnv {
   camera: { x: number; y: number; zoom: number };
   // Optional hints derived by render host (e.g., for layers that coordinate with grid)
   grid?: { size: number; orientation: "pointy" | "flat" };
+  palette?: MapPalette;
 }
 
 export interface LayerAdapter<State = unknown> {
