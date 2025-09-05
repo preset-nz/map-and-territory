@@ -1,4 +1,5 @@
 import type { LayerAdapter } from "@/layers/types";
+import { DefaultPalette } from "@/palettes/defaults";
 import { createPerlinNoise } from "@/lib/noise";
 import { registerPropertySchema } from "@/properties/registry";
 // (no direct adapter drawing; rendering handled elsewhere)
@@ -13,7 +14,7 @@ export interface HexNoiseState {
   min: number; // 0..1 lower threshold (transparent below)
   max: number; // 0..1 upper threshold (transparent above)
   mode?: "shape" | "paint";
-  terrain?: "water" | "desert" | "plains" | "hills";
+  terrain?: "water" | "plains" | "forest" | "hills" | "mountains";
 }
 
 export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
@@ -59,20 +60,29 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
         ctx.fill();
         return;
       }
-      const terrain =
-        (state.terrain as
-          | "water"
-          | "desert"
-          | "plains"
-          | "hills"
-          | undefined) ?? "plains";
-      const colorMap: Record<string, string> = {
-        water: "#3b5bfd",
-        desert: "#e6c767",
-        plains: "#7abd5a",
-        hills: "#8b6f4a",
-      };
-      const fill = colorMap[terrain] ?? "#7abd5a";
+      const terrain = (state.terrain as string | undefined) ?? "plains";
+      const key = (():
+        | "water"
+        | "plains"
+        | "forest"
+        | "hills"
+        | "mountains" => {
+        switch (terrain) {
+          case "water":
+          case "plains":
+          case "forest":
+          case "hills":
+          case "mountains":
+            return terrain;
+          default:
+            return "plains";
+        }
+      })();
+      const fromEnv =
+        env.palette?.terrain?.[
+          key as "water" | "plains" | "forest" | "hills" | "mountains"
+        ]?.fill;
+      const fill = fromEnv || DefaultPalette.terrain.plains.fill;
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
         const ang = startAngle + i * (Math.PI / 3);
@@ -174,10 +184,26 @@ registerPropertySchema("layer:hexnoise", {
             label: "Terrain",
             path: "terrain",
             options: [
-              { value: "water", label: "Water" },
-              { value: "desert", label: "Desert" },
-              { value: "plains", label: "Plains" },
-              { value: "hills", label: "Hills" },
+              {
+                value: "water",
+                label: DefaultPalette.terrain.water.label ?? "Water",
+              },
+              {
+                value: "plains",
+                label: DefaultPalette.terrain.plains.label ?? "Plains",
+              },
+              {
+                value: "forest",
+                label: DefaultPalette.terrain.forest.label ?? "Forest",
+              },
+              {
+                value: "hills",
+                label: DefaultPalette.terrain.hills.label ?? "Hills",
+              },
+              {
+                value: "mountains",
+                label: DefaultPalette.terrain.mountains.label ?? "Mountains",
+              },
             ],
           },
         ],

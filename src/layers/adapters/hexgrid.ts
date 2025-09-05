@@ -1,7 +1,7 @@
-import type { LayerAdapter, RenderEnv } from '@/layers/types';
-import { registerPropertySchema } from '@/properties/registry';
+import type { LayerAdapter, RenderEnv } from "@/layers/types";
+import { registerPropertySchema } from "@/properties/registry";
 
-export type HexOrientation = 'pointy' | 'flat';
+export type HexOrientation = "pointy" | "flat";
 
 export interface HexgridState {
   size: number; // hex radius in px
@@ -15,12 +15,15 @@ export interface HexgridState {
 // (removed unused pattern cache helper)
 
 export const HexgridAdapter: LayerAdapter<HexgridState> = {
-  title: 'Hex Grid',
+  title: "Hex Grid",
   drawMain(ctx, state, env: RenderEnv) {
     const { w, h } = env.size;
     const { size, orientation, color, alpha, lineWidth } = state;
     const r = Math.max(4, size || 16);
-    const stroke = color || '#000000';
+    const stroke =
+      color && color !== "#000000"
+        ? color
+        : env.palette?.grid.line || "#000000";
     const a = alpha ?? 0.25;
     const dpr = env.pixelRatio || 1;
 
@@ -36,23 +39,26 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
         const ang = startAngle + i * (Math.PI / 3);
         const px = cx + Math.cos(ang) * r;
         const py = cy + Math.sin(ang) * r;
-        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
       }
       ctx.closePath();
       ctx.stroke();
     };
 
-    if (orientation === 'flat') {
+    if (orientation === "flat") {
       const colStep = 1.5 * r;
       const rowStep = sqrt3 * r;
       const cols = Math.ceil(w / colStep) + 2;
       const rows = Math.ceil(h / rowStep) + 2;
       const centerX = w / 2;
       const centerY = h / 2;
-      const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
-      const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
+      const cmin = -Math.ceil(cols / 2),
+        cmax = Math.ceil(cols / 2);
+      const rmin = -Math.ceil(rows / 2),
+        rmax = Math.ceil(rows / 2);
       for (let c = cmin; c <= cmax; c++) {
-        const yOffset = (c & 1) ? (rowStep / 2) : 0;
+        const yOffset = c & 1 ? rowStep / 2 : 0;
         for (let rr = rmin; rr <= rmax; rr++) {
           const x = c * colStep + centerX;
           const y = rr * rowStep + yOffset + centerY;
@@ -61,16 +67,18 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
       }
     } else {
       // pointy
-      const colStep = sqrt3 * r;            // horizontal distance between columns
-      const rowStep = 1.5 * r;         // vertical distance between rows
+      const colStep = sqrt3 * r; // horizontal distance between columns
+      const rowStep = 1.5 * r; // vertical distance between rows
       const cols = Math.ceil(w / colStep) + 2;
       const rows = Math.ceil(h / rowStep) + 2;
       const centerX = w / 2;
       const centerY = h / 2;
-      const rmin = -Math.ceil(rows / 2), rmax = Math.ceil(rows / 2);
-      const cmin = -Math.ceil(cols / 2), cmax = Math.ceil(cols / 2);
+      const rmin = -Math.ceil(rows / 2),
+        rmax = Math.ceil(rows / 2);
+      const cmin = -Math.ceil(cols / 2),
+        cmax = Math.ceil(cols / 2);
       for (let rr = rmin; rr <= rmax; rr++) {
-        const xOffset = (rr & 1) ? (colStep / 2) : 0;
+        const xOffset = rr & 1 ? colStep / 2 : 0;
         for (let c = cmin; c <= cmax; c++) {
           const x = c * colStep + xOffset + centerX;
           const y = rr * rowStep + centerY;
@@ -87,27 +95,56 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
 };
 
 export const HexgridType = {
-  id: 'hexgrid',
-  title: 'Hex Grid',
-  defaultState: { size: 24, orientation: 'pointy', color: '#000000', alpha: 1, lineWidth: 1, origin: { x: 0, y: 0 } },
+  id: "hexgrid",
+  title: "Hex Grid",
+  defaultState: {
+    size: 24,
+    orientation: "pointy",
+    color: "#000000",
+    alpha: 1,
+    lineWidth: 1,
+    origin: { x: 0, y: 0 },
+  },
   adapter: HexgridAdapter,
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;
 
 // Register hexgrid properties schema
-registerPropertySchema('layer:hexgrid', {
+registerPropertySchema("layer:hexgrid", {
   groups: [
     {
-      id: 'hexgrid',
-      title: 'Hex Grid',
+      id: "hexgrid",
+      title: "Hex Grid",
       rows: [
-        { kind: 'select', id: 'orientation', label: 'Orientation', path: 'orientation', options: [
-          { value: 'pointy', label: 'Pointy Top' },
-          { value: 'flat', label: 'Flat Top' },
-        ] },
-        { kind: 'slider', id: 'size', label: 'Hex Size', path: 'size', min: 8, max: 120, step: 1 },
-        { kind: 'slider', id: 'lineWidth', label: 'Line Width', path: 'lineWidth', min: 1, max: 8, step: 1 },
-        { kind: 'color', id: 'color', label: 'Line Color', path: 'color' },
+        {
+          kind: "select",
+          id: "orientation",
+          label: "Orientation",
+          path: "orientation",
+          options: [
+            { value: "pointy", label: "Pointy Top" },
+            { value: "flat", label: "Flat Top" },
+          ],
+        },
+        {
+          kind: "slider",
+          id: "size",
+          label: "Hex Size",
+          path: "size",
+          min: 8,
+          max: 120,
+          step: 1,
+        },
+        {
+          kind: "slider",
+          id: "lineWidth",
+          label: "Line Width",
+          path: "lineWidth",
+          min: 1,
+          max: 8,
+          step: 1,
+        },
+        { kind: "color", id: "color", label: "Line Color", path: "color" },
       ],
     },
   ],

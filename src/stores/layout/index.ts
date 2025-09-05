@@ -301,10 +301,10 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
           setMousePosition: (
             x: number,
             y: number,
-            hex: { q: number; r: number } | null,
+            hex?: { q: number; r: number } | null,
           ) => {
             set((state) => {
-              state.mousePosition = { x, y, hex };
+              state.mousePosition = { x, y, hex: hex ?? null };
             });
           },
 

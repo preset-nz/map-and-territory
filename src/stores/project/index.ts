@@ -9,17 +9,21 @@ import { HexgridType } from "@/layers/adapters/hexgrid";
 import type { LayerInstance } from "@/layers/types";
 import { nextNumberedName } from "@/stores/project/naming";
 
+import type { MapPalette } from "@/palettes/types";
+
 export interface Project {
   id: string;
   version: number;
   name: string;
   description?: string;
+  palette?: MapPalette; // campaign-level palette (optional)
   maps: Array<{
     id: string;
     name: string;
     description?: string;
     visible: boolean;
     paper: { aspect: "square" | "4:3" | "16:10"; color: string };
+    palette?: MapPalette; // optional per-map override
     layers?: LayerInstance[];
   }>;
   activeMapId: string | null;
@@ -199,7 +203,7 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         name,
         description,
         visible: true,
-        paper: { aspect: "16:10", color: "#ffffff" },
+        paper: { aspect: "16:10", color: "#ffffff" } as const,
         layers: baseLayers,
       },
     ];

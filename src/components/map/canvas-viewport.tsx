@@ -10,6 +10,11 @@ import type { SceneFrame } from "@/render/types";
 import { useLayoutStore } from "@/stores/layout";
 import { AppAPI } from "@/appapi";
 import { createPerlinNoise } from "@/lib/noise";
+import {
+  resolveGridLine,
+  resolvePalette,
+  resolveTerrainFill,
+} from "@/stores/selectors/palette";
 
 function parseAspect(aspect: "square" | "4:3" | "16:10"): {
   aw: number;
@@ -53,10 +58,14 @@ export const CanvasViewport: React.FC = () => {
     (paperLayer?.state as { color?: string } | undefined)?.color ??
     active?.paper?.color ??
     "#ffffff";
-  const layers = active?.layers;
+  const layers = useMemo(() => active?.layers ?? [], [active]);
+  const palette = useMemo(
+    () => resolvePalette(current ?? null, activeId),
+    [current, activeId],
+  );
   const layersKey = useMemo(
     () =>
-      (layers ?? [])
+      layers
         .map((l) => {
           const t = getLayerType(l.type);
           if (
@@ -159,9 +168,10 @@ export const CanvasViewport: React.FC = () => {
         visible: l.visible,
         state: l.state,
       })),
+      palette,
     };
     svc.render(frame);
-  }, [aspect, paperColor, layersKey, size.w, size.h, layers]);
+  }, [aspect, paperColor, layersKey, size.w, size.h, layers, palette]);
 
   // Fallback main-thread draw when worker unavailable
   useEffect(() => {
@@ -231,7 +241,7 @@ export const CanvasViewport: React.FC = () => {
           ),
         );
         const sqrt3 = Math.sqrt(3);
-        const perlin = createPerlinNoise(st.seed ?? "seed");
+        const perlin = createPerlinNoise(String(st.seed ?? "seed"));
         const freq = Number(st.frequency ?? 0.15);
         const ox = Number(st.offsetX ?? 0);
         const oy = Number(st.offsetY ?? 0);
@@ -265,20 +275,8 @@ export const CanvasViewport: React.FC = () => {
             ctx.fill();
             return;
           }
-          const terrain =
-            (st.terrain as
-              | "water"
-              | "desert"
-              | "plains"
-              | "hills"
-              | undefined) ?? "plains";
-          const colorMap: Record<string, string> = {
-            water: "#3b5bfd",
-            desert: "#e6c767",
-            plains: "#7abd5a",
-            hills: "#8b6f4a",
-          };
-          const fill = colorMap[terrain] ?? "#7abd5a";
+          const terrain = (st.terrain as string | undefined) ?? "plains";
+          const fill = resolveTerrainFill(palette, terrain);
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
             const ang = startAngle + i * (Math.PI / 3);
@@ -335,14 +333,16 @@ export const CanvasViewport: React.FC = () => {
       if (layer) {
         const st = (layer.state ?? {}) as Record<string, unknown>;
         const r = Math.max(4, Number(st.size ?? 16));
-        const color = String(st.color ?? "#000000");
+        const color = resolveGridLine(current ?? null, activeId, {
+          color: st.color as string | undefined,
+        });
         const alpha = Number(st.alpha ?? 1);
         const orientation = st.orientation === "flat" ? "flat" : "pointy";
         const sqrt3 = Math.sqrt(3);
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = color;
-        ctx.lineWidth = Math.max(1, st.lineWidth ?? 1); // CSS px
+        ctx.lineWidth = Math.max(1, Number(st.lineWidth ?? 1)); // CSS px
         const drawHex = (cx: number, cy: number, startAngle: number) => {
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
@@ -413,7 +413,18 @@ export const CanvasViewport: React.FC = () => {
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [useWorker, aspect, paperColor, layersKey, size.w, size.h, layers]);
+  }, [
+    useWorker,
+    aspect,
+    paperColor,
+    layersKey,
+    size.w,
+    size.h,
+    layers,
+    palette,
+    current,
+    activeId,
+  ]);
 
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);

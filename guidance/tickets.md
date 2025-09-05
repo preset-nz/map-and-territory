@@ -11,21 +11,6 @@ References
 
 ---
 
-T-005 [M] E2E Baseline
-
-- Goal: Guard core flows.
-- Tests: toolbar enablement, layer insertion/duplication order, hex noise mode switching.
-- Links: src/test/e2e/\* (add new specs)
-- Acceptance: Tests green in CI, deterministic.
-
-T-006 [S] Palette Injection for Terrain
-
-- Goal: Remove hardcoded terrain colors; use map‑level palette provider.
-- Links: src/render/backends/canvas2d.ts, src/components/map/canvas-viewport.tsx
-- Acceptance:
-  - Terrain colors sourced from palette; changing palette updates render.
-  - Unit tests for palette application.
-
 T-007 [S] Layers UX Foundations
 
 - Goal: Clear affordances for visibility, stacking, selection; insertion feedback.
