@@ -12,26 +12,22 @@ level: 2
 - Assume existing command registration via `registerCommand()` remains the execution path.
 - Avoid exposing host state shape to plugins; use named capability tokens resolved by the host.
 
-## Interfaces & Contracts
+## Interfaces & Contracts (MVP)
 
 - Types (`src/plugin/types.ts`):
-  - Extend toolbar item with `preconditions?: string[]` and `label?: string`, `order?: number` (order already present), `icon?: string`.
+  - Define `CapabilityToken` union: `'hasActiveMap' | 'hasActiveLayer' | 'hasCampaign' | 'hasProject' | selectionIs:<kind> | canAddLayer:<typeId>`.
+  - Toolbar item: `enableWhen?: CapabilityToken[]`, `disabledReason?: string`.
   - Manifest example:
-    - `contributes.toolbar = [{ group: "layers", items: [{ type: "button", command: "layer.hexnoise.add", icon: "layers", label: "Add Hex Noise", order: 10, preconditions: ["hasActiveMap"] }]}]`.
-
-- Capability Registry (host-only):
-  - New module `src/plugin/capabilities.ts` exports `resolvePreconditions(tokens: string[]): { enabled: boolean; reason?: string }`.
-  - Built-in tokens (MVP): `hasActiveMap`, `hasProject`, `canSave`.
-  - Each token maps to a predicate over stores (e.g., `useProjectStore`).
+    - `contributes.toolbar = [{ group: 'scene', items: [{ type: 'button', command: 'layer.hexnoise.add', icon: 'lucide:layers', label: 'Hex Noise', order: 2, enableWhen: ['hasActiveMap'], disabledReason: 'Select a map to add a layer' }]}]`.
 
 - Loader (`src/plugin/loader.ts`):
-  - Keep contributions data structure; store `preconditions` as provided.
+  - Keep contributions data structure; store `enableWhen` and `disabledReason` as provided.
   - Emit `plugin:toolbar-updated` on load/unload unchanged.
 
 - Toolbar (`src/components/layout/app-toolbar.tsx`):
-  - Replace command-specific checks with generic capability evaluation via `resolvePreconditions`.
-  - Compute `disabled` and `tooltip` reason per item based on `preconditions`.
-  - Preserve existing grouping and sorting behavior; remove special casing.
+  - Remove command-specific checks; evaluate `enableWhen` tokens via `resolvePreconditions`.
+  - Compute `disabled` and `tooltip` (use `disabledReason` or registry-provided reason).
+  - Preserve grouping and sorting; no other behavior changes.
 
 ## Data/State Changes
 
@@ -40,17 +36,24 @@ level: 2
 ## Testing Strategy
 
 - Unit:
-  - Capability registry resolves tokens correctly given mocked store state.
-  - Sorting is deterministic across groups and items (order → label/command).
-  - Loader retains contributions and surfaces `preconditions` unchanged.
+  - Sorting remains deterministic (group → order → label/command).
+  - Loader retains contributions and surfaces `enableWhen`.
+  - Capability registry resolves `hasActiveMap` correctly.
 - Integration (React):
-  - Toolbar renders items from contributions; disabled state toggles when store state changes.
-  - Tooltip reason text reflects unmet capability (e.g., `hasActiveMap`).
+  - Toolbar renders items from contributions; disabled toggles with active map.
+  - Tooltip shows disabled reason when present.
 - E2E (baseline):
-  - With no active map, "Add Hex Noise" button appears disabled with reason; enabled after selecting/creating a map.
+  - With no active map, "Add Hex Noise" disabled with reason; enabled after creating/selecting a map.
+  - When `hexnoise` at max instances, button disabled with policy reason.
 
 ## Impact/Risks
 
 - Perf: minimal; evaluation is O(items) per render with simple predicates.
 - DX/UX: clearer contract; consistent tooltips for unmet preconditions.
 - ADR links: ADR-0002 (Plugin Architecture), ADR-0006 (Toolbar Structure Policy).
+
+## Notes on Command Execution vs. Capabilities
+
+- UI capability checks are host-evaluated; plugins do not need a scene object for gating.
+- Command execution remains plugin-implemented for now (see `src/plugin/builtin/hex-noise.ts`) and can use store APIs (`useProjectStore`, `useSelectionStore`).
+- Follow-up (T-004/TBD): provide `PluginContext.scene` with a narrow host API for map/layer mutations to reduce direct store coupling.

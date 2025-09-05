@@ -1,5 +1,10 @@
-import { registerCommand, unregisterCommand } from '@/lib/commands';
-import type { PluginManifest, PluginModule, PluginContext } from './types';
+import { registerCommand, unregisterCommand } from "@/lib/commands";
+import type {
+  PluginManifest,
+  PluginModule,
+  PluginContext,
+  CapabilityToken,
+} from "./types";
 
 type LoadedPlugin = {
   manifest: PluginManifest;
@@ -8,11 +13,20 @@ type LoadedPlugin = {
 };
 
 const plugins = new Map<string, LoadedPlugin>();
-const toolbarContribs: Array<{ pluginId: string; group: string; command: string; icon?: string; label?: string; order?: number }> = [];
+const toolbarContribs: Array<{
+  pluginId: string;
+  group: string;
+  command: string;
+  icon?: string;
+  label?: string;
+  order?: number;
+  enableWhen?: CapabilityToken[];
+  disabledReason?: string;
+}> = [];
 
 function notifyToolbarUpdate() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('plugin:toolbar-updated'));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("plugin:toolbar-updated"));
   }
 }
 
@@ -29,10 +43,15 @@ export function getToolbarContributions() {
     icon?: string;
     label?: string;
     order?: number;
+    enableWhen?: CapabilityToken[];
+    disabledReason?: string;
   }>;
 }
 
-export async function loadPlugin(manifest: PluginManifest, module: PluginModule) {
+export async function loadPlugin(
+  manifest: PluginManifest,
+  module: PluginModule,
+) {
   if (plugins.has(manifest.id)) return; // already loaded
 
   const disposables: Array<() => void> = [];
@@ -53,8 +72,17 @@ export async function loadPlugin(manifest: PluginManifest, module: PluginModule)
   const tbDefs = manifest.contributes?.toolbar ?? [];
   for (const group of tbDefs) {
     for (const item of group.items) {
-      if (item.type === 'button') {
-        toolbarContribs.push({ pluginId: manifest.id, group: group.group, command: item.command, icon: item.icon, label: item.label, order: item.order });
+      if (item.type === "button") {
+        toolbarContribs.push({
+          pluginId: manifest.id,
+          group: group.group,
+          command: item.command,
+          icon: item.icon,
+          label: item.label,
+          order: item.order,
+          enableWhen: item.enableWhen,
+          disabledReason: item.disabledReason,
+        });
       }
     }
   }
@@ -77,12 +105,15 @@ export async function unloadPlugin(id: string) {
   const loaded = plugins.get(id);
   if (!loaded) return;
   try {
-    if (loaded.module.deactivate) await loaded.module.deactivate({
-      log: { info: () => {}, warn: () => {}, error: () => {} },
-    } as PluginContext);
+    if (loaded.module.deactivate)
+      await loaded.module.deactivate({
+        log: { info: () => {}, warn: () => {}, error: () => {} },
+      } as PluginContext);
   } finally {
     for (const d of loaded.disposables) {
-      try { d(); } catch {}
+      try {
+        d();
+      } catch {}
     }
     // Remove toolbar contributions for this plugin
     for (let i = toolbarContribs.length - 1; i >= 0; i--) {
