@@ -42,12 +42,6 @@ T-011 [C] Dual‑Ended Slider for Clamp
 - Links: src/components/properties/\*, hex noise schema
 - Acceptance: Slider adjusts [min,max] with keyboard/mouse; values persist and redraw.
 
-T-012 [C] Map Settings / Palettes
-
-- Goal: Define settings (e.g., high fantasy vs grimdark) that provide terrain categories and colors.
-- Links: store model for map settings, palette provider; noise layer reads palette.
-- Acceptance: Switching setting updates paint mode colors; tests for mapping.
-
 T-013 [C] Performance Pass
 
 - Goal: Profile grid + noise; add caching/batching if beneficial; ensure worker/fallback parity.
@@ -68,9 +62,9 @@ T-015 [M] Save/Load Campaign
 
 Dependencies & Order
 
-- Phase 1: T-004, T-005, T-015
-- Phase 2: T-006, T-007, T-008, T-009b, T-010
-- Phase 3: T-011, T-012, T-013, T-014
+- Phase 1: T-015
+- Phase 2: T-007, T-008, T-009b, T-010
+- Phase 3: T-011, T-013, T-014
 
 ---
 

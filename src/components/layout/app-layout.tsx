@@ -39,6 +39,10 @@ import {
 } from "@/plugin/builtin/new-campaign";
 import { mapCrudManifest, mapCrudModule } from "@/plugin/builtin/map-crud";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
+import {
+  settingsPaletteManifest,
+  settingsPaletteModule,
+} from "@/plugin/builtin/settings-palette";
 
 import { BaseLayoutProps } from "@/types/layout";
 import { cn } from "@/lib/utils";
@@ -114,6 +118,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
     loadPlugin(newCampaignManifest, newCampaignModule);
     loadPlugin(mapCrudManifest, mapCrudModule);
     loadPlugin(hexNoiseManifest, hexNoiseModule);
+    loadPlugin(settingsPaletteManifest, settingsPaletteModule);
   }, []);
 
   // Sync selection count for status bar

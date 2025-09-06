@@ -275,8 +275,12 @@ export const CanvasViewport: React.FC = () => {
             ctx.fill();
             return;
           }
-          const terrain = (st.terrain as string | undefined) ?? "plains";
-          const fill = resolveTerrainFill(palette, terrain);
+          const fill =
+            (st.paintColor as string | undefined) ??
+            resolveTerrainFill(
+              palette,
+              (st.terrain as string | undefined) ?? "plains",
+            );
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
             const ang = startAngle + i * (Math.PI / 3);

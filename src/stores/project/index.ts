@@ -16,6 +16,8 @@ export interface Project {
   version: number;
   name: string;
   description?: string;
+  // Setting selection at campaign level (T-012)
+  settingId?: string;
   palette?: MapPalette; // campaign-level palette (optional)
   maps: Array<{
     id: string;
@@ -23,6 +25,8 @@ export interface Project {
     description?: string;
     visible: boolean;
     paper: { aspect: "square" | "4:3" | "16:10"; color: string };
+    // Per-map setting override (T-012)
+    settingId?: string;
     palette?: MapPalette; // optional per-map override
     layers?: LayerInstance[];
   }>;
@@ -36,6 +40,9 @@ interface ProjectStoreState {
   setActive: (project: Project | null) => void;
   rename: (name: string) => void;
   setDescription: (description: string) => void;
+  // Settings (T-012)
+  setCampaignSetting: (settingId: string | undefined) => void;
+  setMapSetting: (mapId: string, settingId: string | undefined) => void;
   // Map actions
   addMap: (params?: { name?: string; description?: string }) => string; // returns mapId
   selectMap: (id: string) => void;
@@ -121,11 +128,27 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       version: 1,
       name,
       description,
+      settingId: undefined,
       maps: [],
       activeMapId: null,
     };
     set({ current: project });
     return project;
+  },
+  setCampaignSetting: (settingId) => {
+    const cur = get().current;
+    if (!cur) return;
+    set({ current: { ...cur, settingId } });
+  },
+  setMapSetting: (mapId, settingId) => {
+    const cur = get().current;
+    if (!cur) return;
+    set({
+      current: {
+        ...cur,
+        maps: cur.maps.map((m) => (m.id === mapId ? { ...m, settingId } : m)),
+      },
+    });
   },
   setActive: (project) => {
     if (!project) {

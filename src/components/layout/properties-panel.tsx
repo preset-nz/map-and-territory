@@ -12,6 +12,14 @@ import { Separator } from "@/components/ui/separator";
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
 import { useProjectStore } from "@/stores/project";
+import { TerrainSettings } from "@/palettes/settings";
+import { AppAPI } from "@/appapi";
+import { executeCommand } from "@/lib/commands";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PropertiesPanelProps {
   className?: string;
@@ -70,6 +78,9 @@ const CampaignProperties: React.FC = () => {
   const rename = useProjectStore((s) => s.rename);
   const setDescription = useProjectStore((s) => s.setDescription);
   if (selection.kind !== "campaign" || !project) return null;
+  const settings = TerrainSettings.getAllSettings();
+  const selectedId = project.settingId ?? "doom-forge";
+  const options = settings.map((s) => ({ label: s.name, value: s.id }));
   return (
     <Group title="Campaign">
       <div>
@@ -91,6 +102,20 @@ const CampaignProperties: React.FC = () => {
           aria-label="Campaign Description"
         />
       </div>
+      <div>
+        <FieldLabel label="Setting (Palette)" />
+        <SelectField
+          label="Setting"
+          value={selectedId}
+          options={options}
+          onChange={(val) => {
+            void executeCommand("app.palette.setCampaignSetting", {
+              settingId: val,
+            });
+          }}
+        />
+        <PalettePreview settingId={selectedId} />
+      </div>
     </Group>
   );
 };
@@ -109,6 +134,11 @@ const MapProperties: React.FC = () => {
     setMapPaperAspect(map.id, "16:10");
     setMapPaperColor(map.id, "#ffffff");
   };
+  const settings = TerrainSettings.getAllSettings();
+  const options = settings.map((s) => ({ label: s.name, value: s.id }));
+  const hasOverride = !!map.settingId;
+  const effectiveSetting = AppAPI.palette.settingId();
+  const selectedId = map.settingId ?? effectiveSetting;
   return (
     <Group
       title="Map"
@@ -138,6 +168,50 @@ const MapProperties: React.FC = () => {
         />
       </div>
       {/* Map visibility control removed; visibility implied by active selection */}
+      <Group title="Advanced">
+        <div>
+          <FieldLabel label="Override Campaign Setting" />
+          <div className="flex items-center gap-2">
+            <input
+              id="map-override-toggle"
+              type="checkbox"
+              checked={hasOverride}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  // enable with current effective setting as initial value
+                  void executeCommand("app.palette.setMapSetting", {
+                    mapId: map.id,
+                    settingId: selectedId,
+                  });
+                } else {
+                  void executeCommand("app.palette.clearMapSetting", {
+                    mapId: map.id,
+                  });
+                }
+              }}
+            />
+            <label htmlFor="map-override-toggle" className="text-sm">
+              Per‑map override
+            </label>
+          </div>
+        </div>
+        <div className={hasOverride ? "" : "opacity-50 pointer-events-none"}>
+          <FieldLabel label="Map Setting (when override on)" />
+          <SelectField
+            label="Map Setting"
+            value={selectedId}
+            options={options}
+            onChange={(val) => {
+              if (!hasOverride) return;
+              void executeCommand("app.palette.setMapSetting", {
+                mapId: map.id,
+                settingId: val,
+              });
+            }}
+          />
+          <PalettePreview settingId={selectedId} />
+        </div>
+      </Group>
     </Group>
   );
 };
@@ -186,6 +260,35 @@ const LayerPropertiesGeneric: React.FC = () => {
                 {fields.map((f) => {
                   if (f.kind === "select") {
                     const v = getVal(f.path) ?? "";
+                    const isHexNoiseTerrain =
+                      scope === "layer:hexnoise" && f.id === "terrainId";
+                    if (isHexNoiseTerrain) {
+                      const entries = AppAPI.palette.list();
+                      const options = [
+                        { value: "", label: "— Select Terrain —" },
+                        ...entries.map((e) => ({
+                          value: e.id,
+                          label: e.themedName,
+                        })),
+                      ];
+                      return (
+                        <SelectField
+                          key={f.id}
+                          label={f.label}
+                          value={String(v)}
+                          options={options}
+                          onChange={(val) => {
+                            const color = val
+                              ? AppAPI.palette.fillById(val)
+                              : undefined;
+                            updateLayerState(layer.id, {
+                              terrainId: val || undefined,
+                              paintColor: color,
+                            });
+                          }}
+                        />
+                      );
+                    }
                     return (
                       <SelectField
                         key={f.id}
@@ -247,6 +350,85 @@ const LayerPropertiesGeneric: React.FC = () => {
           })}
         </Group>
       ))}
+      {layer.type === "hexnoise"
+        ? (() => {
+            const terrainId = (layer.state as Record<string, unknown>)?.[
+              "terrainId"
+            ] as string | undefined;
+            if (!terrainId) return null;
+            const entry = AppAPI.palette.list().find((e) => e.id === terrainId);
+            if (!entry?.description) return null;
+            return (
+              <div className="px-2 text-xs text-muted-foreground">
+                {entry.description}
+              </div>
+            );
+          })()
+        : null}
     </>
+  );
+};
+
+const Swatch: React.FC<{ color: string; label?: string; desc?: string }> = ({
+  color,
+  label,
+  desc,
+}) => {
+  const chip = (
+    <div
+      className="h-4 w-4 rounded-sm border"
+      style={{ backgroundColor: color }}
+      aria-hidden
+    />
+  );
+  if (!label && !desc) return chip;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{chip}</TooltipTrigger>
+      <TooltipContent>
+        <div className="max-w-64">
+          {label ? <div className="font-medium mb-0.5">{label}</div> : null}
+          {desc ? <div className="opacity-80">{desc}</div> : null}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+const PalettePreview: React.FC<{ settingId: string }> = ({ settingId }) => {
+  const s = TerrainSettings.getAllSettings().find((x) => x.id === settingId);
+  if (!s) return null;
+  // Show all terrain swatches from the setting (no base-type assumptions)
+  const entries = s.terrains;
+  return (
+    <div className="mt-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {entries.map((t, i) => (
+          <Swatch
+            key={`${t.id}-${i}`}
+            color={t.color}
+            label={t.themedName}
+            desc={t.description}
+          />
+        ))}
+        <div className="ml-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="h-4 w-4 rounded-sm border inline-block"
+                style={{ backgroundColor: s.palette.gridLine }}
+              />
+            </TooltipTrigger>
+            <TooltipContent>Grid Line: {s.palette.gridLine}</TooltipContent>
+          </Tooltip>
+          Grid
+        </div>
+      </div>
+      {s.description ? (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {s.description}
+        </div>
+      ) : null}
+    </div>
   );
 };
