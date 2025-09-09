@@ -14,8 +14,7 @@
 
 import React from "react";
 import { Separator } from "@/components/ui/separator";
-import { AppAPI } from "@/appapi";
-import { TerrainSettings } from "@/palettes/settings";
+import { useActiveSetting, useActiveSettingId } from "@/stores/selectors/hooks";
 
 import { useLayoutStore } from "@/stores/layout";
 
@@ -31,10 +30,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className = "" }) => {
   const activeTool = useLayoutStore((state) => state.activeTool);
   const mousePosition = useLayoutStore((state) => state.mousePosition);
   const selectionCount = useLayoutStore((state) => state.selectionCount);
-  const settingId = AppAPI.palette.settingId();
-  const setting = TerrainSettings.getAllSettings().find(
-    (s) => s.id === settingId,
-  );
+  const settingId = useActiveSettingId();
+  const setting = useActiveSetting();
 
   // Mock zoom level - in real app this would come from a viewport store
   const zoomLevel = 100;
