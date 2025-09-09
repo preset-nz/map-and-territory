@@ -28,16 +28,13 @@ import MainContent from "./main-content";
 import { AuthErrorBoundary } from "../providers/auth-provider";
 import StatusBar from "./status-bar";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { ensureCommand } from "@/lib/commands";
-import { useProjectStore } from "@/stores/project";
 import { useSelectionStore } from "@/stores/selection";
 import { useLayoutStore } from "@/stores/layout";
 import { loadPlugin } from "@/plugin/loader";
 import {
-  newCampaignManifest,
-  newCampaignModule,
-} from "@/plugin/builtin/new-campaign";
-import { mapCrudManifest, mapCrudModule } from "@/plugin/builtin/map-crud";
+  coreActionsManifest,
+  coreActionsModule,
+} from "@/plugin/builtin/core-actions";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
 import {
   settingsPaletteManifest,
@@ -82,41 +79,9 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   // Keyboard shortcuts
   useKeyboardShortcuts();
 
-  // Register host command for new campaign (prompt + create)
-  useEffect(() => {
-    ensureCommand("host.prompt.newCampaign", async () => {
-      // MVP: no dialogs; create Untitled campaign with empty description
-      useProjectStore
-        .getState()
-        .createEmpty({ name: "Untitled Campaign", description: "" });
-      useSelectionStore.getState().selectCampaign();
-    });
-  }, []);
-
-  // Host actions for maps
-  useEffect(() => {
-    ensureCommand("host.action.newMap", async () => {
-      const id = useProjectStore
-        .getState()
-        .addMap({ name: "Untitled Map", description: "" });
-      useProjectStore.getState().selectMap(id);
-      useSelectionStore.getState().selectMap(id);
-    });
-    ensureCommand("host.action.deleteMap", async (payload?: unknown) => {
-      const id = (payload as { id?: string } | undefined)?.id;
-      if (!id) return;
-      // MVP: simple confirm; replace with Radix dialog later
-      if (window.confirm("Delete this map? This cannot be undone.")) {
-        useProjectStore.getState().deleteMap(id);
-        useSelectionStore.getState().selectCampaign();
-      }
-    });
-  }, []);
-
   // Load built-in New Campaign plugin (registers command + toolbar contribution)
   useEffect(() => {
-    loadPlugin(newCampaignManifest, newCampaignModule);
-    loadPlugin(mapCrudManifest, mapCrudModule);
+    loadPlugin(coreActionsManifest, coreActionsModule);
     loadPlugin(hexNoiseManifest, hexNoiseModule);
     loadPlugin(settingsPaletteManifest, settingsPaletteModule);
   }, []);

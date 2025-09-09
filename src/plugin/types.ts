@@ -30,6 +30,8 @@ export interface PluginManifest {
   entry?: string;
 }
 
+import type { AppAPI } from "@/plugin/appapi";
+
 export interface PluginContext {
   // Narrow API surface in MVP; extend later
   log: {
@@ -37,6 +39,7 @@ export interface PluginContext {
     warn: (...args: unknown[]) => void;
     error: (...args: unknown[]) => void;
   };
+  app?: AppAPI; // stable host AppAPI seam (campaign facet)
 }
 
 export interface PluginModule {

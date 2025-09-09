@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
 /**
  * Keyboard shortcuts hook for creative tool shortcuts
  * Handles F1/F2 for panels and 1-9 for tools
  */
 
-import { useEffect } from 'react';
-import { useLayoutStore, useToolActions } from '@/stores/layout';
-import { executeCommand } from '@/lib/commands';
+import { useEffect } from "react";
+import { useLayoutStore, useToolActions } from "@/stores/layout";
+import { executeCommand } from "@/lib/commands";
 
 const TOOL_SHORTCUTS: Record<string, string> = {
-  '1': 'select',
-  '2': 'paint', 
-  '3': 'draw',
-  '4': 'erase',
-  '5': 'text',
+  "1": "select",
+  "2": "paint",
+  "3": "draw",
+  "4": "erase",
+  "5": "text",
 };
 
 export const useKeyboardShortcuts = () => {
@@ -33,24 +33,26 @@ export const useKeyboardShortcuts = () => {
       }
 
       // Panel toggles
-      if (event.key === 'F1') {
+      if (event.key === "F1") {
         event.preventDefault();
         toggleSidebar();
         return;
       }
 
-      if (event.key === 'F2') {
+      if (event.key === "F2") {
         event.preventDefault();
         togglePropertiesPanel();
         return;
       }
 
       // New Campaign: Mod+Shift+N
-      const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC');
+      const isMac =
+        typeof navigator !== "undefined" &&
+        navigator.platform.toUpperCase().includes("MAC");
       const mod = isMac ? event.metaKey : event.ctrlKey;
-      if (mod && event.shiftKey && (event.key === 'N' || event.key === 'n')) {
+      if (mod && event.shiftKey && (event.key === "N" || event.key === "n")) {
         event.preventDefault();
-        executeCommand('app.campaign.new').catch(console.error);
+        executeCommand("campaign.new").catch(console.error);
         return;
       }
 
@@ -63,10 +65,10 @@ export const useKeyboardShortcuts = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    
+    window.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [toggleSidebar, togglePropertiesPanel, setActiveTool]);
 };
