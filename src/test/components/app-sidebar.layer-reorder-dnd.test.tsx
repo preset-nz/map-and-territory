@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useProjectStore } from "@/stores/project";
 import { registerLayerType } from "@/layers/registry";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { useSelectionStore } from "@/stores/selection";
 
 describe("AppSidebar DnD ordering (UI reflects store order)", () => {
   beforeAll(() => {
@@ -27,6 +28,11 @@ describe("AppSidebar DnD ordering (UI reflects store order)", () => {
     const secondRow = await screen.findByText("Noise 1");
     expect(firstRow).toBeInTheDocument();
     expect(secondRow).toBeInTheDocument();
+
+    // Select Noise 2 and expect selected attribute on its row
+    useSelectionStore.getState().selectLayer(id2);
+    const row = firstRow.closest("[data-selected]");
+    expect(row).toHaveAttribute("data-selected", "true");
 
     // Move Noise 1 above Noise 2 in array order via store and expect UI to flip accordingly
     const layers = useProjectStore.getState().current!.maps[0].layers!;

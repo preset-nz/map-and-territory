@@ -149,7 +149,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
             {project.maps.map((m) => (
               <div key={m.id}>
                 <div
-                  className={`flex items-center justify-between gap-1 rounded px-2 py-1 ${selection.kind === "map" && selection.id === m.id ? "bg-accent" : "hover:bg-accent/50"}`}
+                  className={`flex items-center justify-between gap-1 rounded px-2 py-1 ${
+                    project.activeMapId === m.id
+                      ? "bg-accent"
+                      : "hover:bg-accent/50"
+                  }`}
+                  data-selected={
+                    project.activeMapId === m.id ? "true" : "false"
+                  }
                 >
                   <button
                     className="flex-1 text-left truncate"
@@ -197,6 +204,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
                                 <StaticLayerRow
                                   key={l.id}
                                   layer={l}
+                                  isSelected={
+                                    selection.kind === "layer" &&
+                                    selection.id === l.id
+                                  }
                                   onSelect={() =>
                                     useSelectionStore
                                       .getState()
@@ -213,6 +224,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
                                   key={l.id}
                                   id={l.id}
                                   layer={l}
+                                  isSelected={
+                                    selection.kind === "layer" &&
+                                    selection.id === l.id
+                                  }
                                   onSelect={() =>
                                     useSelectionStore
                                       .getState()
@@ -249,6 +264,7 @@ export default AppSidebar;
 // --- Internal row components ---
 type RowProps = {
   layer: { id: string; name?: string; type: string; visible: boolean };
+  isSelected?: boolean;
   onSelect: () => void;
   onToggleVisible: () => void;
   onDuplicate: () => void;
@@ -257,13 +273,20 @@ type RowProps = {
 
 function StaticLayerRow({
   layer,
+  isSelected,
   onSelect,
   onToggleVisible,
   onDuplicate,
   onRemove,
 }: RowProps) {
   return (
-    <div className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50">
+    <div
+      className={`flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50 ${
+        isSelected ? "bg-accent" : ""
+      }`}
+      data-selected={isSelected ? "true" : "false"}
+    >
+      <span className="h-6 w-6" aria-hidden="true" />
       <button className="flex-1 text-left truncate" onClick={onSelect}>
         <span className="text-sm">{layer.name ?? layer.type}</span>
       </button>
@@ -314,6 +337,7 @@ function StaticLayerRow({
 function SortableLayerRow({
   id,
   layer,
+  isSelected,
   onSelect,
   onToggleVisible,
   onDuplicate,
@@ -336,7 +360,10 @@ function SortableLayerRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50"
+      className={`group flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50 ${
+        isSelected ? "bg-accent" : ""
+      }`}
+      data-selected={isSelected ? "true" : "false"}
     >
       <button
         className="h-6 w-6 cursor-grab text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
