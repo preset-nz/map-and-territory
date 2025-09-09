@@ -17,7 +17,21 @@ import { useProjectStore } from "@/stores/project";
 import { useSelectionStore } from "@/stores/selection";
 import { Button } from "@/components/ui/button";
 import { executeCommand } from "@/lib/commands";
-import { Trash, Eye, EyeOff, Copy } from "lucide-react";
+import { Trash, Eye, EyeOff, Copy, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 // ============================================================================
 // Mock Data - Scene Structure
@@ -45,9 +59,45 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
   const duplicateLayer = useProjectStore((s) => s.duplicateLayer);
   const removeLayer = useProjectStore((s) => s.removeLayer);
 
+  // DnD sensors and derived ids (hooks must be unconditional)
+  const sensors = useSensors(useSensor(PointerSensor));
+  const nonAnchorIdsUiOrder = React.useMemo(() => {
+    const m = project?.maps.find((mm) => mm.id === project.activeMapId) ?? null;
+    const layersArr = m?.layers ?? [];
+    const ordered = [...layersArr].reverse();
+    return ordered
+      .filter((l) => l.type !== "paper" && l.type !== "hexgrid")
+      .map((l) => l.id);
+  }, [project]);
+
   // Return null when closed for full collapse functionality
   if (!isOpen) {
     return null;
+  }
+
+  function arrayIndexFromUiDraggableIndex(uiIndex: number): number | null {
+    const m = project?.maps.find((mm) => mm.id === project.activeMapId) ?? null;
+    if (!m) return null;
+    const layers = m.layers ?? [];
+    const nonAnchorArrayIdx = layers
+      .map((l, idx) => ({ l, idx }))
+      .filter(({ l }) => l.type !== "paper" && l.type !== "hexgrid")
+      .map(({ idx }) => idx);
+    const fromEnd = nonAnchorArrayIdx.length - 1 - uiIndex;
+    return (
+      nonAnchorArrayIdx[
+        Math.max(0, Math.min(fromEnd, nonAnchorArrayIdx.length - 1))
+      ] ?? null
+    );
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const overUiIndex = nonAnchorIdsUiOrder.findIndex((id) => id === over.id);
+    const toArrayIndex = arrayIndexFromUiDraggableIndex(overUiIndex);
+    if (toArrayIndex == null) return;
+    useProjectStore.getState().moveLayer(String(active.id), toArrayIndex);
   }
 
   return (
@@ -131,67 +181,54 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
                     </div>
                     {(() => {
                       const layersArr = m.layers ?? [];
-                      // UI order: top of list = top of render
-                      const ordered = [...layersArr].reverse();
-                      return ordered.map((l) => (
-                        <div
-                          key={l.id}
-                          className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50"
+                      const ordered = [...layersArr].reverse(); // UI top -> array end
+                      return (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
                         >
-                          <button
-                            className="flex-1 text-left truncate"
-                            onClick={() =>
-                              useSelectionStore.getState().selectLayer(l.id)
-                            }
+                          <SortableContext
+                            items={nonAnchorIdsUiOrder}
+                            strategy={verticalListSortingStrategy}
                           >
-                            <span className="text-sm">{l.name ?? l.type}</span>
-                          </button>
-                          {l.type !== "paper" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              aria-label={
-                                l.visible ? "Hide Layer" : "Show Layer"
-                              }
-                              title={l.visible ? "Hide Layer" : "Show Layer"}
-                              onClick={() =>
-                                setLayerVisibility(l.id, !l.visible)
-                              }
-                            >
-                              {l.visible ? (
-                                <Eye className="h-4 w-4" />
+                            {ordered.map((l) =>
+                              l.type === "paper" || l.type === "hexgrid" ? (
+                                <StaticLayerRow
+                                  key={l.id}
+                                  layer={l}
+                                  onSelect={() =>
+                                    useSelectionStore
+                                      .getState()
+                                      .selectLayer(l.id)
+                                  }
+                                  onToggleVisible={() =>
+                                    setLayerVisibility(l.id, !l.visible)
+                                  }
+                                  onDuplicate={() => duplicateLayer(l.id)}
+                                  onRemove={() => removeLayer(l.id)}
+                                />
                               ) : (
-                                <EyeOff className="h-4 w-4" />
-                              )}
-                            </Button>
-                          )}
-                          {l.type !== "paper" && l.type !== "hexgrid" && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                aria-label="Duplicate Layer"
-                                title="Duplicate Layer"
-                                onClick={() => duplicateLayer(l.id)}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                aria-label="Delete Layer"
-                                title="Delete Layer"
-                                onClick={() => removeLayer(l.id)}
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      ));
+                                <SortableLayerRow
+                                  key={l.id}
+                                  id={l.id}
+                                  layer={l}
+                                  onSelect={() =>
+                                    useSelectionStore
+                                      .getState()
+                                      .selectLayer(l.id)
+                                  }
+                                  onToggleVisible={() =>
+                                    setLayerVisibility(l.id, !l.visible)
+                                  }
+                                  onDuplicate={() => duplicateLayer(l.id)}
+                                  onRemove={() => removeLayer(l.id)}
+                                />
+                              ),
+                            )}
+                          </SortableContext>
+                        </DndContext>
+                      );
                     })()}
                   </div>
                 )}
@@ -208,3 +245,146 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
 };
 
 export default AppSidebar;
+
+// --- Internal row components ---
+type RowProps = {
+  layer: { id: string; name?: string; type: string; visible: boolean };
+  onSelect: () => void;
+  onToggleVisible: () => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
+};
+
+function StaticLayerRow({
+  layer,
+  onSelect,
+  onToggleVisible,
+  onDuplicate,
+  onRemove,
+}: RowProps) {
+  return (
+    <div className="flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50">
+      <button className="flex-1 text-left truncate" onClick={onSelect}>
+        <span className="text-sm">{layer.name ?? layer.type}</span>
+      </button>
+      {layer.type !== "paper" && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          aria-label={layer.visible ? "Hide Layer" : "Show Layer"}
+          title={layer.visible ? "Hide Layer" : "Show Layer"}
+          onClick={onToggleVisible}
+        >
+          {layer.visible ? (
+            <Eye className="h-4 w-4" />
+          ) : (
+            <EyeOff className="h-4 w-4" />
+          )}
+        </Button>
+      )}
+      {layer.type !== "paper" && layer.type !== "hexgrid" && (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            aria-label="Duplicate Layer"
+            title="Duplicate Layer"
+            onClick={onDuplicate}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            aria-label="Delete Layer"
+            title="Delete Layer"
+            onClick={onRemove}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SortableLayerRow({
+  id,
+  layer,
+  onSelect,
+  onToggleVisible,
+  onDuplicate,
+  onRemove,
+}: RowProps & { id: string }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group flex items-center justify-between gap-1 rounded px-2 py-1 hover:bg-accent/50"
+    >
+      <button
+        className="h-6 w-6 cursor-grab text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="Drag layer"
+        title="Drag layer"
+        data-testid={`drag-handle-${id}`}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <button className="flex-1 text-left truncate" onClick={onSelect}>
+        <span className="text-sm">{layer.name ?? layer.type}</span>
+      </button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        aria-label={layer.visible ? "Hide Layer" : "Show Layer"}
+        title={layer.visible ? "Hide Layer" : "Show Layer"}
+        onClick={onToggleVisible}
+      >
+        {layer.visible ? (
+          <Eye className="h-4 w-4" />
+        ) : (
+          <EyeOff className="h-4 w-4" />
+        )}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        aria-label="Duplicate Layer"
+        title="Duplicate Layer"
+        onClick={onDuplicate}
+      >
+        <Copy className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        aria-label="Delete Layer"
+        title="Delete Layer"
+        onClick={onRemove}
+      >
+        <Trash className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}

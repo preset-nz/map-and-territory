@@ -18,12 +18,6 @@ T-007 [S] Layers UX Foundations
 - Links: src/components/layout/app-sidebar.tsx
 - Acceptance: Spec approved; initial UX implemented matching T-001 semantics.
 
-T-008 [S] Layer Reorder + Rename
-
-- Goal: Reordering (DnD or up/down) and inline rename in scene panel.
-- Links: src/stores/project/index.ts, src/components/layout/app-sidebar.tsx
-- Acceptance: Users can reorder and rename; tests ensure correct persistence and rendering order.
-
 T-009b [S] Theming Audit
 
 - Goal: Run checklist, fix token/contrast issues; verify components.
