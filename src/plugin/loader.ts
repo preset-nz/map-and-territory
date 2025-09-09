@@ -1,4 +1,5 @@
 import { registerCommand, unregisterCommand } from "@/lib/commands";
+import { getAppAPI } from "@/plugin/appapi";
 import type {
   PluginManifest,
   PluginModule,
@@ -94,6 +95,7 @@ export async function loadPlugin(
       warn: (...args) => console.warn(`[plugin:${manifest.id}]`, ...args),
       error: (...args) => console.error(`[plugin:${manifest.id}]`, ...args),
     },
+    app: getAppAPI(),
   };
 
   if (module.activate) await module.activate(ctx);

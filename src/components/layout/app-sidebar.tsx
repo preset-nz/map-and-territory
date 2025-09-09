@@ -87,7 +87,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => executeCommand("app.map.new").catch(() => {})}
+              onClick={() => executeCommand("map.new").catch(() => {})}
             >
               Create Map
             </Button>
@@ -118,9 +118,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
                     aria-label="Delete Map"
                     title="Delete Map"
                     onClick={() =>
-                      executeCommand("app.map.delete", { id: m.id }).catch(
-                        () => {},
-                      )
+                      executeCommand("map.delete", { id: m.id }).catch(() => {})
                     }
                   >
                     <Trash className="h-4 w-4" />

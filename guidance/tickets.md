@@ -72,3 +72,23 @@ Working Notes
 
 - Keep SOLID/CUPID: Layer adapters remain small and composable; AppAPI stays narrow and selector‑based.
 - Platform thinking: early investment in layering, invalidation, and AppAPI yields long‑term extensibility.
+
+---
+
+T-016 [M] Terminology Alignment – Campaign & Scene
+
+- Goal: Align domain and UI language. Prefer “Campaign” across new surfaces; plan staged refactor to replace internal `Project` type name and converge UI “Scene” → “Campaign”.
+- Deliverables:
+  - ADR update/amendments to ADR-0004 reflecting the alignment (link ADR-0014).
+  - Store refactor plan: `Project` → `Campaign` (types, file paths) with minimal churn; introduce type aliases to ease migration if needed.
+  - UI copy update: rename “Scene” viewer/panel to “Campaign” viewer; update toolbar group names if applicable.
+  - Test updates: selectors and fixtures reflect final naming.
+- Links:
+  - guidance/adrs/0014-campaign-terminology-and-appapi-seam.md
+  - src/stores/project/index.ts (rename target)
+  - src/components/layout/app-sidebar.tsx (panel naming)
+  - src/components/layout/app-toolbar.tsx (group labels if surfaced)
+- Acceptance:
+  - Codebase compiles and tests pass after rename.
+  - No mixed terminology in UI; docs updated.
+  - AppAPI remains stable (`AppAPI.campaign`).
