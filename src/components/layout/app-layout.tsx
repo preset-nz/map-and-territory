@@ -32,9 +32,10 @@ import { useSelectionStore } from "@/stores/selection";
 import { useLayoutStore } from "@/stores/layout";
 import { loadPlugin } from "@/plugin/loader";
 import {
-  coreActionsManifest,
-  coreActionsModule,
-} from "@/plugin/builtin/core-actions";
+  campaignPluginManifest,
+  campaignPluginModule,
+} from "@/plugin/builtin/campaign";
+import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
 import {
   settingsPaletteManifest,
@@ -80,9 +81,10 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   // Keyboard shortcuts
   useKeyboardShortcuts();
 
-  // Load built-in New Campaign plugin (registers command + toolbar contribution)
+  // Load built-in plugins (registers commands + toolbar contributions)
   useEffect(() => {
-    loadPlugin(coreActionsManifest, coreActionsModule);
+    loadPlugin(campaignPluginManifest, campaignPluginModule);
+    loadPlugin(mapPluginManifest, mapPluginModule);
     loadPlugin(hexNoiseManifest, hexNoiseModule);
     loadPlugin(settingsPaletteManifest, settingsPaletteModule);
     loadPlugin(freeformManifest, freeformModule);
