@@ -8,7 +8,10 @@ import type { LayerAdapter } from "@/layers/types";
 import RenderService from "@/render/service";
 import type { SceneFrame } from "@/render/types";
 import { useLayoutStore } from "@/stores/layout";
+import { useSelectionStore } from "@/stores/selection";
+import { axialKey } from "@/layers/hex-utils";
 import { AppAPI } from "@/appapi";
+import { getCursorForTool } from "@/plugin/loader";
 import { createPerlinNoise } from "@/lib/noise";
 import {
   resolveGridLine,
@@ -221,47 +224,68 @@ export const CanvasViewport: React.FC = () => {
       ctx.rect(paperX, paperY, paperW, paperH);
       ctx.clip();
       ctx.translate(paperX, paperY);
-      // Hex Noise layers (draw before grid if present), in array order
-      const noiseLayers = layers.filter(
-        (l) => l.type === "hexnoise" && l.visible,
-      );
-      for (const nl of noiseLayers) {
-        const gridLayer = layers.find((l) => l.type === "hexgrid" && l.visible);
-        const st = (nl.state ?? {}) as Record<string, unknown>;
-        const orientation =
-          (gridLayer?.state as Record<string, unknown> | undefined)
-            ?.orientation === "flat"
-            ? "flat"
-            : "pointy";
-        const r = Math.max(
-          4,
-          Number(
-            (gridLayer?.state as Record<string, unknown> | undefined)?.size ??
-              16,
-          ),
-        );
-        const sqrt3 = Math.sqrt(3);
-        const perlin = createPerlinNoise(String(st.seed ?? "seed"));
-        const freq = Number(st.frequency ?? 0.15);
-        const ox = Number(st.offsetX ?? 0);
-        const oy = Number(st.offsetY ?? 0);
-        const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
-        const gamma = Math.max(0.0001, Number(st.gamma ?? 1));
-        const clampMin = Math.max(0, Math.min(1, Number(st.min ?? 0)));
-        const clampMax = Math.max(0, Math.min(1, Number(st.max ?? 1)));
-        const drawHexFill = (
-          cx: number,
-          cy: number,
-          startAngle: number,
-          aq: number,
-          ar: number,
-        ) => {
-          let v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
-          v = Math.pow(v, gamma);
-          if (v < clampMin || v > clampMax) return;
-          const mode = (st.mode as "shape" | "paint" | undefined) ?? "shape";
-          if (mode === "shape") {
-            const g = Math.floor(v * 255 * intensity);
+      // Draw all non-grid visible layers in array order (bottom -> top)
+      for (const l of layers) {
+        if (!l.visible || l.type === "hexgrid") continue;
+        // Hex Noise layer
+        if (l.type === "hexnoise") {
+          const gridLayer = layers.find(
+            (g) => g.type === "hexgrid" && g.visible,
+          );
+          const st = (l.state ?? {}) as Record<string, unknown>;
+          const orientation =
+            (gridLayer?.state as Record<string, unknown> | undefined)
+              ?.orientation === "flat"
+              ? "flat"
+              : "pointy";
+          const r = Math.max(
+            4,
+            Number(
+              (gridLayer?.state as Record<string, unknown> | undefined)?.size ??
+                16,
+            ),
+          );
+          const sqrt3 = Math.sqrt(3);
+          const perlin = createPerlinNoise(String(st.seed ?? "seed"));
+          const freq = Number(st.frequency ?? 0.15);
+          const ox = Number(st.offsetX ?? 0);
+          const oy = Number(st.offsetY ?? 0);
+          const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
+          const gamma = Math.max(0.0001, Number(st.gamma ?? 1));
+          const clampMin = Math.max(0, Math.min(1, Number(st.min ?? 0)));
+          const clampMax = Math.max(0, Math.min(1, Number(st.max ?? 1)));
+          const drawHexFill = (
+            cx: number,
+            cy: number,
+            startAngle: number,
+            aq: number,
+            ar: number,
+          ) => {
+            let v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
+            v = Math.pow(v, gamma);
+            if (v < clampMin || v > clampMax) return;
+            const mode = (st.mode as "shape" | "paint" | undefined) ?? "shape";
+            if (mode === "shape") {
+              const g = Math.floor(v * 255 * intensity);
+              ctx.beginPath();
+              for (let i = 0; i < 6; i++) {
+                const ang = startAngle + i * (Math.PI / 3);
+                const px = cx + Math.cos(ang) * r;
+                const py = cy + Math.sin(ang) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+              }
+              ctx.closePath();
+              ctx.fillStyle = `rgb(${g},${g},${g})`;
+              ctx.fill();
+              return;
+            }
+            const fill =
+              (st.paintColor as string | undefined) ??
+              resolveTerrainFill(
+                palette,
+                (st.terrain as string | undefined) ?? "plains",
+              );
             ctx.beginPath();
             for (let i = 0; i < 6; i++) {
               const ang = startAngle + i * (Math.PI / 3);
@@ -271,68 +295,109 @@ export const CanvasViewport: React.FC = () => {
               else ctx.lineTo(px, py);
             }
             ctx.closePath();
-            ctx.fillStyle = `rgb(${g},${g},${g})`;
+            ctx.fillStyle = fill;
             ctx.fill();
-            return;
-          }
-          const fill =
-            (st.paintColor as string | undefined) ??
-            resolveTerrainFill(
-              palette,
-              (st.terrain as string | undefined) ?? "plains",
-            );
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-            const ang = startAngle + i * (Math.PI / 3);
-            const px = cx + Math.cos(ang) * r;
-            const py = cy + Math.sin(ang) * r;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.fillStyle = fill;
-          ctx.fill();
-        };
-        if (orientation === "flat") {
-          const colStep = 1.5 * r;
-          const rowStep = sqrt3 * r;
-          const cols = Math.ceil(paperW / colStep) + 2;
-          const rows = Math.ceil(paperH / rowStep) + 2;
-          const centerX = paperW / 2;
-          const centerY = paperH / 2;
-          const cmin = -Math.ceil(cols / 2),
-            cmax = Math.ceil(cols / 2);
-          const rmin = -Math.ceil(rows / 2),
-            rmax = Math.ceil(rows / 2);
-          for (let c = cmin; c <= cmax; c++) {
-            const yOffset = c & 1 ? rowStep / 2 : 0;
-            for (let ri = rmin; ri <= rmax; ri++) {
-              const x = c * colStep + centerX;
-              const y = ri * rowStep + yOffset + centerY;
-              drawHexFill(x, y, 0, c, ri);
-            }
-          }
-        } else {
-          const colStep = sqrt3 * r;
-          const rowStep = 1.5 * r;
-          const cols = Math.ceil(paperW / colStep) + 2;
-          const rows = Math.ceil(paperH / rowStep) + 2;
-          const centerX = paperW / 2;
-          const centerY = paperH / 2;
-          const rmin = -Math.ceil(rows / 2),
-            rmax = Math.ceil(rows / 2);
-          const cmin = -Math.ceil(cols / 2),
-            cmax = Math.ceil(cols / 2);
-          for (let ri = rmin; ri <= rmax; ri++) {
-            const xOffset = ri & 1 ? colStep / 2 : 0;
+          };
+          if (orientation === "flat") {
+            const colStep = 1.5 * r;
+            const rowStep = sqrt3 * r;
+            const cols = Math.ceil(paperW / colStep) + 2;
+            const rows = Math.ceil(paperH / rowStep) + 2;
+            const centerX = paperW / 2;
+            const centerY = paperH / 2;
+            const cmin = -Math.ceil(cols / 2),
+              cmax = Math.ceil(cols / 2);
+            const rmin = -Math.ceil(rows / 2),
+              rmax = Math.ceil(rows / 2);
             for (let c = cmin; c <= cmax; c++) {
-              const x = c * colStep + xOffset + centerX;
-              const y = ri * rowStep + centerY;
-              drawHexFill(x, y, -Math.PI / 6, c, ri);
+              const yOffset = c & 1 ? rowStep / 2 : 0;
+              for (let ri = rmin; ri <= rmax; ri++) {
+                const x = c * colStep + centerX;
+                const y = ri * rowStep + yOffset + centerY;
+                drawHexFill(x, y, 0, c, ri);
+              }
+            }
+          } else {
+            const colStep = sqrt3 * r;
+            const rowStep = 1.5 * r;
+            const cols = Math.ceil(paperW / colStep) + 2;
+            const rows = Math.ceil(paperH / rowStep) + 2;
+            const centerX = paperW / 2;
+            const centerY = paperH / 2;
+            const rmin = -Math.ceil(rows / 2),
+              rmax = Math.ceil(rows / 2);
+            const cmin = -Math.ceil(cols / 2),
+              cmax = Math.ceil(cols / 2);
+            for (let ri = rmin; ri <= rmax; ri++) {
+              const xOffset = ri & 1 ? colStep / 2 : 0;
+              for (let c = cmin; c <= cmax; c++) {
+                const x = c * colStep + xOffset + centerX;
+                const y = ri * rowStep + centerY;
+                drawHexFill(x, y, -Math.PI / 6, c, ri);
+              }
             }
           }
+          continue;
+        }
+        // Freeform layer
+        if (l.type === "freeform") {
+          const st = (l.state ?? {}) as Record<string, unknown>;
+          const cells =
+            (st["cells"] as Record<
+              string,
+              { terrainId?: string; color?: string }
+            >) || {};
+          const gridLayer = layers.find(
+            (g) => g.type === "hexgrid" && g.visible,
+          );
+          if (!gridLayer) continue;
+          const gst = (gridLayer.state ?? {}) as Record<string, unknown>;
+          const r = Math.max(4, Number(gst.size ?? 16));
+          const orientation = gst.orientation === "flat" ? "flat" : "pointy";
+          const originX = paperW / 2;
+          const originY = paperH / 2;
+          ctx.save();
+          const opacity = Math.max(0, Math.min(1, Number(st["opacity"] ?? 1)));
+          ctx.globalAlpha = opacity;
+          for (const [k, cell] of Object.entries(cells)) {
+            const [qs, rs] = k.split(",");
+            const q = Number(qs),
+              rAx = Number(rs);
+            if (!Number.isFinite(q) || !Number.isFinite(rAx)) continue;
+            const cx =
+              originX +
+              (orientation === "pointy"
+                ? Math.sqrt(3) * r * (q + rAx / 2)
+                : 1.5 * r * q);
+            const cy =
+              originY +
+              (orientation === "pointy"
+                ? 1.5 * r * rAx
+                : Math.sqrt(3) * r * (rAx + q / 2));
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const start = orientation === "pointy" ? -Math.PI / 6 : 0;
+              const ang = start + i * (Math.PI / 3);
+              const px = cx + Math.cos(ang) * r;
+              const py = cy + Math.sin(ang) * r;
+              if (i === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            const fill =
+              (cell.color as string | undefined) ??
+              resolveTerrainFill(
+                palette,
+                (cell.terrainId as string | undefined) ?? "plains",
+              );
+            ctx.fillStyle = fill;
+            ctx.fill();
+          }
+          ctx.restore();
+          continue;
         }
       }
+
       const layer = layers.find((l) => l.type === "hexgrid" && l.visible);
       if (layer) {
         const st = (layer.state ?? {}) as Record<string, unknown>;
@@ -414,6 +479,8 @@ export const CanvasViewport: React.FC = () => {
         paperH - ctx.lineWidth,
       );
       ctx.restore();
+
+      // No overlay drawing — cursor is handled via CSS on the canvas element
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
@@ -432,6 +499,77 @@ export const CanvasViewport: React.FC = () => {
 
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
+  const activeTool = useLayoutStore((s) => s.activeTool);
+  const updateLayerState = useProjectStore((s) => s.updateLayerState);
+  const selection = useSelectionStore((s) => s.selection);
+  const [isPointerDown, setIsPointerDown] = useState(false);
+  const lastPaintKeyRef = useRef<string | null>(null);
+
+  const paintOrEraseAt = (mx: number, my: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    if (selection.kind !== "layer") return;
+    const layerId = selection.id;
+    const rect = canvas.getBoundingClientRect();
+    const cx = mx - rect.left;
+    const cy = my - rect.top;
+    // Recompute paper rect and layout (mirror routing block)
+    const cw = rect.width;
+    const ch = rect.height;
+    const paddingX = Math.max(12, cw * 0.05);
+    const paddingY = 12;
+    const availW = cw - paddingX * 2;
+    const availH = ch - paddingY * 2;
+    const { aw, ah } = parseAspect(aspect);
+    let paperW = availW;
+    let paperH = (paperW * ah) / aw;
+    if (paperH > availH) {
+      paperH = availH;
+      paperW = (paperH * aw) / ah;
+    }
+    const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
+    const paperY = paddingY;
+    const px = cx - paperX;
+    const py = cy - paperY;
+    if (px < 0 || py < 0 || px > paperW || py > paperH) return;
+    const gridLayer = layers.find((l) => l.type === "hexgrid" && l.visible);
+    if (!gridLayer) return;
+    const st = (gridLayer.state ?? {}) as Record<string, unknown>;
+    const layout = {
+      orientation: st.orientation === "flat" ? "flat" : "pointy",
+      size: Math.max(4, Number(st.size ?? 16)),
+      origin: { x: paperW / 2, y: paperH / 2 },
+    } as const;
+    const h = AppAPI.hex.fromPoint({ x: px, y: py }, layout);
+    const key = axialKey(h.q, h.r);
+    if (lastPaintKeyRef.current === key) return;
+    lastPaintKeyRef.current = key;
+    // Read target layer to decide brush
+    const active = useProjectStore.getState().current;
+    const map = active?.maps.find((m) => m.id === active?.activeMapId);
+    const layer = map?.layers?.find((l) => l.id === layerId);
+    if (!layer || layer.type !== "freeform") return;
+    const lstate = (layer.state ?? {}) as Record<string, unknown>;
+    if (activeTool === "paint") {
+      const brushColor =
+        (lstate["brushColor"] as string | undefined) ?? undefined;
+      const brushTerrainId =
+        (lstate["brushTerrainId"] as string | undefined) ?? undefined;
+      if (!brushColor && !brushTerrainId) return; // nothing to paint with
+      const cells = { ...((lstate["cells"] as Record<string, unknown>) || {}) };
+      cells[key] = {
+        terrainId: brushTerrainId,
+        color: brushColor,
+      } as unknown as Record<string, unknown>;
+      updateLayerState(layerId, { cells });
+    } else if (activeTool === "erase") {
+      const cells = { ...((lstate["cells"] as Record<string, unknown>) || {}) };
+      if (key in cells) {
+        delete cells[key];
+        updateLayerState(layerId, { cells });
+      }
+    }
+  };
   const onPointerMove: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -478,6 +616,32 @@ export const CanvasViewport: React.FC = () => {
       }
     }
     setMousePosition(Math.round(mx), Math.round(my), hex);
+    // Paint/erase when dragging with proper tool and selection
+    if (
+      isPointerDown &&
+      (activeTool === "paint" || activeTool === "erase") &&
+      selection.kind === "layer"
+    ) {
+      const activeLayer = (
+        current?.maps.find((m) => m.id === current?.activeMapId)?.layers || []
+      ).find((l) => l.id === selection.id);
+      if (activeLayer && activeLayer.type === "freeform") {
+        paintOrEraseAt(e.clientX, e.clientY);
+      }
+    }
+  };
+
+  const onPointerDown: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
+    setIsPointerDown(true);
+    lastPaintKeyRef.current = null;
+    if (activeTool === "paint" || activeTool === "erase") {
+      paintOrEraseAt(e.clientX, e.clientY);
+    }
+  };
+
+  const onPointerUp: React.PointerEventHandler<HTMLCanvasElement> = () => {
+    setIsPointerDown(false);
+    lastPaintKeyRef.current = null;
   };
 
   return (
@@ -492,6 +656,9 @@ export const CanvasViewport: React.FC = () => {
             ref={canvasRef}
             className="w-full h-full"
             onPointerMove={onPointerMove}
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
+            style={{ cursor: getCursorForTool(activeTool) || "default" }}
           />
         )}
       </div>

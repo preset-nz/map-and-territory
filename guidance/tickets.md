@@ -86,3 +86,15 @@ T-016 [M] Terminology Alignment – Campaign & Scene
   - Codebase compiles and tests pass after rename.
   - No mixed terminology in UI; docs updated.
   - AppAPI remains stable (`AppAPI.campaign`).
+
+---
+
+T-018 [S] Consolidate Hex Utilities
+
+- Goal: Migrate Hex Grid and Hex Noise adapters to shared hex utilities introduced for Freeform (centerFor, hexPath, axialKey).
+- Deliverables: refactor adapters to use `src/layers/hex-utils.ts`; remove duplicated tiling/path math where safe; add unit tests.
+- Links: src/layers/adapters/hexgrid.ts, src/layers/adapters/hex-noise.ts, src/layers/hex-utils.ts
+- Acceptance:
+  - Adapters compile and render identically (snapshot or pixel-diff tolerance acceptable).
+  - Unit tests for utils; integration tests remain green.
+  - No behavioral regressions in E2E.

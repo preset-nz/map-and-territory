@@ -23,6 +23,14 @@ function evaluateToken(token: CapabilityToken): CapabilityResult {
         ? { enabled: true }
         : { enabled: false, reason: "Requires an active map" };
     }
+    case token === "gridVisible": {
+      const cur = useProjectStore.getState().current;
+      const map = cur?.maps.find((m) => m.id === cur?.activeMapId);
+      const grid = map?.layers?.find((l) => l.type === "hexgrid");
+      return grid?.visible !== false
+        ? { enabled: true }
+        : { enabled: false, reason: "Grid must be visible" };
+    }
     case token === "hasProject" || token === "hasCampaign": {
       const has = !!useProjectStore.getState().current;
       return has
@@ -45,6 +53,20 @@ function evaluateToken(token: CapabilityToken): CapabilityResult {
       return sel.kind === want
         ? { enabled: true }
         : { enabled: false, reason: `Requires ${want} selection` };
+    }
+    case token.startsWith("activeLayerIs:"): {
+      const typeId = token.split(":", 2)[1] as string | undefined;
+      const project = useProjectStore.getState().current;
+      const sel = useSelectionStore.getState().selection;
+      if (!typeId) return { enabled: true };
+      if (sel.kind !== "layer" || !project) {
+        return { enabled: false, reason: `Select a ${typeId} layer` };
+      }
+      const map = project.maps.find((m) => m.id === project.activeMapId);
+      const layer = map?.layers?.find((l) => l.id === sel.id);
+      return layer?.type === typeId
+        ? { enabled: true }
+        : { enabled: false, reason: `Select a ${typeId} layer` };
     }
     // Future: canAddLayer:<typeId> using store policies
     default:

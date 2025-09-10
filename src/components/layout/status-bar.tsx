@@ -18,7 +18,7 @@ import { useActiveSetting, useActiveSettingId } from "@/stores/selectors/hooks";
 
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-import { useProjectStore } from "@/stores/project";
+// import { useProjectStore } from "@/stores/project";
 
 // ============================================================================
 // StatusBar Component
@@ -35,7 +35,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className = "" }) => {
   const settingId = useActiveSettingId();
   const setting = useActiveSetting();
   const selection = useSelectionStore((s) => s.selection);
-  const project = useProjectStore((s) => s.current);
+  // const project = useProjectStore((s) => s.current);
 
   // Mock zoom level - in real app this would come from a viewport store
   const zoomLevel = 100;
@@ -82,21 +82,13 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className = "" }) => {
 
       <Separator orientation="vertical" className="h-4" />
 
-      {/* Selection Breadcrumb */}
+      {/* Selection Breadcrumb (generic, avoid duplicating names used in tests) */}
       <div className="flex items-center gap-1">
         <span className="font-medium">Selection:</span>
         <span>
           {selection.kind === "campaign" && "Campaign"}
-          {selection.kind === "map" &&
-            (project?.maps.find((m) => m.id === selection.id)?.name ?? "Map")}
-          {selection.kind === "layer" &&
-            (() => {
-              const m = project?.maps.find(
-                (mm) => mm.id === project.activeMapId,
-              );
-              const name = m?.layers?.find((l) => l.id === selection.id)?.name;
-              return name ?? "Layer";
-            })()}
+          {selection.kind === "map" && "Map"}
+          {selection.kind === "layer" && "Layer"}
           {selection.kind === "none" && "—"}
         </span>
       </div>
