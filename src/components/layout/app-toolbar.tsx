@@ -30,6 +30,7 @@ import {
 import { resolveIcon } from "@/lib/icon-resolver";
 import { resolvePreconditions } from "@/plugin/capabilities";
 import { useProjectStore } from "@/stores/project";
+import { useSelectionStore } from "@/stores/selection";
 
 // Dynamic toolbar contributions are rendered from the plugin loader
 
@@ -50,9 +51,14 @@ export const AppToolbar: React.FC = () => {
   const togglePropertiesPanel = useLayoutStore(
     (state) => state.togglePropertiesPanel,
   );
+  const activeTool = useLayoutStore((s) => s.activeTool);
   // Subscribe to active map to trigger re-render when gating might change
-  const activeMapId = useProjectStore((s) => s.current?.activeMapId);
-  void activeMapId; // subscribe for re-render on active map changes
+  // Subscribe to project and selection so gating recomputes on selection changes,
+  // including layer-id and type transitions.
+  const project = useProjectStore((s) => s.current);
+  const selection = useSelectionStore((s) => s.selection);
+  void project;
+  void selection;
 
   // Commands come from plugin loader; no local registration here
 
@@ -142,13 +148,19 @@ export const AppToolbar: React.FC = () => {
                     // Host-evaluated preconditions via capability registry
                     const result = resolvePreconditions(item.enableWhen);
                     const disabled = !result.enabled;
+                    const isActiveTool =
+                      item.command === "tool.freeform.paint"
+                        ? activeTool === "paint"
+                        : item.command === "tool.freeform.erase"
+                          ? activeTool === "erase"
+                          : false;
                     return (
                       <Tooltip
                         key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
                       >
                         <TooltipTrigger asChild>
                           <Button
-                            variant="ghost"
+                            variant={isActiveTool ? "secondary" : "ghost"}
                             size="sm"
                             className="h-8 w-8 p-0"
                             aria-label={aria}
@@ -161,15 +173,24 @@ export const AppToolbar: React.FC = () => {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
-                          {disabled ? (
+                          <div className="flex items-center gap-2">
                             <span>
-                              {item.disabledReason ||
-                                result.reason ||
-                                "Unavailable"}
+                              {item.label || item.command}
+                              {item.command === "tool.freeform.paint"
+                                ? " (2)"
+                                : item.command === "tool.freeform.erase"
+                                  ? " (4)"
+                                  : ""}
                             </span>
-                          ) : (
-                            <span>{item.label || item.command}</span>
-                          )}
+                            {disabled ? (
+                              <span className="text-muted-foreground">
+                                —{" "}
+                                {item.disabledReason ||
+                                  result.reason ||
+                                  "Unavailable"}
+                              </span>
+                            ) : null}
+                          </div>
                         </TooltipContent>
                       </Tooltip>
                     );

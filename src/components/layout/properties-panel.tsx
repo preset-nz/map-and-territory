@@ -289,6 +289,35 @@ const LayerPropertiesGeneric: React.FC = () => {
                         />
                       );
                     }
+                    const isFreeformBrushTerrain =
+                      scope === "layer:freeform" && f.id === "brushTerrainId";
+                    if (isFreeformBrushTerrain) {
+                      const entries = AppAPI.palette.list();
+                      const options = [
+                        { value: "", label: "— Select Terrain —" },
+                        ...entries.map((e) => ({
+                          value: e.id,
+                          label: e.themedName,
+                        })),
+                      ];
+                      return (
+                        <SelectField
+                          key={f.id}
+                          label={f.label}
+                          value={String(v)}
+                          options={options}
+                          onChange={(val) => {
+                            const color = val
+                              ? AppAPI.palette.fillById(val)
+                              : undefined;
+                            updateLayerState(layer.id, {
+                              brushTerrainId: val || undefined,
+                              brushColor: color,
+                            });
+                          }}
+                        />
+                      );
+                    }
                     return (
                       <SelectField
                         key={f.id}

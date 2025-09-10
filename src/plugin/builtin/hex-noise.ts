@@ -19,7 +19,7 @@ export const hexNoiseManifest: PluginManifest = {
           {
             type: "button",
             command: "layer.hexnoise.add",
-            icon: "lucide:layers",
+            icon: "lucide:grid-3x3",
             label: "Hex Noise",
             order: 2,
             enableWhen: ["hasActiveMap"],
@@ -56,17 +56,15 @@ export const hexNoiseModule: PluginModule = {
         }
         if (!id) return;
         // Initialize defaults: paint mode and first terrain entry color
+        // Keep default state (shape mode). Optionally seed terrainId without changing mode.
         try {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
             useProjectStore.getState().updateLayerState(id, {
-              mode: "paint",
               terrainId: first.id,
               paintColor: first.color,
             });
-          } else {
-            useProjectStore.getState().updateLayerState(id, { mode: "paint" });
           }
         } catch {}
         useSelectionStore.getState().selectLayer(id);
@@ -81,12 +79,9 @@ export const hexNoiseModule: PluginModule = {
           const first = entries[0];
           if (first) {
             useProjectStore.getState().updateLayerState(id, {
-              mode: "paint",
               terrainId: first.id,
               paintColor: first.color,
             });
-          } else {
-            useProjectStore.getState().updateLayerState(id, { mode: "paint" });
           }
         } catch {}
         useSelectionStore.getState().selectLayer(id);
@@ -102,12 +97,9 @@ export const hexNoiseModule: PluginModule = {
         const first = entries[0];
         if (first) {
           useProjectStore.getState().updateLayerState(id, {
-            mode: "paint",
             terrainId: first.id,
             paintColor: first.color,
           });
-        } else {
-          useProjectStore.getState().updateLayerState(id, { mode: "paint" });
         }
       } catch {}
       useSelectionStore.getState().selectLayer(id);

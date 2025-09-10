@@ -40,6 +40,7 @@ import {
   settingsPaletteManifest,
   settingsPaletteModule,
 } from "@/plugin/builtin/settings-palette";
+import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
 
 import { BaseLayoutProps } from "@/types/layout";
 import { cn } from "@/lib/utils";
@@ -84,6 +85,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
     loadPlugin(coreActionsManifest, coreActionsModule);
     loadPlugin(hexNoiseManifest, hexNoiseModule);
     loadPlugin(settingsPaletteManifest, settingsPaletteModule);
+    loadPlugin(freeformManifest, freeformModule);
   }, []);
 
   // Sync selection count for status bar

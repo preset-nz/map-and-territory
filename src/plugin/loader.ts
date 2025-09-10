@@ -5,6 +5,7 @@ import type {
   PluginModule,
   PluginContext,
   CapabilityToken,
+  CssCursor,
 } from "./types";
 
 type LoadedPlugin = {
@@ -24,6 +25,8 @@ const toolbarContribs: Array<{
   enableWhen?: CapabilityToken[];
   disabledReason?: string;
 }> = [];
+
+const toolCursors = new Map<string, CssCursor>();
 
 function notifyToolbarUpdate() {
   if (typeof window !== "undefined") {
@@ -47,6 +50,15 @@ export function getToolbarContributions() {
     enableWhen?: CapabilityToken[];
     disabledReason?: string;
   }>;
+}
+
+export function registerToolCursor(tool: string, cursor: CssCursor) {
+  toolCursors.set(tool, cursor);
+  return () => toolCursors.delete(tool);
+}
+
+export function getCursorForTool(tool: string): CssCursor | undefined {
+  return toolCursors.get(tool);
 }
 
 export async function loadPlugin(
@@ -121,6 +133,7 @@ export async function unloadPlugin(id: string) {
     for (let i = toolbarContribs.length - 1; i >= 0; i--) {
       if (toolbarContribs[i].pluginId === id) toolbarContribs.splice(i, 1);
     }
+    // No per-plugin cleanup needed for tool cursors in MVP
     notifyToolbarUpdate();
     plugins.delete(id);
   }

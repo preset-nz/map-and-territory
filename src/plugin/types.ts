@@ -4,7 +4,9 @@ export type CapabilityToken =
   | "hasCampaign"
   | "hasProject"
   | `selectionIs:${"campaign" | "map" | "layer"}`
-  | `canAddLayer:${string}`;
+  | `canAddLayer:${string}`
+  | `activeLayerIs:${string}`
+  | "gridVisible";
 
 export interface PluginManifest {
   id: string;
@@ -47,3 +49,6 @@ export interface PluginModule {
   deactivate?: (ctx: PluginContext) => void | Promise<void>;
   commands?: Record<string, (payload?: unknown) => Promise<void> | void>;
 }
+
+// CSS cursor mapping for tools declared by plugins
+export type CssCursor = "default" | "crosshair" | "cell" | "pointer" | "move";
