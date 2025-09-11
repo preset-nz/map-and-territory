@@ -4,11 +4,11 @@ import {
   resolveTerrainFill,
   resolveGridLine,
 } from "@/stores/selectors/palette";
-import type { Project } from "@/stores/project";
+import type { Campaign } from "@/stores/campaign";
 import type { MapPalette } from "@/palettes/types";
 import { DefaultPalette } from "@/palettes/defaults";
 
-function makeProject(overrides?: Partial<Project>): Project {
+function makeProject(overrides?: Partial<Campaign>): Campaign {
   return {
     id: "p1",
     version: 1,
@@ -28,7 +28,7 @@ function makeProject(overrides?: Partial<Project>): Project {
       },
     ],
     ...(overrides || {}),
-  } as Project;
+  } as Campaign;
 }
 
 describe("palette resolution", () => {

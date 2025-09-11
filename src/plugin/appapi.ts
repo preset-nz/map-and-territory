@@ -1,7 +1,7 @@
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 
-import type { Project as Campaign } from "@/stores/project";
+import type { Campaign } from "@/stores/campaign";
 
 export interface CampaignAPI {
   newCampaign: (params?: { name?: string; description?: string }) => Campaign;
@@ -23,24 +23,24 @@ export function getAppAPI(): AppAPI {
   const api: AppAPI = {
     campaign: {
       newCampaign: (params) => {
-        const project = useProjectStore.getState().createEmpty({
+        const campaign = useCampaignStore.getState().createEmpty({
           name: params?.name ?? "Untitled Campaign",
           description: params?.description ?? "",
         });
         useSelectionStore.getState().selectCampaign();
-        return project;
+        return campaign;
       },
       newMap: (params) => {
-        const id = useProjectStore.getState().addMap({
+        const id = useCampaignStore.getState().addMap({
           name: params?.name ?? "Untitled Map",
           description: params?.description ?? "",
         });
-        useProjectStore.getState().selectMap(id);
+        useCampaignStore.getState().selectMap(id);
         useSelectionStore.getState().selectMap(id);
         return id;
       },
       deleteMap: (id) => {
-        useProjectStore.getState().deleteMap(id);
+        useCampaignStore.getState().deleteMap(id);
         // After deletion, fall back to campaign selection
         useSelectionStore.getState().selectCampaign();
       },
@@ -48,7 +48,7 @@ export function getAppAPI(): AppAPI {
         useSelectionStore.getState().selectCampaign();
       },
       selectMap: (id) => {
-        useProjectStore.getState().selectMap(id);
+        useCampaignStore.getState().selectMap(id);
         useSelectionStore.getState().selectMap(id);
       },
     },

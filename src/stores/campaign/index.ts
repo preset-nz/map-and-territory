@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import { getLayerPolicy, getLayerType } from "@/layers/registry";
 import type { LayerInstance } from "@/layers/types";
-import { nextNumberedName } from "@/stores/project/naming";
+import { generateName } from "@/stores/naming";
 
 import type { MapPalette } from "@/palettes/types";
 
-export interface Project {
+export interface Campaign {
   id: string;
   version: number;
   name: string;
@@ -27,11 +27,11 @@ export interface Project {
   activeMapId: string | null;
 }
 
-interface ProjectStoreState {
-  current: Project | null;
+interface CampaignStoreState {
+  current: Campaign | null;
   // Actions
-  createEmpty: (params?: { name?: string; description?: string }) => Project;
-  setActive: (project: Project | null) => void;
+  createEmpty: (params?: { name?: string; description?: string }) => Campaign;
+  setActive: (campaign: Campaign | null) => void;
   rename: (name: string) => void;
   setDescription: (description: string) => void;
   // Settings (T-012)
@@ -47,9 +47,7 @@ interface ProjectStoreState {
   setMapPaperAspect: (id: string, aspect: "square" | "4:3" | "16:10") => void;
   setMapPaperColor: (id: string, color: string) => void;
   // Layer CRUD
-  // Default add: insert just below top anchor (grid)
   addLayer: (typeId: string, name?: string) => string | null;
-  // Explicit insertion helpers for canonical semantics
   insertLayerBeforeTopAnchor: (typeId: string, name?: string) => string | null;
   insertLayerAbove: (
     targetId: string,
@@ -62,10 +60,13 @@ interface ProjectStoreState {
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   renameLayer: (layerId: string, name: string) => void;
   updateLayerState: (layerId: string, patch: Record<string, unknown>) => void;
+  // Internal helper exposed for tests
+  _normalizeAnchorsForMap: (
+    map: Campaign["maps"][number],
+  ) => Campaign["maps"][number];
 }
 
 function uuid(): string {
-  // Use crypto.randomUUID if available, fallback to simple random
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return (crypto as { randomUUID?: () => string }).randomUUID?.() ?? "";
   }
@@ -76,17 +77,13 @@ function uuid(): string {
   });
 }
 
-export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
+export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   current: null,
   // --- helpers (internal) ---
-  // Normalize anchors: ensure paper at 0 and hexgrid at last
-  // and both present
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _normalizeAnchorsForMap(map: any) {
+  _normalizeAnchorsForMap(map: Campaign["maps"][number]) {
     const layers: LayerInstance[] = Array.isArray(map.layers)
       ? [...map.layers]
       : [];
-    // ensure paper
     if (!layers.find((l) => l.type === "paper")) {
       layers.unshift({
         id: uuid(),
@@ -99,7 +96,6 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         },
       });
     }
-    // ensure grid
     if (!layers.find((l) => l.type === "hexgrid")) {
       layers.push({
         id: uuid(),
@@ -116,7 +112,6 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         },
       });
     }
-    // move anchors to extremes preserving relative order of others
     const paper = layers.find((l) => l.type === "paper")!;
     const grid = layers.find((l) => l.type === "hexgrid")!;
     const rest = layers.filter((l) => l !== paper && l !== grid);
@@ -126,18 +121,36 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
   createEmpty: (params) => {
     const name =
       (params?.name ?? "Untitled Campaign").trim() || "Untitled Campaign";
-    const description = params?.description?.trim();
-    const project: Project = {
+    const campaign: Campaign = {
       id: uuid(),
       version: 1,
       name,
-      description,
-      settingId: undefined,
+      description: params?.description ?? "",
       maps: [],
       activeMapId: null,
     };
-    set({ current: project });
-    return project;
+    set({ current: campaign });
+    return campaign;
+  },
+  setActive: (campaign) => {
+    if (!campaign) {
+      set({ current: null });
+      return;
+    }
+    const maps = campaign.maps.map((m) =>
+      useCampaignStore.getState()._normalizeAnchorsForMap({ ...m }),
+    );
+    set({ current: { ...campaign, maps } });
+  },
+  rename: (name) => {
+    const cur = get().current;
+    if (!cur) return;
+    set({ current: { ...cur, name } });
+  },
+  setDescription: (description) => {
+    const cur = get().current;
+    if (!cur) return;
+    set({ current: { ...cur, description } });
   },
   setCampaignSetting: (settingId) => {
     const cur = get().current;
@@ -154,44 +167,12 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       },
     });
   },
-  setActive: (project) => {
-    if (!project) {
-      set({ current: null });
-      return;
-    }
-    // Core layer types are now registered via plugins
-    // Normalize anchors across maps
-    const maps = project.maps.map(
-      (m) =>
-        (
-          useProjectStore.getState() as unknown as {
-            _normalizeAnchorsForMap: (m: unknown) => unknown;
-          }
-        )._normalizeAnchorsForMap({
-          ...m,
-        } as unknown) as Project["maps"][number],
-    );
-    set({ current: { ...project, maps } });
-  },
-  rename: (name) => {
-    const cur = get().current;
-    if (!cur) return;
-    // Preserve spaces and live editing; don't trim on each keystroke
-    set({ current: { ...cur, name } });
-  },
-  setDescription: (description) => {
-    const cur = get().current;
-    if (!cur) return;
-    set({ current: { ...cur, description } });
-  },
   addMap: (params) => {
     const cur = get().current;
     const name = params?.name ?? "Untitled Map";
     const description = params?.description ?? "";
-    // Core layer types are now registered via plugins
     if (!cur) {
-      // Create a default campaign if none exists
-      const project: Project = {
+      const campaign: Campaign = {
         id: uuid(),
         version: 1,
         name: "Untitled Campaign",
@@ -199,7 +180,7 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         maps: [],
         activeMapId: null,
       };
-      set({ current: project });
+      set({ current: campaign });
     }
     const next = get().current!;
     const id = uuid();
@@ -326,16 +307,17 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       type: typeId,
       name:
         (name && name.trim()) ||
-        nextNumberedName(
-          def.title,
-          (map.layers ?? [])
+        generateName({
+          type: "layer",
+          base: def.title,
+          existing: (map.layers ?? [])
             .filter((l) => l.type === typeId)
             .map((l) => l.name ?? ""),
-        ),
+          padTo: 2,
+        }),
       visible: true,
       state: def.defaultState,
     };
-    // Default insertion: just below top anchor (grid)
     const layers = [...(map.layers ?? [])];
     const gridIdx = Math.max(
       1,
@@ -366,12 +348,14 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       type: typeId,
       name:
         (name && name.trim()) ||
-        nextNumberedName(
-          def.title,
-          (map.layers ?? [])
+        generateName({
+          type: "layer",
+          base: def.title,
+          existing: (map.layers ?? [])
             .filter((l) => l.type === typeId)
             .map((l) => l.name ?? ""),
-        ),
+          padTo: 2,
+        }),
       visible: true,
       state: def.defaultState,
     };
@@ -400,23 +384,24 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     const layers = [...(map.layers ?? [])];
     const targetIdx = layers.findIndex((l) => l.id === targetId);
     if (targetIdx < 0) return null;
-    // Cannot insert above top anchor
     if (layers[targetIdx]?.type === "hexgrid") return null;
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
       name:
         (name && name.trim()) ||
-        nextNumberedName(
-          def.title,
-          (map.layers ?? [])
+        generateName({
+          type: "layer",
+          base: def.title,
+          existing: (map.layers ?? [])
             .filter((l) => l.type === typeId)
             .map((l) => l.name ?? ""),
-        ),
+          padTo: 2,
+        }),
       visible: true,
       state: def.defaultState,
     };
-    const insertAt = Math.min(targetIdx + 1, Math.max(0, layers.length));
+    const insertAt = Math.min(targetIdx + 1, layers.length);
     layers.splice(insertAt, 0, layer);
     set({
       current: {
@@ -431,18 +416,15 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     if (!cur) return;
     const map = cur.maps.find((m) => m.id === cur.activeMapId);
     if (!map) return;
-    const layer = (map.layers ?? []).find((l) => l.id === layerId);
-    if (!layer) return;
-    const policy = getLayerPolicy(layer.type);
+    const target = (map.layers ?? []).find((l) => l.id === layerId);
+    if (!target) return;
+    const policy = getLayerPolicy(target.type);
     if (policy.canDelete === false) return;
+    const layers = [...(map.layers ?? [])].filter((l) => l.id !== layerId);
     set({
       current: {
         ...cur,
-        maps: cur.maps.map((m) =>
-          m === map
-            ? { ...m, layers: (m.layers ?? []).filter((l) => l.id !== layerId) }
-            : m,
-        ),
+        maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
       },
     });
   },
@@ -455,14 +437,16 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     if (!layer) return null;
     const policy = getLayerPolicy(layer.type);
     if (policy.canDuplicate === false) return null;
-    const copy: LayerInstance = {
-      ...layer,
-      id: uuid(),
-      name: `${layer.name ?? ""} Copy`.trim(),
-    };
+    const copyName = generateName({
+      type: "layer",
+      base: layer.name ?? "Layer",
+      existing: (map.layers ?? []).map((l) => l.name ?? ""),
+      duplicateOf: layer.name ?? undefined,
+      padTo: 2,
+    });
+    const copy: LayerInstance = { ...layer, id: uuid(), name: copyName };
     const layers = [...(map.layers ?? [])];
     const idx = layers.findIndex((l) => l.id === layerId);
-    // Insert duplicated layer immediately above source
     const insertAt = idx >= 0 ? idx + 1 : layers.length;
     layers.splice(insertAt, 0, copy);
     set({
@@ -481,13 +465,11 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     const layers = [...(map.layers ?? [])];
     const idx = layers.findIndex((l) => l.id === layerId);
     if (idx < 0) return;
-    // Disallow moving anchors and crossing anchors
     const bottomIdx = layers.findIndex((l) => l.type === "paper");
     const topIdx = layers.findIndex((l) => l.type === "hexgrid");
     const isAnchor =
       layers[idx].type === "paper" || layers[idx].type === "hexgrid";
-    if (isAnchor) return; // cannot move anchors
-    // Clamp target within (bottomIdx+1) .. (topIdx-1)
+    if (isAnchor) return;
     const minIdx = bottomIdx >= 0 ? bottomIdx + 1 : 0;
     const maxIdx = topIdx >= 0 ? topIdx - 1 : layers.length - 1;
     const [item] = layers.splice(idx, 1);
@@ -575,3 +557,5 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     });
   },
 }));
+
+export type { CampaignStoreState };

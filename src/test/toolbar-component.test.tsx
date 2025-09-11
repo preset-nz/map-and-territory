@@ -4,12 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import AppToolbar from "@/components/layout/app-toolbar";
 import { loadPlugin } from "@/plugin/loader";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 
 describe("AppToolbar capability gating (integration)", () => {
   beforeEach(() => {
-    useProjectStore.setState({ current: null });
+    useCampaignStore.setState({ current: null });
     useSelectionStore.setState({
       selection: { kind: "none" } as { kind: "none" },
     });
@@ -27,10 +27,10 @@ describe("AppToolbar capability gating (integration)", () => {
     expect(btn).toBeDisabled();
 
     // Create project and map
-    const p = useProjectStore.getState().createEmpty({ name: "P" });
-    useProjectStore.getState().setActive(p);
-    const mapId = useProjectStore.getState().addMap({ name: "M" })!;
-    useProjectStore.getState().selectMap(mapId);
+    const p = useCampaignStore.getState().createEmpty({ name: "P" });
+    useCampaignStore.getState().setActive(p);
+    const mapId = useCampaignStore.getState().addMap({ name: "M" })!;
+    useCampaignStore.getState().selectMap(mapId);
 
     await waitFor(() => expect(btn).toBeEnabled());
   });

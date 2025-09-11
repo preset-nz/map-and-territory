@@ -2,7 +2,7 @@ import React from "react";
 import { describe, it, expect, beforeAll } from "vitest";
 import { render, fireEvent } from "@testing-library/react";
 import CanvasViewport from "@/components/map/canvas-viewport";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useLayoutStore } from "@/stores/layout";
 import { registerCoreLayerTypes } from "@/test/test-helpers";
 
@@ -91,7 +91,7 @@ function seedProject(orientation: "pointy" | "flat", visible = true) {
     ],
     activeMapId: "m1",
   } as const;
-  useProjectStore.getState().setActive(project as unknown as typeof project);
+  useCampaignStore.getState().setActive(project as unknown as typeof project);
 }
 
 function mockCanvasRect(el: HTMLCanvasElement, w = 800, h = 600) {

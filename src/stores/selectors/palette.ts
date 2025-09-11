@@ -1,4 +1,4 @@
-import type { Project } from "@/stores/project";
+import type { Campaign } from "@/stores/campaign";
 import type { MapPalette, TerrainCategory } from "@/palettes/types";
 import { DefaultPalette } from "@/palettes/defaults";
 import { TerrainSettings } from "@/palettes/settings";
@@ -20,17 +20,17 @@ function coerceTerrainKey(key: string | undefined): TerrainCategory {
 }
 
 export function resolvePalette(
-  project: Project | null,
+  campaign: Campaign | null,
   mapId: string | null,
 ): MapPalette {
-  if (!project) return DefaultPalette;
-  const map = project.maps.find((m) => m.id === mapId);
+  if (!campaign) return DefaultPalette;
+  const map = campaign.maps.find((m) => m.id === mapId);
   // Advanced overrides using direct palette objects (legacy/advanced) take precedence
   if (map?.palette) return map.palette as MapPalette;
   // If campaign has an explicit palette override, prefer it over default/setting
-  if (project.palette) return project.palette as MapPalette;
+  if (campaign.palette) return campaign.palette as MapPalette;
   // Resolve by settingId chain: map → campaign → default
-  const settingId = map?.settingId || project.settingId || "doom-forge";
+  const settingId = map?.settingId || campaign.settingId || "doom-forge";
   const setting = TerrainSettings.getAllSettings().find(
     (s) => s.id === settingId,
   );
@@ -49,12 +49,12 @@ export function resolveTerrainFill(
 }
 
 export function resolveGridLine(
-  project: Project | null,
+  campaign: Campaign | null,
   mapId: string | null,
   hexgridState?: { color?: string },
 ): string {
   const userColor = hexgridState?.color;
   if (userColor && userColor !== "#000000") return userColor;
-  const p = resolvePalette(project, mapId);
+  const p = resolvePalette(campaign, mapId);
   return p.grid.line || "#000000";
 }

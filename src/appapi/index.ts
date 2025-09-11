@@ -1,7 +1,7 @@
 // Public AppAPI surface
 import { resolvePalette, resolveTerrainFill } from "@/stores/selectors/palette";
 import type { TerrainCategory } from "@/palettes/types";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { TerrainSettings, BaseTerrainType } from "@/palettes/settings";
 // Intent: provide a stable, minimal interface for app-level consumers
 // without leaking internal store or lib shapes.
@@ -38,27 +38,27 @@ export const AppAPI = {
   palette: {
     // Returns the resolved palette for the active map (map → campaign → default preset)
     get() {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       return resolvePalette(cur, active);
     },
     // Returns the terrain fill for a given key (supports 'desert' → plains presentation)
     terrainFill(key: TerrainCategory | "desert") {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const palette = resolvePalette(cur, active);
       return resolveTerrainFill(palette, key);
     },
     // Returns the recommended hex grid line color from the resolved palette
     gridLine() {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const palette = resolvePalette(cur, active);
       return palette.grid.line;
     },
     // Lists terrain entries from the active setting (MVP: default Doom Forge until settings UI lands)
     list(category?: BaseTerrainType) {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
       const settingId = map?.settingId || cur?.settingId || "doom-forge";
@@ -71,7 +71,7 @@ export const AppAPI = {
     },
     // Returns color by terrain entry id from the active setting; falls back to category fill
     fillById(id: string) {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
       const settingId = map?.settingId || cur?.settingId || "doom-forge";
@@ -86,7 +86,7 @@ export const AppAPI = {
     },
     // Returns active setting id (map → campaign → default)
     settingId() {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
       return map?.settingId || cur?.settingId || "doom-forge";

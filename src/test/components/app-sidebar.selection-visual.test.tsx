@@ -2,15 +2,15 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 
 describe("AppSidebar selection visibility", () => {
   it("keeps active map highlighted when a layer is selected", async () => {
-    useProjectStore.getState().createEmpty({ name: "Test" });
-    const mapId = useProjectStore.getState().addMap({ name: "Map A" })!;
-    useProjectStore.getState().selectMap(mapId);
-    const layerId = useProjectStore.getState().addLayer("hexnoise", "Noise")!;
+    useCampaignStore.getState().createEmpty({ name: "Test" });
+    const mapId = useCampaignStore.getState().addMap({ name: "Map A" })!;
+    useCampaignStore.getState().selectMap(mapId);
+    const layerId = useCampaignStore.getState().addLayer("hexnoise", "Noise")!;
 
     render(<AppSidebar />);
 

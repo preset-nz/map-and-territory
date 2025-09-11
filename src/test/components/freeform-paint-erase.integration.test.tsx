@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 import { render, fireEvent } from "@testing-library/react";
 import CanvasViewport from "@/components/map/canvas-viewport";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import { useLayoutStore } from "@/stores/layout";
 import { registerLayerType } from "@/layers/registry";
@@ -45,24 +45,24 @@ function paperCenter(cw = 800, ch = 600) {
 
 describe("Freeform paint/erase integration", () => {
   beforeEach(() => {
-    useProjectStore.setState({ current: null });
+    useCampaignStore.setState({ current: null });
     useSelectionStore.setState({ selection: { kind: "none" } });
     useLayoutStore.getState().setActiveTool("select");
     registerLayerType(FreeformType as unknown as LayerType);
   });
 
   it("paints and erases a hex cell", async () => {
-    // Project with map and grid
-    useProjectStore.getState().createEmpty({ name: "Test" });
-    const mapId = useProjectStore.getState().addMap({ name: "Map" })!;
-    useProjectStore.getState().selectMap(mapId);
+    // Campaign with map and grid
+    useCampaignStore.getState().createEmpty({ name: "Test" });
+    const mapId = useCampaignStore.getState().addMap({ name: "Map" })!;
+    useCampaignStore.getState().selectMap(mapId);
     // Add freeform layer and select it
-    const id = useProjectStore
+    const id = useCampaignStore
       .getState()
       .insertLayerBeforeTopAnchor("freeform")!;
     useSelectionStore.getState().selectLayer(id);
     // Seed brush
-    useProjectStore.getState().updateLayerState(id, { brushColor: "#ff0000" });
+    useCampaignStore.getState().updateLayerState(id, { brushColor: "#ff0000" });
     // Activate paint tool
     useLayoutStore.getState().setActiveTool("paint");
 
@@ -75,7 +75,7 @@ describe("Freeform paint/erase integration", () => {
     fireEvent.pointerDown(canvas, { clientX: c.x, clientY: c.y });
     fireEvent.pointerUp(canvas);
 
-    const cur = useProjectStore.getState().current!;
+    const cur = useCampaignStore.getState().current!;
     const layer = cur.maps[0].layers!.find((l) => l.id === id)!;
     const cells =
       (layer.state as { cells?: Record<string, unknown> }).cells ?? {};
@@ -85,7 +85,7 @@ describe("Freeform paint/erase integration", () => {
     useLayoutStore.getState().setActiveTool("erase");
     fireEvent.pointerDown(canvas, { clientX: c.x, clientY: c.y });
     fireEvent.pointerUp(canvas);
-    const cur2 = useProjectStore.getState().current!;
+    const cur2 = useCampaignStore.getState().current!;
     const layer2 = cur2.maps[0].layers!.find((l) => l.id === id)!;
     const cells2 =
       (layer2.state as { cells?: Record<string, unknown> }).cells ?? {};

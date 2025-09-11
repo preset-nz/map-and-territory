@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { getLayerType } from "@/layers/registry";
 import type { LayerAdapter } from "@/layers/types";
 // import type { RenderEnv } from '@/layers/types';
@@ -36,7 +36,7 @@ function parseAspect(aspect: "square" | "4:3" | "16:10"): {
 
 export const CanvasViewport: React.FC = () => {
   // Select minimal store state without constructing new objects to keep SSR snapshot stable
-  const current = useProjectStore((s) => s.current);
+  const current = useCampaignStore((s) => s.current);
   const activeId = current?.activeMapId ?? null;
   const maps = current?.maps;
 
@@ -500,7 +500,7 @@ export const CanvasViewport: React.FC = () => {
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
   const activeTool = useLayoutStore((s) => s.activeTool);
-  const updateLayerState = useProjectStore((s) => s.updateLayerState);
+  const updateLayerState = useCampaignStore((s) => s.updateLayerState);
   const selection = useSelectionStore((s) => s.selection);
   const [isPointerDown, setIsPointerDown] = useState(false);
   const lastPaintKeyRef = useRef<string | null>(null);
@@ -545,7 +545,7 @@ export const CanvasViewport: React.FC = () => {
     if (lastPaintKeyRef.current === key) return;
     lastPaintKeyRef.current = key;
     // Read target layer to decide brush
-    const active = useProjectStore.getState().current;
+    const active = useCampaignStore.getState().current;
     const map = active?.maps.find((m) => m.id === active?.activeMapId);
     const layer = map?.layers?.find((l) => l.id === layerId);
     if (!layer || layer.type !== "freeform") return;

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { resolvePreconditions } from "@/plugin/capabilities";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import { registerLayerType } from "@/layers/registry";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
@@ -8,17 +8,17 @@ import type { LayerType } from "@/layers/types";
 
 describe("Plugin capability tokens — freeform/tools", () => {
   beforeEach(() => {
-    useProjectStore.setState({ current: null });
+    useCampaignStore.setState({ current: null });
     useSelectionStore.setState({ selection: { kind: "none" } });
     registerLayerType(FreeformType as unknown as LayerType);
   });
 
   it("activeLayerIs:freeform enables only when a freeform layer is selected", () => {
-    const project = useProjectStore.getState().createEmpty({ name: "Test" });
-    const mapId = useProjectStore.getState().addMap({ name: "Map A" })!;
-    useProjectStore.getState().selectMap(mapId);
+    const project = useCampaignStore.getState().createEmpty({ name: "Test" });
+    const mapId = useCampaignStore.getState().addMap({ name: "Map A" })!;
+    useCampaignStore.getState().selectMap(mapId);
     // insert freeform
-    const id = useProjectStore
+    const id = useCampaignStore
       .getState()
       .insertLayerBeforeTopAnchor("freeform")!;
     // not selected yet
@@ -34,15 +34,15 @@ describe("Plugin capability tokens — freeform/tools", () => {
   });
 
   it("gridVisible reflects hexgrid visibility", () => {
-    useProjectStore.getState().createEmpty({ name: "A" });
-    const mapId = useProjectStore.getState().addMap({ name: "M" })!;
-    useProjectStore.getState().selectMap(mapId);
+    useCampaignStore.getState().createEmpty({ name: "A" });
+    const mapId = useCampaignStore.getState().addMap({ name: "M" })!;
+    useCampaignStore.getState().selectMap(mapId);
     let res = resolvePreconditions(["gridVisible"]);
     expect(res.enabled).toBe(true);
     // hide grid
-    const cur = useProjectStore.getState().current!;
+    const cur = useCampaignStore.getState().current!;
     const grid = cur.maps[0].layers!.find((l) => l.type === "hexgrid")!;
-    useProjectStore.getState().setLayerVisibility(grid.id, false);
+    useCampaignStore.getState().setLayerVisibility(grid.id, false);
     res = resolvePreconditions(["gridVisible"]);
     expect(res.enabled).toBe(false);
   });

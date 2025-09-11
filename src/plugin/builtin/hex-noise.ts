@@ -1,7 +1,7 @@
 import type { PluginManifest, PluginModule } from "@/plugin/types";
 import { registerLayerType } from "@/layers/registry";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import { AppAPI } from "@/appapi";
 
@@ -37,20 +37,20 @@ export const hexNoiseModule: PluginModule = {
   },
   commands: {
     "layer.hexnoise.add": () => {
-      const project = useProjectStore.getState().current;
-      const activeMapId = project?.activeMapId ?? null;
-      if (!project || !activeMapId) return; // disabled state should prevent this
-      const map = project.maps.find((m) => m.id === activeMapId);
+      const campaign = useCampaignStore.getState().current;
+      const activeMapId = campaign?.activeMapId ?? null;
+      if (!campaign || !activeMapId) return; // disabled state should prevent this
+      const map = campaign.maps.find((m) => m.id === activeMapId);
       if (!map) return;
       // insert according to selection semantics
       const sel = useSelectionStore.getState().selection;
       if (sel.kind === "layer") {
         // Try to insert above selection; if target is top anchor, fall back to just below grid
-        let id = useProjectStore
+        let id = useCampaignStore
           .getState()
           .insertLayerAbove(sel.id, "hexnoise");
         if (!id) {
-          id = useProjectStore
+          id = useCampaignStore
             .getState()
             .insertLayerBeforeTopAnchor("hexnoise");
         }
@@ -61,7 +61,7 @@ export const hexNoiseModule: PluginModule = {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
-            useProjectStore.getState().updateLayerState(id, {
+            useCampaignStore.getState().updateLayerState(id, {
               terrainId: first.id,
               paintColor: first.color,
             });
@@ -70,7 +70,7 @@ export const hexNoiseModule: PluginModule = {
         useSelectionStore.getState().selectLayer(id);
         return;
       } else if (sel.kind === "map") {
-        const id = useProjectStore
+        const id = useCampaignStore
           .getState()
           .insertLayerBeforeTopAnchor("hexnoise");
         if (!id) return;
@@ -78,7 +78,7 @@ export const hexNoiseModule: PluginModule = {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
-            useProjectStore.getState().updateLayerState(id, {
+            useCampaignStore.getState().updateLayerState(id, {
               terrainId: first.id,
               paintColor: first.color,
             });
@@ -88,7 +88,7 @@ export const hexNoiseModule: PluginModule = {
         return;
       }
       // Fallback when nothing is selected: treat as map-level insert
-      const id = useProjectStore
+      const id = useCampaignStore
         .getState()
         .insertLayerBeforeTopAnchor("hexnoise");
       if (!id) return;
@@ -96,7 +96,7 @@ export const hexNoiseModule: PluginModule = {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          useProjectStore.getState().updateLayerState(id, {
+          useCampaignStore.getState().updateLayerState(id, {
             terrainId: first.id,
             paintColor: first.color,
           });

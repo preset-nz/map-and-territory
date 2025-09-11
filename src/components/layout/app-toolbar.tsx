@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { resolveIcon } from "@/lib/icon-resolver";
 import { resolvePreconditions } from "@/plugin/capabilities";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 
 // Dynamic toolbar contributions are rendered from the plugin loader
@@ -55,9 +55,9 @@ export const AppToolbar: React.FC = () => {
   // Subscribe to active map to trigger re-render when gating might change
   // Subscribe to project and selection so gating recomputes on selection changes,
   // including layer-id and type transitions.
-  const project = useProjectStore((s) => s.current);
+  const campaign = useCampaignStore((s) => s.current);
   const selection = useSelectionStore((s) => s.selection);
-  void project;
+  void campaign;
   void selection;
 
   // Commands come from plugin loader; no local registration here

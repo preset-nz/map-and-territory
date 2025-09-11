@@ -51,14 +51,15 @@ T-015 [M] Save/Load Campaign
 - Goal: Export/import campaign (JSON) with versioned schema; minimal UI.
 - Links: src/components/layout/app-header.tsx (menu/buttons), src/stores/project/index.ts (serialize/deserialize)
 - Acceptance:
-  - Save downloads JSON with version field; Load restores project/maps/layers; tests for round‑trip.
-  - Optional localStorage autosave enabled behind a toggle.
+  - v1 JSON schema defined and documented (“campaign” terminology). No backward compatibility required; loader accepts only v1.
+  - Save downloads JSON with `version` and `campaign` root; Load restores campaign/maps/layers and active selection; round‑trip tests.
+  - Optional localStorage autosave behind a toggle (non-blocking).
 
 Dependencies & Order
 
-- Phase 1: T-015
-- Phase 2: T-007, T-008, T-009b, T-010
-- Phase 3: T-011, T-013, T-014
+- Phase 1: T-015, T-019, T-020
+- Phase 2: T-023, T-007, T-008, T-009b, T-010
+- Phase 3: T-011, T-013, T-014, T-018
 
 ---
 
@@ -66,26 +67,6 @@ Working Notes
 
 - Keep SOLID/CUPID: Layer adapters remain small and composable; AppAPI stays narrow and selector‑based.
 - Platform thinking: early investment in layering, invalidation, and AppAPI yields long‑term extensibility.
-
----
-
-T-016 [M] Terminology Alignment – Campaign & Scene
-
-- Goal: Align domain and UI language. Prefer “Campaign” across new surfaces; plan staged refactor to replace internal `Project` type name and converge UI “Scene” → “Campaign”.
-- Deliverables:
-  - ADR update/amendments to ADR-0004 reflecting the alignment (link ADR-0014).
-  - Store refactor plan: `Project` → `Campaign` (types, file paths) with minimal churn; introduce type aliases to ease migration if needed.
-  - UI copy update: rename “Scene” viewer/panel to “Campaign” viewer; update toolbar group names if applicable.
-  - Test updates: selectors and fixtures reflect final naming.
-- Links:
-  - guidance/adrs/0014-campaign-terminology-and-appapi-seam.md
-  - src/stores/project/index.ts (rename target)
-  - src/components/layout/app-sidebar.tsx (panel naming)
-  - src/components/layout/app-toolbar.tsx (group labels if surfaced)
-- Acceptance:
-  - Codebase compiles and tests pass after rename.
-  - No mixed terminology in UI; docs updated.
-  - AppAPI remains stable (`AppAPI.campaign`).
 
 ---
 
@@ -98,3 +79,48 @@ T-018 [S] Consolidate Hex Utilities
   - Adapters compile and render identically (snapshot or pixel-diff tolerance acceptable).
   - Unit tests for utils; integration tests remain green.
   - No behavioral regressions in E2E.
+
+---
+
+T-019 [M] Properties Panel Template System (Plugin Contributions)
+
+- Goal: Replace hardcoded React panel logic with declarative parameter templates contributed by plugins.
+- Deliverables:
+  - Extend `PluginManifest` with `contributes.propertiesPanel` supporting `selectionType` ("campaign" | "map" | "layer" | `layer:${id}`) and `templates` (folder/string/text/int/float/toggle/menu/color/slider/separator).
+  - Properties registry: `src/properties/registry.ts` (new template types/disable conditions) and loader wiring.
+  - Panel renderer: refactor `src/components/layout/properties-panel.tsx` to render from registry and remove ad‑hoc per‑layer branching.
+  - Migrate existing layer schemas (hex-noise, freeform) to templates.
+- Links: guidance/feature/plugin-properties-panel/solutions_design.md
+- Acceptance:
+  - Unit: condition evaluation and template validation pass.
+  - Integration: plugin register/unregister updates panel content per selection.
+  - Visual/UX parity with current fields.
+
+---
+
+T-020 [M] Batched Layer State Mutations
+
+- Goal: Efficiently apply large edits (e.g., flood fill) with a single render invalidation.
+- Deliverables:
+  - Store API: `applyLayerState(layerId, updater)` using immer OR `applyCellsDelta(layerId, { set: Record<key,cell>; del: string[] })`.
+  - Ensure renderer recomputes once per batch; avoid intermediate re-renders.
+- Links: src/stores/project/index.ts, freeform layer docs
+- Acceptance:
+  - Applying 1k cell edits executes <50ms in local tests on baseline hardware.
+  - Invalidation key updates once per batch.
+  - Unit tests cover add/remove/replace semantics.
+
+---
+
+T-023 [S] Freeform Flood Fill Tool
+
+- Goal: Add bucket/flood fill to Freeform layer using hex neighbors.
+- Deliverables:
+  - Command + toolbar item: `tool.freeform.fill` with proper enablement (`activeLayerIs:freeform`, `gridVisible`).
+  - BFS/DFS fill based on `AppAPI.hex.neighbors()` with bounds: paper rect, max-hex cap, and optional mode (empty-only vs. same-value).
+  - Uses T-020 batch API to apply changes in one commit.
+- Links: src/plugin/builtin/freeform.ts, src/components/map/canvas-viewport.tsx, AppAPI.hex
+- Acceptance:
+  - Unit: fill region sizing and boundary conditions.
+  - Integration: pointer triggers fill; store state updates as a single batch; visual re-render occurs once.
+  - Guardrail: hard cap prevents runaway fills (configurable).

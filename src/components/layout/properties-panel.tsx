@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { TerrainSettings } from "@/palettes/settings";
 import { AppAPI } from "@/appapi";
 import { executeCommand } from "@/lib/commands";
@@ -74,19 +74,19 @@ const Group: React.FC<{
 
 const CampaignProperties: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
-  const project = useProjectStore((s) => s.current);
-  const rename = useProjectStore((s) => s.rename);
-  const setDescription = useProjectStore((s) => s.setDescription);
-  if (selection.kind !== "campaign" || !project) return null;
+  const campaign = useCampaignStore((s) => s.current);
+  const rename = useCampaignStore((s) => s.rename);
+  const setDescription = useCampaignStore((s) => s.setDescription);
+  if (selection.kind !== "campaign" || !campaign) return null;
   const settings = TerrainSettings.getAllSettings();
-  const selectedId = project.settingId ?? "doom-forge";
+  const selectedId = campaign.settingId ?? "doom-forge";
   const options = settings.map((s) => ({ label: s.name, value: s.id }));
   return (
     <Group title="Campaign">
       <div>
         <FieldLabel label="Name" />
         <Input
-          value={project.name}
+          value={campaign.name}
           onChange={(e) => rename(e.target.value)}
           placeholder="Untitled Campaign"
           aria-label="Campaign Name"
@@ -95,7 +95,7 @@ const CampaignProperties: React.FC = () => {
       <div>
         <FieldLabel label="Description" />
         <Textarea
-          value={project.description ?? ""}
+          value={campaign.description ?? ""}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Optional description"
           rows={5}
@@ -122,13 +122,13 @@ const CampaignProperties: React.FC = () => {
 
 const MapProperties: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
-  const project = useProjectStore((s) => s.current);
-  const renameMap = useProjectStore((s) => s.renameMap);
-  const setMapDescription = useProjectStore((s) => s.setMapDescription);
-  const setMapPaperAspect = useProjectStore((s) => s.setMapPaperAspect);
-  const setMapPaperColor = useProjectStore((s) => s.setMapPaperColor);
-  if (selection.kind !== "map" || !project) return null;
-  const map = project.maps.find((m) => m.id === selection.id);
+  const campaign = useCampaignStore((s) => s.current);
+  const renameMap = useCampaignStore((s) => s.renameMap);
+  const setMapDescription = useCampaignStore((s) => s.setMapDescription);
+  const setMapPaperAspect = useCampaignStore((s) => s.setMapPaperAspect);
+  const setMapPaperColor = useCampaignStore((s) => s.setMapPaperColor);
+  if (selection.kind !== "map" || !campaign) return null;
+  const map = campaign.maps.find((m) => m.id === selection.id);
   if (!map) return null;
   const resetPaper = () => {
     setMapPaperAspect(map.id, "16:10");
@@ -218,11 +218,11 @@ const MapProperties: React.FC = () => {
 
 const LayerPropertiesGeneric: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
-  const project = useProjectStore((s) => s.current);
-  const updateLayerState = useProjectStore((s) => s.updateLayerState);
-  const renameLayer = useProjectStore((s) => s.renameLayer);
-  if (selection.kind !== "layer" || !project) return null;
-  const map = project.maps.find((m) => m.id === project.activeMapId);
+  const campaign = useCampaignStore((s) => s.current);
+  const updateLayerState = useCampaignStore((s) => s.updateLayerState);
+  const renameLayer = useCampaignStore((s) => s.renameLayer);
+  if (selection.kind !== "layer" || !campaign) return null;
+  const map = campaign.maps.find((m) => m.id === campaign.activeMapId);
   if (!map) return null;
   const layer = (map.layers ?? []).find((l) => l.id === selection.id);
   if (!layer) return null;

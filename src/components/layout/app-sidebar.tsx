@@ -13,7 +13,7 @@ import React from "react";
 
 import { useLayoutStore } from "@/stores/layout";
 import { AppSidebarProps } from "@/types/layout";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import { Button } from "@/components/ui/button";
 import { executeCommand } from "@/lib/commands";
@@ -49,26 +49,27 @@ import { CSS } from "@dnd-kit/utilities";
  */
 export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
   const isOpen = useLayoutStore((state) => state.isOpen);
-  const project = useProjectStore((s) => s.current);
+  const campaign = useCampaignStore((s) => s.current);
   const selection = useSelectionStore((s) => s.selection);
   const selectCampaign = useSelectionStore((s) => s.selectCampaign);
   const selectMap = useSelectionStore((s) => s.selectMap);
-  const projectSelectMap = useProjectStore((s) => s.selectMap);
-  // const setMapVisibility = useProjectStore((s) => s.setMapVisibility);
-  const setLayerVisibility = useProjectStore((s) => s.setLayerVisibility);
-  const duplicateLayer = useProjectStore((s) => s.duplicateLayer);
-  const removeLayer = useProjectStore((s) => s.removeLayer);
+  const projectSelectMap = useCampaignStore((s) => s.selectMap);
+  // const setMapVisibility = useCampaignStore((s) => s.setMapVisibility);
+  const setLayerVisibility = useCampaignStore((s) => s.setLayerVisibility);
+  const duplicateLayer = useCampaignStore((s) => s.duplicateLayer);
+  const removeLayer = useCampaignStore((s) => s.removeLayer);
 
   // DnD sensors and derived ids (hooks must be unconditional)
   const sensors = useSensors(useSensor(PointerSensor));
   const nonAnchorIdsUiOrder = React.useMemo(() => {
-    const m = project?.maps.find((mm) => mm.id === project.activeMapId) ?? null;
+    const m =
+      campaign?.maps.find((mm) => mm.id === campaign.activeMapId) ?? null;
     const layersArr = m?.layers ?? [];
     const ordered = [...layersArr].reverse();
     return ordered
       .filter((l) => l.type !== "paper" && l.type !== "hexgrid")
       .map((l) => l.id);
-  }, [project]);
+  }, [campaign]);
 
   // Return null when closed for full collapse functionality
   if (!isOpen) {
@@ -76,7 +77,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
   }
 
   function arrayIndexFromUiDraggableIndex(uiIndex: number): number | null {
-    const m = project?.maps.find((mm) => mm.id === project.activeMapId) ?? null;
+    const m =
+      campaign?.maps.find((mm) => mm.id === campaign.activeMapId) ?? null;
     if (!m) return null;
     const layers = m.layers ?? [];
     const nonAnchorArrayIdx = layers
@@ -97,7 +99,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
     const overUiIndex = nonAnchorIdsUiOrder.findIndex((id) => id === over.id);
     const toArrayIndex = arrayIndexFromUiDraggableIndex(overUiIndex);
     if (toArrayIndex == null) return;
-    useProjectStore.getState().moveLayer(String(active.id), toArrayIndex);
+    useCampaignStore.getState().moveLayer(String(active.id), toArrayIndex);
   }
 
   return (
@@ -115,7 +117,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
           Campaign
         </div>
         <div className="text-sm font-semibold truncate">
-          {project?.name ?? "No Campaign"}
+          {campaign?.name ?? "No Campaign"}
         </div>
       </button>
 
@@ -123,13 +125,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
         className="flex-1 overflow-auto p-4"
         data-testid="scene-panel-scroll"
       >
-        {!project && (
+        {!campaign && (
           <div className="text-sm text-muted-foreground">
             No campaign. Use the toolbar to create one.
           </div>
         )}
 
-        {project && project.maps.length === 0 && (
+        {campaign && campaign.maps.length === 0 && (
           <div className="flex flex-col items-start gap-2 text-sm">
             <div className="text-muted-foreground">
               This campaign has no maps yet.
@@ -144,18 +146,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
           </div>
         )}
 
-        {project && project.maps.length > 0 && (
+        {campaign && campaign.maps.length > 0 && (
           <div className="mt-2 space-y-1">
-            {project.maps.map((m) => (
+            {campaign.maps.map((m) => (
               <div key={m.id}>
                 <div
                   className={`flex items-center justify-between gap-1 rounded px-2 py-1 ${
-                    project.activeMapId === m.id
+                    campaign.activeMapId === m.id
                       ? "bg-accent"
                       : "hover:bg-accent/50"
                   }`}
                   data-selected={
-                    project.activeMapId === m.id ? "true" : "false"
+                    campaign.activeMapId === m.id ? "true" : "false"
                   }
                 >
                   <button
@@ -181,7 +183,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
                     <Trash className="h-4 w-4" />
                   </Button>
                 </div>
-                {project.activeMapId === m.id && (
+                {campaign.activeMapId === m.id && (
                   <div className="ml-2 mt-1 space-y-1">
                     <div className="text-xs text-muted-foreground px-2">
                       Layers
