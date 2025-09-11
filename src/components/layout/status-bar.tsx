@@ -18,7 +18,7 @@ import { useActiveSetting, useActiveSettingId } from "@/stores/selectors/hooks";
 
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-// import { useCampaignStore } from "@/stores/campaign";
+import { useCampaignStore } from "@/stores/campaign";
 
 // ============================================================================
 // StatusBar Component
@@ -35,7 +35,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className = "" }) => {
   const settingId = useActiveSettingId();
   const setting = useActiveSetting();
   const selection = useSelectionStore((s) => s.selection);
-  // const project = useCampaignStore((s) => s.current);
+  const dirty = useCampaignStore((s) => s.dirty);
+  const hasCampaign = useCampaignStore((s) => !!s.current);
 
   // Mock zoom level - in real app this would come from a viewport store
   const zoomLevel = 100;
@@ -140,9 +141,28 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className = "" }) => {
       <Separator orientation="vertical" className="h-4" />
 
       {/* Document Status */}
-      <div className="flex items-center gap-1">
-        <span className="text-muted-foreground">●</span>
-        <span>Saved</span>
+      <div className="flex items-center gap-1" aria-live="polite">
+        {hasCampaign ? (
+          dirty ? (
+            <>
+              <span
+                className="text-amber-500"
+                title="Unsaved changes"
+                data-testid="unsaved-indicator"
+              >
+                ●
+              </span>
+              <span>Unsaved</span>
+            </>
+          ) : (
+            <>
+              <span className="text-muted-foreground">●</span>
+              <span>Saved</span>
+            </>
+          )
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </div>
     </div>
   );

@@ -147,6 +147,30 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
   getInvalidationKey(state) {
     return `hexnoise:${state.mode ?? ""}:${state.terrain ?? ""}:${state.seed ?? ""}:${state.frequency ?? ""}:${state.offsetX ?? ""}:${state.offsetY ?? ""}:${state.intensity ?? ""}:${state.gamma ?? ""}:${state.min ?? ""}:${state.max ?? ""}`;
   },
+  serialize(state) {
+    // Do not persist derived/cache fields like paintColor
+    const { paintColor: _paintColor, ...rest } = state;
+    void _paintColor; // avoid unused var warning while omitting from output
+    return rest;
+  },
+  deserialize(raw) {
+    const base =
+      typeof raw === "object" && raw ? (raw as Partial<HexNoiseState>) : {};
+    return {
+      seed: base.seed ?? "seed",
+      frequency: base.frequency ?? 0.15,
+      offsetX: base.offsetX ?? 0,
+      offsetY: base.offsetY ?? 0,
+      intensity: base.intensity ?? 1,
+      gamma: base.gamma ?? 1,
+      min: base.min ?? 0,
+      max: base.max ?? 1,
+      mode: base.mode ?? "shape",
+      terrain: base.terrain ?? "plains",
+      terrainId: base.terrainId,
+      paintColor: undefined, // recomputed later from palette/terrainId
+    };
+  },
 };
 
 export const HexNoiseType = {

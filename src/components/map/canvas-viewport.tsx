@@ -37,6 +37,7 @@ function parseAspect(aspect: "square" | "4:3" | "16:10"): {
 export const CanvasViewport: React.FC = () => {
   // Select minimal store state without constructing new objects to keep SSR snapshot stable
   const current = useCampaignStore((s) => s.current);
+  const campaignId = useCampaignStore((s) => s.current?.id ?? null);
   const activeId = current?.activeMapId ?? null;
   const maps = current?.maps;
 
@@ -142,6 +143,10 @@ export const CanvasViewport: React.FC = () => {
     }
   }, []);
 
+  // Note: We avoid re-calling transferControlToOffscreen on the same canvas.
+  // Instead, the <canvas> below is keyed by campaignId to force a remount when
+  // the campaign changes. The mount/unmount effect above handles init/teardown.
+
   // Push size and frame updates
   useEffect(() => {
     const svc = renderSvcRef.current;
@@ -151,15 +156,15 @@ export const CanvasViewport: React.FC = () => {
       typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const cw = Math.max(1, size.w);
     const ch = Math.max(1, size.h);
-    // Resize host canvas CSS size; worker backend uses resize message
-    const last = lastCanvasDimsRef.current;
-    if (last.dpr !== dpr || last.w !== cw || last.h !== ch) {
-      canvas.style.width = `${cw}px`;
-      canvas.style.height = `${ch}px`;
-      // Bitmap size is controlled inside worker backend; we send resize info
-      lastCanvasDimsRef.current = { dpr, w: cw, h: ch };
-      svc.resize({ w: cw, h: ch }, dpr);
-    }
+    // Always set CSS size and send resize to worker to avoid race/bitmap mismatch
+    canvas.style.width = `${cw}px`;
+    canvas.style.height = `${ch}px`;
+    // Set element attributes too; while Offscreen owns the bitmap, some UAs
+    // align presentation better when width/height attributes mirror CSS size.
+    if (canvas.width !== cw) canvas.width = cw;
+    if (canvas.height !== ch) canvas.height = ch;
+    lastCanvasDimsRef.current = { dpr, w: cw, h: ch };
+    svc.resize({ w: cw, h: ch }, dpr);
     const frame: SceneFrame = {
       size: { w: cw, h: ch },
       pixelRatio: dpr,
@@ -174,6 +179,9 @@ export const CanvasViewport: React.FC = () => {
       palette,
     };
     svc.render(frame);
+    // Schedule a follow-up render on the next animation frame to catch any
+    // late resize/bitmap updates inside the worker (belt and suspenders).
+    requestAnimationFrame(() => svc.render(frame));
   }, [aspect, paperColor, layersKey, size.w, size.h, layers, palette]);
 
   // Fallback main-thread draw when worker unavailable
@@ -653,6 +661,7 @@ export const CanvasViewport: React.FC = () => {
           </div>
         ) : (
           <canvas
+            key={campaignId || "none"}
             ref={canvasRef}
             className="w-full h-full"
             onPointerMove={onPointerMove}

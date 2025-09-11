@@ -29,9 +29,11 @@ export interface Campaign {
 
 interface CampaignStoreState {
   current: Campaign | null;
+  dirty: boolean;
   // Actions
   createEmpty: (params?: { name?: string; description?: string }) => Campaign;
   setActive: (campaign: Campaign | null) => void;
+  setDirty: (dirty: boolean) => void;
   rename: (name: string) => void;
   setDescription: (description: string) => void;
   // Settings (T-012)
@@ -79,6 +81,7 @@ function uuid(): string {
 
 export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   current: null,
+  dirty: false,
   // --- helpers (internal) ---
   _normalizeAnchorsForMap(map: Campaign["maps"][number]) {
     const layers: LayerInstance[] = Array.isArray(map.layers)
@@ -135,33 +138,34 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       maps: [],
       activeMapId: null,
     };
-    set({ current: campaign });
+    set({ current: campaign, dirty: false });
     return campaign;
   },
   setActive: (campaign) => {
     if (!campaign) {
-      set({ current: null });
+      set({ current: null, dirty: false });
       return;
     }
     const maps = campaign.maps.map((m) =>
       useCampaignStore.getState()._normalizeAnchorsForMap({ ...m }),
     );
-    set({ current: { ...campaign, maps } });
+    set({ current: { ...campaign, maps }, dirty: false });
   },
+  setDirty: (dirty) => set({ dirty }),
   rename: (name) => {
     const cur = get().current;
     if (!cur) return;
-    set({ current: { ...cur, name } });
+    set({ current: { ...cur, name }, dirty: true });
   },
   setDescription: (description) => {
     const cur = get().current;
     if (!cur) return;
-    set({ current: { ...cur, description } });
+    set({ current: { ...cur, description }, dirty: true });
   },
   setCampaignSetting: (settingId) => {
     const cur = get().current;
     if (!cur) return;
-    set({ current: { ...cur, settingId } });
+    set({ current: { ...cur, settingId }, dirty: true });
   },
   setMapSetting: (mapId, settingId) => {
     const cur = get().current;
@@ -171,6 +175,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m.id === mapId ? { ...m, settingId } : m)),
       },
+      dirty: true,
     });
   },
   addMap: (params) => {
@@ -234,7 +239,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         layers: baseLayers,
       },
     ];
-    set({ current: { ...next, maps, activeMapId: id } });
+    set({ current: { ...next, maps, activeMapId: id }, dirty: true });
     return id;
   },
   selectMap: (id) => {
@@ -251,6 +256,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m.id === id ? { ...m, name } : m)),
       },
+      dirty: true,
     });
   },
   setMapDescription: (id, description) => {
@@ -261,6 +267,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m.id === id ? { ...m, description } : m)),
       },
+      dirty: true,
     });
   },
   deleteMap: (id) => {
@@ -269,7 +276,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const maps = cur.maps.filter((m) => m.id !== id);
     const activeMapId =
       cur.activeMapId === id ? (maps[0]?.id ?? null) : cur.activeMapId;
-    set({ current: { ...cur, maps, activeMapId } });
+    set({ current: { ...cur, maps, activeMapId }, dirty: true });
   },
   setMapVisibility: (id, visible) => {
     const cur = get().current;
@@ -279,6 +286,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m.id === id ? { ...m, visible } : m)),
       },
+      dirty: true,
     });
   },
   setMapPaperAspect: (id, aspect) => {
@@ -291,6 +299,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
           m.id === id ? { ...m, paper: { ...m.paper, aspect } } : m,
         ),
       },
+      dirty: true,
     });
   },
   setMapPaperColor: (id, color) => {
@@ -303,6 +312,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
           m.id === id ? { ...m, paper: { ...m.paper, color } } : m,
         ),
       },
+      dirty: true,
     });
   },
   addLayer: (typeId, name) => {
@@ -343,6 +353,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
       },
+      dirty: true,
     });
     return layer.id;
   },
@@ -381,6 +392,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
       },
+      dirty: true,
     });
     return layer.id;
   },
@@ -467,6 +479,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
       },
+      dirty: true,
     });
     return copy.id;
   },
@@ -493,6 +506,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         ...cur,
         maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
       },
+      dirty: true,
     });
   },
   setLayerVisibility: (layerId, visible) => {
@@ -516,6 +530,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
             : m,
         ),
       },
+      dirty: true,
     });
   },
   renameLayer: (layerId, name) => {
@@ -537,6 +552,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
             : m,
         ),
       },
+      dirty: true,
     });
   },
   updateLayerState: (layerId, patch) => {
@@ -567,6 +583,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
             : m,
         ),
       },
+      dirty: true,
     });
   },
 }));

@@ -3,8 +3,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 // Layout system imports
-import { NoOpAuthProvider, AuthErrorBoundary } from '@/components/providers/auth-provider';
-import AppLayout from '@/components/layout/app-layout';
+import {
+  NoOpAuthProvider,
+  AuthErrorBoundary,
+} from "@/components/providers/auth-provider";
+import AppLayout from "@/components/layout/app-layout";
+import DialogProvider from "@/components/providers/dialog-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +22,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Map & Territory ",
-  description: "Professional desktop application with advanced layout management",
+  description:
+    "Professional desktop application with advanced layout management",
 };
 
 export const viewport: Viewport = {
@@ -44,9 +49,9 @@ export default function RootLayout({
         <AuthErrorBoundary>
           <NoOpAuthProvider simulateLoading={false}>
             {/* Main Layout System */}
-            <AppLayout>
-              {children}
-            </AppLayout>
+            <DialogProvider>
+              <AppLayout>{children}</AppLayout>
+            </DialogProvider>
           </NoOpAuthProvider>
         </AuthErrorBoundary>
       </body>
