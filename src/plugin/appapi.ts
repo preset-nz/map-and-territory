@@ -24,7 +24,7 @@ export function getAppAPI(): AppAPI {
     campaign: {
       newCampaign: (params) => {
         const campaign = useCampaignStore.getState().createEmpty({
-          name: params?.name ?? "Untitled Campaign",
+          name: params?.name,
           description: params?.description ?? "",
         });
         useSelectionStore.getState().selectCampaign();
@@ -32,7 +32,7 @@ export function getAppAPI(): AppAPI {
       },
       newMap: (params) => {
         const id = useCampaignStore.getState().addMap({
-          name: params?.name ?? "Untitled Map",
+          name: params?.name,
           description: params?.description ?? "",
         });
         useCampaignStore.getState().selectMap(id);

@@ -120,7 +120,13 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   },
   createEmpty: (params) => {
     const name =
-      (params?.name ?? "Untitled Campaign").trim() || "Untitled Campaign";
+      (params?.name && params.name.trim()) ||
+      generateName({
+        type: "campaign",
+        base: "Campaign",
+        existing: [],
+        padTo: 2,
+      });
     const campaign: Campaign = {
       id: uuid(),
       version: 1,
@@ -169,7 +175,14 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   },
   addMap: (params) => {
     const cur = get().current;
-    const name = params?.name ?? "Untitled Map";
+    const name =
+      (params?.name && params.name.trim()) ||
+      generateName({
+        type: "map",
+        base: "Map",
+        existing: (get().current?.maps ?? []).map((m) => m.name),
+        padTo: 2,
+      });
     const description = params?.description ?? "";
     if (!cur) {
       const campaign: Campaign = {
