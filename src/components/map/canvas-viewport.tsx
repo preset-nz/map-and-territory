@@ -12,12 +12,9 @@ import { useSelectionStore } from "@/stores/selection";
 import { axialKey } from "@/layers/hex-utils";
 import { AppAPI } from "@/appapi";
 import { getCursorForTool } from "@/plugin/loader";
-import { createPerlinNoise } from "@/lib/noise";
-import {
-  resolveGridLine,
-  resolvePalette,
-  resolveTerrainFill,
-} from "@/stores/selectors/palette";
+// import { createPerlinNoise } from "@/lib/noise";
+import { resolvePalette } from "@/stores/selectors/palette";
+import { debugEnabled } from "@/lib/debug";
 
 function parseAspect(aspect: "square" | "4:3" | "16:10"): {
   aw: number;
@@ -72,17 +69,15 @@ export const CanvasViewport: React.FC = () => {
       layers
         .map((l) => {
           const t = getLayerType(l.type);
-          if (
-            !t ||
-            !t.adapter ||
-            typeof t.adapter.getInvalidationKey !== "function"
-          ) {
-            throw new Error(
-              `Layer type '${l.type}' missing required getInvalidationKey()`,
-            );
+          if (!t || !t.adapter) {
+            return `${l.type}:${l.visible ? "1" : "0"}:unknown`;
           }
-          const adapter = t.adapter as LayerAdapter<unknown>;
-          const key = adapter.getInvalidationKey(l.state);
+          const getKey = (t.adapter as LayerAdapter<unknown>)
+            .getInvalidationKey;
+          if (typeof getKey !== "function") {
+            return `${l.type}:${l.visible ? "1" : "0"}:unknown`;
+          }
+          const key = getKey(l.state as unknown);
           return `${l.type}:${l.visible ? "1" : "0"}:${key}`;
         })
         .join("|"),
@@ -99,6 +94,16 @@ export const CanvasViewport: React.FC = () => {
   });
   const renderSvcRef = useRef<RenderService | null>(null);
   const [useWorker, setUseWorker] = useState<boolean>(false);
+  const [workerError, setWorkerError] = useState<string | null>(null);
+
+  type DebugWindow = Window & {
+    __renderWorkerStatus?: Record<string, unknown>;
+    __renderLog?: Array<Record<string, unknown>>;
+  };
+  const dbg =
+    typeof window !== "undefined"
+      ? (window as unknown as DebugWindow)
+      : (undefined as unknown as DebugWindow);
 
   // Observe container size precisely
   useEffect(() => {
@@ -121,27 +126,101 @@ export const CanvasViewport: React.FC = () => {
     return () => obs.disconnect();
   }, []);
 
-  // Init worker-based renderer
+  // Init worker-based renderer - recreate completely when campaign changes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Force destroy any existing service first
+    if (renderSvcRef.current) {
+      try {
+        console.info("[CanvasViewport] destroying previous RenderService");
+        dbg.__renderLog = [
+          ...(dbg.__renderLog || []),
+          { t: Date.now(), where: "CanvasViewport", msg: "destroy-previous" },
+        ];
+      } catch {}
+      renderSvcRef.current.destroy();
+      renderSvcRef.current = null;
+      setUseWorker(false);
+    }
+
+    // Mark attempt to initialize worker on the element for easier debugging
+    try {
+      canvas.dataset.workerInit = "start";
+    } catch {}
     const svc = new RenderService();
     const dpr =
       typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-    const ok = svc.init(canvas, dpr);
+    try {
+      console.info("[CanvasViewport] init RenderService", {
+        hasTCTOS:
+          typeof HTMLCanvasElement !== "undefined" &&
+          typeof (
+            HTMLCanvasElement.prototype as unknown as Record<string, unknown>
+          )["transferControlToOffscreen"] === "function",
+        hasOffscreen:
+          typeof (window as typeof window & { OffscreenCanvas?: unknown })
+            .OffscreenCanvas !== "undefined",
+        dpr,
+      });
+      dbg.__renderLog = [
+        ...(dbg.__renderLog || []),
+        { t: Date.now(), where: "CanvasViewport", msg: "init", dpr },
+      ];
+    } catch {}
+    let ok = false;
+    try {
+      ok = svc.init(canvas, dpr);
+    } catch (e) {
+      // Hard error: show inline details
+      const msg = e instanceof Error ? e.message : String(e);
+      setWorkerError(msg);
+      try {
+        canvas.dataset.workerInit = "error";
+      } catch {}
+      console.error("[CanvasViewport] worker init threw:", e);
+      ok = false;
+    }
     if (ok) {
+      try {
+        canvas.dataset.workerInit = "ok";
+      } catch {}
+      try {
+        console.info("[CanvasViewport] RenderService initialized with worker");
+        dbg.__renderLog = [
+          ...(dbg.__renderLog || []),
+          { t: Date.now(), where: "CanvasViewport", msg: "worker-ok" },
+        ];
+      } catch {}
       renderSvcRef.current = svc;
       setUseWorker(true);
+      setWorkerError(null);
       return () => {
+        try {
+          console.info("[CanvasViewport] tearing down worker RenderService");
+          dbg.__renderLog = [
+            ...(dbg.__renderLog || []),
+            { t: Date.now(), where: "CanvasViewport", msg: "worker-destroy" },
+          ];
+        } catch {}
         svc.destroy();
         renderSvcRef.current = null;
       };
     } else {
+      try {
+        canvas.dataset.workerInit = "error";
+      } catch {}
+      const status = dbg?.__renderWorkerStatus as
+        | { stage?: string; error?: string }
+        | undefined;
+      const msg = status?.error || status?.stage || "init failed";
+      setWorkerError(String(msg));
       renderSvcRef.current = null;
       setUseWorker(false);
       return () => {};
     }
-  }, []);
+  }, [campaignId, activeId, dbg]); // React to campaign and active map changes
 
   // Note: We avoid re-calling transferControlToOffscreen on the same canvas.
   // Instead, the <canvas> below is keyed by campaignId to force a remount when
@@ -156,13 +235,12 @@ export const CanvasViewport: React.FC = () => {
       typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const cw = Math.max(1, size.w);
     const ch = Math.max(1, size.h);
-    // Always set CSS size and send resize to worker to avoid race/bitmap mismatch
+    // Always set CSS presentation size.
+    // IMPORTANT: When using OffscreenCanvas, do NOT set the canvas width/height
+    // attributes after transferControlToOffscreen(); it throws InvalidStateError.
     canvas.style.width = `${cw}px`;
     canvas.style.height = `${ch}px`;
-    // Set element attributes too; while Offscreen owns the bitmap, some UAs
-    // align presentation better when width/height attributes mirror CSS size.
-    if (canvas.width !== cw) canvas.width = cw;
-    if (canvas.height !== ch) canvas.height = ch;
+    // Leave intrinsic size management to the worker; fallback path handles it locally.
     lastCanvasDimsRef.current = { dpr, w: cw, h: ch };
     svc.resize({ w: cw, h: ch }, dpr);
     const frame: SceneFrame = {
@@ -182,316 +260,6 @@ export const CanvasViewport: React.FC = () => {
     // Schedule a follow-up render on the next animation frame to catch any
     // late resize/bitmap updates inside the worker (belt and suspenders).
     requestAnimationFrame(() => svc.render(frame));
-  }, [aspect, paperColor, layersKey, size.w, size.h, layers, palette]);
-
-  // Fallback main-thread draw when worker unavailable
-  useEffect(() => {
-    if (useWorker) return; // worker handles rendering
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    let raf = 0;
-    const draw = () => {
-      const dpr =
-        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-      const cw = Math.max(1, size.w);
-      const ch = Math.max(1, size.h);
-      const last = lastCanvasDimsRef.current;
-      if (last.dpr !== dpr || last.w !== cw || last.h !== ch) {
-        canvas.style.width = `${cw}px`;
-        canvas.style.height = `${ch}px`;
-        canvas.width = Math.floor(cw * dpr);
-        canvas.height = Math.floor(ch * dpr);
-        lastCanvasDimsRef.current = { dpr, w: cw, h: ch };
-      }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, cw, ch);
-      const paddingX = Math.max(12, cw * 0.05);
-      const paddingY = 12;
-      const availW = cw - paddingX * 2;
-      const availH = ch - paddingY * 2;
-      const { aw, ah } = parseAspect(aspect);
-      // Width-first sizing: use available width, then cap by available height if needed
-      let paperW = availW;
-      let paperH = (paperW * ah) / aw;
-      if (paperH > availH) {
-        paperH = availH;
-        paperW = (paperH * aw) / ah;
-      }
-      const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
-      const paperY = paddingY;
-      // Paper
-      ctx.save();
-      ctx.fillStyle = paperColor;
-      ctx.fillRect(paperX, paperY, paperW, paperH);
-      ctx.restore();
-      // Clip & draw layers (hex noise, then hexgrid)
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(paperX, paperY, paperW, paperH);
-      ctx.clip();
-      ctx.translate(paperX, paperY);
-      // Draw all non-grid visible layers in array order (bottom -> top)
-      for (const l of layers) {
-        if (!l.visible || l.type === "hexgrid") continue;
-        // Hex Noise layer
-        if (l.type === "hexnoise") {
-          const gridLayer = layers.find(
-            (g) => g.type === "hexgrid" && g.visible,
-          );
-          const st = (l.state ?? {}) as Record<string, unknown>;
-          const orientation =
-            (gridLayer?.state as Record<string, unknown> | undefined)
-              ?.orientation === "flat"
-              ? "flat"
-              : "pointy";
-          const r = Math.max(
-            4,
-            Number(
-              (gridLayer?.state as Record<string, unknown> | undefined)?.size ??
-                16,
-            ),
-          );
-          const sqrt3 = Math.sqrt(3);
-          const perlin = createPerlinNoise(String(st.seed ?? "seed"));
-          const freq = Number(st.frequency ?? 0.15);
-          const ox = Number(st.offsetX ?? 0);
-          const oy = Number(st.offsetY ?? 0);
-          const intensity = Math.max(0, Math.min(1, Number(st.intensity ?? 1)));
-          const gamma = Math.max(0.0001, Number(st.gamma ?? 1));
-          const clampMin = Math.max(0, Math.min(1, Number(st.min ?? 0)));
-          const clampMax = Math.max(0, Math.min(1, Number(st.max ?? 1)));
-          const drawHexFill = (
-            cx: number,
-            cy: number,
-            startAngle: number,
-            aq: number,
-            ar: number,
-          ) => {
-            let v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
-            v = Math.pow(v, gamma);
-            if (v < clampMin || v > clampMax) return;
-            const mode = (st.mode as "shape" | "paint" | undefined) ?? "shape";
-            if (mode === "shape") {
-              const g = Math.floor(v * 255 * intensity);
-              ctx.beginPath();
-              for (let i = 0; i < 6; i++) {
-                const ang = startAngle + i * (Math.PI / 3);
-                const px = cx + Math.cos(ang) * r;
-                const py = cy + Math.sin(ang) * r;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
-              }
-              ctx.closePath();
-              ctx.fillStyle = `rgb(${g},${g},${g})`;
-              ctx.fill();
-              return;
-            }
-            const fill =
-              (st.paintColor as string | undefined) ??
-              resolveTerrainFill(
-                palette,
-                (st.terrain as string | undefined) ?? "plains",
-              );
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const ang = startAngle + i * (Math.PI / 3);
-              const px = cx + Math.cos(ang) * r;
-              const py = cy + Math.sin(ang) * r;
-              if (i === 0) ctx.moveTo(px, py);
-              else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.fillStyle = fill;
-            ctx.fill();
-          };
-          if (orientation === "flat") {
-            const colStep = 1.5 * r;
-            const rowStep = sqrt3 * r;
-            const cols = Math.ceil(paperW / colStep) + 2;
-            const rows = Math.ceil(paperH / rowStep) + 2;
-            const centerX = paperW / 2;
-            const centerY = paperH / 2;
-            const cmin = -Math.ceil(cols / 2),
-              cmax = Math.ceil(cols / 2);
-            const rmin = -Math.ceil(rows / 2),
-              rmax = Math.ceil(rows / 2);
-            for (let c = cmin; c <= cmax; c++) {
-              const yOffset = c & 1 ? rowStep / 2 : 0;
-              for (let ri = rmin; ri <= rmax; ri++) {
-                const x = c * colStep + centerX;
-                const y = ri * rowStep + yOffset + centerY;
-                drawHexFill(x, y, 0, c, ri);
-              }
-            }
-          } else {
-            const colStep = sqrt3 * r;
-            const rowStep = 1.5 * r;
-            const cols = Math.ceil(paperW / colStep) + 2;
-            const rows = Math.ceil(paperH / rowStep) + 2;
-            const centerX = paperW / 2;
-            const centerY = paperH / 2;
-            const rmin = -Math.ceil(rows / 2),
-              rmax = Math.ceil(rows / 2);
-            const cmin = -Math.ceil(cols / 2),
-              cmax = Math.ceil(cols / 2);
-            for (let ri = rmin; ri <= rmax; ri++) {
-              const xOffset = ri & 1 ? colStep / 2 : 0;
-              for (let c = cmin; c <= cmax; c++) {
-                const x = c * colStep + xOffset + centerX;
-                const y = ri * rowStep + centerY;
-                drawHexFill(x, y, -Math.PI / 6, c, ri);
-              }
-            }
-          }
-          continue;
-        }
-        // Freeform layer
-        if (l.type === "freeform") {
-          const st = (l.state ?? {}) as Record<string, unknown>;
-          const cells =
-            (st["cells"] as Record<
-              string,
-              { terrainId?: string; color?: string }
-            >) || {};
-          const gridLayer = layers.find(
-            (g) => g.type === "hexgrid" && g.visible,
-          );
-          if (!gridLayer) continue;
-          const gst = (gridLayer.state ?? {}) as Record<string, unknown>;
-          const r = Math.max(4, Number(gst.size ?? 16));
-          const orientation = gst.orientation === "flat" ? "flat" : "pointy";
-          const originX = paperW / 2;
-          const originY = paperH / 2;
-          ctx.save();
-          const opacity = Math.max(0, Math.min(1, Number(st["opacity"] ?? 1)));
-          ctx.globalAlpha = opacity;
-          for (const [k, cell] of Object.entries(cells)) {
-            const [qs, rs] = k.split(",");
-            const q = Number(qs),
-              rAx = Number(rs);
-            if (!Number.isFinite(q) || !Number.isFinite(rAx)) continue;
-            const cx =
-              originX +
-              (orientation === "pointy"
-                ? Math.sqrt(3) * r * (q + rAx / 2)
-                : 1.5 * r * q);
-            const cy =
-              originY +
-              (orientation === "pointy"
-                ? 1.5 * r * rAx
-                : Math.sqrt(3) * r * (rAx + q / 2));
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const start = orientation === "pointy" ? -Math.PI / 6 : 0;
-              const ang = start + i * (Math.PI / 3);
-              const px = cx + Math.cos(ang) * r;
-              const py = cy + Math.sin(ang) * r;
-              if (i === 0) ctx.moveTo(px, py);
-              else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            const fill =
-              (cell.color as string | undefined) ??
-              resolveTerrainFill(
-                palette,
-                (cell.terrainId as string | undefined) ?? "plains",
-              );
-            ctx.fillStyle = fill;
-            ctx.fill();
-          }
-          ctx.restore();
-          continue;
-        }
-      }
-
-      const layer = layers.find((l) => l.type === "hexgrid" && l.visible);
-      if (layer) {
-        const st = (layer.state ?? {}) as Record<string, unknown>;
-        const r = Math.max(4, Number(st.size ?? 16));
-        const color = resolveGridLine(current ?? null, activeId, {
-          color: st.color as string | undefined,
-        });
-        const alpha = Number(st.alpha ?? 1);
-        const orientation = st.orientation === "flat" ? "flat" : "pointy";
-        const sqrt3 = Math.sqrt(3);
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = Math.max(1, Number(st.lineWidth ?? 1)); // CSS px
-        const drawHex = (cx: number, cy: number, startAngle: number) => {
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-            const ang = startAngle + i * (Math.PI / 3);
-            const px = cx + Math.cos(ang) * r;
-            const py = cy + Math.sin(ang) * r;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.stroke();
-        };
-        if (orientation === "flat") {
-          const colStep = 1.5 * r;
-          const rowStep = sqrt3 * r;
-          const cols = Math.ceil(paperW / colStep) + 2;
-          const rows = Math.ceil(paperH / rowStep) + 2;
-          const centerX = paperW / 2;
-          const centerY = paperH / 2;
-          const cmin = -Math.ceil(cols / 2),
-            cmax = Math.ceil(cols / 2);
-          const rmin = -Math.ceil(rows / 2),
-            rmax = Math.ceil(rows / 2);
-          for (let c = cmin; c <= cmax; c++) {
-            const yOffset = c & 1 ? rowStep / 2 : 0;
-            for (let ri = rmin; ri <= rmax; ri++) {
-              const x = c * colStep + centerX;
-              const y = ri * rowStep + yOffset + centerY;
-              drawHex(x, y, 0);
-            }
-          }
-        } else {
-          const colStep = sqrt3 * r;
-          const rowStep = 1.5 * r;
-          const cols = Math.ceil(paperW / colStep) + 2;
-          const rows = Math.ceil(paperH / rowStep) + 2;
-          const centerX = paperW / 2;
-          const centerY = paperH / 2;
-          const rmin = -Math.ceil(rows / 2),
-            rmax = Math.ceil(rows / 2);
-          const cmin = -Math.ceil(cols / 2),
-            cmax = Math.ceil(cols / 2);
-          for (let ri = rmin; ri <= rmax; ri++) {
-            const xOffset = ri & 1 ? colStep / 2 : 0;
-            for (let c = cmin; c <= cmax; c++) {
-              const x = c * colStep + xOffset + centerX;
-              const y = ri * rowStep + centerY;
-              drawHex(x, y, -Math.PI / 6);
-            }
-          }
-        }
-        ctx.restore();
-      }
-      ctx.restore();
-
-      // Draw paper outline on top (outside clip)
-      ctx.save();
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 3 / dpr;
-      ctx.strokeRect(
-        paperX + ctx.lineWidth / 2,
-        paperY + ctx.lineWidth / 2,
-        paperW - ctx.lineWidth,
-        paperH - ctx.lineWidth,
-      );
-      ctx.restore();
-
-      // No overlay drawing — cursor is handled via CSS on the canvas element
-    };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
   }, [
     useWorker,
     aspect,
@@ -501,9 +269,53 @@ export const CanvasViewport: React.FC = () => {
     size.h,
     layers,
     palette,
-    current,
-    activeId,
   ]);
+
+  // Fallback main-thread draw when worker unavailable is only enabled for tests.
+  const allowFallback =
+    process.env.NODE_ENV === "test" ||
+    (typeof process !== "undefined" &&
+      typeof process.env !== "undefined" &&
+      process.env.NEXT_PUBLIC_E2E === "1");
+  useEffect(() => {
+    if (useWorker) return;
+    if (!allowFallback) return;
+    let cancelled = false;
+    (async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const dpr =
+        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      try {
+        const mod = await import("@/render/fallback");
+        if (cancelled) return;
+        const Fallback = mod.default as new () => {
+          init: (c: HTMLCanvasElement, d: number) => boolean;
+          resize: (s: { w: number; h: number }, p: number) => void;
+          render: (f: SceneFrame) => void;
+          destroy: () => void;
+        };
+        const svc = new Fallback();
+        const ok = svc.init(canvas, dpr);
+        if (!ok) return;
+        renderSvcRef.current = svc as unknown as RenderService;
+      } catch {
+        // ignore in tests
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (renderSvcRef.current) {
+        try {
+          // best-effort cleanup if we created a fallback svc
+          (
+            renderSvcRef.current as unknown as { destroy?: () => void }
+          ).destroy?.();
+        } catch {}
+        renderSvcRef.current = null;
+      }
+    };
+  }, [useWorker, allowFallback]);
 
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
@@ -652,23 +464,50 @@ export const CanvasViewport: React.FC = () => {
     lastPaintKeyRef.current = null;
   };
 
+  const rendererTag = useMemo(
+    () => (useWorker ? "worker" : allowFallback ? "main" : "error"),
+    [useWorker, allowFallback],
+  );
+  const showDebugOverlay = debugEnabled("renderer");
+
   return (
     <div className="h-full w-full overflow-hidden">
-      <div className="pt-4 px-6 h-full min-h-[60vh]" ref={containerRef}>
+      <div
+        className="pt-4 px-6 h-full min-h-[60vh] relative"
+        ref={containerRef}
+      >
         {!active ? (
           <div className="p-8 text-sm text-muted-foreground">
             No active map.
           </div>
         ) : (
-          <canvas
-            key={campaignId || "none"}
-            ref={canvasRef}
-            className="w-full h-full"
-            onPointerMove={onPointerMove}
-            onPointerDown={onPointerDown}
-            onPointerUp={onPointerUp}
-            style={{ cursor: getCursorForTool(activeTool) || "default" }}
-          />
+          <>
+            {!useWorker && !allowFallback ? (
+              <div className="p-4 text-sm text-red-600">
+                Rendering worker failed to initialize.
+                {workerError ? <> - {workerError}</> : null}
+              </div>
+            ) : null}
+            <canvas
+              key={`${campaignId || "none"}:${activeId || "none"}`}
+              ref={canvasRef}
+              className="w-full h-full"
+              id="map-canvas"
+              data-renderer={rendererTag}
+              onPointerMove={onPointerMove}
+              onPointerDown={onPointerDown}
+              onPointerUp={onPointerUp}
+              style={{ cursor: getCursorForTool(activeTool) || "default" }}
+            />
+            {showDebugOverlay ? (
+              <div
+                className="pointer-events-none absolute top-2 left-2 text-[10px] bg-black/40 text-white px-2 py-1 rounded"
+                aria-hidden
+              >
+                <span>renderer: {rendererTag}</span>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
     </div>

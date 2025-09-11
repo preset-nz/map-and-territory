@@ -20,6 +20,8 @@ describe("Save/Load v1", () => {
   });
 
   it("omits derived fields like paintColor on save and restores defaults on load", () => {
+    // Create campaign first (hard-prevent maps without campaign)
+    useCampaignStore.getState().createEmpty({ name: "Test" });
     // Create base campaign + map
     const id = useCampaignStore.getState().addMap({ name: "Map 01" });
     expect(id).toBeTruthy();
@@ -62,6 +64,7 @@ describe("Save/Load v1", () => {
   });
 
   it("round-trips campaign identity and activeMapId via pure functions", () => {
+    useCampaignStore.getState().createEmpty({ name: "Test" });
     const store = useCampaignStore.getState();
     const mapA = store.addMap({ name: "A" });
     const mapB = store.addMap({ name: "B" });

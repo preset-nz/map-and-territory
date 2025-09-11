@@ -22,7 +22,8 @@ export default defineConfig({
   ],
   webServer: {
     // Bind dev server to loopback explicitly to satisfy sandbox
-    command: `HOSTNAME=127.0.0.1 PORT=${PORT} pnpm dev`,
+    // Expose an e2e flag to allow deterministic canvas fallback when OffscreenCanvas is disabled in tests
+    command: `HOSTNAME=127.0.0.1 PORT=${PORT} NEXT_PUBLIC_E2E=1 pnpm dev`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
   },

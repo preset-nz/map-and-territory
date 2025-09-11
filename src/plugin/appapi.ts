@@ -5,7 +5,7 @@ import type { Campaign } from "@/stores/campaign";
 
 export interface CampaignAPI {
   newCampaign: (params?: { name?: string; description?: string }) => Campaign;
-  newMap: (params?: { name?: string; description?: string }) => string; // returns mapId
+  newMap: (params?: { name?: string; description?: string }) => string | null; // returns mapId or null when no campaign
   deleteMap: (id: string) => void;
   selectCampaign: () => void;
   selectMap: (id: string) => void;
@@ -35,8 +35,10 @@ export function getAppAPI(): AppAPI {
           name: params?.name,
           description: params?.description ?? "",
         });
-        useCampaignStore.getState().selectMap(id);
-        useSelectionStore.getState().selectMap(id);
+        if (id) {
+          useCampaignStore.getState().selectMap(id);
+          useSelectionStore.getState().selectMap(id);
+        }
         return id;
       },
       deleteMap: (id) => {
