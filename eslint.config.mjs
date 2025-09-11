@@ -34,7 +34,19 @@ const eslintConfig = [
       "next-env.d.ts",
       "**/*.md",
       "**/*.mdx",
+      // keep test artifacts, reports, and misc out of lint
+      // Note: root tool configs are matched separately below (not ignored)
     ],
+  },
+  // Minimal config for root tool files so ESLint doesn't warn
+  // when they are passed directly (e.g., via lint-staged).
+  {
+    files: ["playwright.config.ts"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+    },
+    rules: {},
   },
   // Relaxed rules for test files
   {

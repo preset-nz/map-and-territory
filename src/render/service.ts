@@ -4,16 +4,35 @@ export class RenderService {
   private worker: Worker | null = null;
   private canvas: HTMLCanvasElement | null = null;
   private offscreen: OffscreenCanvas | null = null;
+  private ready = false;
+  private queue: Array<RenderMessage> = [];
 
   init(canvas: HTMLCanvasElement, pixelRatio: number): boolean {
     this.canvas = canvas;
-    const offscreen = canvas.transferControlToOffscreen?.();
-    if (!offscreen) return false; // fallback: not supported
+    let offscreen: OffscreenCanvas | null = null;
+    try {
+      offscreen =
+        canvas.transferControlToOffscreen?.() as OffscreenCanvas | null;
+    } catch {
+      // Calling transferControlToOffscreen twice on the same canvas throws.
+      // Fail gracefully so the host can choose a fallback path.
+      offscreen = null;
+    }
+    if (!offscreen) return false; // fallback: not supported or already transferred
     this.offscreen = offscreen as OffscreenCanvas;
     try {
       this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
         type: "module",
       });
+      this.ready = false;
+      this.worker.onmessage = (ev: MessageEvent<RenderMessage>) => {
+        if (ev.data?.type === "inited") {
+          this.ready = true;
+          // flush queued messages in order
+          for (const msg of this.queue) this.worker?.postMessage(msg);
+          this.queue = [];
+        }
+      };
       const initMsg: RenderMessage = {
         type: "init",
         canvas: this.offscreen,
@@ -32,13 +51,15 @@ export class RenderService {
   resize(size: { w: number; h: number }, pixelRatio: number) {
     if (!this.worker) return;
     const msg: RenderMessage = { type: "resize", size, pixelRatio };
-    this.worker.postMessage(msg);
+    if (this.ready) this.worker.postMessage(msg);
+    else this.queue.push(msg);
   }
 
   render(frame: SceneFrame) {
     if (!this.worker) return;
     const msg: RenderMessage = { type: "render", frame };
-    this.worker.postMessage(msg);
+    if (this.ready) this.worker.postMessage(msg);
+    else this.queue.push(msg);
   }
 
   destroy() {
@@ -47,6 +68,8 @@ export class RenderService {
     this.worker = null;
     this.offscreen = null;
     this.canvas = null;
+    this.ready = false;
+    this.queue = [];
   }
 }
 

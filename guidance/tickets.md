@@ -46,23 +46,9 @@ T-014 [C] E2E Expansion
 - Goal: Extend E2E for rename/reorder flows, palette switching, dark mode visuals.
 - Acceptance: New specs green and stable.
 
-T-015 [M] Save/Load Campaign
-
-- Goal: Export/import campaign (JSON) with versioned schema; minimal UI.
-- Links: src/components/layout/app-header.tsx (menu/buttons), src/stores/project/index.ts (serialize/deserialize)
-- Acceptance:
-  - v1 JSON schema defined and documented (“campaign” terminology). No backward compatibility required; loader accepts only v1.
-  - Save downloads JSON with `version` and `campaign` root; Load restores campaign/maps/layers and active selection; round‑trip tests.
-  - Optional localStorage autosave behind a toggle (non-blocking).
-  - Save downloads JSON with version field; Load restores project/maps/layers; tests for round‑trip.
-  - Optional localStorage autosave enabled behind a toggle.
-  - Layer persistence uses adapter hooks when available (`serialize`/`deserialize` on `LayerAdapter`); host falls back to raw `state` passthrough for simple types.
-  - Persist per‑layer `{ pluginId?, typeId, typeVersion? }` metadata to enable migrations; unknown plugins round‑trip their opaque payload and render as placeholders.
-  - Do not persist derived/cache fields (e.g., `paintColor` in hex‑noise); rehydrate from active palette or plugin logic.
-
 Dependencies & Order
 
-- Phase 1: T-015, T-020
+- Phase 1: T-020
 - Phase 2: T-023, T-007, T-008, T-009b, T-010
 - Phase 3: T-011, T-013, T-014, T-018
 

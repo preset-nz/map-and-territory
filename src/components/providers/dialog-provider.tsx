@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { setDialogApi } from "@/components/providers/dialog-global";
 
 type DialogKind = "alert" | "confirm" | "prompt";
 
@@ -98,6 +99,12 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
     }),
     [open],
   );
+
+  // Expose a minimal global bridge for non-React command handlers
+  React.useEffect(() => {
+    setDialogApi(api);
+    return () => setDialogApi(null);
+  }, [api]);
 
   const onClose = () => setState({ kind: "idle" });
 

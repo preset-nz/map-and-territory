@@ -52,6 +52,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ className = "" }) => {
   const setTheme = useLayoutStore((state) => state.setTheme);
   const { user, isAuthenticated, logout } = useAuth();
   const projectName = useCampaignStore((s) => s.current?.name);
+  const dirty = useCampaignStore((s) => s.dirty);
 
   /**
    * Handle theme toggle action
@@ -142,8 +143,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ className = "" }) => {
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Map & Territory</h1>
           {projectName && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
               — {projectName}
+              {dirty ? (
+                <span
+                  className="text-amber-500"
+                  title="Unsaved changes"
+                  aria-label="Unsaved changes"
+                  data-testid="unsaved-dot-header"
+                >
+                  •
+                </span>
+              ) : null}
             </span>
           )}
         </div>

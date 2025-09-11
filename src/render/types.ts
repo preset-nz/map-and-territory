@@ -39,6 +39,7 @@ export interface RenderBackend {
 // Worker protocol
 export type RenderMessage =
   | { type: "init"; canvas: OffscreenCanvas; pixelRatio: number }
+  | { type: "inited" }
   | { type: "resize"; size: { w: number; h: number }; pixelRatio: number }
   | { type: "render"; frame: SceneFrame }
   | { type: "destroy" };

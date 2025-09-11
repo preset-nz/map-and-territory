@@ -21,7 +21,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `PORT=${PORT} pnpm dev`,
+    // Bind dev server to loopback explicitly to satisfy sandbox
+    command: `HOSTNAME=127.0.0.1 PORT=${PORT} pnpm dev`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
   },

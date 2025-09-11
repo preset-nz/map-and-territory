@@ -1,26 +1,48 @@
 /// <reference lib="webworker" />
-import type { RenderMessage } from '@/render/types';
-import { Canvas2DBackend } from '@/render/backends/canvas2d';
+import type { RenderMessage } from "@/render/types";
+import { Canvas2DBackend } from "@/render/backends/canvas2d";
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
 
-function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
+function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
   backend = new Canvas2DBackend();
   canvasRef = msg.canvas;
   backend.init(msg.canvas, msg.pixelRatio);
+  // Acknowledge initialization to the main thread
+  (self as unknown as { postMessage: (m: RenderMessage) => void }).postMessage({
+    type: "inited",
+  });
 }
 
-function handleResize(msg: Extract<RenderMessage, { type: 'resize' }>) {
+function handleResize(msg: Extract<RenderMessage, { type: "resize" }>) {
   if (canvasRef) {
     // Resize bitmap to device pixels
-    canvasRef.width = Math.max(1, Math.floor(msg.size.w * (msg.pixelRatio || 1)));
-    canvasRef.height = Math.max(1, Math.floor(msg.size.h * (msg.pixelRatio || 1)));
+    canvasRef.width = Math.max(
+      1,
+      Math.floor(msg.size.w * (msg.pixelRatio || 1)),
+    );
+    canvasRef.height = Math.max(
+      1,
+      Math.floor(msg.size.h * (msg.pixelRatio || 1)),
+    );
   }
   backend?.resize(msg.size, msg.pixelRatio);
 }
 
-function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
+function handleRender(msg: Extract<RenderMessage, { type: "render" }>) {
+  // Defensive: ensure the bitmap matches incoming frame size × dpr
+  const dpr = msg.frame.pixelRatio || 1;
+  const targetW = Math.max(1, Math.floor(msg.frame.size.w * dpr));
+  const targetH = Math.max(1, Math.floor(msg.frame.size.h * dpr));
+  if (
+    canvasRef &&
+    (canvasRef.width !== targetW || canvasRef.height !== targetH)
+  ) {
+    canvasRef.width = targetW;
+    canvasRef.height = targetH;
+    backend?.resize(msg.frame.size, dpr);
+  }
   backend?.render(msg.frame);
 }
 
@@ -33,10 +55,18 @@ function handleDestroy() {
 self.onmessage = (ev: MessageEvent<RenderMessage>) => {
   const msg = ev.data;
   switch (msg.type) {
-    case 'init': handleInit(msg); break;
-    case 'resize': handleResize(msg); break;
-    case 'render': handleRender(msg); break;
-    case 'destroy': handleDestroy(); break;
+    case "init":
+      handleInit(msg);
+      break;
+    case "resize":
+      handleResize(msg);
+      break;
+    case "render":
+      handleRender(msg);
+      break;
+    case "destroy":
+      handleDestroy();
+      break;
   }
 };
 
