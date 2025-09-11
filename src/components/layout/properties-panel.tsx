@@ -3,23 +3,26 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { ColorField, SelectField } from "@/components/properties";
+import {
+  ColorField,
+  SelectField,
+  CheckboxField,
+} from "@/components/properties";
 import { Slider } from "@/components/ui/slider";
-import { getPropertySchema } from "@/properties/registry";
+import {
+  getPropertySchema,
+  type PropertySchema,
+  type FieldDef,
+  type SelectFieldDef,
+  type NumberFieldDef,
+  type SliderFieldDef,
+  type TextareaFieldDef,
+} from "@/properties/registry";
 import { Separator } from "@/components/ui/separator";
-
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
 import { useCampaignStore } from "@/stores/campaign";
-import { TerrainSettings } from "@/palettes/settings";
 import { AppAPI } from "@/appapi";
-import { executeCommand } from "@/lib/commands";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface PropertiesPanelProps {
   className?: string;
@@ -41,9 +44,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         Properties
       </div>
       <div className="p-3 space-y-4 overflow-auto">
-        <CampaignProperties />
-        <MapProperties />
-        <LayerPropertiesGeneric />
+        <GenericProperties />
       </div>
     </div>
   );
@@ -72,182 +73,142 @@ const Group: React.FC<{
   </div>
 );
 
-const CampaignProperties: React.FC = () => {
+const GenericProperties: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
   const campaign = useCampaignStore((s) => s.current);
-  const rename = useCampaignStore((s) => s.rename);
-  const setDescription = useCampaignStore((s) => s.setDescription);
-  if (selection.kind !== "campaign" || !campaign) return null;
-  const settings = TerrainSettings.getAllSettings();
-  const selectedId = campaign.settingId ?? "doom-forge";
-  const options = settings.map((s) => ({ label: s.name, value: s.id }));
-  return (
-    <Group title="Campaign">
-      <div>
-        <FieldLabel label="Name" />
-        <Input
-          value={campaign.name}
-          onChange={(e) => rename(e.target.value)}
-          placeholder="Untitled Campaign"
-          aria-label="Campaign Name"
-        />
-      </div>
-      <div>
-        <FieldLabel label="Description" />
-        <Textarea
-          value={campaign.description ?? ""}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description"
-          rows={5}
-          aria-label="Campaign Description"
-        />
-      </div>
-      <div>
-        <FieldLabel label="Setting (Palette)" />
-        <SelectField
-          label="Setting"
-          value={selectedId}
-          options={options}
-          onChange={(val) => {
-            void executeCommand("app.palette.setCampaignSetting", {
-              settingId: val,
-            });
-          }}
-        />
-        <PalettePreview settingId={selectedId} />
-      </div>
-    </Group>
-  );
-};
-
-const MapProperties: React.FC = () => {
-  const selection = useSelectionStore((s) => s.selection);
-  const campaign = useCampaignStore((s) => s.current);
+  const renameCampaign = useCampaignStore((s) => s.rename);
+  const setCampaignDescription = useCampaignStore((s) => s.setDescription);
+  const setCampaignSetting = useCampaignStore((s) => s.setCampaignSetting);
   const renameMap = useCampaignStore((s) => s.renameMap);
   const setMapDescription = useCampaignStore((s) => s.setMapDescription);
-  const setMapPaperAspect = useCampaignStore((s) => s.setMapPaperAspect);
-  const setMapPaperColor = useCampaignStore((s) => s.setMapPaperColor);
-  if (selection.kind !== "map" || !campaign) return null;
-  const map = campaign.maps.find((m) => m.id === selection.id);
-  if (!map) return null;
-  const resetPaper = () => {
-    setMapPaperAspect(map.id, "16:10");
-    setMapPaperColor(map.id, "#ffffff");
-  };
-  const settings = TerrainSettings.getAllSettings();
-  const options = settings.map((s) => ({ label: s.name, value: s.id }));
-  const hasOverride = !!map.settingId;
-  const effectiveSetting = AppAPI.palette.settingId();
-  const selectedId = map.settingId ?? effectiveSetting;
-  return (
-    <Group
-      title="Map"
-      actions={
-        <Button size="sm" variant="outline" onClick={resetPaper}>
-          Reset Paper
-        </Button>
-      }
-    >
-      <div>
-        <FieldLabel label="Title" />
-        <Input
-          value={map.name}
-          onChange={(e) => renameMap(map.id, e.target.value)}
-          placeholder="Untitled Map"
-          aria-label="Map Title"
-        />
-      </div>
-      <div>
-        <FieldLabel label="Description" />
-        <Textarea
-          value={map.description ?? ""}
-          onChange={(e) => setMapDescription(map.id, e.target.value)}
-          placeholder="Optional description"
-          rows={4}
-          aria-label="Map Description"
-        />
-      </div>
-      {/* Map visibility control removed; visibility implied by active selection */}
-      <Group title="Advanced">
-        <div>
-          <FieldLabel label="Override Campaign Setting" />
-          <div className="flex items-center gap-2">
-            <input
-              id="map-override-toggle"
-              type="checkbox"
-              checked={hasOverride}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  // enable with current effective setting as initial value
-                  void executeCommand("app.palette.setMapSetting", {
-                    mapId: map.id,
-                    settingId: selectedId,
-                  });
-                } else {
-                  void executeCommand("app.palette.clearMapSetting", {
-                    mapId: map.id,
-                  });
-                }
-              }}
-            />
-            <label htmlFor="map-override-toggle" className="text-sm">
-              Per‑map override
-            </label>
-          </div>
-        </div>
-        <div className={hasOverride ? "" : "opacity-50 pointer-events-none"}>
-          <FieldLabel label="Map Setting (when override on)" />
-          <SelectField
-            label="Map Setting"
-            value={selectedId}
-            options={options}
-            onChange={(val) => {
-              if (!hasOverride) return;
-              void executeCommand("app.palette.setMapSetting", {
-                mapId: map.id,
-                settingId: val,
-              });
-            }}
-          />
-          <PalettePreview settingId={selectedId} />
-        </div>
-      </Group>
-    </Group>
-  );
-};
-
-const LayerPropertiesGeneric: React.FC = () => {
-  const selection = useSelectionStore((s) => s.selection);
-  const campaign = useCampaignStore((s) => s.current);
+  const setMapSetting = useCampaignStore((s) => s.setMapSetting);
   const updateLayerState = useCampaignStore((s) => s.updateLayerState);
   const renameLayer = useCampaignStore((s) => s.renameLayer);
-  if (selection.kind !== "layer" || !campaign) return null;
-  const map = campaign.maps.find((m) => m.id === campaign.activeMapId);
-  if (!map) return null;
-  const layer = (map.layers ?? []).find((l) => l.id === selection.id);
-  if (!layer) return null;
-  const scope = `layer:${layer.type}`;
-  const schema = getPropertySchema(scope);
-  if (!schema) return null;
-  const getVal = (path: string) =>
-    (layer.state as Record<string, unknown> | undefined)?.[
-      path as keyof Record<string, unknown>
-    ];
-  const setVal = (path: string, val: unknown) =>
-    updateLayerState(layer.id, { [path]: val });
+
+  if (!campaign) return null;
+
+  if (selection.kind === "campaign") {
+    const schema = getPropertySchema("campaign");
+    if (!schema) return null;
+    const getVal = (path: string) => {
+      switch (path) {
+        case "name":
+          return campaign.name;
+        case "description":
+          return campaign.description ?? "";
+        case "settingId":
+          return campaign.settingId ?? AppAPI.palette.settingId();
+        default:
+          return undefined;
+      }
+    };
+    const setVal = (path: string, val: unknown) => {
+      if (path === "name" && typeof val === "string") renameCampaign(val);
+      else if (path === "description" && typeof val === "string")
+        setCampaignDescription(val);
+      else if (path === "settingId") setCampaignSetting(String(val || ""));
+    };
+    return <>{renderSchemaGroups(schema, getVal, setVal)}</>;
+  }
+
+  if (selection.kind === "map") {
+    const map = campaign.maps.find((m) => m.id === selection.id);
+    if (!map) return null;
+    const schema = getPropertySchema("map");
+    if (!schema) return null;
+    const getVal = (path: string) => {
+      switch (path) {
+        case "name":
+          return map.name;
+        case "description":
+          return map.description ?? "";
+        case "overrideEnabled":
+          return Boolean(map.settingId);
+        case "settingId":
+          return map.settingId ?? AppAPI.palette.settingId();
+        default:
+          return undefined;
+      }
+    };
+    const setVal = (path: string, val: unknown) => {
+      switch (path) {
+        case "name":
+          if (typeof val === "string") renameMap(map.id, val);
+          break;
+        case "description":
+          if (typeof val === "string") setMapDescription(map.id, val);
+          break;
+        case "overrideEnabled": {
+          const checked = Boolean(val);
+          if (checked) setMapSetting(map.id, AppAPI.palette.settingId());
+          else setMapSetting(map.id, undefined);
+          break;
+        }
+        case "settingId":
+          setMapSetting(map.id, String(val || ""));
+          break;
+      }
+    };
+    return <>{renderSchemaGroups(schema, getVal, setVal)}</>;
+  }
+
+  if (selection.kind === "layer") {
+    const map = campaign.maps.find((m) => m.id === campaign.activeMapId);
+    if (!map) return null;
+    const layer = (map.layers ?? []).find((l) => l.id === selection.id);
+    if (!layer) return null;
+    const scope = `layer:${layer.type}`;
+    const schema = getPropertySchema(scope);
+    const getVal = (path: string) =>
+      (layer.state as Record<string, unknown> | undefined)?.[
+        path as keyof Record<string, unknown>
+      ];
+    const setVal = (path: string, val: unknown) => {
+      if (layer.type === "hexnoise" && path === "terrainId") {
+        const color = val ? AppAPI.palette.fillById(String(val)) : undefined;
+        updateLayerState(layer.id, {
+          terrainId: val || undefined,
+          paintColor: color,
+        });
+        return;
+      }
+      if (layer.type === "freeform" && path === "brushTerrainId") {
+        const color = val ? AppAPI.palette.fillById(String(val)) : undefined;
+        updateLayerState(layer.id, {
+          brushTerrainId: val || undefined,
+          brushColor: color,
+        });
+        return;
+      }
+      updateLayerState(layer.id, { [path]: val });
+    };
+    return (
+      <>
+        <Group title="Layer">
+          <div>
+            <FieldLabel label="Name" />
+            <Input
+              aria-label="Layer Name"
+              value={layer.name ?? ""}
+              onChange={(e) => renameLayer(layer.id, e.target.value)}
+              placeholder="Layer Name"
+            />
+          </div>
+        </Group>
+        {schema ? renderSchemaGroups(schema, getVal, setVal) : null}
+      </>
+    );
+  }
+  return null;
+};
+
+function renderSchemaGroups(
+  schema: PropertySchema,
+  getVal: (path: string) => unknown,
+  setVal: (path: string, val: unknown) => void,
+) {
   return (
     <>
-      <Group title="Layer">
-        <div>
-          <FieldLabel label="Name" />
-          <Input
-            aria-label="Layer Name"
-            value={layer.name ?? ""}
-            onChange={(e) => renameLayer(layer.id, e.target.value)}
-            placeholder="Layer Name"
-          />
-        </div>
-      </Group>
       {schema.groups.map((g) => (
         <Group key={g.id} title={g.title}>
           {g.rows.map((row, idx) => {
@@ -257,99 +218,116 @@ const LayerPropertiesGeneric: React.FC = () => {
                 key={idx}
                 className={fields.length > 1 ? "grid grid-cols-2 gap-2" : ""}
               >
-                {fields.map((f) => {
+                {fields.map((f: FieldDef) => {
+                  const disabled = (() => {
+                    const cond = f.disabledWhen as
+                      | { path: string; equals?: unknown; notEquals?: unknown }
+                      | undefined;
+                    if (!cond) return false;
+                    const v = getVal(cond.path);
+                    if (Object.prototype.hasOwnProperty.call(cond, "equals"))
+                      return v === cond.equals;
+                    if (Object.prototype.hasOwnProperty.call(cond, "notEquals"))
+                      return v !== cond.notEquals;
+                    return false;
+                  })();
+
                   if (f.kind === "select") {
                     const v = getVal(f.path) ?? "";
-                    const isHexNoiseTerrain =
-                      scope === "layer:hexnoise" && f.id === "terrainId";
-                    if (isHexNoiseTerrain) {
-                      const entries = AppAPI.palette.list();
-                      const options = [
-                        { value: "", label: "— Select Terrain —" },
-                        ...entries.map((e) => ({
-                          value: e.id,
-                          label: e.themedName,
-                        })),
-                      ];
-                      return (
-                        <SelectField
-                          key={f.id}
-                          label={f.label}
-                          value={String(v)}
-                          options={options}
-                          onChange={(val) => {
-                            const color = val
-                              ? AppAPI.palette.fillById(val)
-                              : undefined;
-                            updateLayerState(layer.id, {
-                              terrainId: val || undefined,
-                              paintColor: color,
-                            });
-                          }}
-                        />
-                      );
-                    }
-                    const isFreeformBrushTerrain =
-                      scope === "layer:freeform" && f.id === "brushTerrainId";
-                    if (isFreeformBrushTerrain) {
-                      const entries = AppAPI.palette.list();
-                      const options = [
-                        { value: "", label: "— Select Terrain —" },
-                        ...entries.map((e) => ({
-                          value: e.id,
-                          label: e.themedName,
-                        })),
-                      ];
-                      return (
-                        <SelectField
-                          key={f.id}
-                          label={f.label}
-                          value={String(v)}
-                          options={options}
-                          onChange={(val) => {
-                            const color = val
-                              ? AppAPI.palette.fillById(val)
-                              : undefined;
-                            updateLayerState(layer.id, {
-                              brushTerrainId: val || undefined,
-                              brushColor: color,
-                            });
-                          }}
-                        />
-                      );
-                    }
+                    const sel = f as SelectFieldDef;
+                    const options = sel.optionsProvider
+                      ? sel.optionsProvider(AppAPI)
+                      : (sel.options ?? []);
                     return (
-                      <SelectField
+                      <div
                         key={f.id}
-                        label={f.label}
-                        value={String(v)}
-                        options={f.options}
-                        onChange={(val) => setVal(f.path, val)}
-                      />
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
+                        <SelectField
+                          label={f.label}
+                          value={String(v)}
+                          options={options}
+                          onChange={(val) => setVal(f.path, val)}
+                        />
+                      </div>
                     );
                   }
                   if (f.kind === "color") {
                     const v = getVal(f.path) ?? "#ffffff";
                     return (
-                      <ColorField
+                      <div
                         key={f.id}
-                        label={f.label}
-                        value={String(v)}
-                        onChange={(val) => setVal(f.path, val)}
-                      />
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
+                        <ColorField
+                          label={f.label}
+                          value={String(v)}
+                          onChange={(val) => setVal(f.path, val)}
+                        />
+                      </div>
+                    );
+                  }
+                  if (f.kind === "text") {
+                    const v = String(getVal(f.path) ?? "");
+                    return (
+                      <div
+                        key={f.id}
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
+                        <FieldLabel label={f.label || f.id} />
+                        <Input
+                          type="text"
+                          aria-label={f.label || f.id}
+                          value={v}
+                          onChange={(e) => setVal(f.path, e.target.value)}
+                        />
+                      </div>
+                    );
+                  }
+                  if (f.kind === "textarea") {
+                    const v = String(getVal(f.path) ?? "");
+                    const tf = f as TextareaFieldDef;
+                    return (
+                      <div
+                        key={f.id}
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
+                        <FieldLabel label={f.label || f.id} />
+                        <Textarea
+                          aria-label={f.label || f.id}
+                          value={v}
+                          rows={tf.rows ?? 3}
+                          onChange={(e) => setVal(f.path, e.target.value)}
+                        />
+                      </div>
                     );
                   }
                   if (f.kind === "number") {
                     const v = Number(getVal(f.path) ?? 0);
+                    const nf = f as NumberFieldDef;
                     return (
-                      <div key={f.id}>
+                      <div
+                        key={f.id}
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
                         <FieldLabel label={f.label || f.id} />
                         <Input
                           type="number"
+                          aria-label={f.label || f.id}
                           value={v}
-                          min={f.min}
-                          max={f.max}
-                          step={f.step ?? 1}
+                          min={nf.min}
+                          max={nf.max}
+                          step={nf.step ?? 1}
                           onChange={(e) =>
                             setVal(f.path, Number(e.target.value))
                           }
@@ -359,15 +337,38 @@ const LayerPropertiesGeneric: React.FC = () => {
                   }
                   if (f.kind === "slider") {
                     const v = Number(getVal(f.path) ?? 0);
+                    const sf = f as SliderFieldDef;
                     return (
-                      <div key={f.id}>
+                      <div
+                        key={f.id}
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
                         <FieldLabel label={f.label || f.id} />
                         <Slider
                           value={v}
-                          min={f.min}
-                          max={f.max}
-                          step={f.step ?? 1}
+                          min={sf.min}
+                          max={sf.max}
+                          step={sf.step ?? 1}
                           onChange={(val) => setVal(f.path, val)}
+                        />
+                      </div>
+                    );
+                  }
+                  if (f.kind === "checkbox") {
+                    const v = Boolean(getVal(f.path));
+                    return (
+                      <div
+                        key={f.id}
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
+                        <CheckboxField
+                          label={f.label}
+                          checked={v}
+                          onChange={(checked) => setVal(f.path, checked)}
                         />
                       </div>
                     );
@@ -379,85 +380,6 @@ const LayerPropertiesGeneric: React.FC = () => {
           })}
         </Group>
       ))}
-      {layer.type === "hexnoise"
-        ? (() => {
-            const terrainId = (layer.state as Record<string, unknown>)?.[
-              "terrainId"
-            ] as string | undefined;
-            if (!terrainId) return null;
-            const entry = AppAPI.palette.list().find((e) => e.id === terrainId);
-            if (!entry?.description) return null;
-            return (
-              <div className="px-2 text-xs text-muted-foreground">
-                {entry.description}
-              </div>
-            );
-          })()
-        : null}
     </>
   );
-};
-
-const Swatch: React.FC<{ color: string; label?: string; desc?: string }> = ({
-  color,
-  label,
-  desc,
-}) => {
-  const chip = (
-    <div
-      className="h-4 w-4 rounded-sm border"
-      style={{ backgroundColor: color }}
-      aria-hidden
-    />
-  );
-  if (!label && !desc) return chip;
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{chip}</TooltipTrigger>
-      <TooltipContent>
-        <div className="max-w-64">
-          {label ? <div className="font-medium mb-0.5">{label}</div> : null}
-          {desc ? <div className="opacity-80">{desc}</div> : null}
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  );
-};
-
-const PalettePreview: React.FC<{ settingId: string }> = ({ settingId }) => {
-  const s = TerrainSettings.getAllSettings().find((x) => x.id === settingId);
-  if (!s) return null;
-  // Show all terrain swatches from the setting (no base-type assumptions)
-  const entries = s.terrains;
-  return (
-    <div className="mt-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {entries.map((t, i) => (
-          <Swatch
-            key={`${t.id}-${i}`}
-            color={t.color}
-            label={t.themedName}
-            desc={t.description}
-          />
-        ))}
-        <div className="ml-1 flex items-center gap-1 text-xs text-muted-foreground">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className="h-4 w-4 rounded-sm border inline-block"
-                style={{ backgroundColor: s.palette.gridLine }}
-              />
-            </TooltipTrigger>
-            <TooltipContent>Grid Line: {s.palette.gridLine}</TooltipContent>
-          </Tooltip>
-          Grid
-        </div>
-      </div>
-      {s.description ? (
-        <div className="mt-1 text-xs text-muted-foreground">
-          {s.description}
-        </div>
-      ) : null}
-    </div>
-  );
-};
+}

@@ -1,24 +1,65 @@
+import type { PluginManifest, PluginModule } from "@/plugin/types";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
 import { registerLayerType } from "@/layers/registry";
 import { HexgridType } from "@/layers/adapters/hexgrid";
-import type { PluginManifest, PluginModule } from "@/plugin/types";
 
 export const hexgridPluginManifest: PluginManifest = {
   id: "core.hexgrid",
   name: "Hex Grid Layer",
   version: "1.0.0",
-  apiVersion: "1.0.0",
-  priority: 100, // High priority for anchor layer
+  apiVersion: "1.0",
+  priority: 100,
 };
 
 export const hexgridPluginModule: PluginModule = {
-  async activate(ctx) {
-    ctx.log.info("Activating hex grid layer plugin");
+  activate: async () => {
     registerLayerType(HexgridType);
+    registerPropertySchema("layer:hexgrid", {
+      groups: [
+        {
+          id: "hexgrid",
+          title: "Hex Grid",
+          rows: [
+            {
+              kind: "select",
+              id: "orientation",
+              label: "Orientation",
+              path: "orientation",
+              options: [
+                { value: "pointy", label: "Pointy Top" },
+                { value: "flat", label: "Flat Top" },
+              ],
+            },
+            {
+              kind: "slider",
+              id: "size",
+              label: "Hex Size",
+              path: "size",
+              min: 8,
+              max: 120,
+              step: 1,
+            },
+            {
+              kind: "slider",
+              id: "lineWidth",
+              label: "Line Width",
+              path: "lineWidth",
+              min: 1,
+              max: 8,
+              step: 1,
+            },
+            { kind: "color", id: "color", label: "Line Color", path: "color" },
+          ],
+        },
+      ],
+    });
   },
-
-  async deactivate(ctx) {
-    ctx.log.info("Deactivating hex grid layer plugin");
-    // Note: We don't unregister layer types in this implementation
-    // as they may still be referenced in existing projects
+  deactivate: async () => {
+    try {
+      unregisterPropertySchema("layer:hexgrid");
+    } catch {}
   },
 };

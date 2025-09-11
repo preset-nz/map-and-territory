@@ -1,5 +1,10 @@
 import type { PluginManifest, PluginModule } from "@/plugin/types";
 import { registerLayerType } from "@/layers/registry";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
+import { AppAPI } from "@/appapi";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
@@ -34,6 +39,127 @@ export const hexNoiseManifest: PluginManifest = {
 export const hexNoiseModule: PluginModule = {
   activate: () => {
     registerLayerType(HexNoiseType);
+    // Register Hex Noise properties schema
+    registerPropertySchema("layer:hexnoise", {
+      groups: [
+        {
+          id: "noise",
+          title: "Hex Noise",
+          rows: [
+            [
+              {
+                kind: "select",
+                id: "mode",
+                label: "Mode",
+                path: "mode",
+                options: [
+                  { value: "shape", label: "Shape (Grayscale)" },
+                  { value: "paint", label: "Paint (Terrain)" },
+                ],
+              },
+              {
+                kind: "select",
+                id: "terrainId",
+                label: "Terrain",
+                path: "terrainId",
+                options: [{ value: "", label: "— Select Terrain —" }],
+                optionsProvider: (app: unknown) => {
+                  try {
+                    type AppApi = typeof AppAPI;
+                    const api = app as AppApi;
+                    const entries = api.palette.list();
+                    return [
+                      { value: "", label: "— Select Terrain —" },
+                      ...entries.map((e) => ({
+                        value: e.id,
+                        label: e.themedName,
+                      })),
+                    ];
+                  } catch {
+                    return [{ value: "", label: "— Select Terrain —" }];
+                  }
+                },
+              },
+            ],
+            [
+              { kind: "text", id: "seed", label: "Seed", path: "seed" },
+              {
+                kind: "number",
+                id: "frequency",
+                label: "Frequency",
+                path: "frequency",
+                min: 0.01,
+                max: 5,
+                step: 0.01,
+              },
+            ],
+            [
+              {
+                kind: "number",
+                id: "offsetX",
+                label: "Offset X",
+                path: "offsetX",
+                min: -1000,
+                max: 1000,
+                step: 0.1,
+              },
+              {
+                kind: "number",
+                id: "offsetY",
+                label: "Offset Y",
+                path: "offsetY",
+                min: -1000,
+                max: 1000,
+                step: 0.1,
+              },
+            ],
+            [
+              {
+                kind: "number",
+                id: "gamma",
+                label: "Gamma",
+                path: "gamma",
+                min: 0.1,
+                max: 5,
+                step: 0.1,
+              },
+              {
+                kind: "slider",
+                id: "intensity",
+                label: "Intensity",
+                path: "intensity",
+                min: 0,
+                max: 1,
+                step: 0.01,
+              },
+            ],
+            [
+              {
+                kind: "number",
+                id: "min",
+                label: "Clamp Min",
+                path: "min",
+                min: 0,
+                max: 1,
+                step: 0.01,
+              },
+              {
+                kind: "number",
+                id: "max",
+                label: "Clamp Max",
+                path: "max",
+                min: 0,
+                max: 1,
+                step: 0.01,
+              },
+            ],
+          ],
+        },
+      ],
+    });
+  },
+  deactivate: () => {
+    unregisterPropertySchema("layer:hexnoise");
   },
   commands: {
     "layer.hexnoise.add": () => {

@@ -1,5 +1,10 @@
 import type { PluginManifest, PluginModule } from "@/plugin/types";
 import { registerLayerType } from "@/layers/registry";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
+import { AppAPI } from "@/appapi";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
@@ -66,6 +71,60 @@ export const freeformModule: PluginModule = {
     // Declare CSS cursors for tools
     registerToolCursor("paint", "crosshair");
     registerToolCursor("erase", "cell");
+    // Register Freeform properties schema
+    registerPropertySchema("layer:freeform", {
+      groups: [
+        {
+          id: "freeform",
+          title: "Freeform",
+          rows: [
+            {
+              kind: "slider",
+              id: "opacity",
+              label: "Opacity",
+              path: "opacity",
+              min: 0,
+              max: 1,
+              step: 0.01,
+            },
+            [
+              {
+                kind: "select",
+                id: "brushTerrainId",
+                label: "Brush Terrain",
+                path: "brushTerrainId",
+                options: [{ value: "", label: "— Select Terrain —" }],
+                optionsProvider: (app: unknown) => {
+                  try {
+                    type AppApi = typeof AppAPI;
+                    const api = app as AppApi;
+                    const entries = api.palette.list();
+                    return [
+                      { value: "", label: "— Select Terrain —" },
+                      ...entries.map((e) => ({
+                        value: e.id,
+                        label: e.themedName,
+                      })),
+                    ];
+                  } catch {
+                    return [{ value: "", label: "— Select Terrain —" }];
+                  }
+                },
+              },
+              {
+                kind: "color",
+                id: "brushColor",
+                label: "Brush Color (Override)",
+                path: "brushColor",
+              },
+            ],
+          ],
+        },
+      ],
+    });
+  },
+  deactivate: () => {
+    unregisterPropertySchema("layer:freeform");
   },
   commands: {
     "layer.freeform.add": () => {

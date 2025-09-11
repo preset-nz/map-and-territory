@@ -1,5 +1,10 @@
 import type { PluginManifest, PluginModule } from "@/plugin/types";
 import { getAppAPI } from "@/plugin/appapi";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
+import { AppAPI } from "@/appapi";
 
 export const mapPluginManifest: PluginManifest = {
   id: "app.plugins.map",
@@ -29,6 +34,65 @@ export const mapPluginManifest: PluginManifest = {
 };
 
 export const mapPluginModule: PluginModule = {
+  activate: () => {
+    // Properties schema for Map selection
+    registerPropertySchema("map", {
+      groups: [
+        {
+          id: "map",
+          title: "Map",
+          rows: [
+            { kind: "text", id: "name", label: "Map Title", path: "name" },
+            {
+              kind: "textarea",
+              id: "description",
+              label: "Map Description",
+              path: "description",
+              rows: 4,
+            },
+          ],
+        },
+        {
+          id: "advanced",
+          title: "Advanced",
+          rows: [
+            {
+              kind: "checkbox",
+              id: "overrideEnabled",
+              label: "Per‑map override",
+              path: "overrideEnabled",
+            },
+            {
+              kind: "select",
+              id: "settingId",
+              label: "Map Setting (when override on)",
+              path: "settingId",
+              disabledWhen: { path: "overrideEnabled", equals: false },
+              optionsProvider: (app: unknown) => {
+                try {
+                  type AppApi = typeof AppAPI;
+                  const api = app as AppApi;
+                  const entries = api.palette.list();
+                  return [
+                    { value: "", label: "— Select Terrain —" },
+                    ...entries.map((e) => ({
+                      value: e.id,
+                      label: e.themedName,
+                    })),
+                  ];
+                } catch {
+                  return [{ value: "", label: "— Select Terrain —" }];
+                }
+              },
+            },
+          ],
+        },
+      ],
+    });
+  },
+  deactivate: () => {
+    unregisterPropertySchema("map");
+  },
   commands: {
     "map.new": async () => {
       const app = getAppAPI();

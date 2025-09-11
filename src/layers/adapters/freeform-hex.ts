@@ -1,5 +1,4 @@
 import type { LayerAdapter } from "@/layers/types";
-import { registerPropertySchema } from "@/properties/registry";
 import { parseAxialKey, hexPath } from "@/layers/hex-utils";
 import type { MapPalette } from "@/palettes/types";
 import { resolveTerrainFill } from "@/stores/selectors/palette";
@@ -74,38 +73,4 @@ export const FreeformType = {
   policy: { canDelete: true, canDuplicate: true },
 } as const;
 
-// Register Freeform properties schema
-registerPropertySchema("layer:freeform", {
-  groups: [
-    {
-      id: "freeform",
-      title: "Freeform",
-      rows: [
-        {
-          kind: "slider",
-          id: "opacity",
-          label: "Opacity",
-          path: "opacity",
-          min: 0,
-          max: 1,
-          step: 0.01,
-        },
-        [
-          {
-            kind: "select",
-            id: "brushTerrainId",
-            label: "Brush Terrain",
-            path: "brushTerrainId",
-            options: [{ value: "", label: "— Select Terrain —" }],
-          },
-          {
-            kind: "color",
-            id: "brushColor",
-            label: "Brush Color (Override)",
-            path: "brushColor",
-          },
-        ],
-      ],
-    },
-  ],
-});
+// Properties schema is registered by the freeform plugin during activation.

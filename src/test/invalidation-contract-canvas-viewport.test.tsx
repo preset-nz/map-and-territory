@@ -8,7 +8,6 @@ import type { LayerType, LayerAdapter } from "@/layers/types";
 
 // Minimal canvas 2D context mock so fallback renderer can initialize
 beforeAll(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (HTMLCanvasElement.prototype as any).getContext = () => ({
     setTransform: () => {},
     clearRect: () => {},
@@ -37,7 +36,6 @@ describe("CanvasViewport invalidation contract", () => {
       id: "bad",
       title: "Bad",
       defaultState: {},
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       adapter: badAdapter as any,
     };
     registerLayerType(BadType);

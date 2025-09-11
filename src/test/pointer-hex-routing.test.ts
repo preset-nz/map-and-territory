@@ -10,7 +10,6 @@ import { registerCoreLayerTypes } from "@/test/test-helpers";
 beforeAll(() => {
   // Register core layer types for tests
   registerCoreLayerTypes();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (HTMLCanvasElement.prototype as any).getContext = () => ({
     setTransform: () => {},
     clearRect: () => {},
@@ -28,11 +27,8 @@ beforeAll(() => {
     moveTo: () => {},
   });
   // Minimal ResizeObserver mock
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).ResizeObserver = class {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(cb: any) {
       this.callback = cb;
     }
@@ -41,11 +37,8 @@ beforeAll(() => {
     disconnect() {}
   };
   // PointerEvent polyfill for jsdom
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(globalThis as any).PointerEvent) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).PointerEvent = class extends MouseEvent {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       constructor(type: string, params?: any) {
         super(type, params);
       }
@@ -95,7 +88,6 @@ function seedProject(orientation: "pointy" | "flat", visible = true) {
 }
 
 function mockCanvasRect(el: HTMLCanvasElement, w = 800, h = 600) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (el as any).getBoundingClientRect = () => ({
     x: 0,
     y: 0,
