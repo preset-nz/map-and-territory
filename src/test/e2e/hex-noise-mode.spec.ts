@@ -11,17 +11,6 @@ async function ensureScenePanelOpen(page: import("@playwright/test").Page) {
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
     localStorage.clear();
-    // Force deterministic canvas snapshots by disabling OffscreenCanvas
-    try {
-      const proto = HTMLCanvasElement.prototype as unknown as Record<
-        string,
-        unknown
-      >;
-      // @ts-expect-error: transferControlToOffscreen exists on modern browsers; we disable for deterministic tests
-      delete proto.transferControlToOffscreen;
-      (window as unknown as { OffscreenCanvas?: unknown }).OffscreenCanvas =
-        undefined;
-    } catch {}
   });
 });
 

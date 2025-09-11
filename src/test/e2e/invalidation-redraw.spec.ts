@@ -11,16 +11,6 @@ async function ensureScenePanelOpen(page: import("@playwright/test").Page) {
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
     localStorage.clear();
-    // Force fallback renderer for deterministic canvas screenshots in CI
-    try {
-      const proto = HTMLCanvasElement.prototype as unknown as Record<
-        string,
-        unknown
-      >;
-      delete proto.transferControlToOffscreen;
-      const win = window as unknown as { OffscreenCanvas?: unknown };
-      win.OffscreenCanvas = undefined;
-    } catch {}
   });
 });
 

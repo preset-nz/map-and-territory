@@ -7,16 +7,7 @@ type Props = { children: React.ReactNode };
 export const WorkerSupportGate: React.FC<Props> = ({ children }) => {
   // Avoid hydration mismatch: assume supported until mounted, then check.
   const [mounted, setMounted] = React.useState(false);
-  const e2eOverride = useMemo(
-    () =>
-      (typeof process !== "undefined" &&
-        typeof process.env !== "undefined" &&
-        process.env.NEXT_PUBLIC_E2E === "1") ||
-      process.env.NODE_ENV === "test",
-    [],
-  );
   const supported = useMemo(() => {
-    if (e2eOverride) return true; // allow in e2e/tests
     if (!mounted) return true; // assume true on first paint to match SSR
     try {
       const hasTCTOS =
@@ -31,7 +22,7 @@ export const WorkerSupportGate: React.FC<Props> = ({ children }) => {
     } catch {
       return false;
     }
-  }, [mounted, e2eOverride]);
+  }, [mounted]);
 
   React.useEffect(() => {
     setMounted(true);

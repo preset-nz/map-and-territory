@@ -64,25 +64,24 @@ export const CanvasViewport: React.FC = () => {
     () => resolvePalette(current ?? null, activeId),
     [current, activeId],
   );
-  const layersKey = useMemo(
-    () =>
-      layers
-        .map((l) => {
-          const t = getLayerType(l.type);
-          if (!t || !t.adapter) {
-            return `${l.type}:${l.visible ? "1" : "0"}:unknown`;
-          }
-          const getKey = (t.adapter as LayerAdapter<unknown>)
-            .getInvalidationKey;
-          if (typeof getKey !== "function") {
-            return `${l.type}:${l.visible ? "1" : "0"}:unknown`;
-          }
-          const key = getKey(l.state as unknown);
-          return `${l.type}:${l.visible ? "1" : "0"}:${key}`;
-        })
-        .join("|"),
-    [layers],
-  );
+  const layersKey = useMemo(() => {
+    return layers
+      .map((l) => {
+        const t = getLayerType(l.type);
+        if (!t || !t.adapter) {
+          return `${l.type}:${l.visible ? "1" : "0"}:unknown`;
+        }
+        const getKey = (t.adapter as LayerAdapter<unknown>).getInvalidationKey;
+        if (typeof getKey !== "function") {
+          throw new Error(
+            `Layer adapter for type "${l.type}" is missing required getInvalidationKey`,
+          );
+        }
+        const key = getKey(l.state as unknown);
+        return `${l.type}:${l.visible ? "1" : "0"}:${key}`;
+      })
+      .join("|");
+  }, [layers]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -271,51 +270,7 @@ export const CanvasViewport: React.FC = () => {
     palette,
   ]);
 
-  // Fallback main-thread draw when worker unavailable is only enabled for tests.
-  const allowFallback =
-    process.env.NODE_ENV === "test" ||
-    (typeof process !== "undefined" &&
-      typeof process.env !== "undefined" &&
-      process.env.NEXT_PUBLIC_E2E === "1");
-  useEffect(() => {
-    if (useWorker) return;
-    if (!allowFallback) return;
-    let cancelled = false;
-    (async () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const dpr =
-        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-      try {
-        const mod = await import("@/render/fallback");
-        if (cancelled) return;
-        const Fallback = mod.default as new () => {
-          init: (c: HTMLCanvasElement, d: number) => boolean;
-          resize: (s: { w: number; h: number }, p: number) => void;
-          render: (f: SceneFrame) => void;
-          destroy: () => void;
-        };
-        const svc = new Fallback();
-        const ok = svc.init(canvas, dpr);
-        if (!ok) return;
-        renderSvcRef.current = svc as unknown as RenderService;
-      } catch {
-        // ignore in tests
-      }
-    })();
-    return () => {
-      cancelled = true;
-      if (renderSvcRef.current) {
-        try {
-          // best-effort cleanup if we created a fallback svc
-          (
-            renderSvcRef.current as unknown as { destroy?: () => void }
-          ).destroy?.();
-        } catch {}
-        renderSvcRef.current = null;
-      }
-    };
-  }, [useWorker, allowFallback]);
+  // No fallback renderer: worker is required. WorkerSupportGate handles UX when unsupported.
 
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
@@ -465,8 +420,8 @@ export const CanvasViewport: React.FC = () => {
   };
 
   const rendererTag = useMemo(
-    () => (useWorker ? "worker" : allowFallback ? "main" : "error"),
-    [useWorker, allowFallback],
+    () => (useWorker ? "worker" : "error"),
+    [useWorker],
   );
   const showDebugOverlay = debugEnabled("renderer");
 
@@ -482,7 +437,7 @@ export const CanvasViewport: React.FC = () => {
           </div>
         ) : (
           <>
-            {!useWorker && !allowFallback ? (
+            {!useWorker ? (
               <div className="p-4 text-sm text-red-600">
                 Rendering worker failed to initialize.
                 {workerError ? <> - {workerError}</> : null}
