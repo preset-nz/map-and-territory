@@ -14,6 +14,11 @@ export interface PluginManifest {
   version: string;
   apiVersion?: string;
   capabilities?: string[];
+  /**
+   * Plugin loading priority. Higher values load first.
+   * Default is 10. Anchor layers (paper/hexgrid) should use 100.
+   */
+  priority?: number;
   contributes?: {
     commands?: Array<{ id: string; title: string; shortcut?: string }>;
     toolbar?: Array<{

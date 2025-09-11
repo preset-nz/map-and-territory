@@ -4,9 +4,12 @@ import { render, fireEvent } from "@testing-library/react";
 import CanvasViewport from "@/components/map/canvas-viewport";
 import { useProjectStore } from "@/stores/project";
 import { useLayoutStore } from "@/stores/layout";
+import { registerCoreLayerTypes } from "@/test/test-helpers";
 
 // Minimal canvas 2D context mock so fallback renderer can initialize
 beforeAll(() => {
+  // Register core layer types for tests
+  registerCoreLayerTypes();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (HTMLCanvasElement.prototype as any).getContext = () => ({
     setTransform: () => {},
