@@ -18,7 +18,7 @@ import { useActiveSetting, useActiveSettingId } from "@/stores/selectors/hooks";
 
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-// import { useProjectStore } from "@/stores/project";
+// import { useCampaignStore } from "@/stores/campaign";
 
 // ============================================================================
 // StatusBar Component
@@ -35,7 +35,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className = "" }) => {
   const settingId = useActiveSettingId();
   const setting = useActiveSetting();
   const selection = useSelectionStore((s) => s.selection);
-  // const project = useProjectStore((s) => s.current);
+  // const project = useCampaignStore((s) => s.current);
 
   // Mock zoom level - in real app this would come from a viewport store
   const zoomLevel = 100;

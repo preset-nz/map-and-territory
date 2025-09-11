@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import type { CapabilityToken } from "./types";
 
@@ -18,21 +18,21 @@ export function resolvePreconditions(
 function evaluateToken(token: CapabilityToken): CapabilityResult {
   switch (true) {
     case token === "hasActiveMap": {
-      const has = !!useProjectStore.getState().current?.activeMapId;
+      const has = !!useCampaignStore.getState().current?.activeMapId;
       return has
         ? { enabled: true }
         : { enabled: false, reason: "Requires an active map" };
     }
     case token === "gridVisible": {
-      const cur = useProjectStore.getState().current;
+      const cur = useCampaignStore.getState().current;
       const map = cur?.maps.find((m) => m.id === cur?.activeMapId);
       const grid = map?.layers?.find((l) => l.type === "hexgrid");
       return grid?.visible !== false
         ? { enabled: true }
         : { enabled: false, reason: "Grid must be visible" };
     }
-    case token === "hasProject" || token === "hasCampaign": {
-      const has = !!useProjectStore.getState().current;
+    case token === "hasCampaign": {
+      const has = !!useCampaignStore.getState().current;
       return has
         ? { enabled: true }
         : { enabled: false, reason: "Requires a campaign" };
@@ -56,7 +56,7 @@ function evaluateToken(token: CapabilityToken): CapabilityResult {
     }
     case token.startsWith("activeLayerIs:"): {
       const typeId = token.split(":", 2)[1] as string | undefined;
-      const project = useProjectStore.getState().current;
+      const project = useCampaignStore.getState().current;
       const sel = useSelectionStore.getState().selection;
       if (!typeId) return { enabled: true };
       if (sel.kind !== "layer" || !project) {

@@ -1,7 +1,7 @@
 import type { PluginManifest, PluginModule } from "@/plugin/types";
 import { registerLayerType } from "@/layers/registry";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import { AppAPI } from "@/appapi";
 import { useLayoutStore } from "@/stores/layout";
@@ -69,32 +69,32 @@ export const freeformModule: PluginModule = {
   },
   commands: {
     "layer.freeform.add": () => {
-      const project = useProjectStore.getState().current;
-      const activeMapId = project?.activeMapId ?? null;
-      if (!project || !activeMapId) return;
-      const map = project.maps.find((m) => m.id === activeMapId);
+      const campaign = useCampaignStore.getState().current;
+      const activeMapId = campaign?.activeMapId ?? null;
+      if (!campaign || !activeMapId) return;
+      const map = campaign.maps.find((m) => m.id === activeMapId);
       if (!map) return;
       const sel = useSelectionStore.getState().selection;
       const insertAboveSel = () =>
-        useProjectStore
+        useCampaignStore
           .getState()
           .insertLayerAbove(sel.kind === "layer" ? sel.id : "", "freeform");
       let id: string | null = null;
       if (sel.kind === "layer") {
         id =
           insertAboveSel() ||
-          useProjectStore.getState().insertLayerBeforeTopAnchor("freeform");
+          useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
       } else if (sel.kind === "map") {
-        id = useProjectStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
       } else {
-        id = useProjectStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
       }
       if (!id) return;
       try {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          useProjectStore.getState().updateLayerState(id, {
+          useCampaignStore.getState().updateLayerState(id, {
             brushTerrainId: first.id,
             brushColor: first.color,
           });

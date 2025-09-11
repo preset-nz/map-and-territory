@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { registerLayerType } from "@/layers/registry";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
 import { useSelectionStore } from "@/stores/selection";
@@ -14,12 +14,12 @@ describe("AppSidebar DnD ordering (UI reflects store order)", () => {
 
   it("renders layers in reversed UI order and updates when store order changes", async () => {
     // Seed project with a map and two non-anchor layers
-    useProjectStore.getState().createEmpty({ name: "Test Campaign" });
-    const mapId = useProjectStore.getState().addMap({ name: "Map A" })!;
-    useProjectStore.getState().selectMap(mapId);
+    useCampaignStore.getState().createEmpty({ name: "Test Campaign" });
+    const mapId = useCampaignStore.getState().addMap({ name: "Map A" })!;
+    useCampaignStore.getState().selectMap(mapId);
     // Insert two hex-noise layers (inserted just below grid per policy)
-    const id1 = useProjectStore.getState().addLayer("hexnoise", "Noise 1")!;
-    const id2 = useProjectStore.getState().addLayer("hexnoise", "Noise 2")!;
+    const id1 = useCampaignStore.getState().addLayer("hexnoise", "Noise 1")!;
+    const id2 = useCampaignStore.getState().addLayer("hexnoise", "Noise 2")!;
 
     render(<AppSidebar />);
 
@@ -35,9 +35,9 @@ describe("AppSidebar DnD ordering (UI reflects store order)", () => {
     expect(row).toHaveAttribute("data-selected", "true");
 
     // Move Noise 1 above Noise 2 in array order via store and expect UI to flip accordingly
-    const layers = useProjectStore.getState().current!.maps[0].layers!;
+    const layers = useCampaignStore.getState().current!.maps[0].layers!;
     const idx1 = layers.findIndex((l) => l.id === id1);
-    useProjectStore.getState().moveLayer(id1, idx1 + 1);
+    useCampaignStore.getState().moveLayer(id1, idx1 + 1);
 
     // Now UI top should still be the element with higher array index (Noise 1)
     expect(await screen.findByText("Noise 1")).toBeInTheDocument();

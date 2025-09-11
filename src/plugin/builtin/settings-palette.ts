@@ -1,5 +1,5 @@
 import type { PluginManifest, PluginModule } from "@/plugin/types";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 
 export const settingsPaletteManifest: PluginManifest = {
   id: "app.plugins.settings.palette",
@@ -23,24 +23,24 @@ export const settingsPaletteModule: PluginModule = {
   commands: {
     "app.palette.setCampaignSetting": async (payload?: unknown) => {
       const id = (payload as { settingId?: string } | undefined)?.settingId;
-      useProjectStore.getState().setCampaignSetting(id);
+      useCampaignStore.getState().setCampaignSetting(id);
       return { settingId: id ?? null };
     },
     "app.palette.clearCampaignSetting": async () => {
-      useProjectStore.getState().setCampaignSetting(undefined);
+      useCampaignStore.getState().setCampaignSetting(undefined);
       return { settingId: null };
     },
     "app.palette.setMapSetting": async (payload?: unknown) => {
       const { mapId, settingId } =
         (payload as { mapId?: string; settingId?: string }) ?? {};
       if (!mapId) return { error: "mapId required" };
-      useProjectStore.getState().setMapSetting(mapId, settingId);
+      useCampaignStore.getState().setMapSetting(mapId, settingId);
       return { mapId, settingId: settingId ?? null };
     },
     "app.palette.clearMapSetting": async (payload?: unknown) => {
       const { mapId } = (payload as { mapId?: string }) ?? {};
       if (!mapId) return { error: "mapId required" };
-      useProjectStore.getState().setMapSetting(mapId, undefined);
+      useCampaignStore.getState().setMapSetting(mapId, undefined);
       return { mapId, settingId: null };
     },
   },

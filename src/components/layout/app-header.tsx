@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 /**
  * AppHeader - Professional Application Header Component
- * 
+ *
  * Provides top-level navigation with breadcrumbs, navigation menu,
  * and user account controls. Integrates with layout store for
  * responsive behavior and theme management.
- * 
+ *
  * Features:
  * - Responsive navigation menu with dropdown sections
  * - Contextual breadcrumb navigation
@@ -15,8 +15,8 @@
  * - Desktop-optimized layout (no mobile breakpoints)
  */
 
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 
 import {
   DropdownMenu,
@@ -25,20 +25,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
-import { useLayoutStore } from '@/stores/layout';
-import { useAuth } from '@/components/providers/auth-provider';
-import { AppHeaderProps } from '@/types/layout';
-import { useProjectStore } from '@/stores/project';
-import { SimpleThemeToggle } from '@/components/layout/theme-toggle';
+import { useLayoutStore } from "@/stores/layout";
+import { useAuth } from "@/components/providers/auth-provider";
+import { AppHeaderProps } from "@/types/layout";
+import { useCampaignStore } from "@/stores/campaign";
+import { SimpleThemeToggle } from "@/components/layout/theme-toggle";
 
 // ============================================================================
 // Navigation Configuration
 // ============================================================================
-
 
 // ============================================================================
 // AppHeader Component
@@ -46,15 +45,13 @@ import { SimpleThemeToggle } from '@/components/layout/theme-toggle';
 
 /**
  * AppHeader component providing top-level navigation and user controls
- * 
+ *
  * @param props - AppHeader configuration props
  */
-export const AppHeader: React.FC<AppHeaderProps> = ({
-  className = '',
-}) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ className = "" }) => {
   const setTheme = useLayoutStore((state) => state.setTheme);
   const { user, isAuthenticated, logout } = useAuth();
-  const projectName = useProjectStore((s) => s.current?.name);
+  const projectName = useCampaignStore((s) => s.current?.name);
 
   /**
    * Handle theme toggle action
@@ -62,7 +59,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
    */
   const handleThemeToggle = () => {
     // Simple theme cycling - could be extended with more sophisticated logic
-    setTheme('system');
+    setTheme("system");
   };
 
   /**
@@ -72,11 +69,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     try {
       await logout();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
-
-
 
   /**
    * Render user account dropdown
@@ -93,14 +88,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     // Generate user initials for avatar fallback
     const userInitials = user.name
       ? user.name
-          .split(' ')
+          .split(" ")
           .map((n) => n[0])
-          .join('')
+          .join("")
           .toUpperCase()
           .slice(0, 2)
-      : user.email
-          ?.slice(0, 2)
-          .toUpperCase() || 'U';
+      : user.email?.slice(0, 2).toUpperCase() || "U";
 
     return (
       <DropdownMenu>
@@ -116,7 +109,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user.name || 'User'}
+                {user.name || "User"}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user.email}
@@ -134,9 +127,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <Link href="/preferences">Preferences</Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>
-            Sign Out
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>Sign Out</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -151,7 +142,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Map & Territory</h1>
           {projectName && (
-            <span className="text-xs text-muted-foreground">— {projectName}</span>
+            <span className="text-xs text-muted-foreground">
+              — {projectName}
+            </span>
           )}
         </div>
 

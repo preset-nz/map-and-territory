@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 import { TerrainSettings } from "@/palettes/settings";
 
@@ -8,7 +8,7 @@ import { TerrainSettings } from "@/palettes/settings";
  */
 export function useActiveSettingId(): string {
   const selection = useSelectionStore((s) => s.selection);
-  return useProjectStore((s) => {
+  return useCampaignStore((s) => {
     const cur = s.current;
     // Resolve by explicit selection: when campaign is selected, ignore activeMapId
     const activeMapId = selection.kind === "map" ? selection.id : null;

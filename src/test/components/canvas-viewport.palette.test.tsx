@@ -2,17 +2,17 @@ import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render } from "@testing-library/react";
 import React from "react";
 import { CanvasViewport } from "@/components/map/canvas-viewport";
-import { useProjectStore } from "@/stores/project";
+import { useCampaignStore } from "@/stores/campaign";
 import { useLayerOrderingStore } from "@/stores/layer-ordering";
 import { useLayoutStore } from "@/stores/layout";
 import { resolvePalette, resolveTerrainFill } from "@/stores/selectors/palette";
 import { DefaultPalette } from "@/palettes/defaults";
 import { Presets } from "@/palettes/presets";
 import type { MapPalette } from "@/palettes/types";
-import type { Project } from "@/stores/project";
+import type { Campaign } from "@/stores/campaign";
 
 // Mock stores
-vi.mock("@/stores/project");
+vi.mock("@/stores/campaign");
 vi.mock("@/stores/layer-ordering");
 vi.mock("@/stores/layout");
 vi.mock("@/stores/selectors/palette");
@@ -27,7 +27,7 @@ vi.mock("@/render/service", () => ({
   })),
 }));
 
-const mockUseProjectStore = useProjectStore as unknown as Mock;
+const mockUseProjectStore = useCampaignStore as unknown as Mock;
 const mockUseLayerOrderingStore = useLayerOrderingStore as unknown as Mock;
 const mockUseLayoutStore = useLayoutStore as unknown as Mock;
 const mockResolvePalette = resolvePalette as Mock;
@@ -56,9 +56,9 @@ const mockMapPalette: MapPalette = {
   grid: { line: "#mapcolor" },
 };
 
-const mockProject: Project = {
+const mockProject: Campaign = {
   id: "test-project",
-  name: "Test Project",
+  name: "Test Campaign",
   created: Date.now(),
   updated: Date.now(),
   activeMapId: "map-1",
@@ -257,7 +257,7 @@ describe("CanvasViewport Palette Integration", () => {
       rerender(<CanvasViewport />);
 
       // Switch to project without palettes
-      const projectNoPalettes: Project = {
+      const projectNoPalettes: Campaign = {
         ...mockProject,
         id: "project-no-palettes",
         palette: undefined,

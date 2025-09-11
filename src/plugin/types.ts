@@ -2,7 +2,6 @@ export type CapabilityToken =
   | "hasActiveMap"
   | "hasActiveLayer"
   | "hasCampaign"
-  | "hasProject"
   | `selectionIs:${"campaign" | "map" | "layer"}`
   | `canAddLayer:${string}`
   | `activeLayerIs:${string}`
