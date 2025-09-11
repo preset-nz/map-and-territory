@@ -64,8 +64,30 @@ export const AppToolbar: React.FC = () => {
 
   // no static tool buttons in MVP; all tools come from contributions later
 
+  const contributions = useSyncExternalStore(
+    // subscribe to toolbar updates
+    (cb) => {
+      const handler = () => cb();
+      if (typeof window !== "undefined") {
+        window.addEventListener("plugin:toolbar-updated", handler);
+      }
+      return () => {
+        if (typeof window !== "undefined") {
+          window.removeEventListener("plugin:toolbar-updated", handler);
+        }
+      };
+    },
+    // getSnapshot
+    () => getToolbarContributions(),
+    // getServerSnapshot
+    () => EMPTY,
+  );
+
   return (
-    <div className="w-full border-b bg-background">
+    <div
+      className="w-full border-b bg-background"
+      data-toolbar-ready={contributions.length > 0 ? "true" : "false"}
+    >
       <div className="flex items-center gap-2 px-3 py-2">
         {/* Scene Panel Toggle */}
         <Tooltip>
@@ -96,24 +118,7 @@ export const AppToolbar: React.FC = () => {
 
         {/* Dynamic toolbar contributions: first group after left divider */}
         <div className="flex items-center gap-1">
-          {useSyncExternalStore(
-            // subscribe to toolbar updates
-            (cb) => {
-              const handler = () => cb();
-              if (typeof window !== "undefined") {
-                window.addEventListener("plugin:toolbar-updated", handler);
-              }
-              return () => {
-                if (typeof window !== "undefined") {
-                  window.removeEventListener("plugin:toolbar-updated", handler);
-                }
-              };
-            },
-            // getSnapshot
-            () => getToolbarContributions(),
-            // getServerSnapshot
-            () => EMPTY,
-          )
+          {contributions
             .reduce(
               (acc: Array<{ group: string; items: ToolbarItem[] }>, item) => {
                 const g = acc.find((x) => x.group === item.group);

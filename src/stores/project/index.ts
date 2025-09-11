@@ -1,11 +1,5 @@
 import { create } from "zustand";
-import {
-  getLayerPolicy,
-  getLayerType,
-  registerLayerType,
-} from "@/layers/registry";
-import { PaperType } from "@/layers/adapters/paper";
-import { HexgridType } from "@/layers/adapters/hexgrid";
+import { getLayerPolicy, getLayerType } from "@/layers/registry";
 import type { LayerInstance } from "@/layers/types";
 import { nextNumberedName } from "@/stores/project/naming";
 
@@ -99,7 +93,10 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         type: "paper",
         name: "Paper",
         visible: true,
-        state: PaperType.defaultState,
+        state: getLayerType("paper")?.defaultState || {
+          color: "#ffffff",
+          aspect: "16:10",
+        },
       });
     }
     // ensure grid
@@ -109,7 +106,14 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         type: "hexgrid",
         name: "Hex Grid",
         visible: true,
-        state: HexgridType.defaultState,
+        state: getLayerType("hexgrid")?.defaultState || {
+          size: 24,
+          orientation: "pointy",
+          color: "#000000",
+          alpha: 1,
+          lineWidth: 1,
+          origin: { x: 0, y: 0 },
+        },
       });
     }
     // move anchors to extremes preserving relative order of others
@@ -155,9 +159,7 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
       set({ current: null });
       return;
     }
-    // Ensure core layer types are registered
-    registerLayerType(PaperType);
-    registerLayerType(HexgridType);
+    // Core layer types are now registered via plugins
     // Normalize anchors across maps
     const maps = project.maps.map(
       (m) =>
@@ -186,9 +188,7 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
     const cur = get().current;
     const name = params?.name ?? "Untitled Map";
     const description = params?.description ?? "";
-    // Ensure core layer types are registered
-    registerLayerType(PaperType);
-    registerLayerType(HexgridType);
+    // Core layer types are now registered via plugins
     if (!cur) {
       // Create a default campaign if none exists
       const project: Project = {
@@ -209,14 +209,24 @@ export const useProjectStore = create<ProjectStoreState>()((set, get) => ({
         type: "paper",
         name: "Paper",
         visible: true,
-        state: PaperType.defaultState,
+        state: getLayerType("paper")?.defaultState || {
+          color: "#ffffff",
+          aspect: "16:10",
+        },
       },
       {
         id: uuid(),
         type: "hexgrid",
         name: "Hex Grid",
         visible: true,
-        state: HexgridType.defaultState,
+        state: getLayerType("hexgrid")?.defaultState || {
+          size: 24,
+          orientation: "pointy",
+          color: "#000000",
+          alpha: 1,
+          lineWidth: 1,
+          origin: { x: 0, y: 0 },
+        },
       },
     ];
     const maps = [

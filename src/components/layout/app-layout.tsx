@@ -15,7 +15,7 @@
  * - Accessibility compliance and keyboard navigation
  */
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
@@ -30,7 +30,7 @@ import StatusBar from "./status-bar";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useSelectionStore } from "@/stores/selection";
 import { useLayoutStore } from "@/stores/layout";
-import { loadPlugin } from "@/plugin/loader";
+import { loadPluginsWithPriority } from "@/plugin/loader";
 import {
   campaignPluginManifest,
   campaignPluginModule,
@@ -42,6 +42,11 @@ import {
   settingsPaletteModule,
 } from "@/plugin/builtin/settings-palette";
 import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
+import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
+import {
+  hexgridPluginManifest,
+  hexgridPluginModule,
+} from "@/plugin/builtin/hexgrid";
 
 import { BaseLayoutProps } from "@/types/layout";
 import { cn } from "@/lib/utils";
@@ -81,13 +86,20 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   // Keyboard shortcuts
   useKeyboardShortcuts();
 
-  // Load built-in plugins (registers commands + toolbar contributions)
-  useEffect(() => {
-    loadPlugin(campaignPluginManifest, campaignPluginModule);
-    loadPlugin(mapPluginManifest, mapPluginModule);
-    loadPlugin(hexNoiseManifest, hexNoiseModule);
-    loadPlugin(settingsPaletteManifest, settingsPaletteModule);
-    loadPlugin(freeformManifest, freeformModule);
+  // Load built-in plugins in priority order (registers commands + toolbar contributions)
+  // Use layout effect to avoid initial UI race where toolbar subscribes after update.
+  useLayoutEffect(() => {
+    loadPluginsWithPriority([
+      // Anchor layers load first (priority 100)
+      { manifest: paperPluginManifest, module: paperPluginModule },
+      { manifest: hexgridPluginManifest, module: hexgridPluginModule },
+      // Content plugins load second (default priority 10)
+      { manifest: campaignPluginManifest, module: campaignPluginModule },
+      { manifest: mapPluginManifest, module: mapPluginModule },
+      { manifest: hexNoiseManifest, module: hexNoiseModule },
+      { manifest: settingsPaletteManifest, module: settingsPaletteModule },
+      { manifest: freeformManifest, module: freeformModule },
+    ]);
   }, []);
 
   // Sync selection count for status bar
