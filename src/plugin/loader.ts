@@ -163,16 +163,24 @@ export async function loadPlugin(
   for (const group of tbDefs) {
     for (const item of group.items) {
       if (item.type === "button") {
-        toolbarContribs.push({
-          pluginId: manifest.id,
-          group: group.group,
-          command: item.command,
-          icon: item.icon,
-          label: item.label,
-          order: item.order,
-          enableWhen: item.enableWhen,
-          disabledReason: item.disabledReason,
-        });
+        const exists = toolbarContribs.some(
+          (t) =>
+            t.pluginId === manifest.id &&
+            t.group === group.group &&
+            t.command === item.command,
+        );
+        if (!exists) {
+          toolbarContribs.push({
+            pluginId: manifest.id,
+            group: group.group,
+            command: item.command,
+            icon: item.icon,
+            label: item.label,
+            order: item.order,
+            enableWhen: item.enableWhen,
+            disabledReason: item.disabledReason,
+          });
+        }
       }
     }
   }

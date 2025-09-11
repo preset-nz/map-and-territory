@@ -26,6 +26,8 @@ export const mapPluginManifest: PluginManifest = {
             icon: "lucide:map",
             label: "New Map",
             order: 1,
+            enableWhen: ["hasCampaign"],
+            disabledReason: "Create a campaign first",
           },
         ],
       },

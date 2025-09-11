@@ -41,7 +41,7 @@ const eslintConfig = [
   // Minimal config for root tool files so ESLint doesn't warn
   // when they are passed directly (e.g., via lint-staged).
   {
-    files: ["playwright.config.ts"],
+    files: ["playwright.config.ts", "next.config.ts"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",

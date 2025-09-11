@@ -40,7 +40,7 @@ interface CampaignStoreState {
   setCampaignSetting: (settingId: string | undefined) => void;
   setMapSetting: (mapId: string, settingId: string | undefined) => void;
   // Map actions
-  addMap: (params?: { name?: string; description?: string }) => string; // returns mapId
+  addMap: (params?: { name?: string; description?: string }) => string | null; // returns mapId or null if no campaign
   selectMap: (id: string) => void;
   renameMap: (id: string, name: string) => void;
   setMapDescription: (id: string, description: string) => void;
@@ -180,6 +180,10 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   },
   addMap: (params) => {
     const cur = get().current;
+    if (!cur) {
+      // Hard prevent: do not auto-create a campaign implicitly
+      return null;
+    }
     const name =
       (params?.name && params.name.trim()) ||
       generateName({
@@ -189,18 +193,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         padTo: 2,
       });
     const description = params?.description ?? "";
-    if (!cur) {
-      const campaign: Campaign = {
-        id: uuid(),
-        version: 1,
-        name: "Untitled Campaign",
-        description: "",
-        maps: [],
-        activeMapId: null,
-      };
-      set({ current: campaign });
-    }
-    const next = get().current!;
+    const next = cur;
     const id = uuid();
     const baseLayers: LayerInstance[] = [
       {

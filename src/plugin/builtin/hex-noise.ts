@@ -4,11 +4,10 @@ import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
-import { AppAPI } from "@/appapi";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { AppAPI } from "@/appapi";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
-import { AppAPI } from "@/appapi";
 
 export const hexNoiseManifest: PluginManifest = {
   id: "app.plugins.hex-noise",

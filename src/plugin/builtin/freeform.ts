@@ -4,11 +4,10 @@ import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
-import { AppAPI } from "@/appapi";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { AppAPI } from "@/appapi";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
-import { AppAPI } from "@/appapi";
 import { useLayoutStore } from "@/stores/layout";
 import { registerToolCursor } from "@/plugin/loader";
 

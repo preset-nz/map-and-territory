@@ -1,13 +1,33 @@
 /// <reference lib="webworker" />
 import type { RenderMessage } from "@/render/types";
 import { Canvas2DBackend } from "@/render/backends/canvas2d";
+import { registerLayerType } from "@/layers/registry";
+import { PaperType } from "@/layers/adapters/paper";
+import { HexgridType } from "@/layers/adapters/hexgrid";
+import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { FreeformType } from "@/layers/adapters/freeform-hex";
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
 
 function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
+  // Ensure layer adapters are registered in the worker context
+  try {
+    registerLayerType(PaperType);
+    registerLayerType(HexgridType);
+    registerLayerType(HexNoiseType);
+    registerLayerType(FreeformType);
+  } catch {}
   backend = new Canvas2DBackend();
   canvasRef = msg.canvas;
+
+  // Ensure the OffscreenCanvas starts with clean, minimal dimensions
+  // This prevents inheritance of stale dimensions from previous canvas instances
+  if (canvasRef) {
+    canvasRef.width = 1;
+    canvasRef.height = 1;
+  }
+
   backend.init(msg.canvas, msg.pixelRatio);
   // Acknowledge initialization to the main thread
   (self as unknown as { postMessage: (m: RenderMessage) => void }).postMessage({

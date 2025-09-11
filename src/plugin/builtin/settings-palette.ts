@@ -24,24 +24,20 @@ export const settingsPaletteModule: PluginModule = {
     "app.palette.setCampaignSetting": async (payload?: unknown) => {
       const id = (payload as { settingId?: string } | undefined)?.settingId;
       useCampaignStore.getState().setCampaignSetting(id);
-      return { settingId: id ?? null };
     },
     "app.palette.clearCampaignSetting": async () => {
       useCampaignStore.getState().setCampaignSetting(undefined);
-      return { settingId: null };
     },
     "app.palette.setMapSetting": async (payload?: unknown) => {
       const { mapId, settingId } =
         (payload as { mapId?: string; settingId?: string }) ?? {};
-      if (!mapId) return { error: "mapId required" };
+      if (!mapId) return;
       useCampaignStore.getState().setMapSetting(mapId, settingId);
-      return { mapId, settingId: settingId ?? null };
     },
     "app.palette.clearMapSetting": async (payload?: unknown) => {
       const { mapId } = (payload as { mapId?: string }) ?? {};
-      if (!mapId) return { error: "mapId required" };
+      if (!mapId) return;
       useCampaignStore.getState().setMapSetting(mapId, undefined);
-      return { mapId, settingId: null };
     },
   },
 };

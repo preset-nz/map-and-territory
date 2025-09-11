@@ -25,6 +25,7 @@ import AppSidebar from "./app-sidebar";
 import AppToolbar from "./app-toolbar";
 import PropertiesPanel from "./properties-panel";
 import MainContent from "./main-content";
+import WorkerSupportGate from "@/components/providers/worker-support-gate";
 import { AuthErrorBoundary } from "../providers/auth-provider";
 import StatusBar from "./status-bar";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -218,9 +219,11 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                 className="min-h-0"
               >
                 <div className="h-full min-h-0 flex flex-col">
-                  <MainContent scrollable padding="none">
-                    {children}
-                  </MainContent>
+                  <WorkerSupportGate>
+                    <MainContent scrollable padding="none">
+                      {children}
+                    </MainContent>
+                  </WorkerSupportGate>
                 </div>
               </Panel>
 
