@@ -1,7 +1,6 @@
 import type { LayerAdapter } from "@/layers/types";
 import { DefaultPalette } from "@/palettes/defaults";
 import { createPerlinNoise } from "@/lib/noise";
-import { registerPropertySchema } from "@/properties/registry";
 // (no direct adapter drawing; rendering handled elsewhere)
 
 export interface HexNoiseState {
@@ -171,104 +170,4 @@ export const HexNoiseType = {
   policy: { canDelete: true, canDuplicate: true },
 } as const;
 
-registerPropertySchema("layer:hexnoise", {
-  groups: [
-    {
-      id: "noise",
-      title: "Hex Noise",
-      rows: [
-        [
-          {
-            kind: "select",
-            id: "mode",
-            label: "Mode",
-            path: "mode",
-            options: [
-              { value: "shape", label: "Shape (Grayscale)" },
-              { value: "paint", label: "Paint (Terrain)" },
-            ],
-          },
-          {
-            kind: "select",
-            id: "terrainId",
-            label: "Terrain",
-            path: "terrainId",
-            options: [{ value: "", label: "— Select Terrain —" }],
-          },
-        ],
-        [
-          { kind: "text", id: "seed", label: "Seed", path: "seed" },
-          {
-            kind: "number",
-            id: "frequency",
-            label: "Frequency",
-            path: "frequency",
-            min: 0.01,
-            max: 5,
-            step: 0.01,
-          },
-        ],
-        [
-          {
-            kind: "number",
-            id: "offsetX",
-            label: "Offset X",
-            path: "offsetX",
-            min: -1000,
-            max: 1000,
-            step: 0.1,
-          },
-          {
-            kind: "number",
-            id: "offsetY",
-            label: "Offset Y",
-            path: "offsetY",
-            min: -1000,
-            max: 1000,
-            step: 0.1,
-          },
-        ],
-        [
-          {
-            kind: "number",
-            id: "gamma",
-            label: "Gamma",
-            path: "gamma",
-            min: 0.1,
-            max: 5,
-            step: 0.1,
-          },
-          {
-            kind: "slider",
-            id: "intensity",
-            label: "Intensity",
-            path: "intensity",
-            min: 0,
-            max: 1,
-            step: 0.01,
-          },
-        ],
-        [
-          {
-            kind: "number",
-            id: "min",
-            label: "Clamp Min",
-            path: "min",
-            min: 0,
-            max: 1,
-            step: 0.01,
-          },
-          {
-            kind: "number",
-            id: "max",
-            label: "Clamp Max",
-            path: "max",
-            min: 0,
-            max: 1,
-            step: 0.01,
-          },
-        ],
-      ],
-    },
-  ],
-});
+// Properties schema is registered by the hex-noise plugin during activation.

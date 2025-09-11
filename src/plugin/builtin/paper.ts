@@ -1,24 +1,48 @@
+import type { PluginManifest, PluginModule } from "@/plugin/types";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
 import { registerLayerType } from "@/layers/registry";
 import { PaperType } from "@/layers/adapters/paper";
-import type { PluginManifest, PluginModule } from "@/plugin/types";
 
 export const paperPluginManifest: PluginManifest = {
   id: "core.paper",
   name: "Paper Layer",
   version: "1.0.0",
-  apiVersion: "1.0.0",
-  priority: 100, // High priority for anchor layer
+  apiVersion: "1.0",
+  priority: 100,
 };
 
 export const paperPluginModule: PluginModule = {
-  async activate(ctx) {
-    ctx.log.info("Activating paper layer plugin");
+  activate: async () => {
     registerLayerType(PaperType);
+    registerPropertySchema("layer:paper", {
+      groups: [
+        {
+          id: "paper",
+          title: "Paper",
+          rows: [
+            {
+              kind: "select",
+              id: "aspect",
+              label: "Aspect Ratio",
+              path: "aspect",
+              options: [
+                { value: "square", label: "Square (1:1)" },
+                { value: "4:3", label: "4:3" },
+                { value: "16:10", label: "16:10" },
+              ],
+            },
+            { kind: "color", id: "color", label: "Color", path: "color" },
+          ],
+        },
+      ],
+    });
   },
-
-  async deactivate(ctx) {
-    ctx.log.info("Deactivating paper layer plugin");
-    // Note: We don't unregister layer types in this implementation
-    // as they may still be referenced in existing projects
+  deactivate: async () => {
+    try {
+      unregisterPropertySchema("layer:paper");
+    } catch {}
   },
 };

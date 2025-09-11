@@ -1,8 +1,8 @@
 ---
-ticket: T-001
+ticket: T-019
 feature: plugin-properties-panel
 owner: product-owner
-date: 2025-09-10
+date: 2025-09-11
 level: 2
 ---
 
@@ -14,31 +14,31 @@ level: 2
 
 ## In Scope
 
-- Declarative parameter template system for defining property UI without React components
-- Conditional enable/disable logic for parameters based on other parameter values
-- Plugin contribution mechanism allowing plugins to register property panels for specific selection types
-- Migration of existing hardcoded property panels to plugins using the new system
-- Support for folders/groups to organize parameters logically
+- Convert ALL property definitions to plugins (no back-compat path): campaign, map, paper, hexgrid, freeform/hex-noise.
+- Reuse current `PropertySchema`/`FieldDef` system; move registrations into plugin `activate()` calls.
+- Minimal schema extensions required for parity:
+  - `checkbox` field kind.
+  - `disabledWhen` on fields: `{ path: string; equals?: unknown; notEquals?: unknown }`.
+  - `optionsProvider?: (app) => { value: string; label: string }[]` for dynamic selects (e.g., palette entries).
+- Properties panel becomes a generic renderer over the registry; remove hardcoded campaign/map components.
+- Unload behavior: unregister schemas when plugins are unloaded.
 
 ## Out of Scope
 
-- Custom React components in plugins (plugins provide data, panel renders UI)
-- Backward compatibility with existing property schema registry (clean migration)
-- Advanced dynamic validation beyond basic type constraints (min/max/step)
-- Real-time parameter dependencies that require custom JavaScript logic
+- A new “propertyTemplates” DSL (richer declarative system). Tracked as a forward design here: guidance/feature/plugin-properties-panel/property_templates_v2.md
+- Custom React components in plugins (plugins provide data; panel renders UI).
+- Advanced validation beyond min/max/step; complex expressions for conditions.
 
 ## Acceptance Criteria
 
-- [ ] Plugins can declare property panels using declarative parameter templates
-- [ ] Parameter templates support folders, basic types (string, number, boolean, color, menu), and conditional disable logic
-- [ ] Properties panel dynamically renders registered templates based on current selection
-- [ ] Campaign and Map properties are moved to a core plugin and work identically to before
-- [ ] Layer-specific properties (hex-noise, freeform) are defined in their respective plugins
-- [ ] Conditional logic works for map palette override (checkbox enables/disables palette selection)
-- [ ] No regression in existing property panel functionality
+- [ ] All property UIs (campaign, map, paper, hexgrid, freeform/hex-noise) are sourced from plugin-registered schemas.
+- [ ] Properties panel renders from registry for `campaign`, `map`, and `layer:<typeId>` selections; no hardcoded components remain.
+- [ ] Dynamic select options work via `optionsProvider` (e.g., palette entries) and `disabledWhen` covers map override enable/disable.
+- [ ] Unloading a plugin removes its schema; panel hides those groups without errors.
+- [ ] Unit tests cover register/unregister, disabledWhen, and optionsProvider; integration tests cover selection→schema→render for each type.
 
 ## Risks & Assumptions
 
-- Assumes declarative parameter templates can cover all current property UI needs
-- Risk of template complexity growing if conditional logic requirements expand
-- Assumes plugin authors prefer declarative templates over React components for simplicity
+- Assumes minimal extensions to `PropertySchema` are sufficient for current UIs.
+- Risk: dynamic options may tempt custom logic in core—mitigated via `optionsProvider` helper.
+- Future: richer propertyTemplates may supersede `PropertySchema`; we maintain a registry interface that can accept a union in v2 (see property_templates_v2.md).

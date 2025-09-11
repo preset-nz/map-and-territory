@@ -1,5 +1,4 @@
 import type { LayerAdapter, RenderEnv } from "@/layers/types";
-import { registerPropertySchema } from "@/properties/registry";
 
 export type HexOrientation = "pointy" | "flat";
 
@@ -109,43 +108,4 @@ export const HexgridType = {
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;
 
-// Register hexgrid properties schema
-registerPropertySchema("layer:hexgrid", {
-  groups: [
-    {
-      id: "hexgrid",
-      title: "Hex Grid",
-      rows: [
-        {
-          kind: "select",
-          id: "orientation",
-          label: "Orientation",
-          path: "orientation",
-          options: [
-            { value: "pointy", label: "Pointy Top" },
-            { value: "flat", label: "Flat Top" },
-          ],
-        },
-        {
-          kind: "slider",
-          id: "size",
-          label: "Hex Size",
-          path: "size",
-          min: 8,
-          max: 120,
-          step: 1,
-        },
-        {
-          kind: "slider",
-          id: "lineWidth",
-          label: "Line Width",
-          path: "lineWidth",
-          min: 1,
-          max: 8,
-          step: 1,
-        },
-        { kind: "color", id: "color", label: "Line Color", path: "color" },
-      ],
-    },
-  ],
-});
+// Properties schema is registered by the hexgrid plugin during activation.

@@ -1,90 +1,86 @@
 ---
-ticket: T-001
+ticket: T-019
 feature: plugin-properties-panel
 author: lead-dev
-date: 2025-09-10
+date: 2025-09-11
 level: 2
 ---
 
 ## Overview & Assumptions
 
-- Properties panel becomes a generic parameter template renderer
-- Plugins contribute declarative parameter templates instead of React components
-- Single registry system replaces both property schema and hardcoded components
-- Template rendering handles all React state management and store integration
-- Conditional disable logic is evaluated client-side using current parameter values
+- Properties panel is a generic renderer over the existing `PropertySchema` registry.
+- ALL property definitions move into plugins (campaign, map, paper, hexgrid, freeform/hex-noise) and register during `activate()`.
+- We extend `PropertySchema` minimally to cover current UI: `checkbox`, `disabledWhen`, `optionsProvider`.
+- No custom React from plugins; plugins provide data, panel renders.
+- Forward path: a richer propertyTemplates DSL remains desirable; see guidance/feature/plugin-properties-panel/property_templates_v2.md.
 
 ## Interfaces & Contracts
 
-### Parameter Template Types
+### Schema Additions (v1.5)
 
-```typescript
-type ParmTemplate =
-  | FolderTemplate
-  | StringTemplate
-  | TextTemplate
-  | IntTemplate
-  | FloatTemplate
-  | ToggleTemplate
-  | MenuTemplate
-  | ColorTemplate
-  | SliderTemplate
-  | SeparatorTemplate;
+```ts
+// New field kind
+type FieldKind =
+  | "select"
+  | "color"
+  | "text"
+  | "textarea"
+  | "number"
+  | "slider"
+  | "checkbox";
 
-interface BaseTemplate {
-  type: string;
-  name: string;
+interface BaseField {
+  kind: FieldKind;
+  id: string;
   label?: string;
-  disableWhen?: DisableCondition;
+  path: string; // state-relative path (e.g., 'aspect')
+  // NEW: simple conditional logic
+  disabledWhen?: { path: string; equals?: unknown; notEquals?: unknown };
 }
 
-type DisableCondition =
-  | { always: true }
-  | { parm: string; equals: any }
-  | { parm: string; notEquals: any }
-  | { parm: string; isEmpty: true }
-  | { or: DisableCondition[] }
-  | { and: DisableCondition[] };
-```
-
-### Plugin Contribution
-
-```typescript
-interface PropertiesContribution {
-  selectionType: "campaign" | "map" | "layer" | `layer:${string}`;
-  templates: ParmTemplate[];
-}
-
-// In plugin manifest
-interface PluginManifest {
-  contributes?: {
-    propertiesPanel?: PropertiesContribution[];
-  };
+// NEW: dynamic options for selects
+interface SelectFieldDef extends BaseField {
+  kind: "select";
+  options?: Array<{ value: string; label: string }>;
+  optionsProvider?: (app: AppAPI) => Array<{ value: string; label: string }>;
 }
 ```
+
+### Plugin Registration
+
+- Plugins register schemas in `activate()` using `registerPropertySchema(scope, schema)`.
+- Add `unregisterPropertySchema(scope)`; loader calls it during `unloadPlugin()`.
+- Scopes:
+  - `campaign`
+  - `map`
+  - `layer:<typeId>`
 
 ### Registry Functions
 
-- `registerPropertiesContribution(pluginId: string, contribution: PropertiesContribution): () => void`
-- `getPropertiesContributions(selectionType: string): PropertiesContribution[]`
+- `registerPropertySchema(scope: string, schema: PropertySchema): void`
+- `unregisterPropertySchema(scope: string): void`
+- `getPropertySchema(scope: string): PropertySchema | undefined`
 
 ## Data/State Changes
 
-- New parameter template types in `src/properties/types.ts`
-- Properties registry in `src/properties/registry.ts` (replacing current schema registry)
-- Plugin loader updated to process `propertiesPanel` contributions
-- Properties panel refactored to query registry and render templates dynamically
-- Store integration handles parameter value reading/writing through generic paths
+- Extend `src/properties/registry.ts` with `checkbox`, `disabledWhen`, `optionsProvider`, and `unregisterPropertySchema`.
+- Move all existing registrations out of `src/layers/adapters/*` and into `src/plugin/builtin/*` modules.
+- Replace hardcoded `CampaignProperties`/`MapProperties` with schema-driven rendering in `properties-panel.tsx`.
+- Keep palette-dependent selects working via `optionsProvider(AppAPI)`.
 
 ## Testing Strategy
 
-- **Unit**: Parameter template type validation, disable condition evaluation, registry functions
-- **Integration**: Plugin contribution registration/unregistration, template rendering with store integration
-- **E2E**: Campaign properties, Map properties with conditional palette override, Layer properties for hex-noise
+- Unit: registry register/unregister; disabledWhen; optionsProvider returns.
+- Integration: plugin activation/unload wires schemas; selection→schema→render for each selection type.
+- E2E: campaign rename/description; map title/description + palette override; layer properties for hex-noise and freeform.
 
 ## Impact/Risks
 
-- **Perf**: Minimal impact - template evaluation is lightweight, caching possible for repeated renders
-- **DX**: Improved - plugin authors work with declarative data instead of React components
-- **UX**: No change - identical visual/functional behavior maintained
-- **Migration**: Clean break from existing property schema - all properties need migration to templates
+- Perf: minimal; dynamic options computed on demand (simple lists), cache if needed.
+- DX: improved; plugins own their property definitions and lifecycle.
+- UX: unchanged; parity with current panels.
+- Migration: one-shot move; remove adapter-time registrations and hardcoded components.
+
+## Forward Design (Not in T‑019)
+
+- The richer propertyTemplates DSL is captured in guidance/feature/plugin-properties-panel/property_templates_v2.md and is compatible with this design via a registry union type in a later ticket.
