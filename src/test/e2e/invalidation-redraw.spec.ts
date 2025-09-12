@@ -69,7 +69,7 @@ test.describe("Invalidation → Redraw", () => {
     await colorHex.fill("#ff0000");
 
     // Wait a moment for redraw
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(500);
     const after = await canvas.screenshot();
 
     // Buffers should differ

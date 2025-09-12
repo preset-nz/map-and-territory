@@ -11,18 +11,20 @@ let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
 
 function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
-  // Ensure layer adapters are registered in the worker context
+  // Register core layer types within the worker context.
   try {
     registerLayerType(PaperType);
     registerLayerType(HexgridType);
     registerLayerType(HexNoiseType);
     registerLayerType(FreeformType);
-  } catch {}
+  } catch (e) {
+    // If registration fails, continue; rendering will simply skip unknown layers.
+    console.error("[worker] layer registration failed:", e);
+  }
   backend = new Canvas2DBackend();
   canvasRef = msg.canvas;
 
   // Ensure the OffscreenCanvas starts with clean, minimal dimensions
-  // This prevents inheritance of stale dimensions from previous canvas instances
   if (canvasRef) {
     canvasRef.width = 1;
     canvasRef.height = 1;
