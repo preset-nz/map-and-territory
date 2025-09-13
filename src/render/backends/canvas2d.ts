@@ -1,6 +1,8 @@
 import type { RenderBackend, SceneFrame } from "@/render/types";
 import { getLayerType } from "@/layers/registry";
-import { computePaperRect, deriveGridHint } from "@/render/env";
+import { getSceneAdapter, composeEnv } from "@/plugin/loader";
+import { deriveGridHint } from "@/render/env";
+import type { RenderEnv } from "@/layers/types";
 
 export class Canvas2DBackend implements RenderBackend {
   private ctx:
@@ -67,8 +69,13 @@ export class Canvas2DBackend implements RenderBackend {
     // Now draw in CSS pixels by applying dpr transform
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // Compute paperRect from the frame and let the Paper adapter draw the fill
-    const paperRect = computePaperRect(cw, ch, frame.paper.aspect);
+    // Compute paperRect via SceneAdapter (plugin). Fallback to default math.
+    const scene = getSceneAdapter();
+    const paperRect =
+      scene?.computePaperRect?.({
+        canvasSize: { w: cw, h: ch },
+        paper: frame.paper,
+      }) || defaultComputePaperRect(cw, ch, frame.paper.aspect);
 
     // Clip to paper
     ctx.save();
@@ -81,17 +88,28 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.translate(-(frame.camera.x || 0), -(frame.camera.y || 0));
 
     // Build env and delegate drawing to adapters in array order (bottom -> top)
-    const gridHint = deriveGridHint(frame);
-
-    const env = {
+    const env: RenderEnv = {
       zoom: frame.camera.zoom || 1,
       pixelRatio: dpr,
       size: { w: paperRect.w, h: paperRect.h },
       paperRect,
       camera: frame.camera,
-      grid: gridHint,
+      ...composeEnv(frame),
       palette: frame.palette,
-    } as const;
+    } as RenderEnv;
+
+    if (!("grid" in env) || !env.grid) {
+      const hint = deriveGridHint(frame);
+      if (hint) env.grid = hint;
+    }
+
+    // Allow scene preRender hook (e.g., background effects). Keep pure; no transforms beyond clip/translate above.
+    try {
+      scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, env);
+    } catch (e) {
+      // non-fatal
+      console.warn("[render] scene.preRender threw", e);
+    }
 
     for (const l of frame.layers) {
       if (!l.visible) continue;
@@ -102,18 +120,12 @@ export class Canvas2DBackend implements RenderBackend {
       }
     }
 
-    // Draw outline on top for emphasis
-    ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3 / dpr; // ~3px in CSS pixels
-    ctx.strokeRect(
-      paperRect.x + ctx.lineWidth / 2,
-      paperRect.y + ctx.lineWidth / 2,
-      paperRect.w - ctx.lineWidth,
-      paperRect.h - ctx.lineWidth,
-    );
-    ctx.restore();
+    // Scene postRender can draw chrome like paper outline
+    try {
+      scene?.postRender?.(ctx as CanvasRenderingContext2D, frame, env);
+    } catch (e) {
+      console.warn("[render] scene.postRender threw", e);
+    }
 
     ctx.restore();
   }
@@ -121,4 +133,27 @@ export class Canvas2DBackend implements RenderBackend {
   destroy() {
     this.ctx = null;
   }
+}
+
+// Default computePaperRect — used when no SceneAdapter provides one (keeps parity).
+function defaultComputePaperRect(
+  canvasW: number,
+  canvasH: number,
+  aspect: "square" | "4:3" | "16:10",
+) {
+  const paddingX = Math.max(12, canvasW * 0.05);
+  const paddingY = 12;
+  const availW = Math.max(0, canvasW - paddingX * 2);
+  const availH = Math.max(0, canvasH - paddingY * 2);
+  const [aw, ah] =
+    aspect === "square" ? [1, 1] : aspect === "4:3" ? [4, 3] : [16, 10];
+  let paperW = availW;
+  let paperH = (paperW * ah) / aw;
+  if (paperH > availH) {
+    paperH = availH;
+    paperW = (paperH * aw) / ah;
+  }
+  const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
+  const paperY = paddingY;
+  return { x: paperX, y: paperY, w: paperW, h: paperH } as const;
 }
