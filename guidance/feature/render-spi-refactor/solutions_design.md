@@ -29,6 +29,12 @@ level: 2
   - `registerEnvProvider(provider: EnvProvider)`; `composeEnv(frame): RenderEnv` merges providers by `priority` ascending, shallow merge.
   - `registerTools(tools: ToolHandler[])`; `getTool(id)`; `getActiveTool()` based on layout store.
 
+### Grid Invariant (new)
+
+- Invariant: `env.grid` is always present whenever a Hexgrid layer exists.
+- Implementation: a core `EnvProvider` is registered at module load in `plugin/loader.ts` with `priority: -100` that derives `{ size, orientation }` from the Hexgrid layer state. Plugin `hexgrid` provider keeps `priority: 0` and may override.
+- Impact: removed ad‑hoc grid fallbacks from `Canvas2DBackend` and `CanvasViewport`. Both now consume `composeEnv(frame)` exclusively.
+
 - Backend changes (`src/render/backends/canvas2d.ts`):
   - Remove paper outline logic and `deriveGridHint`; call `scene.preRender`/`postRender`; use `composeEnv(frame)` for `env`.
   - Keep layer loop calling `adapter.drawMain(...)`.
@@ -54,6 +60,7 @@ level: 2
 - Integration
   - Canvas2D backend uses scene/env providers; visual parity for paper/bg and hexgrid.
   - Freeform paint/erase via pointer events updates layer state; invalidation keys trigger redraw.
+  - Alignment regression: Hexgrid, Hex Noise, and Freeform draw the center hex aligned to grid for both orientations (see `src/test/alignment.test.ts`).
 - E2E
   - Toolbar enables paint/erase only when `activeLayerIs:freeform` and grid visible.
   - Rendering worker path and fallback path produce consistent output for core flows.

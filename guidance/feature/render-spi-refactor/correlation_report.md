@@ -19,9 +19,10 @@ level: 2
 - Interfaces/contracts: ok (types and registries explicitly listed)
 - Risks/assumptions: ok (perf, bundler safety captured)
 
-## Required Edits
+## Post‑Implementation Notes
 
-- [ ] None required before implementation.
+- Grid invariant enforced by core EnvProvider in `plugin/loader.ts` (prio -100). This removes host fallbacks and reduces race conditions at bootstrap.
+- Tests augmented with alignment regression suite (`src/test/alignment.test.ts`).
 
 ## Go/No-Go
 
