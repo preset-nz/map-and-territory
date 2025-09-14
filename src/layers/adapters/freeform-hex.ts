@@ -1,5 +1,6 @@
 import type { LayerAdapter } from "@/layers/types";
 import { parseAxialKey, hexPath } from "@/layers/hex-utils";
+import { toPoint } from "@/lib/hex/layout";
 import type { MapPalette } from "@/palettes/types";
 import { resolveTerrainFill } from "@/stores/selectors/palette";
 
@@ -35,18 +36,9 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     ctx.globalAlpha = a;
     for (const [key, cell] of Object.entries(state.cells || {})) {
       const axial = parseAxialKey(key);
-      // convert axial to pixel center
-      const cx =
-        origin.x +
-        (orientation === "pointy"
-          ? Math.sqrt(3) * size * (axial.q + axial.r / 2)
-          : 1.5 * size * axial.q);
-      const cy =
-        origin.y +
-        (orientation === "pointy"
-          ? 1.5 * size * axial.r
-          : Math.sqrt(3) * size * (axial.r + axial.q / 2));
-      hexPath(ctx, { x: cx, y: cy }, layout);
+      // Convert axial to pixel center using shared helper (matches grid)
+      const center = toPoint(axial, { size, origin, orientation } as const);
+      hexPath(ctx, center, layout);
       ctx.fillStyle = colorForCell(env.palette, cell);
       ctx.fill();
     }
