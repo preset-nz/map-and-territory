@@ -9,12 +9,18 @@ import RenderService from "@/render/service";
 import type { SceneFrame } from "@/render/types";
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-import { axialKey } from "@/layers/hex-utils";
+// import { axialKey } from "@/layers/hex-utils";
 import { AppAPI } from "@/appapi";
-import { getCursorForTool } from "@/plugin/loader";
+import {
+  getCursorForTool,
+  getSceneAdapter,
+  composeEnv,
+  getTool,
+} from "@/plugin/loader";
 // import { createPerlinNoise } from "@/lib/noise";
 import { resolvePalette } from "@/stores/selectors/palette";
 import { debugEnabled } from "@/lib/debug";
+import { useCampaignStore as campaignStoreRaw } from "@/stores/campaign";
 
 function parseAspect(aspect: "square" | "4:3" | "16:10"): {
   aw: number;
@@ -272,77 +278,150 @@ export const CanvasViewport: React.FC = () => {
 
   // No fallback renderer: worker is required. WorkerSupportGate handles UX when unsupported.
 
+  // Proactive render on any campaign changes (guards against missed deps in effects)
+  useEffect(() => {
+    const unsub = campaignStoreRaw.subscribe(
+      (s) => s.current,
+      () => {
+        const svc = renderSvcRef.current;
+        const canvas = canvasRef.current;
+        if (!svc || !canvas) return;
+        const dpr =
+          typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+        const cw = Math.max(1, size.w);
+        const ch = Math.max(1, size.h);
+        const cur = campaignStoreRaw.getState().current;
+        const activeMapId = cur?.activeMapId ?? null;
+        const activeMap = activeMapId
+          ? (cur?.maps.find((m) => m.id === activeMapId) ?? null)
+          : null;
+        const layersNow = activeMap?.layers ?? [];
+        const paperLayerNow = (layersNow.find((l) => l.type === "paper") ??
+          null) as { state?: { aspect?: Aspect; color?: string } } | null;
+        const aspectNow: Aspect =
+          (paperLayerNow?.state?.aspect as Aspect | undefined) ??
+          (activeMap?.paper?.aspect as Aspect | undefined) ??
+          "16:10";
+        const paperColorNow =
+          (paperLayerNow?.state?.color as string | undefined) ??
+          (activeMap?.paper?.color as string | undefined) ??
+          "#ffffff";
+        const paletteNow = resolvePalette(cur ?? null, activeMapId);
+        const frame: SceneFrame = {
+          size: { w: cw, h: ch },
+          pixelRatio: dpr,
+          paper: { aspect: aspectNow, color: paperColorNow },
+          camera: { x: 0, y: 0, zoom: 1 },
+          layers: layersNow.map((l) => ({
+            id: l.id,
+            type: l.type,
+            visible: l.visible,
+            state: l.state,
+          })),
+          palette: paletteNow,
+        };
+        svc.render(frame);
+        requestAnimationFrame(() => svc.render(frame));
+      },
+    );
+    return () => unsub();
+  }, [size.w, size.h]);
+
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
   const activeTool = useLayoutStore((s) => s.activeTool);
   const updateLayerState = useCampaignStore((s) => s.updateLayerState);
   const selection = useSelectionStore((s) => s.selection);
   const [isPointerDown, setIsPointerDown] = useState(false);
-  const lastPaintKeyRef = useRef<string | null>(null);
 
-  const paintOrEraseAt = (mx: number, my: number) => {
+  const dispatchToolEvent = (
+    kind: "down" | "move" | "up",
+    e: React.PointerEvent,
+  ) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const handler = getTool(activeTool);
+    if (!handler) return;
     if (selection.kind !== "layer") return;
-    const layerId = selection.id;
+    // Compute paper rect (mirror render math)
     const rect = canvas.getBoundingClientRect();
-    const cx = mx - rect.left;
-    const cy = my - rect.top;
-    // Recompute paper rect and layout (mirror routing block)
     const cw = rect.width;
     const ch = rect.height;
-    const paddingX = Math.max(12, cw * 0.05);
-    const paddingY = 12;
-    const availW = cw - paddingX * 2;
-    const availH = ch - paddingY * 2;
-    const { aw, ah } = parseAspect(aspect);
-    let paperW = availW;
-    let paperH = (paperW * ah) / aw;
-    if (paperH > availH) {
-      paperH = availH;
-      paperW = (paperH * aw) / ah;
-    }
-    const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
-    const paperY = paddingY;
-    const px = cx - paperX;
-    const py = cy - paperY;
-    if (px < 0 || py < 0 || px > paperW || py > paperH) return;
-    const gridLayer = layers.find((l) => l.type === "hexgrid" && l.visible);
-    if (!gridLayer) return;
-    const st = (gridLayer.state ?? {}) as Record<string, unknown>;
-    const layout = {
-      orientation: st.orientation === "flat" ? "flat" : "pointy",
-      size: Math.max(4, Number(st.size ?? 16)),
-      origin: { x: paperW / 2, y: paperH / 2 },
-    } as const;
-    const h = AppAPI.hex.fromPoint({ x: px, y: py }, layout);
-    const key = axialKey(h.q, h.r);
-    if (lastPaintKeyRef.current === key) return;
-    lastPaintKeyRef.current = key;
-    // Read target layer to decide brush
-    const active = useCampaignStore.getState().current;
-    const map = active?.maps.find((m) => m.id === active?.activeMapId);
-    const layer = map?.layers?.find((l) => l.id === layerId);
-    if (!layer || layer.type !== "freeform") return;
-    const lstate = (layer.state ?? {}) as Record<string, unknown>;
-    if (activeTool === "paint") {
-      const brushColor =
-        (lstate["brushColor"] as string | undefined) ?? undefined;
-      const brushTerrainId =
-        (lstate["brushTerrainId"] as string | undefined) ?? undefined;
-      if (!brushColor && !brushTerrainId) return; // nothing to paint with
-      const cells = { ...((lstate["cells"] as Record<string, unknown>) || {}) };
-      cells[key] = {
-        terrainId: brushTerrainId,
-        color: brushColor,
-      } as unknown as Record<string, unknown>;
-      updateLayerState(layerId, { cells });
-    } else if (activeTool === "erase") {
-      const cells = { ...((lstate["cells"] as Record<string, unknown>) || {}) };
-      if (key in cells) {
-        delete cells[key];
-        updateLayerState(layerId, { cells });
+    const scene = getSceneAdapter();
+    const computeDefault = (
+      canvasW: number,
+      canvasH: number,
+      aspect: "square" | "4:3" | "16:10",
+    ) => {
+      const paddingX = Math.max(12, canvasW * 0.05);
+      const paddingY = 12;
+      const availW = Math.max(0, canvasW - paddingX * 2);
+      const availH = Math.max(0, canvasH - paddingY * 2);
+      const { aw, ah } = parseAspect(aspect);
+      let paperW = availW;
+      let paperH = (paperW * ah) / aw;
+      if (paperH > availH) {
+        paperH = availH;
+        paperW = (paperH * aw) / ah;
       }
+      const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
+      const paperY = paddingY;
+      return { x: paperX, y: paperY, w: paperW, h: paperH } as const;
+    };
+    const paperRect =
+      scene?.computePaperRect?.({
+        canvasSize: { w: cw, h: ch },
+        paper: { aspect, color: paperColor },
+      }) || computeDefault(cw, ch, aspect);
+
+    // Translate pointer to paper coordinates and guard bounds
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const px = mx - paperRect.x;
+    const py = my - paperRect.y;
+    if (px < 0 || py < 0 || px > paperRect.w || py > paperRect.h) return;
+
+    // Build a minimal frame for env composition
+    const dpr =
+      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const frame: SceneFrame = {
+      size: { w: cw, h: ch },
+      pixelRatio: dpr,
+      paper: { aspect, color: paperColor },
+      camera: { x: 0, y: 0, zoom: 1 },
+      layers: layers.map((l) => ({
+        id: l.id,
+        type: l.type,
+        visible: l.visible,
+        state: l.state,
+      })),
+      palette,
+    };
+    // Compose RenderEnv for tools using plugin providers; ensure precise typing.
+    const envBase: import("@/layers/types").RenderEnv = {
+      zoom: 1,
+      pixelRatio: dpr,
+      size: { w: paperRect.w, h: paperRect.h },
+      paperRect,
+      camera: frame.camera,
+      palette: frame.palette,
+    };
+    const envWithGrid: import("@/layers/types").RenderEnv = {
+      ...envBase,
+      ...(composeEnv(frame) as Partial<import("@/layers/types").RenderEnv>),
+    };
+    const ctx: import("@/plugin/types").ToolContext = {
+      app: AppAPI,
+      updateLayerState,
+      selection,
+    };
+    const pt = { x: px, y: py } as const;
+    try {
+      if (kind === "down") handler.onPointerDown?.(pt, envWithGrid, ctx);
+      else if (kind === "move") handler.onPointerMove?.(pt, envWithGrid, ctx);
+      else handler.onPointerUp?.(pt, envWithGrid, ctx);
+    } catch (err) {
+      console.warn("[CanvasViewport] tool handler threw", err);
     }
   };
   const onPointerMove: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
@@ -391,32 +470,20 @@ export const CanvasViewport: React.FC = () => {
       }
     }
     setMousePosition(Math.round(mx), Math.round(my), hex);
-    // Paint/erase when dragging with proper tool and selection
-    if (
-      isPointerDown &&
-      (activeTool === "paint" || activeTool === "erase") &&
-      selection.kind === "layer"
-    ) {
-      const activeLayer = (
-        current?.maps.find((m) => m.id === current?.activeMapId)?.layers || []
-      ).find((l) => l.id === selection.id);
-      if (activeLayer && activeLayer.type === "freeform") {
-        paintOrEraseAt(e.clientX, e.clientY);
-      }
-    }
+    if (isPointerDown) dispatchToolEvent("move", e);
   };
 
   const onPointerDown: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
     setIsPointerDown(true);
-    lastPaintKeyRef.current = null;
-    if (activeTool === "paint" || activeTool === "erase") {
-      paintOrEraseAt(e.clientX, e.clientY);
-    }
+    dispatchToolEvent("down", e);
   };
 
   const onPointerUp: React.PointerEventHandler<HTMLCanvasElement> = () => {
     setIsPointerDown(false);
-    lastPaintKeyRef.current = null;
+    try {
+      const fake = { clientX: 0, clientY: 0 } as unknown as React.PointerEvent;
+      dispatchToolEvent("up", fake);
+    } catch {}
   };
 
   const rendererTag = useMemo(

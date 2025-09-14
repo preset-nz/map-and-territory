@@ -19,6 +19,7 @@ level: 2
 - Move paint/erase logic into the Freeform plugin via Tool SPI.
 - Worker uses plugin bootstrap; remove direct adapter imports.
 - Keep Canvas2D backend limited to frame orchestration (DPR clear, camera transform, layer loop).
+- Guarantee `env.grid` availability via a core EnvProvider registered at module load; plugins may override by higher priority.
 
 ## Out of Scope
 
@@ -28,13 +29,14 @@ level: 2
 
 ## Acceptance Criteria
 
-- [ ] No paper/outline drawing code in `src/render/backends/canvas2d.ts`.
-- [ ] No paint/erase logic in `src/components/map/canvas-viewport.tsx`.
-- [ ] `src/render/worker.ts` initializes adapters via plugin bootstrap (no direct `registerLayerType` imports).
-- [ ] Paper plugin provides scene adapter (`computePaperRect`, `preRender`, `postRender`).
-- [ ] Hexgrid plugin provides `EnvProvider` for `env.grid`.
-- [ ] Freeform plugin registers `paint`/`erase` tools that update layer state via AppAPI.
-- [ ] All unit/integration/E2E tests green; coverage ≥ 80%.
+- [x] No paper/outline drawing code in `src/render/backends/canvas2d.ts`.
+- [x] No paint/erase logic in `src/components/map/canvas-viewport.tsx`.
+- [x] `src/render/worker.ts` initializes adapters via plugin bootstrap (no direct `registerLayerType` imports).
+- [x] Paper plugin provides scene adapter (`computePaperRect`, `preRender`, `postRender`).
+- [x] Hexgrid plugin provides `EnvProvider` for `env.grid`.
+- [x] Freeform plugin registers `paint`/`erase` tools that update layer state via AppAPI.
+- [x] All unit/integration/E2E tests green; coverage ≥ 80%.
+- [x] Invariant: `env.grid` is always present when a Hexgrid layer exists (core EnvProvider); no ad‑hoc fallbacks in host code.
 
 ## Risks & Assumptions
 

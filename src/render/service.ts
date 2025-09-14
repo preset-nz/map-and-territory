@@ -80,7 +80,16 @@ export class RenderService {
         this.canvas?.setAttribute("data-worker-stage", "creating-worker");
       } catch {}
       try {
-        this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
+        const url = new URL("./worker.ts", import.meta.url);
+        // In dev/test, bust module cache to ensure latest worker code (avoids stale chunks during HMR)
+        if (
+          typeof process !== "undefined" &&
+          process.env &&
+          process.env.NODE_ENV !== "production"
+        ) {
+          url.searchParams.set("t", String(Date.now()));
+        }
+        this.worker = new Worker(url, {
           type: "module",
         });
       } catch (e) {

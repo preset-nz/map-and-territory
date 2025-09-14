@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import type { RenderMessage } from "@/render/types";
 import { Canvas2DBackend } from "@/render/backends/canvas2d";
+import bootstrapPlugins from "@/plugin/bootstrap";
 import { registerLayerType } from "@/layers/registry";
 import { PaperType } from "@/layers/adapters/paper";
 import { HexgridType } from "@/layers/adapters/hexgrid";
@@ -10,19 +11,28 @@ import { FreeformType } from "@/layers/adapters/freeform-hex";
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
 
-function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
-  // Ensure layer adapters are registered in the worker context
+async function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
+  // Load plugins inside the worker to register layer adapters and render SPI.
+  // Rendering will gracefully skip unknown layers if bootstrapping fails.
+  try {
+    await bootstrapPlugins();
+  } catch (e) {
+    console.error("[worker] plugin bootstrap failed:", e);
+    // Continue; renderer will simply skip unknown layers
+  }
+  // Always ensure core layer types are registered in the worker even if plugins failed
   try {
     registerLayerType(PaperType);
     registerLayerType(HexgridType);
     registerLayerType(HexNoiseType);
     registerLayerType(FreeformType);
-  } catch {}
+  } catch {
+    // non-fatal, ignore duplicate registration errors
+  }
   backend = new Canvas2DBackend();
   canvasRef = msg.canvas;
 
   // Ensure the OffscreenCanvas starts with clean, minimal dimensions
-  // This prevents inheritance of stale dimensions from previous canvas instances
   if (canvasRef) {
     canvasRef.width = 1;
     canvasRef.height = 1;
@@ -72,11 +82,11 @@ function handleDestroy() {
   canvasRef = null;
 }
 
-self.onmessage = (ev: MessageEvent<RenderMessage>) => {
+self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
   const msg = ev.data;
   switch (msg.type) {
     case "init":
-      handleInit(msg);
+      await handleInit(msg);
       break;
     case "resize":
       handleResize(msg);

@@ -1,4 +1,4 @@
-import type { PluginManifest, PluginModule } from "@/plugin/types";
+import type { PluginManifest, PluginModule, ToolHandler } from "@/plugin/types";
 import { registerLayerType } from "@/layers/registry";
 import {
   registerPropertySchema,
@@ -125,6 +125,97 @@ export const freeformModule: PluginModule = {
   deactivate: () => {
     unregisterPropertySchema("layer:freeform");
   },
+  tools: [
+    (function makePaintTool(): ToolHandler {
+      let lastKey: string | null = null;
+      return {
+        id: "paint",
+        onPointerDown(pt, env, ctx) {
+          lastKey = null;
+          // Only operate on freeform layer selection
+          if (ctx.selection.kind !== "layer") return;
+          // Compute axial from point using env.grid
+          const grid = env.grid;
+          if (!grid) return;
+          const layout = {
+            orientation: grid.orientation === "flat" ? "flat" : "pointy",
+            size: Math.max(4, Number(grid.size || 16)),
+            origin: { x: env.size.w / 2, y: env.size.h / 2 },
+          } as const;
+          const h = (ctx.app as typeof AppAPI).hex.fromPoint(pt, layout);
+          const key = `${h.q},${h.r}`;
+          if (lastKey === key) return;
+          lastKey = key;
+          // Determine brush from current layer state via store snapshot
+          const active = useCampaignStore.getState().current;
+          const map = active?.maps.find((m) => m.id === active?.activeMapId);
+          const layer = map?.layers?.find((l) => l.id === ctx.selection.id);
+          if (!layer || layer.type !== "freeform") return;
+          const lstate = (layer.state ?? {}) as Record<string, unknown>;
+          const brushColor =
+            (lstate["brushColor"] as string | undefined) ?? undefined;
+          const brushTerrainId =
+            (lstate["brushTerrainId"] as string | undefined) ?? undefined;
+          if (!brushColor && !brushTerrainId) return;
+          const cells = {
+            ...((lstate["cells"] as Record<string, unknown>) || {}),
+          };
+          cells[key] = {
+            terrainId: brushTerrainId,
+            color: brushColor,
+          } as unknown as Record<string, unknown>;
+          ctx.updateLayerState(ctx.selection.id!, { cells });
+        },
+        onPointerMove(pt, env, ctx) {
+          if (!lastKey) return this.onPointerDown?.(pt, env, ctx);
+          return this.onPointerDown?.(pt, env, ctx);
+        },
+        onPointerUp() {
+          lastKey = null;
+        },
+      };
+    })(),
+    (function makeEraseTool(): ToolHandler {
+      let lastKey: string | null = null;
+      return {
+        id: "erase",
+        onPointerDown(pt, env, ctx) {
+          lastKey = null;
+          if (ctx.selection.kind !== "layer") return;
+          const grid = env.grid;
+          if (!grid) return;
+          const layout = {
+            orientation: grid.orientation === "flat" ? "flat" : "pointy",
+            size: Math.max(4, Number(grid.size || 16)),
+            origin: { x: env.size.w / 2, y: env.size.h / 2 },
+          } as const;
+          const h = (ctx.app as typeof AppAPI).hex.fromPoint(pt, layout);
+          const key = `${h.q},${h.r}`;
+          if (lastKey === key) return;
+          lastKey = key;
+          const active = useCampaignStore.getState().current;
+          const map = active?.maps.find((m) => m.id === active?.activeMapId);
+          const layer = map?.layers?.find((l) => l.id === ctx.selection.id);
+          if (!layer || layer.type !== "freeform") return;
+          const lstate = (layer.state ?? {}) as Record<string, unknown>;
+          const cells = {
+            ...((lstate["cells"] as Record<string, unknown>) || {}),
+          };
+          if (key in cells) {
+            delete cells[key];
+            ctx.updateLayerState(ctx.selection.id!, { cells });
+          }
+        },
+        onPointerMove(pt, env, ctx) {
+          if (!lastKey) return this.onPointerDown?.(pt, env, ctx);
+          return this.onPointerDown?.(pt, env, ctx);
+        },
+        onPointerUp() {
+          lastKey = null;
+        },
+      };
+    })(),
+  ],
   commands: {
     "layer.freeform.add": () => {
       const campaign = useCampaignStore.getState().current;

@@ -1,4 +1,4 @@
-import type { PluginManifest, PluginModule } from "@/plugin/types";
+import type { PluginManifest, PluginModule, EnvProvider } from "@/plugin/types";
 import {
   registerPropertySchema,
   unregisterPropertySchema,
@@ -62,4 +62,17 @@ export const hexgridPluginModule: PluginModule = {
       unregisterPropertySchema("layer:hexgrid");
     } catch {}
   },
+  envProviders: [
+    {
+      priority: 0,
+      provide(frame) {
+        const layer = frame.layers.find((l) => l.type === "hexgrid");
+        if (!layer) return {};
+        const st = (layer.state ?? {}) as Record<string, unknown>;
+        const size = Math.max(4, Number(st.size ?? 16));
+        const orientation = st.orientation === "flat" ? "flat" : "pointy";
+        return { grid: { size, orientation } } as const;
+      },
+    } satisfies EnvProvider,
+  ],
 };

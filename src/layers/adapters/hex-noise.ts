@@ -1,4 +1,5 @@
 import type { LayerAdapter } from "@/layers/types";
+import { hexPath } from "@/layers/hex-utils";
 import { DefaultPalette } from "@/palettes/defaults";
 import { createPerlinNoise } from "@/lib/noise";
 // (no direct adapter drawing; rendering handled elsewhere)
@@ -50,15 +51,9 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
       const mode = (state.mode as "shape" | "paint" | undefined) ?? "shape";
       if (mode === "shape") {
         const g = Math.floor(v * 255 * intensity);
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-          const ang = startAngle + i * (Math.PI / 3);
-          const px = cx + Math.cos(ang) * r;
-          const py = cy + Math.sin(ang) * r;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
+        // Use shared layout helpers (matches grid and freeform exactly)
+        const layout = { size: r, orientation } as const;
+        hexPath(ctx as CanvasRenderingContext2D, { x: cx, y: cy }, layout);
         ctx.fillStyle = `rgb(${g},${g},${g})`;
         ctx.fill();
         return;
@@ -90,15 +85,9 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
           ]?.fill;
         fill = fromEnv || DefaultPalette.terrain.plains.fill;
       }
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const ang = startAngle + i * (Math.PI / 3);
-        const px = cx + Math.cos(ang) * r;
-        const py = cy + Math.sin(ang) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
+      // Use shared layout helpers (matches grid and freeform exactly)
+      const layout = { size: r, orientation } as const;
+      hexPath(ctx as CanvasRenderingContext2D, { x: cx, y: cy }, layout);
       ctx.fillStyle = fill;
       ctx.fill();
     };

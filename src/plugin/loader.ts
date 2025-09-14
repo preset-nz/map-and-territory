@@ -6,6 +6,9 @@ import type {
   PluginContext,
   CapabilityToken,
   CssCursor,
+  SceneAdapter,
+  EnvProvider,
+  ToolHandler,
 } from "./types";
 
 type LoadedPlugin = {
@@ -45,10 +48,37 @@ function recomputeToolbarSnapshot() {
 }
 
 const toolCursors = new Map<string, CssCursor>();
+// M1 registries (not yet consumed by renderer)
+let activeSceneAdapter: SceneAdapter | null = null;
+const envProviderList: EnvProvider[] = [];
+// Core, always-on provider: derive grid from Hexgrid layer state to avoid
+// bootstrap timing races. Plugins can override with higher priority (>= 0).
+const coreGridEnvProvider: EnvProvider = {
+  priority: -100,
+  provide(frame) {
+    const hex = frame.layers.find((l) => l.type === "hexgrid");
+    if (!hex || !hex.state) return {};
+    const st = hex.state as Record<string, unknown>;
+    const size = Math.max(4, Number(st.size ?? 16));
+    const orientation = st.orientation === "flat" ? "flat" : "pointy";
+    return { grid: { size, orientation } } as const;
+  },
+};
+envProviderList.push(coreGridEnvProvider);
+envProviderList.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+const toolRegistry = new Map<string, ToolHandler>();
 
 function notifyToolbarUpdate() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("plugin:toolbar-updated"));
+  if (
+    typeof window !== "undefined" &&
+    typeof window.dispatchEvent === "function" &&
+    typeof window.CustomEvent === "function"
+  ) {
+    try {
+      window.dispatchEvent(new window.CustomEvent("plugin:toolbar-updated"));
+    } catch {
+      // no-op in non-DOM contexts
+    }
   }
 }
 
@@ -77,6 +107,54 @@ export function registerToolCursor(tool: string, cursor: CssCursor) {
 
 export function getCursorForTool(tool: string): CssCursor | undefined {
   return toolCursors.get(tool);
+}
+
+// ----- Render SPI registries (M1) -----
+export function registerSceneAdapter(scene: SceneAdapter) {
+  activeSceneAdapter = scene;
+  return () => {
+    if (activeSceneAdapter === scene) activeSceneAdapter = null;
+  };
+}
+
+export function getSceneAdapter(): SceneAdapter | null {
+  return activeSceneAdapter;
+}
+
+export function registerEnvProvider(provider: EnvProvider) {
+  envProviderList.push(provider);
+  // Keep providers ordered by priority (ascending)
+  envProviderList.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+  return () => {
+    const idx = envProviderList.indexOf(provider);
+    if (idx >= 0) envProviderList.splice(idx, 1);
+  };
+}
+
+import type { SceneFrame } from "@/render/types";
+import type { RenderEnv } from "@/layers/types";
+
+export function composeEnv(frame: SceneFrame): Partial<RenderEnv> {
+  const out: Partial<RenderEnv> = {};
+  for (const p of envProviderList) {
+    try {
+      Object.assign(out, p.provide(frame) || {});
+    } catch (e) {
+      console.warn("[plugin] EnvProvider threw:", e);
+    }
+  }
+  return out;
+}
+
+export function registerTools(tools: ToolHandler[]) {
+  for (const t of tools) toolRegistry.set(t.id, t);
+  return () => {
+    for (const t of tools) toolRegistry.delete(t.id);
+  };
+}
+
+export function getTool(id: string): ToolHandler | undefined {
+  return toolRegistry.get(id);
 }
 
 /**
@@ -197,6 +275,12 @@ export async function loadPlugin(
   };
 
   if (module.activate) await module.activate(ctx);
+
+  // Register optional Render SPI contributions (no-op in M1)
+  if (module.scene) registerSceneAdapter(module.scene);
+  if (module.envProviders)
+    for (const p of module.envProviders) registerEnvProvider(p);
+  if (module.tools) registerTools(module.tools);
 
   const priority = manifest.priority ?? 10;
   plugins.set(manifest.id, { manifest, module, disposables, priority });
