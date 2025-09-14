@@ -87,21 +87,22 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.translate(-(frame.camera.x || 0), -(frame.camera.y || 0));
 
     // Build env and delegate drawing to adapters in array order (bottom -> top)
-    const env: RenderEnv = {
+    const envBase: RenderEnv = {
       zoom: frame.camera.zoom || 1,
       pixelRatio: dpr,
       size: { w: paperRect.w, h: paperRect.h },
       paperRect,
       camera: frame.camera,
-      ...composeEnv(frame),
       palette: frame.palette,
-    } as RenderEnv;
-
-    // EnvProviders are the sole source of grid hints in M2+.
+    };
+    const envLocal: RenderEnv = {
+      ...envBase,
+      ...(composeEnv(frame) as Partial<RenderEnv>),
+    };
 
     // Allow scene preRender hook (e.g., background effects). Keep pure; no transforms beyond clip/translate above.
     try {
-      scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, env);
+      scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
     } catch (e) {
       // non-fatal
       console.warn("[render] scene.preRender threw", e);
@@ -112,13 +113,13 @@ export class Canvas2DBackend implements RenderBackend {
       const type = getLayerType(l.type);
       const draw = type?.adapter?.drawMain;
       if (typeof draw === "function") {
-        draw(ctx as CanvasRenderingContext2D, l.state as unknown, env);
+        draw(ctx as CanvasRenderingContext2D, l.state as unknown, envLocal);
       }
     }
 
     // Scene postRender can draw chrome like paper outline
     try {
-      scene?.postRender?.(ctx as CanvasRenderingContext2D, frame, env);
+      scene?.postRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
     } catch (e) {
       console.warn("[render] scene.postRender threw", e);
     }

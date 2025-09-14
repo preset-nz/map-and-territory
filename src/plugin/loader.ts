@@ -51,6 +51,21 @@ const toolCursors = new Map<string, CssCursor>();
 // M1 registries (not yet consumed by renderer)
 let activeSceneAdapter: SceneAdapter | null = null;
 const envProviderList: EnvProvider[] = [];
+// Core, always-on provider: derive grid from Hexgrid layer state to avoid
+// bootstrap timing races. Plugins can override with higher priority (>= 0).
+const coreGridEnvProvider: EnvProvider = {
+  priority: -100,
+  provide(frame) {
+    const hex = frame.layers.find((l) => l.type === "hexgrid");
+    if (!hex || !hex.state) return {};
+    const st = hex.state as Record<string, unknown>;
+    const size = Math.max(4, Number(st.size ?? 16));
+    const orientation = st.orientation === "flat" ? "flat" : "pointy";
+    return { grid: { size, orientation } } as const;
+  },
+};
+envProviderList.push(coreGridEnvProvider);
+envProviderList.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 const toolRegistry = new Map<string, ToolHandler>();
 
 function notifyToolbarUpdate() {
