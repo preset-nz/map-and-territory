@@ -54,8 +54,16 @@ const envProviderList: EnvProvider[] = [];
 const toolRegistry = new Map<string, ToolHandler>();
 
 function notifyToolbarUpdate() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("plugin:toolbar-updated"));
+  if (
+    typeof window !== "undefined" &&
+    typeof window.dispatchEvent === "function" &&
+    typeof window.CustomEvent === "function"
+  ) {
+    try {
+      window.dispatchEvent(new window.CustomEvent("plugin:toolbar-updated"));
+    } catch {
+      // no-op in non-DOM contexts
+    }
   }
 }
 

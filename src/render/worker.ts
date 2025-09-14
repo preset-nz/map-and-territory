@@ -1,25 +1,19 @@
 /// <reference lib="webworker" />
 import type { RenderMessage } from "@/render/types";
 import { Canvas2DBackend } from "@/render/backends/canvas2d";
-import { registerLayerType } from "@/layers/registry";
-import { PaperType } from "@/layers/adapters/paper";
-import { HexgridType } from "@/layers/adapters/hexgrid";
-import { HexNoiseType } from "@/layers/adapters/hex-noise";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
+import bootstrapPlugins from "@/plugin/bootstrap";
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
 
-function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
-  // Register core layer types within the worker context.
+async function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
+  // Load plugins inside the worker to register layer adapters and render SPI.
+  // Rendering will gracefully skip unknown layers if bootstrapping fails.
   try {
-    registerLayerType(PaperType);
-    registerLayerType(HexgridType);
-    registerLayerType(HexNoiseType);
-    registerLayerType(FreeformType);
+    await bootstrapPlugins();
   } catch (e) {
-    // If registration fails, continue; rendering will simply skip unknown layers.
-    console.error("[worker] layer registration failed:", e);
+    console.error("[worker] plugin bootstrap failed:", e);
+    // Continue; renderer will simply skip unknown layers
   }
   backend = new Canvas2DBackend();
   canvasRef = msg.canvas;
@@ -74,11 +68,11 @@ function handleDestroy() {
   canvasRef = null;
 }
 
-self.onmessage = (ev: MessageEvent<RenderMessage>) => {
+self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
   const msg = ev.data;
   switch (msg.type) {
     case "init":
-      handleInit(msg);
+      await handleInit(msg);
       break;
     case "resize":
       handleResize(msg);

@@ -1,7 +1,6 @@
 import type { RenderBackend, SceneFrame } from "@/render/types";
 import { getLayerType } from "@/layers/registry";
 import { getSceneAdapter, composeEnv } from "@/plugin/loader";
-import { deriveGridHint } from "@/render/env";
 import type { RenderEnv } from "@/layers/types";
 
 export class Canvas2DBackend implements RenderBackend {
@@ -98,10 +97,7 @@ export class Canvas2DBackend implements RenderBackend {
       palette: frame.palette,
     } as RenderEnv;
 
-    if (!("grid" in env) || !env.grid) {
-      const hint = deriveGridHint(frame);
-      if (hint) env.grid = hint;
-    }
+    // EnvProviders are the sole source of grid hints in M2+.
 
     // Allow scene preRender hook (e.g., background effects). Keep pure; no transforms beyond clip/translate above.
     try {

@@ -9,6 +9,7 @@ import {
 } from "@/components/providers/auth-provider";
 import AppLayout from "@/components/layout/app-layout";
 import DialogProvider from "@/components/providers/dialog-provider";
+import PluginProvider from "@/components/providers/plugin-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,10 +49,13 @@ export default function RootLayout({
         {/* Auth Provider with Error Boundary */}
         <AuthErrorBoundary>
           <NoOpAuthProvider simulateLoading={false}>
-            {/* Main Layout System */}
-            <DialogProvider>
-              <AppLayout>{children}</AppLayout>
-            </DialogProvider>
+            {/* Plugins bootstrap on client before main layout */}
+            <PluginProvider>
+              {/* Main Layout System */}
+              <DialogProvider>
+                <AppLayout>{children}</AppLayout>
+              </DialogProvider>
+            </PluginProvider>
           </NoOpAuthProvider>
         </AuthErrorBoundary>
       </body>

@@ -1,0 +1,41 @@
+
+> map-and-territory@0.1.0 dev /Users/georg/countasone/poc/map-and-territory
+> next dev --turbopack
+
+   ▲ Next.js 15.5.2 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.32.31.167:3000
+
+ ✓ Starting...
+ ✓ Ready in 658ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1732ms
+ GET / 200 in 2060ms
+ ✓ Compiled /icon.svg in 109ms
+ GET /icon.svg?icon.77897612.svg 200 in 362ms
+ ⚠ Fast Refresh had to perform a full reload when ./src/plugin/loader.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 101ms
+ GET / 200 in 185ms
+ GET / 200 in 63ms
+ GET /icon.svg?icon.77897612.svg 200 in 230ms
+ GET / 200 in 82ms
+ GET / 200 in 69ms
+ GET / 200 in 58ms
+ GET / 200 in 395ms
+ GET / 200 in 405ms
+ GET / 200 in 409ms
+ GET / 200 in 412ms
+ GET / 200 in 412ms
+ GET / 200 in 420ms
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET / 200 in 111ms
+ GET / 200 in 104ms
+ GET / 200 in 140ms
+ GET / 200 in 147ms
+ GET / 200 in 154ms
+ ⚠ Fast Refresh had to perform a full reload when ./src/plugin/loader.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 99ms
+ GET / 200 in 242ms
+ GET / 200 in 63ms
+ GET /icon.svg?icon.77897612.svg 200 in 230ms
