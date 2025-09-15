@@ -95,6 +95,9 @@ function main() {
     process.exit(1);
   }
 
+  console.log(`${YELLOW}pre-commit: pnpm lint --max-warnings=0${RESET}`);
+  sh("pnpm lint --max-warnings=0");
+
   console.log(`${GREEN}pre-commit: basic checks passed.${RESET}`);
 }
 

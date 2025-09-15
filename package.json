@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
-    "format:write": "prettier --write .",
+    "format:write": "prettier --log-level=warn --write .",
     "prepare": "husky",
     "test": "vitest",
     "test:ui": "vitest --ui",

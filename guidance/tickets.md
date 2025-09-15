@@ -56,8 +56,9 @@ Dependencies & Order
 
 Working Notes
 
-- Keep SOLID/CUPID: Layer adapters remain small and composable; AppAPI stays narrow and selector‑based.
-- Platform thinking: early investment in layering, invalidation, and AppAPI yields long‑term extensibility.
+- Keep SOLID/CUPID: Layer adapters remain small and composable; AppAPI stays narrow and selector-based.
+- Platform thinking: early investment in layering, invalidation, and AppAPI yields long-term extensibility.
+- Interdependencies Refactor Migration: when a ticket touches plugins/tools, ensure adoption of the `ToolContext` seam (no `@/stores/**` imports) and leave lint passing with zero warnings.
 
 ---
 

@@ -98,6 +98,7 @@ Purpose: emphasize platform economics without overbuilding. Each feature should 
 - **Proper Isolation**: Ensure plugin code doesn't interfere with core functionality
 - **Security Boundaries**: Maintain security isolation between plugins and core
 - **API Contracts**: Define clear API contracts for plugin interactions
+- **ToolContext Write Seam**: Tools and plugin commands mutate campaign state exclusively via the `ToolContext` helpers (`applyLayerState`, `applyCellsDelta` when introduced) or the platform runtime wrappers under `@/platform/plugin-runtime`. Direct imports from `@/stores/**` are disallowed and blocked by lint (see ADR-0002 and Interdependencies Refactor Phase 5).
 
 ### Data Management
 

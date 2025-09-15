@@ -135,9 +135,23 @@ Phase 4 — Anchor Policy Utility (Complete 2025-09-15)
   - Integration/E2E: no behaviour drift; layer manipulation flows remain green.
 - Exit Criteria: acceptance criteria P4 met; anchor policies expressed once and reused.
 
-Phase 5 — Cleanup, Docs, Lints
+Phase 5 — Cleanup, Docs, Lints (Planned 2025-09-16)
 
-- Update guidance and examples to use `ToolContext`; enforce plugin import guard.
+- Objective: lock in the seam-first model by aligning guidance, examples, and lint enforcement so plugins cannot regress to direct store access.
+- Dependencies: Phases 1–4 in main; ESLint guard scaffold from Phase 0; migration notes drafted (`guidance/feature/interdependencies-refactor/notes.md`).
+- Tasks:
+  - Update `guidance/process/implementation_standards.md` and `guidance/process/code-reviewer-typescript.md` with the `ToolContext` write seam requirements, reviewer checklist, and ADR-0002 link.
+  - Refresh plugin examples (`src/plugin/builtin/*.ts`) and snippets in `guidance/process/nextjs_typescript_feature_implementation.md` to show `applyLayerState` usage and remove legacy `useCampaignStore` imports.
+  - Promote the ESLint `no-restricted-imports` rule to error with a custom message referencing the guidance section; add a lint fixture under `src/test/lint/plugin-store-import.test.ts` to guard the regression.
+  - Align `scripts/pre-commit.mjs` to run `pnpm lint --max-warnings=0` so the rule blocks commits, and note the expectation in `guidance/tickets.md` migration checklist.
+- Deliverables:
+  - Documentation updates across the guidance stack referencing the new seam and migration path.
+  - ESLint configuration change plus accompanying lint fixture/test ensuring plugin-store imports fail CI.
+  - Updated pre-commit script and ticket checklist communicating the enforcement gate.
+- Validation:
+  - `pnpm lint` (ensures guard fires) and `pnpm validate` prior to sign-off.
+  - Spot-check plugin build via `pnpm build` to confirm no unresolved imports after refactors.
+- Exit Criteria: Documentation reflects seam-first authoring, lint blocks regressions, migration backlog closed or scheduled in tickets with owners.
 
 Deferred (Post‑seams)
 

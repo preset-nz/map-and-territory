@@ -11,7 +11,7 @@ import {
   getSelection,
   insertLayerAbove,
   insertLayerBeforeTopAnchor,
-  updateLayerState,
+  applyLayerState,
   selectLayer,
   setActiveTool,
 } from "@/platform/plugin-runtime/state";
@@ -244,9 +244,9 @@ export const freeformModule: PluginModule = {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          updateLayerState(id, {
-            brushTerrainId: first.id,
-            brushColor: first.color,
+          applyLayerState(id, (draft) => {
+            draft["brushTerrainId"] = first.id;
+            draft["brushColor"] = first.color;
           });
         }
       } catch {}

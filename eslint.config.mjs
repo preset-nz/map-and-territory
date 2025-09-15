@@ -29,7 +29,7 @@ const eslintConfig = [
             {
               group: ["@/stores", "@/stores/*"],
               message:
-                "Plugins must use ToolContext seams; importing @/stores/* reintroduces brittle coupling.",
+                "Plugins must use ToolContext seams (guidance/process/implementation_standards.md#plugin-architecture); importing @/stores/* reintroduces brittle coupling.",
             },
           ],
         },

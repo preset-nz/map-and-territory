@@ -11,7 +11,7 @@ import {
   getSelection,
   insertLayerAbove,
   insertLayerBeforeTopAnchor,
-  updateLayerState,
+  applyLayerState,
   selectLayer,
 } from "@/platform/plugin-runtime/state";
 
@@ -188,9 +188,9 @@ export const hexNoiseModule: PluginModule = {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
-            updateLayerState(id, {
-              terrainId: first.id,
-              paintColor: first.color,
+            applyLayerState(id, (draft) => {
+              draft["terrainId"] = first.id;
+              draft["paintColor"] = first.color;
             });
           }
         } catch {}
@@ -203,9 +203,9 @@ export const hexNoiseModule: PluginModule = {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
-            updateLayerState(id, {
-              terrainId: first.id,
-              paintColor: first.color,
+            applyLayerState(id, (draft) => {
+              draft["terrainId"] = first.id;
+              draft["paintColor"] = first.color;
             });
           }
         } catch {}
@@ -219,9 +219,9 @@ export const hexNoiseModule: PluginModule = {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          updateLayerState(id, {
-            terrainId: first.id,
-            paintColor: first.color,
+          applyLayerState(id, (draft) => {
+            draft["terrainId"] = first.id;
+            draft["paintColor"] = first.color;
           });
         }
       } catch {}
