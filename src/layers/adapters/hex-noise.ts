@@ -1,5 +1,5 @@
 import type { LayerAdapter } from "@/layers/types";
-import { hexPath } from "@/layers/hex-utils";
+import { hexPath, hexTiles, createHexLayout } from "@/layers/hex-utils";
 import { DefaultPalette } from "@/palettes/defaults";
 import { createPerlinNoise } from "@/lib/noise";
 // (no direct adapter drawing; rendering handled elsewhere)
@@ -27,8 +27,6 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
     const gridSize = Math.max(4, env.grid?.size ?? 16);
     const orientation: "pointy" | "flat" =
       env.grid?.orientation === "flat" ? "flat" : "pointy";
-    const r = gridSize;
-    const sqrt3 = Math.sqrt(3);
     const perlin = createPerlinNoise(state.seed ?? "seed");
     const freq = Math.max(0, Number(state.frequency ?? 0.15));
     const ox = Number(state.offsetX ?? 0);
@@ -38,27 +36,35 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
     const clampMin = Math.max(0, Math.min(1, Number(state.min ?? 0)));
     const clampMax = Math.max(0, Math.min(1, Number(state.max ?? 1)));
 
-    const drawHexFilled = (
-      cx: number,
-      cy: number,
-      startAngle: number,
-      aq: number,
-      ar: number,
-    ) => {
-      let v = perlin.normalized2D(aq * freq + ox, ar * freq + oy);
+    // Use shared hex utilities for tiling and drawing
+    const layout = createHexLayout(gridSize, orientation);
+    const tilingConfig = {
+      size: gridSize,
+      orientation,
+      center: { x: env.size.w / 2, y: env.size.h / 2 },
+      bounds: env.size,
+      padding: 2,
+    };
+
+    for (const tile of hexTiles(tilingConfig)) {
+      // Apply noise calculation using axial coordinates
+      let v = perlin.normalized2D(
+        tile.axial.q * freq + ox,
+        tile.axial.r * freq + oy,
+      );
       v = Math.pow(v, gamma);
-      if (v < clampMin || v > clampMax) return;
+      if (v < clampMin || v > clampMax) continue;
+
       const mode = (state.mode as "shape" | "paint" | undefined) ?? "shape";
       if (mode === "shape") {
         const g = Math.floor(v * 255 * intensity);
-        // Use shared layout helpers (matches grid and freeform exactly)
-        const layout = { size: r, orientation } as const;
-        hexPath(ctx as CanvasRenderingContext2D, { x: cx, y: cy }, layout);
+        hexPath(ctx as CanvasRenderingContext2D, tile.center, layout);
         ctx.fillStyle = `rgb(${g},${g},${g})`;
         ctx.fill();
-        return;
+        continue;
       }
-      // Prefer explicit paintColor (from selected terrainId), fall back to palette by base type
+
+      // Paint mode - determine terrain color
       let fill = state.paintColor;
       if (!fill) {
         const terrain = (state.terrain as string | undefined) ?? "plains";
@@ -85,51 +91,10 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
           ]?.fill;
         fill = fromEnv || DefaultPalette.terrain.plains.fill;
       }
-      // Use shared layout helpers (matches grid and freeform exactly)
-      const layout = { size: r, orientation } as const;
-      hexPath(ctx as CanvasRenderingContext2D, { x: cx, y: cy }, layout);
+
+      hexPath(ctx as CanvasRenderingContext2D, tile.center, layout);
       ctx.fillStyle = fill;
       ctx.fill();
-    };
-
-    if (orientation === "flat") {
-      const colStep = 1.5 * r;
-      const rowStep = sqrt3 * r;
-      const cols = Math.ceil(env.size.w / colStep) + 2;
-      const rows = Math.ceil(env.size.h / rowStep) + 2;
-      const centerX = env.size.w / 2;
-      const centerY = env.size.h / 2;
-      const cmin = -Math.ceil(cols / 2),
-        cmax = Math.ceil(cols / 2);
-      const rmin = -Math.ceil(rows / 2),
-        rmax = Math.ceil(rows / 2);
-      for (let c = cmin; c <= cmax; c++) {
-        const yOffset = c & 1 ? rowStep / 2 : 0;
-        for (let rr = rmin; rr <= rmax; rr++) {
-          const x = c * colStep + centerX;
-          const y = rr * rowStep + yOffset + centerY;
-          drawHexFilled(x, y, 0, c, rr);
-        }
-      }
-    } else {
-      const colStep = sqrt3 * r;
-      const rowStep = 1.5 * r;
-      const cols = Math.ceil(env.size.w / colStep) + 2;
-      const rows = Math.ceil(env.size.h / rowStep) + 2;
-      const centerX = env.size.w / 2;
-      const centerY = env.size.h / 2;
-      const rmin = -Math.ceil(rows / 2),
-        rmax = Math.ceil(rows / 2);
-      const cmin = -Math.ceil(cols / 2),
-        cmax = Math.ceil(cols / 2);
-      for (let rr = rmin; rr <= rmax; rr++) {
-        const xOffset = rr & 1 ? colStep / 2 : 0;
-        for (let c = cmin; c <= cmax; c++) {
-          const x = c * colStep + xOffset + centerX;
-          const y = rr * rowStep + centerY;
-          drawHexFilled(x, y, -Math.PI / 6, c, rr);
-        }
-      }
     }
   },
   // Note: main renderers draw this layer explicitly; adapter kept for parity/future bridge
