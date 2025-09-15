@@ -21,54 +21,38 @@ import {
 import { resolvePalette } from "@/stores/selectors/palette";
 import { debugEnabled } from "@/lib/debug";
 import { useCampaignStore as campaignStoreRaw } from "@/stores/campaign";
-
-function parseAspect(aspect: "square" | "4:3" | "16:10"): {
-  aw: number;
-  ah: number;
-} {
-  switch (aspect) {
-    case "square":
-      return { aw: 1, ah: 1 };
-    case "4:3":
-      return { aw: 4, ah: 3 };
-    case "16:10":
-    default:
-      return { aw: 16, ah: 10 };
-  }
-}
+import { computePaperRect, PaperAspect } from "@/app/scene/geometry";
 
 export const CanvasViewport: React.FC = () => {
-  // Select minimal store state without constructing new objects to keep SSR snapshot stable
-  const current = useCampaignStore((s) => s.current);
-  const campaignId = useCampaignStore((s) => s.current?.id ?? null);
-  const activeId = current?.activeMapId ?? null;
-  const maps = current?.maps;
-
-  const active = useMemo(() => {
-    const list = maps ?? [];
-    return activeId ? (list.find((m) => m.id === activeId) ?? null) : null;
-  }, [activeId, maps]);
-  // Derive paper aspect/color from Paper layer state if present; fallback to map.paper
+  const campaignSnapshot = useCampaignStore((s) => s.current);
+  const campaignId = campaignSnapshot?.id ?? null;
+  const activeMapId = campaignSnapshot?.activeMapId ?? null;
+  const activeMap = useMemo(() => {
+    const maps = campaignSnapshot?.maps ?? [];
+    return activeMapId
+      ? (maps.find((m) => m.id === activeMapId) ?? null)
+      : null;
+  }, [campaignSnapshot, activeMapId]);
+  const hasActiveMap = Boolean(activeMap);
+  const layers = useMemo(() => activeMap?.layers ?? [], [activeMap]);
   const paperLayer = useMemo(
     () =>
-      active
-        ? ((active.layers ?? []).find((l) => l.type === "paper") ?? null)
-        : null,
-    [active],
+      (layers.find((l) => l.type === "paper") ?? null) as {
+        state?: { aspect?: PaperAspect; color?: string };
+      } | null,
+    [layers],
   );
-  type Aspect = "square" | "4:3" | "16:10";
-  const aspect: Aspect =
-    (paperLayer?.state as { aspect?: Aspect } | undefined)?.aspect ??
-    active?.paper?.aspect ??
+  const aspect: PaperAspect =
+    (paperLayer?.state?.aspect as PaperAspect | undefined) ??
+    (activeMap?.paper?.aspect as PaperAspect | undefined) ??
     "16:10";
   const paperColor =
-    (paperLayer?.state as { color?: string } | undefined)?.color ??
-    active?.paper?.color ??
+    (paperLayer?.state?.color as string | undefined) ??
+    (activeMap?.paper?.color as string | undefined) ??
     "#ffffff";
-  const layers = useMemo(() => active?.layers ?? [], [active]);
   const palette = useMemo(
-    () => resolvePalette(current ?? null, activeId),
-    [current, activeId],
+    () => resolvePalette(campaignSnapshot ?? null, activeMapId),
+    [campaignSnapshot, activeMapId],
   );
   const layersKey = useMemo(() => {
     return layers
@@ -225,7 +209,7 @@ export const CanvasViewport: React.FC = () => {
       setUseWorker(false);
       return () => {};
     }
-  }, [campaignId, activeId, dbg]); // React to campaign and active map changes
+  }, [campaignId, activeMapId, dbg]); // React to campaign and active map changes
 
   // Note: We avoid re-calling transferControlToOffscreen on the same canvas.
   // Instead, the <canvas> below is keyed by campaignId to force a remount when
@@ -278,55 +262,6 @@ export const CanvasViewport: React.FC = () => {
 
   // No fallback renderer: worker is required. WorkerSupportGate handles UX when unsupported.
 
-  // Proactive render on any campaign changes (guards against missed deps in effects)
-  useEffect(() => {
-    const unsub = campaignStoreRaw.subscribe(
-      (s) => s.current,
-      () => {
-        const svc = renderSvcRef.current;
-        const canvas = canvasRef.current;
-        if (!svc || !canvas) return;
-        const dpr =
-          typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-        const cw = Math.max(1, size.w);
-        const ch = Math.max(1, size.h);
-        const cur = campaignStoreRaw.getState().current;
-        const activeMapId = cur?.activeMapId ?? null;
-        const activeMap = activeMapId
-          ? (cur?.maps.find((m) => m.id === activeMapId) ?? null)
-          : null;
-        const layersNow = activeMap?.layers ?? [];
-        const paperLayerNow = (layersNow.find((l) => l.type === "paper") ??
-          null) as { state?: { aspect?: Aspect; color?: string } } | null;
-        const aspectNow: Aspect =
-          (paperLayerNow?.state?.aspect as Aspect | undefined) ??
-          (activeMap?.paper?.aspect as Aspect | undefined) ??
-          "16:10";
-        const paperColorNow =
-          (paperLayerNow?.state?.color as string | undefined) ??
-          (activeMap?.paper?.color as string | undefined) ??
-          "#ffffff";
-        const paletteNow = resolvePalette(cur ?? null, activeMapId);
-        const frame: SceneFrame = {
-          size: { w: cw, h: ch },
-          pixelRatio: dpr,
-          paper: { aspect: aspectNow, color: paperColorNow },
-          camera: { x: 0, y: 0, zoom: 1 },
-          layers: layersNow.map((l) => ({
-            id: l.id,
-            type: l.type,
-            visible: l.visible,
-            state: l.state,
-          })),
-          palette: paletteNow,
-        };
-        svc.render(frame);
-        requestAnimationFrame(() => svc.render(frame));
-      },
-    );
-    return () => unsub();
-  }, [size.w, size.h]);
-
   // Pointer → hex routing (main thread)
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
   const activeTool = useLayoutStore((s) => s.activeTool);
@@ -349,31 +284,15 @@ export const CanvasViewport: React.FC = () => {
     const cw = rect.width;
     const ch = rect.height;
     const scene = getSceneAdapter();
-    const computeDefault = (
-      canvasW: number,
-      canvasH: number,
-      aspect: "square" | "4:3" | "16:10",
-    ) => {
-      const paddingX = Math.max(12, canvasW * 0.05);
-      const paddingY = 12;
-      const availW = Math.max(0, canvasW - paddingX * 2);
-      const availH = Math.max(0, canvasH - paddingY * 2);
-      const { aw, ah } = parseAspect(aspect);
-      let paperW = availW;
-      let paperH = (paperW * ah) / aw;
-      if (paperH > availH) {
-        paperH = availH;
-        paperW = (paperH * aw) / ah;
-      }
-      const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
-      const paperY = paddingY;
-      return { x: paperX, y: paperY, w: paperW, h: paperH } as const;
-    };
     const paperRect =
       scene?.computePaperRect?.({
         canvasSize: { w: cw, h: ch },
         paper: { aspect, color: paperColor },
-      }) || computeDefault(cw, ch, aspect);
+      }) ??
+      computePaperRect({
+        canvasSize: { w: cw, h: ch },
+        paper: { aspect },
+      });
 
     // Translate pointer to paper coordinates and guard bounds
     const mx = e.clientX - rect.left;
@@ -430,6 +349,7 @@ export const CanvasViewport: React.FC = () => {
         }
       },
       selection,
+      sceneAdapter: scene ?? null,
     };
     const pt = { x: px, y: py } as const;
     try {
@@ -449,37 +369,28 @@ export const CanvasViewport: React.FC = () => {
     // Recompute paper rect (same as draw)
     const cw = rect.width;
     const ch = rect.height;
-    const paddingX = Math.max(12, cw * 0.05);
-    const paddingY = 12;
-    const availW = cw - paddingX * 2;
-    const availH = ch - paddingY * 2;
-    const parseAspect = (a: "square" | "4:3" | "16:10") =>
-      a === "square"
-        ? { aw: 1, ah: 1 }
-        : a === "4:3"
-          ? { aw: 4, ah: 3 }
-          : { aw: 16, ah: 10 };
-    const { aw, ah } = parseAspect(aspect);
-    let paperW = availW;
-    let paperH = (paperW * ah) / aw;
-    if (paperH > availH) {
-      paperH = availH;
-      paperW = (paperH * aw) / ah;
-    }
-    const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
-    const paperY = paddingY;
-    const px = mx - paperX;
-    const py = my - paperY;
+    const scene = getSceneAdapter();
+    const paperRect =
+      scene?.computePaperRect?.({
+        canvasSize: { w: cw, h: ch },
+        paper: { aspect, color: paperColor },
+      }) ??
+      computePaperRect({
+        canvasSize: { w: cw, h: ch },
+        paper: { aspect },
+      });
+    const px = mx - paperRect.x;
+    const py = my - paperRect.y;
     // Default: outside or no grid
     let hex: { q: number; r: number } | null = null;
-    if (px >= 0 && py >= 0 && px <= paperW && py <= paperH) {
+    if (px >= 0 && py >= 0 && px <= paperRect.w && py <= paperRect.h) {
       const layer = layers.find((l) => l.type === "hexgrid" && l.visible);
       if (layer) {
         const st = (layer.state ?? {}) as Record<string, unknown>;
         const layout = {
           orientation: st.orientation === "flat" ? "flat" : "pointy",
           size: Math.max(4, Number(st.size ?? 16)),
-          origin: { x: paperW / 2, y: paperH / 2 },
+          origin: { x: paperRect.w / 2, y: paperRect.h / 2 },
         } as const;
         const h = AppAPI.hex.fromPoint({ x: px, y: py }, layout);
         hex = h;
@@ -514,7 +425,7 @@ export const CanvasViewport: React.FC = () => {
         className="pt-4 px-6 h-full min-h-[60vh] relative"
         ref={containerRef}
       >
-        {!active ? (
+        {!hasActiveMap ? (
           <div className="p-8 text-sm text-muted-foreground">
             No active map.
           </div>
@@ -527,7 +438,7 @@ export const CanvasViewport: React.FC = () => {
               </div>
             ) : null}
             <canvas
-              key={`${campaignId || "none"}:${activeId || "none"}`}
+              key={`${campaignId || "none"}:${activeMapId || "none"}`}
               ref={canvasRef}
               className="w-full h-full"
               id="map-canvas"

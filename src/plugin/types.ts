@@ -97,6 +97,7 @@ export interface ToolContext {
   ) => void;
   getActiveLayerState: <T = unknown>(id?: string) => T | null;
   selection: { kind: string; id?: string };
+  sceneAdapter?: SceneAdapter | null;
 }
 
 export interface ToolHandler {

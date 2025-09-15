@@ -2,6 +2,7 @@ import type { RenderBackend, SceneFrame } from "@/render/types";
 import { getLayerType } from "@/layers/registry";
 import { getSceneAdapter, composeEnv } from "@/plugin/loader";
 import type { RenderEnv } from "@/layers/types";
+import { computePaperRect } from "@/app/scene/geometry";
 
 export class Canvas2DBackend implements RenderBackend {
   private ctx:
@@ -74,7 +75,11 @@ export class Canvas2DBackend implements RenderBackend {
       scene?.computePaperRect?.({
         canvasSize: { w: cw, h: ch },
         paper: frame.paper,
-      }) || defaultComputePaperRect(cw, ch, frame.paper.aspect);
+      }) ??
+      computePaperRect({
+        canvasSize: { w: cw, h: ch },
+        paper: frame.paper,
+      });
 
     // Clip to paper
     ctx.save();
@@ -130,27 +135,4 @@ export class Canvas2DBackend implements RenderBackend {
   destroy() {
     this.ctx = null;
   }
-}
-
-// Default computePaperRect — used when no SceneAdapter provides one (keeps parity).
-function defaultComputePaperRect(
-  canvasW: number,
-  canvasH: number,
-  aspect: "square" | "4:3" | "16:10",
-) {
-  const paddingX = Math.max(12, canvasW * 0.05);
-  const paddingY = 12;
-  const availW = Math.max(0, canvasW - paddingX * 2);
-  const availH = Math.max(0, canvasH - paddingY * 2);
-  const [aw, ah] =
-    aspect === "square" ? [1, 1] : aspect === "4:3" ? [4, 3] : [16, 10];
-  let paperW = availW;
-  let paperH = (paperW * ah) / aw;
-  if (paperH > availH) {
-    paperH = availH;
-    paperW = (paperH * aw) / ah;
-  }
-  const paperX = paddingX + Math.max(0, (availW - paperW) / 2);
-  const paperY = paddingY;
-  return { x: paperX, y: paperY, w: paperW, h: paperH } as const;
 }

@@ -86,11 +86,25 @@ Phase 1 — Define Seams (Complete 2025‑09‑15)
 - Migrate Freeform and Hex Noise tools to use `ToolContext` for all reads/writes; remove direct store imports in those tools.
 - Documented migration guidance for other plugins and captured lint follow-ups under Phase 5.
 
-Phase 2 — Geometry + Viewport Simplification
+Phase 2 — Geometry + Viewport Simplification (Complete 2025-09-15)
 
-- Extract `computePaperRect` helper/SceneAdapter and reuse in pointer routing and rendering.
-- Remove/limit broad store subscribe in `CanvasViewport`; rely on explicit deps and narrowly scoped selectors.
-- Inspect existing integration tests to ensure they cover viewport resize semantics before refactor; add missing cases alongside geometry changes if required.
+- Objective: unify paper geometry math and make viewport redraws predictable by removing implicit store coupling.
+- Dependencies: Phase 1 seams merged; redraw baseline (2025-09-15) available for regression comparison; no open tickets blocking viewport refactors.
+- Deliverables:
+  - `computePaperRect` exported from shared geometry module `src/app/scene/geometry.ts` and adopted by `CanvasViewport`, pointer routing, and any tool relying on paper bounds.
+  - `CanvasViewport` subscribes only to the minimal derived selectors (`paper`, `viewportSize`, `palette`, `layersKey`); legacy broad campaign subscribe removed.
+  - Documentation snippet under `guidance/feature/interdependencies-refactor/baseline-redraw-2025-09-15.md` updated with post-change metrics.
+- Implementation Steps:
+  1. Audit existing paper rect calculations (`CanvasViewport`, Freeform tool, Hex Noise) and document gaps in `guidance/feature/interdependencies-refactor/notes.md` for traceability.
+  2. Introduce shared helper with tests covering aspect ratio edge cases (square, portrait, landscape) and ensure the API mirrors existing call sites to avoid breakage.
+  3. Refactor `CanvasViewport` to derive render props via selectors; break apart responsibilities if needed (e.g., `useViewportScene()` hook) to maintain single responsibility.
+  4. Update affected tools/plugins to consume the helper via `ToolContext.sceneAdapter` (or include it if missing) to prevent divergence.
+  5. Re-run redraw probe harness; capture before/after numbers and note any deltas exceeding ±5% with mitigation plan.
+- Validation:
+  - Unit: `computePaperRect` calculations, selectors for viewport deps.
+  - Integration: viewport resize handling (Vitest + jsdom) verifies pointer and render alignment.
+  - E2E: smoke (paint, erase) on various canvas sizes still fires a single invalidation.
+- Exit Criteria: acceptance criteria P2 met; documentation + metrics stored; follow-up tickets filed for any residual coupling detected during audit.
 
 Phase 3 — Paper Canonicalization
 
@@ -112,7 +126,7 @@ Deferred (Post‑seams)
 
 - P0 (Met 2025-09-15): Plugin lint guard active; redraw baseline captured for comparison ahead of Phase 2.
 - P1 (Met 2025-09-15): `applyLayerState` exists; Freeform/Hex Noise tools use `ToolContext` only; no plugin imports `@/stores/*`; lint baseline recorded for regression watch.
-- P2: Shared `computePaperRect` used in viewport and tools; broad subscribe removed or narrowed; invalidation E2E remains green.
+- P2 (Met 2025-09-15): Shared `computePaperRect` used in viewport and tools; broad subscribe removed; invalidation E2E remains green.
 - P3: Paper layer is canonical; reads consistently prefer it; tests reflect single source of truth.
 - P4: Anchor bounds utility in place; layer move/insert behaviors unchanged and tested.
 - P5: Docs updated; lint/guard prevents store imports from plugins.
