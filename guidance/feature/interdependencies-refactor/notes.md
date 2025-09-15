@@ -28,3 +28,10 @@ author: Platform (Product Design · Architecture · Programme)
 - `CanvasViewport` no longer performs broad `campaignStore.subscribe`; derived state handled via React memoization with updated store seam.
 - Added `src/test/app/scene/geometry.test.ts` to cover 16:10, square, and constrained canvas cases.
 - Playwright invalidation suite (`CI=1 pnpm test:e2e`) passes post-refactor with unchanged redraw counts.
+
+## Phase 3 Notes (2025-09-15)
+
+- Introduced `sanitizePaperState` to centralize Paper aspect/color normalization; `_normalizeAnchorsForMap` now derives `map.paper` from layer state after initial hydration.
+- Store mutation seams (`setMapPaperAspect`, `setMapPaperColor`, `updateLayerState`, `applyLayerState`) synchronize Paper layer state and map metadata.
+- Serialization (`serializeCampaignV1`) emits paper metadata from the canonical layer, preventing drift in exported campaigns.
+- Added `src/test/store-paper-canonical.test.ts` covering mutation paths, import normalization, and fallback hydration from legacy `map.paper` values.

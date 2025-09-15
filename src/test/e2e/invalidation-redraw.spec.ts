@@ -36,6 +36,11 @@ test.describe("Invalidation → Redraw", () => {
     const canvas = page.locator("canvas").first();
     await expect(canvas).toBeVisible();
     await page.waitForTimeout(100); // allow initial draw
+    await page.evaluate(() => {
+      (
+        window as unknown as { __renderLog?: Array<Record<string, unknown>> }
+      ).__renderLog = [];
+    });
     const before = await canvas.screenshot();
 
     // Locate the Hex Size slider input and change value significantly
@@ -68,8 +73,30 @@ test.describe("Invalidation → Redraw", () => {
     const colorHex = page.getByRole("textbox", { name: "Line Color hex" });
     await colorHex.fill("#ff0000");
 
-    // Wait a moment for redraw
-    await page.waitForTimeout(500);
+    await expect
+      .poll(async () => {
+        return await page.evaluate(() => {
+          const win = window as unknown as {
+            __renderLog?: Array<Record<string, unknown>>;
+          };
+          return (win.__renderLog || []).filter(
+            (entry) => entry.msg === "render",
+          ).length;
+        });
+      })
+      .toBeGreaterThanOrEqual(1);
+
+    const renderCount = await page.evaluate(() => {
+      const win = window as unknown as {
+        __renderLog?: Array<Record<string, unknown>>;
+      };
+      return (win.__renderLog || []).filter((entry) => entry.msg === "render")
+        .length;
+    });
+    expect(renderCount).toBeLessThanOrEqual(2);
+
+    // Allow worker to deliver the rendered frame before diffing
+    await page.waitForTimeout(100);
     const after = await canvas.screenshot();
 
     // Buffers should differ

@@ -27,6 +27,35 @@ export interface Campaign {
   activeMapId: string | null;
 }
 
+type PaperAspect = "square" | "4:3" | "16:10";
+
+const DEFAULT_PAPER_STATE: { aspect: PaperAspect; color: string } = {
+  aspect: "16:10",
+  color: "#ffffff",
+};
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+function sanitizePaperState(state: unknown) {
+  const base = isPlainObject(state)
+    ? { ...(state as Record<string, unknown>) }
+    : ({} as Record<string, unknown>);
+  const aspectInput = base.aspect as PaperAspect | undefined;
+  const aspect: PaperAspect =
+    aspectInput === "square" || aspectInput === "4:3" || aspectInput === "16:10"
+      ? aspectInput
+      : DEFAULT_PAPER_STATE.aspect;
+  const colorInput = base.color as string | undefined;
+  const color =
+    typeof colorInput === "string" && colorInput.trim().length > 0
+      ? colorInput
+      : DEFAULT_PAPER_STATE.color;
+  base.aspect = aspect;
+  base.color = color;
+  return { state: base, canonical: { aspect, color } } as const;
+}
+
 interface CampaignStoreState {
   current: Campaign | null;
   dirty: boolean;
@@ -92,17 +121,36 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const layers: LayerInstance[] = Array.isArray(map.layers)
       ? [...map.layers]
       : [];
-    if (!layers.find((l) => l.type === "paper")) {
+    const existingPaperIdx = layers.findIndex((l) => l.type === "paper");
+    const mapPaperDefaults = map.paper ?? DEFAULT_PAPER_STATE;
+    const mapPaperRecord = {
+      aspect: mapPaperDefaults.aspect,
+      color: mapPaperDefaults.color,
+    } as Record<string, unknown>;
+    if (existingPaperIdx === -1) {
+      const seedState = {
+        ...DEFAULT_PAPER_STATE,
+        ...mapPaperRecord,
+      };
+      const { state, canonical } = sanitizePaperState(seedState);
       layers.unshift({
         id: uuid(),
         type: "paper",
         name: "Paper",
         visible: true,
-        state: getLayerType("paper")?.defaultState || {
-          color: "#ffffff",
-          aspect: "16:10",
-        },
+        state,
       });
+      map.paper = canonical;
+    } else {
+      const paperLayer = layers[existingPaperIdx];
+      const seedState = {
+        ...DEFAULT_PAPER_STATE,
+        ...mapPaperRecord,
+        ...(isPlainObject(paperLayer.state) ? paperLayer.state : {}),
+      };
+      const { state, canonical } = sanitizePaperState(seedState);
+      layers[existingPaperIdx] = { ...paperLayer, state } as typeof paperLayer;
+      map.paper = canonical;
     }
     if (!layers.find((l) => l.type === "hexgrid")) {
       layers.push({
@@ -200,16 +248,24 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const description = params?.description ?? "";
     const next = cur;
     const id = uuid();
+    const paperDefaultsRecord = isPlainObject(
+      getLayerType("paper")?.defaultState,
+    )
+      ? (getLayerType("paper")?.defaultState as Record<string, unknown>)
+      : {};
+    const basePaperState = {
+      ...DEFAULT_PAPER_STATE,
+      ...paperDefaultsRecord,
+    };
+    const { state: paperState, canonical: canonicalPaper } =
+      sanitizePaperState(basePaperState);
     const baseLayers: LayerInstance[] = [
       {
         id: uuid(),
         type: "paper",
         name: "Paper",
         visible: true,
-        state: getLayerType("paper")?.defaultState || {
-          color: "#ffffff",
-          aspect: "16:10",
-        },
+        state: paperState,
       },
       {
         id: uuid(),
@@ -233,7 +289,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         name,
         description,
         visible: true,
-        paper: { aspect: "16:10", color: "#ffffff" } as const,
+        paper: canonicalPaper,
         layers: baseLayers,
       },
     ];
@@ -293,9 +349,20 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     set({
       current: {
         ...cur,
-        maps: cur.maps.map((m) =>
-          m.id === id ? { ...m, paper: { ...m.paper, aspect } } : m,
-        ),
+        maps: cur.maps.map((m) => {
+          if (m.id !== id) return m;
+          const layers = [...(m.layers ?? [])];
+          const idx = layers.findIndex((l) => l.type === "paper");
+          if (idx < 0) return m;
+          const paperLayer = layers[idx];
+          const rawState = {
+            ...(isPlainObject(paperLayer.state) ? paperLayer.state : {}),
+            aspect,
+          } as Record<string, unknown>;
+          const { state, canonical } = sanitizePaperState(rawState);
+          layers[idx] = { ...paperLayer, state } as typeof paperLayer;
+          return { ...m, layers, paper: canonical };
+        }),
       },
       dirty: true,
     });
@@ -306,9 +373,20 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     set({
       current: {
         ...cur,
-        maps: cur.maps.map((m) =>
-          m.id === id ? { ...m, paper: { ...m.paper, color } } : m,
-        ),
+        maps: cur.maps.map((m) => {
+          if (m.id !== id) return m;
+          const layers = [...(m.layers ?? [])];
+          const idx = layers.findIndex((l) => l.type === "paper");
+          if (idx < 0) return m;
+          const paperLayer = layers[idx];
+          const rawState = {
+            ...(isPlainObject(paperLayer.state) ? paperLayer.state : {}),
+            color,
+          } as Record<string, unknown>;
+          const { state, canonical } = sanitizePaperState(rawState);
+          layers[idx] = { ...paperLayer, state } as typeof paperLayer;
+          return { ...m, layers, paper: canonical };
+        }),
       },
       dirty: true,
     });
@@ -558,26 +636,35 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!cur) return;
     const map = cur.maps.find((m) => m.id === cur.activeMapId);
     if (!map) return;
-    const isRecord = (x: unknown): x is Record<string, unknown> =>
-      !!x && typeof x === "object" && !Array.isArray(x);
     set({
       current: {
         ...cur,
         maps: cur.maps.map((m) =>
           m === map
-            ? {
-                ...m,
-                layers: (m.layers ?? []).map((l) =>
-                  l.id === layerId
-                    ? {
-                        ...l,
-                        state: isRecord(l.state)
-                          ? { ...l.state, ...patch }
-                          : patch,
-                      }
-                    : l,
-                ),
-              }
+            ? (() => {
+                let paperCanonical: {
+                  aspect: PaperAspect;
+                  color: string;
+                } | null = null;
+                const layers = (m.layers ?? []).map((l) => {
+                  if (l.id !== layerId) return l;
+                  const mergedState = isPlainObject(l.state)
+                    ? { ...(l.state as Record<string, unknown>), ...patch }
+                    : { ...patch };
+                  if (l.type === "paper") {
+                    const { state, canonical } =
+                      sanitizePaperState(mergedState);
+                    paperCanonical = canonical;
+                    return { ...l, state } as typeof l;
+                  }
+                  return { ...l, state: mergedState } as typeof l;
+                });
+                return {
+                  ...m,
+                  layers,
+                  paper: paperCanonical ? paperCanonical : m.paper,
+                };
+              })()
             : m,
         ),
       },
@@ -589,13 +676,11 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!cur) return;
     const map = cur.maps.find((m) => m.id === cur.activeMapId);
     if (!map) return;
-    const isRecord = (x: unknown): x is Record<string, unknown> =>
-      !!x && typeof x === "object" && !Array.isArray(x);
     const layers = [...(map.layers ?? [])];
     const idx = layers.findIndex((l) => l.id === layerId);
     if (idx < 0) return;
     const target = layers[idx];
-    const baseState: Record<string, unknown> = isRecord(target.state)
+    const baseState: Record<string, unknown> = isPlainObject(target.state)
       ? structuredClone
         ? structuredClone(target.state as Record<string, unknown>)
         : { ...(target.state as Record<string, unknown>) }
@@ -607,11 +692,26 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       console.warn("applyLayerState updater threw", e);
       return;
     }
-    layers[idx] = { ...target, state: baseState } as typeof target;
+    let paperCanonical: { aspect: PaperAspect; color: string } | null = null;
+    if (target.type === "paper") {
+      const { state, canonical } = sanitizePaperState(baseState);
+      paperCanonical = canonical;
+      layers[idx] = { ...target, state } as typeof target;
+    } else {
+      layers[idx] = { ...target, state: baseState } as typeof target;
+    }
     set({
       current: {
         ...cur,
-        maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
+        maps: cur.maps.map((m) =>
+          m === map
+            ? {
+                ...m,
+                layers,
+                paper: paperCanonical ? paperCanonical : m.paper,
+              }
+            : m,
+        ),
       },
       dirty: true,
     });

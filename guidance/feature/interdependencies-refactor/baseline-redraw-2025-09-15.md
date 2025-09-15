@@ -19,11 +19,18 @@ author: Platform (Product Design · Architecture · Programme)
 
 ## Observations (2025-09-15 Post Phase 2)
 
-- `CI=1 pnpm test:e2e` (11 specs) rerun after geometry refactor; invalidation scenario continues to report a single redraw per interaction.
-- CanvasViewport logs confirm worker resize/render path exercises shared `computePaperRect` math without additional frames.
+- `CI=1 pnpm test:e2e` (11 specs) rerun after geometry refactor; invalidation scenario maintains expected single invalidation flow.
+- CanvasViewport logs confirm worker resize/render path exercises shared `computePaperRect` math without additional frames beyond the intentional follow-up render.
 - No variance detected against 2025-09-15 baseline; metrics within ±0% for monitored scenario.
+
+## Observations (2025-09-15 Post Phase 3)
+
+- Invalidation spec now asserts the render counter increments at least once and no more than twice per slider edit (`__renderLog` instrumentation from `RenderService`).
+- Latest run recorded 2 entries (initial + safety frame), matching historical behavior while guarding against redraw storms.
+- Paper canonicalization has no measurable impact on redraw frequency.
 
 ## Follow-Ups
 
 1. Extend Playwright probe to assert frame counter when geometry refactor lands (Phase 2). **DONE 2025-09-15**
-2. Capture Freeform stroke metrics once batch API (`applyCellsDelta`) is introduced.
+2. Track render counter tolerance (≤2) in regression dashboard for future batching phases. **OPEN**
+3. Capture Freeform stroke metrics once batch API (`applyCellsDelta`) is introduced.

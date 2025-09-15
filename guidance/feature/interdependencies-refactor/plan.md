@@ -106,9 +106,22 @@ Phase 2 — Geometry + Viewport Simplification (Complete 2025-09-15)
   - E2E: smoke (paint, erase) on various canvas sizes still fires a single invalidation.
 - Exit Criteria: acceptance criteria P2 met; documentation + metrics stored; follow-up tickets filed for any residual coupling detected during audit.
 
-Phase 3 — Paper Canonicalization
+Phase 3 — Paper Canonicalization (Complete 2025-09-15)
 
-- Ensure Paper layer is canonical for visuals; use `map.paper` only at bootstrap; normalize on load.
+- Objective: guarantee paper visuals originate from the Paper layer so plugins and renderer share a single source of truth.
+- Deliverables:
+  - Store helper `sanitizePaperState` enforces canonical aspect/color; `_normalizeAnchorsForMap` now syncs legacy `map.paper` into layer state once at load and derives map metadata from that layer thereafter.
+  - `setMapPaperAspect`, `setMapPaperColor`, `updateLayerState`, and `applyLayerState` keep `map.paper` and Paper layer state fully aligned.
+  - Persistence uses layer state when serializing (`serializeCampaignV1`) to prevent drift; unit suite extended (`src/test/store-paper-canonical.test.ts`).
+- Implementation Steps:
+  1. Normalize existing campaigns by seeding Paper layer state from `map.paper` when needed and re-writing `map.paper` from the canonical layer state.
+  2. Route all store mutations that touch Paper through the canonical helper so tools, properties, and migrations share consistent math.
+  3. Update persistence and new tests to assert synchronization guarantees across create, load, and mutation paths.
+- Validation:
+  - Unit: new `store-paper-canonical` coverage plus existing store seam tests.
+  - Integration: persistence round-trip and properties interactions continue to pass.
+  - E2E: no UX change; invalidation probe continues to diff buffers once while render counter stays ≤2.
+- Exit Criteria: acceptance criteria P3 met; Paper layer state is definitive for renderer/tool reads.
 
 Phase 4 — Anchor Policy Utility
 
@@ -127,7 +140,7 @@ Deferred (Post‑seams)
 - P0 (Met 2025-09-15): Plugin lint guard active; redraw baseline captured for comparison ahead of Phase 2.
 - P1 (Met 2025-09-15): `applyLayerState` exists; Freeform/Hex Noise tools use `ToolContext` only; no plugin imports `@/stores/*`; lint baseline recorded for regression watch.
 - P2 (Met 2025-09-15): Shared `computePaperRect` used in viewport and tools; broad subscribe removed; invalidation E2E remains green.
-- P3: Paper layer is canonical; reads consistently prefer it; tests reflect single source of truth.
+- P3 (Met 2025-09-15): Paper layer is canonical; reads consistently prefer it; tests reflect single source of truth.
 - P4: Anchor bounds utility in place; layer move/insert behaviors unchanged and tested.
 - P5: Docs updated; lint/guard prevents store imports from plugins.
 

@@ -10,9 +10,11 @@ export class RenderService {
     typeof window !== "undefined"
       ? (window as unknown as Window & {
           __renderWorkerStatus?: Record<string, unknown>;
+          __renderLog?: Array<Record<string, unknown>>;
         })
       : (undefined as unknown as Window & {
           __renderWorkerStatus?: Record<string, unknown>;
+          __renderLog?: Array<Record<string, unknown>>;
         });
 
   init(canvas: HTMLCanvasElement, pixelRatio: number): boolean {
@@ -161,6 +163,28 @@ export class RenderService {
 
   render(frame: SceneFrame) {
     if (!this.worker) return;
+    if (typeof window !== "undefined") {
+      try {
+        const dbgWindow = this.dbg as Window & {
+          __renderLog?: Array<Record<string, unknown>>;
+        };
+        const log = Array.isArray(dbgWindow.__renderLog)
+          ? dbgWindow.__renderLog
+          : [];
+        dbgWindow.__renderLog = [
+          ...log,
+          {
+            t: Date.now(),
+            where: "RenderService",
+            msg: "render",
+            layers: frame.layers.length,
+            size: frame.size,
+          },
+        ];
+      } catch {
+        /* noop */
+      }
+    }
     const msg: RenderMessage = { type: "render", frame };
     if (this.ready) this.worker.postMessage(msg);
     else this.queue.push(msg);
