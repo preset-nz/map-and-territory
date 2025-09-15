@@ -331,6 +331,7 @@ export const CanvasViewport: React.FC = () => {
   const setMousePosition = useLayoutStore((s) => s.setMousePosition);
   const activeTool = useLayoutStore((s) => s.activeTool);
   const updateLayerState = useCampaignStore((s) => s.updateLayerState);
+  const applyLayerState = useCampaignStore((s) => s.applyLayerState);
   const selection = useSelectionStore((s) => s.selection);
   const [isPointerDown, setIsPointerDown] = useState(false);
 
@@ -413,6 +414,21 @@ export const CanvasViewport: React.FC = () => {
     const ctx: import("@/plugin/types").ToolContext = {
       app: AppAPI,
       updateLayerState,
+      applyLayerState,
+      getActiveLayerState: <T = unknown,>(id?: string): T | null => {
+        try {
+          const cur = campaignStoreRaw.getState().current;
+          const activeMapId = cur?.activeMapId ?? null;
+          const map = cur?.maps.find((m) => m.id === activeMapId);
+          const layerId =
+            id ?? (selection.kind === "layer" ? selection.id : undefined);
+          if (!map || !layerId) return null;
+          const layer = (map.layers ?? []).find((l) => l.id === layerId);
+          return (layer?.state as T) ?? null;
+        } catch {
+          return null;
+        }
+      },
       selection,
     };
     const pt = { x: px, y: py } as const;

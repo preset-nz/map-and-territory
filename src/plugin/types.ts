@@ -91,6 +91,11 @@ export interface ToolContext {
   // Minimal context surface for tools; extend later
   app?: AppAPI;
   updateLayerState: (id: string, patch: Record<string, unknown>) => void;
+  applyLayerState: (
+    id: string,
+    updater: (draft: Record<string, unknown>) => void,
+  ) => void;
+  getActiveLayerState: <T = unknown>(id?: string) => T | null;
   selection: { kind: string; id?: string };
 }
 

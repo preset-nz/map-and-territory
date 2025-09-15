@@ -62,6 +62,11 @@ interface CampaignStoreState {
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   renameLayer: (layerId: string, name: string) => void;
   updateLayerState: (layerId: string, patch: Record<string, unknown>) => void;
+  // Transactional write seam for tools/plugins (seam-first)
+  applyLayerState: (
+    layerId: string,
+    updater: (draft: Record<string, unknown>) => void,
+  ) => void;
   // Internal helper exposed for tests
   _normalizeAnchorsForMap: (
     map: Campaign["maps"][number],
@@ -575,6 +580,38 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
               }
             : m,
         ),
+      },
+      dirty: true,
+    });
+  },
+  applyLayerState: (layerId, updater) => {
+    const cur = get().current;
+    if (!cur) return;
+    const map = cur.maps.find((m) => m.id === cur.activeMapId);
+    if (!map) return;
+    const isRecord = (x: unknown): x is Record<string, unknown> =>
+      !!x && typeof x === "object" && !Array.isArray(x);
+    const layers = [...(map.layers ?? [])];
+    const idx = layers.findIndex((l) => l.id === layerId);
+    if (idx < 0) return;
+    const target = layers[idx];
+    const baseState: Record<string, unknown> = isRecord(target.state)
+      ? structuredClone
+        ? structuredClone(target.state as Record<string, unknown>)
+        : { ...(target.state as Record<string, unknown>) }
+      : {};
+    try {
+      updater(baseState);
+    } catch (e) {
+      // swallow updater errors to avoid corrupting state
+      console.warn("applyLayerState updater threw", e);
+      return;
+    }
+    layers[idx] = { ...target, state: baseState } as typeof target;
+    set({
+      current: {
+        ...cur,
+        maps: cur.maps.map((m) => (m === map ? { ...m, layers } : m)),
       },
       dirty: true,
     });
