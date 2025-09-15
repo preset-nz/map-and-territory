@@ -35,3 +35,16 @@ author: Platform (Product Design · Architecture · Programme)
 - Store mutation seams (`setMapPaperAspect`, `setMapPaperColor`, `updateLayerState`, `applyLayerState`) synchronize Paper layer state and map metadata.
 - Serialization (`serializeCampaignV1`) emits paper metadata from the canonical layer, preventing drift in exported campaigns.
 - Added `src/test/store-paper-canonical.test.ts` covering mutation paths, import normalization, and fallback hydration from legacy `map.paper` values.
+
+## Phase 4 Audit (2025-09-15)
+
+- Anchor semantics are implicit: `_normalizeAnchorsForMap` ensures paper is first and hexgrid last; other store mutations replicate this via manual `findIndex` checks.
+- `addLayer`, `insertLayerBeforeTopAnchor`, and `moveLayer` compute bounds ad hoc (paper locked at index 0, hex grid pinned to top) without shared helper.
+- Visibility and removal guard anchors but rely on repeated `l.type === "paper"` checks; no single source for allowable index ranges (`minIdx`/`maxIdx`).
+- No tests assert anchor invariants when moving/inserting layers.
+
+## Phase 4 Outcomes (2025-09-15)
+
+- Introduced `@/stores/campaign/anchors.ts` with `getAnchorBounds`, `clampToAnchorRange`, and `isAnchorLayer` to formalize anchor policies.
+- Store mutations now reuse the helper to clamp indices and prevent moving anchors; visibility logic continues to pin paper while allowing hex grid toggling.
+- Added `src/test/stores/anchor-bounds.test.ts` and reused existing layer ordering specs to cover index clamping and duplicate/insert behaviour.

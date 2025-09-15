@@ -43,7 +43,7 @@ Product Designer, Software Architect, Programme Manager with Platform Thinking
 - `pnpm validate`: run lint and tests.
 - `pnpm test` / `pnpm test:run`: Vitest unit/integration tests.
 - `pnpm test:coverage`: generate coverage (thresholds set to 80%).
-- `CI=1 pnpm test:e2e` (or `:ui`): Playwright E2E; auto-starts dev server.
+- `CI=1 PORT=3210 pnpm test:e2e` (or `:ui`): Playwright E2E; auto-starts dev server.
 - `pnpm lint` / `pnpm lint:fix`: ESLint (Next.js rules).
 - `pnpm format` / `pnpm format:write`: Prettier check/write.
 

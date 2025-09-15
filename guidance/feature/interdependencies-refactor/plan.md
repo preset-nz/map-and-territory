@@ -123,9 +123,17 @@ Phase 3 — Paper Canonicalization (Complete 2025-09-15)
   - E2E: no UX change; invalidation probe continues to diff buffers once while render counter stays ≤2.
 - Exit Criteria: acceptance criteria P3 met; Paper layer state is definitive for renderer/tool reads.
 
-Phase 4 — Anchor Policy Utility
+Phase 4 — Anchor Policy Utility (Complete 2025-09-15)
 
-- Introduce `getAnchorBounds(layers)` and refactor add/move/insert to use it.
+- Objective: centralize anchor bounds so layer CRUD honours paper/hexgrid constraints consistently.
+- Deliverables:
+  - Shared helper `src/stores/campaign/anchors.ts` providing `getAnchorBounds`, `clampToAnchorRange`, and `isAnchorLayer`.
+  - Store operations (`addLayer`, `insertLayerBeforeTopAnchor`, `insertLayerAbove`, `duplicateLayer`, `moveLayer`, visibility guards) now consume the helper to clamp indices and protect anchors.
+  - Unit coverage for anchor math and store behaviours updated (`src/test/stores/anchor-bounds.test.ts`, existing `layer-ordering` cases).
+- Validation:
+  - Unit: anchor bounds utility + existing layer ordering spec.
+  - Integration/E2E: no behaviour drift; layer manipulation flows remain green.
+- Exit Criteria: acceptance criteria P4 met; anchor policies expressed once and reused.
 
 Phase 5 — Cleanup, Docs, Lints
 
@@ -141,7 +149,7 @@ Deferred (Post‑seams)
 - P1 (Met 2025-09-15): `applyLayerState` exists; Freeform/Hex Noise tools use `ToolContext` only; no plugin imports `@/stores/*`; lint baseline recorded for regression watch.
 - P2 (Met 2025-09-15): Shared `computePaperRect` used in viewport and tools; broad subscribe removed; invalidation E2E remains green.
 - P3 (Met 2025-09-15): Paper layer is canonical; reads consistently prefer it; tests reflect single source of truth.
-- P4: Anchor bounds utility in place; layer move/insert behaviors unchanged and tested.
+- P4 (Met 2025-09-15): Anchor bounds utility in place; layer move/insert behaviors unchanged and tested.
 - P5: Docs updated; lint/guard prevents store imports from plugins.
 
 ## Validation & Test Strategy
