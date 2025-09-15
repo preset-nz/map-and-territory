@@ -40,9 +40,10 @@ Product Designer, Software Architect, Programme Manager with Platform Thinking
 
 - `pnpm dev`: run Next.js locally at http://localhost:3000.
 - `pnpm build` / `pnpm start`: production build and serve.
+- `pnpm validate`: run lint and tests.
 - `pnpm test` / `pnpm test:run`: Vitest unit/integration tests.
 - `pnpm test:coverage`: generate coverage (thresholds set to 80%).
-- `pnpm test:e2e` (or `:ui`): Playwright E2E; auto-starts dev server.
+- `CI=1 PORT=3210 pnpm test:e2e` (or `:ui`): Playwright E2E; auto-starts dev server.
 - `pnpm lint` / `pnpm lint:fix`: ESLint (Next.js rules).
 - `pnpm format` / `pnpm format:write`: Prettier check/write.
 

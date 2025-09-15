@@ -28,31 +28,36 @@ The core concept: **professional content editing tools** that produce **gritty, 
 
 **Players** who want to contribute to worldbuilding or reference evocative maps during gameplay.
 
-*See guidance/personas.md for detailed user personas.*
+_See guidance/personas.md for detailed user personas._
 
 ## Core Features for MVP
 
 **Hex Grid Editor**
+
 - Vector-based hex grids with terrain painting
 - Distressed textures and analog effects built-in
 - Ink splatter, weathered edges, hand-drawn aesthetics
 
 **Multi-Document Support**
+
 - Project-based organization for campaigns
 - Multiple related maps in one workspace
 - Learn complex state management patterns
 
 **Layer System**
+
 - Hierarchical organization of map elements
 - Terrain, features, annotations, effects as separate layers
 - Good practice for complex UI state
 
 **Plugin Architecture**
+
 - Extensible system for community contributions
 - Learn modern plugin patterns and sandboxing
 - Start simple, build complexity over time
 
 **Save/Load/Export**
+
 - JSON project format for flexibility
 - PNG/SVG export with print-ready quality
 - File handling and data persistence patterns
@@ -60,26 +65,31 @@ The core concept: **professional content editing tools** that produce **gritty, 
 ## Technical Learning Goals
 
 **Next.js & React Patterns**
+
 - App router, server components, modern React patterns
 - Complex state management across multiple documents
 - Professional application architecture
 
 **Canvas/SVG Rendering**
+
 - High-performance map rendering
 - Vector graphics manipulation
 - Texture and effect systems for analog aesthetics
 
 **Plugin System Design**
+
 - Learn extensible architecture patterns
 - Sandboxing and security considerations
 - Event systems and API design
 
 **File Handling & Persistence**
+
 - JSON-based project format design
 - Import/export systems
 - Local storage with future cloud sync potential
 
 **Professional UI Development**
+
 - Component libraries (shadcn/ui)
 - Complex layout systems (panels, toolbars, canvases)
 - Keyboard shortcuts and power-user features
@@ -89,23 +99,27 @@ The core concept: **professional content editing tools** that produce **gritty, 
 ## Success Criteria
 
 **Functional Success**
+
 - Can create a usable hex map that captures the gritty aesthetic
 - Multi-document workflow feels natural and useful
 - Export quality suitable for printing or sharing
 
 **Learning Success**
+
 - Understand modern Next.js patterns and architecture
 - Gain experience with complex state management
 - Learn plugin architecture and extensibility patterns
 - Practice professional UI development techniques
 
 **Fun Factor**
+
 - Enjoyable to build and iterate on
 - Creates maps I'd actually want to use in games
 - Maybe share with TTRPG friends and get feedback
 - Could inspire future projects or contributions
 
 **Technical Quality**
+
 - Clean, maintainable code following modern practices
 - Good test coverage for core functionality
 - Performance adequate for complex maps
@@ -114,11 +128,13 @@ The core concept: **professional content editing tools** that produce **gritty, 
 ## Aesthetic References
 
 **Map Style Inspiration**
+
 - **Mörk Borg**: Distressed textures, ink splatters, weathered parchment, high contrast
 - **Death in Space**: Gritty sci-fi aesthetics, worn metal textures, analog decay
 - **General Analog Feel**: Hand-drawn imperfections, coffee stains, torn edges, smudged ink
 
 **UI Style Inspiration**
+
 - **Professional Content Tools**: Affinity Designer, Adobe Creative Suite, Figma
 - **Clean & Efficient**: Interface fades into background, focus on content creation
 - **Power User Friendly**: Keyboard shortcuts, customizable panels, efficient workflows

@@ -6,17 +6,25 @@
   "capabilities": ["storage:project"],
   "contributes": {
     "commands": [
-      { "id": "app.campaign.new", "title": "New Campaign", "shortcut": "Mod+Shift+N" }
+      {
+        "id": "app.campaign.new",
+        "title": "New Campaign",
+        "shortcut": "Mod+Shift+N"
+      }
     ],
     "toolbar": [
       {
         "group": "campaign",
         "items": [
-          { "type": "button", "command": "app.campaign.new", "icon": "ri:file-plus", "label": "New" }
+          {
+            "type": "button",
+            "command": "app.campaign.new",
+            "icon": "ri:file-plus",
+            "label": "New"
+          }
         ]
       }
     ]
   },
   "entry": "./index.js"
 }
-

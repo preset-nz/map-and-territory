@@ -6,4 +6,3 @@ We gratefully acknowledge Amit Patel’s Red Blob Games for the foundational wor
 - Implementation Guide: https://www.redblobgames.com/grids/hexagons/implementation.html
 
 Copyright © Amit Patel. Links included for reference and attribution.
-

@@ -1,15 +1,15 @@
 /**
  * Authentication interfaces and types for the Professional Layout System
- * 
+ *
  * This file defines type-safe contracts for authentication providers.
  * Currently implements NoOpAuthProvider interface that can be easily
  * replaced with real authentication later.
- * 
+ *
  * Architecture follows SOLID principles with interface segregation
  * and dependency inversion for future auth provider implementations.
  */
 
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 // ============================================================================
 // Core Authentication Interfaces
@@ -40,7 +40,7 @@ export interface AuthContextValue {
   isLoading: boolean;
   /** Any authentication error that occurred */
   error: string | null;
-  
+
   // Authentication actions
   /** Login function - implementation varies by provider */
   login: (credentials?: LoginCredentials) => Promise<void>;
@@ -93,25 +93,25 @@ export interface NoOpAuthProviderProps extends AuthProviderProps {
  * Authentication state enumeration
  */
 export enum AuthState {
-  IDLE = 'idle',
-  LOADING = 'loading',
-  AUTHENTICATED = 'authenticated',
-  UNAUTHENTICATED = 'unauthenticated',
-  ERROR = 'error',
+  IDLE = "idle",
+  LOADING = "loading",
+  AUTHENTICATED = "authenticated",
+  UNAUTHENTICATED = "unauthenticated",
+  ERROR = "error",
 }
 
 /**
  * Authentication event types for state management
  */
-export type AuthEvent = 
-  | { type: 'LOGIN_START' }
-  | { type: 'LOGIN_SUCCESS'; user: User }
-  | { type: 'LOGIN_ERROR'; error: string }
-  | { type: 'LOGOUT_START' }
-  | { type: 'LOGOUT_SUCCESS' }
-  | { type: 'LOGOUT_ERROR'; error: string }
-  | { type: 'CLEAR_ERROR' }
-  | { type: 'SET_LOADING'; loading: boolean };
+export type AuthEvent =
+  | { type: "LOGIN_START" }
+  | { type: "LOGIN_SUCCESS"; user: User }
+  | { type: "LOGIN_ERROR"; error: string }
+  | { type: "LOGOUT_START" }
+  | { type: "LOGOUT_SUCCESS" }
+  | { type: "LOGOUT_ERROR"; error: string }
+  | { type: "CLEAR_ERROR" }
+  | { type: "SET_LOADING"; loading: boolean };
 
 // ============================================================================
 // Error Handling
@@ -121,11 +121,11 @@ export type AuthEvent =
  * Authentication error codes
  */
 export enum AuthErrorCode {
-  INVALID_CREDENTIALS = 'invalid_credentials',
-  NETWORK_ERROR = 'network_error',
-  SESSION_EXPIRED = 'session_expired',
-  UNAUTHORIZED = 'unauthorized',
-  UNKNOWN_ERROR = 'unknown_error',
+  INVALID_CREDENTIALS = "invalid_credentials",
+  NETWORK_ERROR = "network_error",
+  SESSION_EXPIRED = "session_expired",
+  UNAUTHORIZED = "unauthorized",
+  UNKNOWN_ERROR = "unknown_error",
 }
 
 /**
@@ -152,7 +152,7 @@ export interface OAuthConfig {
   clientId: string;
   redirectUri: string;
   scope: string[];
-  provider: 'google' | 'github' | 'microsoft';
+  provider: "google" | "github" | "microsoft";
 }
 
 /**
@@ -175,11 +175,11 @@ export interface JWTToken {
  */
 export const isUser = (value: unknown): value is User => {
   return (
-    typeof value === 'object' &&
+    typeof value === "object" &&
     value !== null &&
-    typeof (value as User).id === 'string' &&
-    typeof (value as User).email === 'string' &&
-    typeof (value as User).name === 'string'
+    typeof (value as User).id === "string" &&
+    typeof (value as User).email === "string" &&
+    typeof (value as User).name === "string"
   );
 };
 
@@ -188,10 +188,10 @@ export const isUser = (value: unknown): value is User => {
  */
 export const isAuthError = (value: unknown): value is AuthError => {
   return (
-    typeof value === 'object' &&
+    typeof value === "object" &&
     value !== null &&
     Object.values(AuthErrorCode).includes((value as AuthError).code) &&
-    typeof (value as AuthError).message === 'string'
+    typeof (value as AuthError).message === "string"
   );
 };
 
@@ -201,7 +201,7 @@ export const isAuthError = (value: unknown): value is AuthError => {
 export const createAuthError = (
   code: AuthErrorCode,
   message: string,
-  details?: unknown
+  details?: unknown,
 ): AuthError => ({
   code,
   message,
@@ -221,13 +221,13 @@ export const DEFAULT_AUTH_CONTEXT: AuthContextValue = {
   isLoading: false,
   error: null,
   login: async () => {
-    throw new Error('AuthProvider not configured');
+    throw new Error("AuthProvider not configured");
   },
   logout: async () => {
-    throw new Error('AuthProvider not configured');
+    throw new Error("AuthProvider not configured");
   },
   clearError: () => {
-    throw new Error('AuthProvider not configured');
+    throw new Error("AuthProvider not configured");
   },
 };
 

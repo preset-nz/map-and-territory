@@ -1,19 +1,19 @@
 /**
  * Sidebar Store - Focused Zustand State Management for Sidebar
- * 
+ *
  * This store slice manages sidebar-specific state including open/closed state,
  * variant configuration, and collapse behavior. Designed for composition
  * with other layout store slices.
  */
 
-import { StateCreator } from 'zustand';
+import { StateCreator } from "zustand";
 import {
   SidebarState,
   SidebarActions,
   DEFAULT_SIDEBAR_STATE,
   isValidSidebarVariant,
   isValidSidebarCollapsible,
-} from '../../types/layout/sidebar';
+} from "../../types/layout/sidebar";
 
 // ============================================================================
 // Sidebar Store Slice Type
@@ -106,15 +106,15 @@ export interface SidebarSelectors {
   sidebarState: SidebarState;
   sidebarActions: SidebarActions;
   isOpen: boolean;
-  variant: SidebarState['variant'];
-  collapsible: SidebarState['collapsible'];
+  variant: SidebarState["variant"];
+  collapsible: SidebarState["collapsible"];
 }
 
 /**
  * Create sidebar selectors for a composed store
  */
 export const createSidebarSelectors = <T extends SidebarSlice>(
-  store: T
+  store: T,
 ): SidebarSelectors => ({
   sidebarState: {
     isOpen: store.isOpen,

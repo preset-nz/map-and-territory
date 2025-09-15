@@ -20,10 +20,10 @@ Provide a generic, declarative properties system where plugins (or core) declare
 export type PropertySchema = PropertyGroup[];
 
 export interface PropertyGroup {
-  id: string;           // unique within target
+  id: string; // unique within target
   title: string;
   order?: number;
-  when?: string;        // context expression (e.g., selectedLayer.type === 'terrain')
+  when?: string; // context expression (e.g., selectedLayer.type === 'terrain')
   rows: PropertyRow[];
 }
 
@@ -40,45 +40,77 @@ export type Field =
   | Vec2Field;
 
 interface BaseField<T> {
-  kind: string;         // 'number' | 'select' | ...
-  id: string;           // unique within group
+  kind: string; // 'number' | 'select' | ...
+  id: string; // unique within group
   label?: string;
   tooltip?: string;
   icon?: string;
   order?: number;
   bind: Binding<T>;
-  when?: string;        // conditional visibility
-  disabled?: string;    // conditional disabled
+  when?: string; // conditional visibility
+  disabled?: string; // conditional disabled
 }
 
 export interface NumberField extends BaseField<number> {
-  kind: 'number'; min?: number; max?: number; step?: number;
+  kind: "number";
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export interface SliderField extends BaseField<number> {
-  kind: 'slider'; min: number; max: number; step?: number; marks?: number[];
+  kind: "slider";
+  min: number;
+  max: number;
+  step?: number;
+  marks?: number[];
 }
 
 export interface SelectField extends BaseField<string> {
-  kind: 'select'; options: Array<{ value: string; label: string }>;
+  kind: "select";
+  options: Array<{ value: string; label: string }>;
 }
 
-export interface ToggleField extends BaseField<boolean> { kind: 'toggle'; }
-export interface ColorField extends BaseField<string> { kind: 'color'; format?: 'hex'|'rgba'; }
-export interface TextField extends BaseField<string> { kind: 'text'; placeholder?: string; }
-export interface AngleField extends BaseField<number> { kind: 'angle'; unit?: 'deg'|'rad'; }
-export interface Vec2Field extends BaseField<{x:number;y:number}> { kind: 'vec2'; }
+export interface ToggleField extends BaseField<boolean> {
+  kind: "toggle";
+}
+export interface ColorField extends BaseField<string> {
+  kind: "color";
+  format?: "hex" | "rgba";
+}
+export interface TextField extends BaseField<string> {
+  kind: "text";
+  placeholder?: string;
+}
+export interface AngleField extends BaseField<number> {
+  kind: "angle";
+  unit?: "deg" | "rad";
+}
+export interface Vec2Field extends BaseField<{ x: number; y: number }> {
+  kind: "vec2";
+}
 
 export type Binding<T> =
-  | { type: 'path'; path: string }                              // e.g., 'layers[sel].state.opacity'
-  | { type: 'computed'; get: string; set: string }              // expr strings evaluated in safe context
-  | { type: 'adapter'; read: (ctx: BindingCtx) => T; write: (v:T, ctx: BindingCtx) => void };
+  | { type: "path"; path: string } // e.g., 'layers[sel].state.opacity'
+  | { type: "computed"; get: string; set: string } // expr strings evaluated in safe context
+  | {
+      type: "adapter";
+      read: (ctx: BindingCtx) => T;
+      write: (v: T, ctx: BindingCtx) => void;
+    };
 
-export interface BindingCtx { selection: SelectionCtx; app: AppAPI; }
-export interface SelectionCtx { layerId?: string; sceneId?: string; }
+export interface BindingCtx {
+  selection: SelectionCtx;
+  app: AppAPI;
+}
+export interface SelectionCtx {
+  layerId?: string;
+  sceneId?: string;
+}
 ```
 
 Notes
+
 - `computed` uses a tiny expression evaluator over a safe whitelist (no `eval`), or is deferred until Worker isolation.
 - `adapter` provides full programmatic control when needed.
 
@@ -96,14 +128,17 @@ Notes
 ## Examples
 
 Paper Layer (scope: `layer:paper`)
+
 - Group: "Paper"
 - Fields: `aspectRatio` (select: A4, A3, square, custom), `color` (color)
 
 Hexgrid Layer (scope: `layer:hexgrid`)
+
 - Group: "Grid"
 - Fields: `size` (slider), `rotation` (angle), `style` (select: line/point)
 
 Terrain Layer (scope: `layer:terrain`)
+
 - Group: "Terrain"
 - Fields: `opacity` (slider), `blendMode` (select), optional `seed` (number)
 

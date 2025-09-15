@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export interface PropertyLabelProps {
   text: string;
@@ -6,7 +6,11 @@ export interface PropertyLabelProps {
   className?: string;
 }
 
-export const PropertyLabel: React.FC<PropertyLabelProps> = ({ text, description, className }) => {
+export const PropertyLabel: React.FC<PropertyLabelProps> = ({
+  text,
+  description,
+  className,
+}) => {
   return (
     <div className={className}>
       <div className="text-xs text-foreground mb-0.5">{text}</div>
@@ -18,4 +22,3 @@ export const PropertyLabel: React.FC<PropertyLabelProps> = ({ text, description,
 };
 
 export default PropertyLabel;
-

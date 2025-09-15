@@ -111,6 +111,7 @@
 ## Theming and Tokens (Reference)
 
 Summary
+
 - Root theme class on `<html>`: `.light | .dark` (system-resolved via ThemeToggle).
 - Components and plugins must use token-driven Tailwind utilities (e.g., `bg-background`, `text-foreground`, `border-input`).
 - No hardcoded colors in component/plugin code.

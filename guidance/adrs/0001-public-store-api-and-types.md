@@ -72,4 +72,3 @@ deciders: Core Orchestrator, Store Architect, TS Specialist, Next.js Specialist
 
 - If hydration flicker arises from persisted store, consider an explicit hydration-ready flag.
 - Add short contributor note in implementation standards referencing the selector-first pattern.
-

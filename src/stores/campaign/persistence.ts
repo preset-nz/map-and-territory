@@ -71,7 +71,7 @@ export function serializeCampaignV1(
     name: m.name,
     description: m.description,
     visible: m.visible,
-    paper: { ...m.paper },
+    paper: derivePaperFromLayers(m.layers ?? []),
     settingId: m.settingId,
     palette: m.palette,
     layers: (m.layers ?? []).map((l) => toPersistedLayer(l)),
@@ -155,6 +155,29 @@ export function deserializeCampaignV1(
     maps,
     activeMapId: src.activeMapId ?? null,
   };
+}
+
+const PAPER_ASPECTS = new Set(["square", "4:3", "16:10"]);
+const DEFAULT_PAPER = { aspect: "16:10", color: "#ffffff" } as const;
+
+function derivePaperFromLayers(layers: LayerInstance[] | undefined): {
+  aspect: "square" | "4:3" | "16:10";
+  color: string;
+} {
+  const paperLayer = (layers ?? []).find((l) => l.type === "paper");
+  if (!paperLayer) return { ...DEFAULT_PAPER };
+  const state = paperLayer.state as Record<string, unknown> | undefined;
+  const aspectRaw = state?.aspect;
+  const aspect =
+    typeof aspectRaw === "string" && PAPER_ASPECTS.has(aspectRaw)
+      ? (aspectRaw as "square" | "4:3" | "16:10")
+      : DEFAULT_PAPER.aspect;
+  const colorRaw = state?.color;
+  const color =
+    typeof colorRaw === "string" && colorRaw.trim().length > 0
+      ? colorRaw
+      : DEFAULT_PAPER.color;
+  return { aspect, color };
 }
 
 function fromPersistedLayer(lp: LayerPersistV1): LayerInstance<unknown> {

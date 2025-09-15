@@ -162,7 +162,7 @@ Transform Map&Territory's layout from enterprise-focused navigation to creative 
 
 15. **Optimize performance and implement production-ready monitoring**
     - Add debouncing for panel state changes and property updates (16ms for 60fps)
-    - Implement memoization for expensive layout calculations and store selectors  
+    - Implement memoization for expensive layout calculations and store selectors
     - Optimize bundle size with lazy loading and code splitting strategies
     - Add performance monitoring for animation frames and interaction responsiveness
     - Create production error logging and user experience analytics
@@ -195,18 +195,21 @@ Transform Map&Territory's layout from enterprise-focused navigation to creative 
 ## Risk Mitigation Strategies
 
 ### Technical Risks
+
 - **Store Migration Issues:** Implement gradual migration with feature flags and fallback mechanisms
 - **Animation Performance:** Use CSS transforms exclusively, implement performance monitoring
 - **Browser Compatibility:** Test across target browsers, implement progressive enhancement
 - **Bundle Size Impact:** Monitor bundle size, implement code splitting for non-critical paths
 
-### User Experience Risks  
+### User Experience Risks
+
 - **Learning Curve:** Provide contextual help, onboarding tours, and keyboard shortcut guides
 - **Workflow Disruption:** Maintain familiar patterns where possible, gradual feature introduction
 - **Accessibility Regression:** Comprehensive accessibility testing, screen reader validation
 - **Mobile Usage:** Ensure graceful degradation even though desktop is primary target
 
 ### Integration Risks
+
 - **Existing Component Conflicts:** Thorough testing with existing shadcn/ui components
 - **Route Handling Changes:** Comprehensive testing of all application routes and navigation
 - **State Management Migration:** Careful migration strategy with data validation and fallbacks
@@ -215,6 +218,7 @@ Transform Map&Territory's layout from enterprise-focused navigation to creative 
 ## Definition of Done Criteria
 
 ### Functional Completeness
+
 - [ ] Three-zone layout (scene | canvas | properties) fully functional
 - [ ] All creative tools selectable with proper visual feedback
 - [ ] Panel collapse/expand with smooth animations working
@@ -223,6 +227,7 @@ Transform Map&Territory's layout from enterprise-focused navigation to creative 
 - [ ] Responsive behavior across all target breakpoints
 
 ### Quality Standards
+
 - [ ] 100% test coverage for critical user paths
 - [ ] All animations maintain 60fps performance
 - [ ] WCAG 2.1 AA accessibility compliance verified
@@ -231,6 +236,7 @@ Transform Map&Territory's layout from enterprise-focused navigation to creative 
 - [ ] Error handling covers all identified failure modes
 
 ### Integration Requirements
+
 - [ ] Complete replacement of enterprise-focused AppSidebar
 - [ ] All existing routes function with new layout
 - [ ] User preferences migrate correctly from old system
@@ -238,6 +244,7 @@ Transform Map&Territory's layout from enterprise-focused navigation to creative 
 - [ ] shadcn/ui integration maintains design system consistency
 
 ### User Experience Validation
+
 - [ ] Creative workflow efficiency improved over enterprise layout
 - [ ] TTRPG-focused content and language throughout interface
 - [ ] Onboarding experience guides new users successfully

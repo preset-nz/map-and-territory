@@ -1,5 +1,5 @@
-import type { Axial } from './types';
-import { axialToCube, cubeToAxial, distance } from './coords';
+import type { Axial } from "./types";
+import { axialToCube, cubeToAxial, distance } from "./coords";
 
 export function ring(center: Axial, radius: number): Axial[] {
   if (radius <= 0) return [];
@@ -7,13 +7,21 @@ export function ring(center: Axial, radius: number): Axial[] {
   // start at (q + radius, r - 0)
   let cube = axialToCube({ q: center.q + radius, r: center.r });
   const dirs = [
-    { x: 0, y: -1, z: +1 }, { x: -1, y: 0, z: +1 }, { x: -1, y: +1, z: 0 },
-    { x: 0, y: +1, z: -1 }, { x: +1, y: 0, z: -1 }, { x: +1, y: -1, z: 0 },
+    { x: 0, y: -1, z: +1 },
+    { x: -1, y: 0, z: +1 },
+    { x: -1, y: +1, z: 0 },
+    { x: 0, y: +1, z: -1 },
+    { x: +1, y: 0, z: -1 },
+    { x: +1, y: -1, z: 0 },
   ];
   for (let side = 0; side < 6; side++) {
     for (let step = 0; step < radius; step++) {
       results.push(cubeToAxial(cube));
-      cube = { x: cube.x + dirs[side].x, y: cube.y + dirs[side].y, z: cube.z + dirs[side].z };
+      cube = {
+        x: cube.x + dirs[side].x,
+        y: cube.y + dirs[side].y,
+        z: cube.z + dirs[side].z,
+      };
     }
   }
   return results;
@@ -22,7 +30,11 @@ export function ring(center: Axial, radius: number): Axial[] {
 export function range(center: Axial, radius: number): Axial[] {
   const results: Axial[] = [];
   for (let dq = -radius; dq <= radius; dq++) {
-    for (let dr = Math.max(-radius, -dq - radius); dr <= Math.min(radius, -dq + radius); dr++) {
+    for (
+      let dr = Math.max(-radius, -dq - radius);
+      dr <= Math.min(radius, -dq + radius);
+      dr++
+    ) {
       results.push({ q: center.q + dq, r: center.r + dr });
     }
   }
@@ -46,7 +58,9 @@ export function line(a: Axial, b: Axial): Axial[] {
     const xDiff = Math.abs(rx - x);
     const yDiff = Math.abs(ry - y);
     const zDiff = Math.abs(rz - z);
-    let fx = rx, fy = ry, fz = rz;
+    let fx = rx,
+      fy = ry,
+      fz = rz;
     if (xDiff > yDiff && xDiff > zDiff) fx = -fy - fz;
     else if (yDiff > zDiff) fy = -fx - fz;
     else fz = -fx - fy;

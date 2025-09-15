@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 /**
  * NavigationSections - Specialized Navigation Components
- * 
+ *
  * Provides reusable navigation section components that can be used
  * across different layouts and contexts. Supports hierarchical
  * navigation with proper accessibility and state management.
- * 
+ *
  * Features:
  * - Hierarchical navigation with nested items
  * - Active state tracking and visual indicators
@@ -15,17 +15,21 @@
  * - Collapsible sections with smooth transitions
  */
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import { cn } from '@/lib/utils';
-import { useLayoutStore } from '@/stores/layout';
+import { cn } from "@/lib/utils";
+import { useLayoutStore } from "@/stores/layout";
 
 // ============================================================================
 // Types and Interfaces
@@ -92,11 +96,11 @@ interface NavigationSectionsProps {
  */
 const isItemActive = (item: NavigationItem, pathname: string): boolean => {
   if (!item.href) return false;
-  
-  if (item.href === '/') {
-    return pathname === '/';
+
+  if (item.href === "/") {
+    return pathname === "/";
   }
-  
+
   return pathname.startsWith(item.href);
 };
 
@@ -104,9 +108,10 @@ const isItemActive = (item: NavigationItem, pathname: string): boolean => {
  * Check if any child item is active
  */
 const hasActiveChild = (items: NavigationItem[], pathname: string): boolean => {
-  return items.some(item => 
-    isItemActive(item, pathname) || 
-    (item.items && hasActiveChild(item.items, pathname))
+  return items.some(
+    (item) =>
+      isItemActive(item, pathname) ||
+      (item.items && hasActiveChild(item.items, pathname)),
   );
 };
 
@@ -132,9 +137,9 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
   onItemClick,
 }) => {
   const [isExpanded, setIsExpanded] = useState(
-    hasActiveChild(item.items || [], pathname)
+    hasActiveChild(item.items || [], pathname),
   );
-  
+
   const isActive = isItemActive(item, pathname);
   const hasChildren = item.items && item.items.length > 0;
   // const childActive = hasChildren && hasActiveChild(item.items!, pathname);
@@ -167,30 +172,31 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
     <>
       {/* Icon */}
       {item.icon && (
-        <item.icon className={cn(
-          'h-4 w-4 flex-shrink-0',
-          isActive ? 'text-primary' : 'text-muted-foreground'
-        )} />
+        <item.icon
+          className={cn(
+            "h-4 w-4 flex-shrink-0",
+            isActive ? "text-primary" : "text-muted-foreground",
+          )}
+        />
       )}
 
       {/* Label */}
       {!isSidebarCollapsed && (
-        <span className={cn(
-          'flex-1 truncate',
-          isActive && 'font-medium'
-        )}>
+        <span className={cn("flex-1 truncate", isActive && "font-medium")}>
           {item.label}
         </span>
       )}
 
       {/* Badge */}
       {!isSidebarCollapsed && item.badge && (
-        <span className={cn(
-          'ml-auto flex-shrink-0 rounded-full px-2 py-1 text-xs',
-          isActive 
-            ? 'bg-primary text-primary-foreground' 
-            : 'bg-muted text-muted-foreground'
-        )}>
+        <span
+          className={cn(
+            "ml-auto flex-shrink-0 rounded-full px-2 py-1 text-xs",
+            isActive
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground",
+          )}
+        >
           {item.badge}
         </span>
       )}
@@ -217,13 +223,13 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
    * Base item classes
    */
   const itemClasses = cn(
-    'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-    'hover:bg-accent hover:text-accent-foreground',
-    'focus:bg-accent focus:text-accent-foreground focus:outline-none',
-    isActive && 'bg-accent text-accent-foreground',
-    item.disabled && 'opacity-50 cursor-not-allowed',
-    isCompact && 'py-1',
-    level > 0 && 'ml-4'
+    "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+    "hover:bg-accent hover:text-accent-foreground",
+    "focus:bg-accent focus:text-accent-foreground focus:outline-none",
+    isActive && "bg-accent text-accent-foreground",
+    item.disabled && "opacity-50 cursor-not-allowed",
+    isCompact && "py-1",
+    level > 0 && "ml-4",
   );
 
   /**
@@ -235,8 +241,8 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
         href={item.href}
         className={itemClasses}
         onClick={handleClick}
-        target={item.external ? '_blank' : undefined}
-        rel={item.external ? 'noopener noreferrer' : undefined}
+        target={item.external ? "_blank" : undefined}
+        rel={item.external ? "noopener noreferrer" : undefined}
       >
         {renderItemContent()}
       </Link>
@@ -254,9 +260,7 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
     if (isSidebarCollapsed && item.icon) {
       return (
         <Tooltip>
-          <TooltipTrigger asChild>
-            {itemElement}
-          </TooltipTrigger>
+          <TooltipTrigger asChild>{itemElement}</TooltipTrigger>
           <TooltipContent side="right">
             <div className="flex flex-col">
               <span>{item.label}</span>
@@ -277,7 +281,7 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
   return (
     <li>
       {renderItem()}
-      
+
       {/* Render children if expanded and not collapsed */}
       {hasChildren && isExpanded && !isSidebarCollapsed && (
         <ul className="mt-1 space-y-1">
@@ -319,7 +323,7 @@ const NavigationSectionComponent: React.FC<NavigationSectionComponentProps> = ({
 }) => {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(
-    section.defaultCollapsed || false
+    section.defaultCollapsed || false,
   );
 
   /**
@@ -332,7 +336,7 @@ const NavigationSectionComponent: React.FC<NavigationSectionComponentProps> = ({
   };
 
   return (
-    <div className={cn('space-y-2', isCompact && 'space-y-1')}>
+    <div className={cn("space-y-2", isCompact && "space-y-1")}>
       {/* Section Title */}
       {showTitle && !isSidebarCollapsed && (
         <div className="px-3">
@@ -388,12 +392,12 @@ const NavigationSectionComponent: React.FC<NavigationSectionComponentProps> = ({
 
 /**
  * NavigationSections component providing structured navigation
- * 
+ *
  * @param props - NavigationSections configuration props
  */
 export const NavigationSections: React.FC<NavigationSectionsProps> = ({
   sections,
-  className = '',
+  className = "",
   showTitles = true,
   compact = false,
 }) => {
@@ -408,7 +412,7 @@ export const NavigationSections: React.FC<NavigationSectionsProps> = ({
   };
 
   return (
-    <div className={cn('space-y-6', compact && 'space-y-3', className)}>
+    <div className={cn("space-y-6", compact && "space-y-3", className)}>
       {sections.map((section, index) => (
         <React.Fragment key={section.id}>
           <NavigationSectionComponent
@@ -418,7 +422,7 @@ export const NavigationSections: React.FC<NavigationSectionsProps> = ({
             isSidebarCollapsed={!isOpen}
             onItemClick={handleItemClick}
           />
-          
+
           {/* Separator between sections */}
           {index < sections.length - 1 && showTitles && !compact && (
             <Separator />

@@ -9,7 +9,8 @@ Users want a play-facing experience where the GM can reveal portions of a hex ma
 
 ## Decision
 
-1) Layer Type: `fogOfWar`
+1. Layer Type: `fogOfWar`
+
 - State:
   - `revealed: Set<string /* 'q,r' axial */>`
   - `color: string` (default black)
@@ -18,16 +19,19 @@ Users want a play-facing experience where the GM can reveal portions of a hex ma
   - `persist: boolean` (default true)
 - Rendering: Draw dark overlay for unrevealed hexes; revealed set punches holes. Deterministic with z-order; defaults to top.
 
-2) Tools
+2. Tools
+
 - `fog.reveal` with kernels: circle(radius), cone(radius, spread60s), lobe presets (e.g., 2–3 adjacent cones).
 - `fog.hide` symmetric operation (optional for MVP).
 - Tools target active map’s `fogOfWar` layer; degrade if missing.
 
-3) Commands
+3. Commands
+
 - `fog.reset`, `fog.revealAt({q,r}, shape)`, `fog.hideAt({q,r}, shape)`.
 - Use `app.mode.present.toggle` (ADR-0006) for UI Mode toggle but keep mode logic in host.
 
-4) Persistence & Undo
+4. Persistence & Undo
+
 - Persist `fogOfWar` state within map’s layers with plugin-controlled (de)serialization.
 - Journal actions per ADR-0004 for undo/redo of reveal/hide operations.
 
@@ -52,4 +56,3 @@ Users want a play-facing experience where the GM can reveal portions of a hex ma
 
 - Explore advanced FOV/shadows; consider continuous angles and occluders as a separate plugin.
 - Consider export/import of fog state for publishing or session continuity.
-

@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface CheckboxFieldProps {
   id?: string;
@@ -9,11 +9,17 @@ export interface CheckboxFieldProps {
   className?: string;
 }
 
-export const CheckboxField: React.FC<CheckboxFieldProps> = ({ id, label, checked, onChange, className }) => {
+export const CheckboxField: React.FC<CheckboxFieldProps> = ({
+  id,
+  label,
+  checked,
+  onChange,
+  className,
+}) => {
   const generatedId = React.useId();
   const inputId = id ?? generatedId;
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       <input
         id={inputId}
         type="checkbox"
@@ -21,7 +27,11 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ id, label, checked
         checked={checked}
         onChange={(e) => onChange?.(e.target.checked)}
       />
-      {label ? <label htmlFor={inputId} className="text-xs">{label}</label> : null}
+      {label ? (
+        <label htmlFor={inputId} className="text-xs">
+          {label}
+        </label>
+      ) : null}
     </div>
   );
 };

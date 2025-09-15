@@ -32,4 +32,3 @@ Host commands are reserved ids implemented by the host application, not by plugi
 
 - Provide a mock host command registry in tests that registers `host.*` handlers.
 - For E2E: simulate user input on modal; assert project created and UI updated.
-

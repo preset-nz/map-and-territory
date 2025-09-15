@@ -1,10 +1,10 @@
-import '@testing-library/jest-dom'
-import { beforeAll, afterEach } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import "@testing-library/jest-dom";
+import { beforeAll, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
 
 // Mock Next.js router
 beforeAll(() => {
-  Object.defineProperty(window, 'matchMedia', {
+  Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: (query: string) => ({
       matches: false,
@@ -16,10 +16,10 @@ beforeAll(() => {
       removeEventListener: () => {},
       dispatchEvent: () => {},
     }),
-  })
-})
+  });
+});
 
 // Clean up after each test
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});

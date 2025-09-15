@@ -1,11 +1,11 @@
 /**
  * Navigation and breadcrumb types for the Professional Layout System
- * 
+ *
  * This file contains all interfaces and types related to navigation state,
  * breadcrumb management, and routing.
  */
 
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 // ============================================================================
 // Navigation Interfaces
@@ -79,7 +79,7 @@ export interface ContentHeaderProps {
  * Default navigation state values
  */
 export const DEFAULT_NAVIGATION_STATE: NavigationState = {
-  activeSection: 'maps',
+  activeSection: "maps",
   breadcrumb: [],
 } as const;
 
@@ -93,6 +93,8 @@ export const isValidBreadcrumbItem = (item: BreadcrumbItem): boolean => {
 /**
  * Helper to filter valid breadcrumb items
  */
-export const filterValidBreadcrumbs = (items: BreadcrumbItem[]): BreadcrumbItem[] => {
+export const filterValidBreadcrumbs = (
+  items: BreadcrumbItem[],
+): BreadcrumbItem[] => {
   return items.filter(isValidBreadcrumbItem);
 };

@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
-    "format:write": "prettier --write .",
+    "format:write": "prettier --log-level=warn --write .",
     "prepare": "husky",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -19,7 +19,8 @@
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "validate": "pnpm format:write && pnpm lint && pnpm test:run && CI=1 PORT=3210 pnpm test:e2e"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs,json,css,scss,md,mdx,yml,yaml,html,svg}": [

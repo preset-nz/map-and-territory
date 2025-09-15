@@ -31,4 +31,3 @@ Provide a plugin that renders a fog layer on hex maps and allows revealing areas
 - ADR-0006 UI Modes (Present/Edit)
 - ADR-0007 AppAPI Hex Geometry & Hit-Test
 - ADR-0008 Fog-of-War as Plugin
-

@@ -1,171 +1,361 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Maximum Canvas - Map & Territory Editor</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/basecoat.cdn.min.css">
-<script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/js/all.min.js" defer></script>
-  <style>
-    .prototype-nav {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--bc-color-bg-secondary);
-      border: 1px solid var(--bc-color-border);
-      border-radius: 8px;
-      padding: 16px;
-      z-index: 1000;
-    }
-    .prototype-nav h3 {
-      margin: 0 0 12px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .prototype-nav a {
-      display: block;
-      padding: 8px 12px;
-      margin: 4px 0;
-      text-decoration: none;
-      border-radius: 4px;
-      font-size: 13px;
-      color: var(--bc-color-text);
-    }
-    .prototype-nav a:hover {
-      background: var(--bc-color-bg-hover);
-    }
-    .prototype-nav .current {
-      background: var(--bc-color-primary);
-      color: var(--bc-color-primary-text);
-    }
-  </style>
-</head>
-<body class="bc-body bc-dark">
-  <!-- Prototype Navigation -->
-  <div class="prototype-nav">
-    <h3>Layout States</h3>
-    <a href="../index.html">Full Layout</a>
-    <a href="scene-collapsed.html">Scene Collapsed</a>
-    <a href="property-collapsed.html">Property Collapsed</a>
-    <a href="both-collapsed.html" class="current">Maximum Canvas</a>
-    <a href="multi-tab.html">Multi-Document</a>
-    <a href="context-terrain.html">Terrain Selected</a>
-    <a href="context-text.html">Text Selected</a>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Maximum Canvas - Map & Territory Editor</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/basecoat.cdn.min.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/js/all.min.js"
+      defer
+    ></script>
+    <style>
+      .prototype-nav {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bc-color-bg-secondary);
+        border: 1px solid var(--bc-color-border);
+        border-radius: 8px;
+        padding: 16px;
+        z-index: 1000;
+      }
+      .prototype-nav h3 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .prototype-nav a {
+        display: block;
+        padding: 8px 12px;
+        margin: 4px 0;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 13px;
+        color: var(--bc-color-text);
+      }
+      .prototype-nav a:hover {
+        background: var(--bc-color-bg-hover);
+      }
+      .prototype-nav .current {
+        background: var(--bc-color-primary);
+        color: var(--bc-color-primary-text);
+      }
+    </style>
+  </head>
+  <body class="bc-body bc-dark">
+    <!-- Prototype Navigation -->
+    <div class="prototype-nav">
+      <h3>Layout States</h3>
+      <a href="../index.html">Full Layout</a>
+      <a href="scene-collapsed.html">Scene Collapsed</a>
+      <a href="property-collapsed.html">Property Collapsed</a>
+      <a href="both-collapsed.html" class="current">Maximum Canvas</a>
+      <a href="multi-tab.html">Multi-Document</a>
+      <a href="context-terrain.html">Terrain Selected</a>
+      <a href="context-text.html">Text Selected</a>
+    </div>
 
-  <div class="bc-container-fluid" style="height: 100vh; display: flex; flex-direction: column;">
-    <!-- Header with Integrated Toolbar -->
-    <header style="background: var(--bc-color-bg-secondary); border-bottom: 1px solid var(--bc-color-border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; height: 60px;">
-      <!-- Left side - App branding and main controls -->
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <h1 style="margin: 0; font-size: 18px; font-weight: 600;">Map & Territory</h1>
+    <div
+      class="bc-container-fluid"
+      style="height: 100vh; display: flex; flex-direction: column"
+    >
+      <!-- Header with Integrated Toolbar -->
+      <header
+        style="
+          background: var(--bc-color-bg-secondary);
+          border-bottom: 1px solid var(--bc-color-border);
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 60px;
+        "
+      >
+        <!-- Left side - App branding and main controls -->
+        <div style="display: flex; align-items: center; gap: 20px">
+          <h1 style="margin: 0; font-size: 18px; font-weight: 600">
+            Map & Territory
+          </h1>
 
-        <!-- Integrated Toolbar -->
-        <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px; border-left: 1px solid var(--bc-color-border);">
-          <button class="bc-btn bc-btn-primary bc-btn-sm" title="Select Tool (V)" style="padding: 8px;">
-            <span>⚬</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Hex Terrain (T)" style="padding: 8px;">
-            <span>▢</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Text Tool (A)" style="padding: 8px;">
-            <span>A</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Feature Brush (F)" style="padding: 8px;">
-            <span>🖌</span>
-          </button>
+          <!-- Integrated Toolbar -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding-left: 20px;
+              border-left: 1px solid var(--bc-color-border);
+            "
+          >
+            <button
+              class="bc-btn bc-btn-primary bc-btn-sm"
+              title="Select Tool (V)"
+              style="padding: 8px"
+            >
+              <span>⚬</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Hex Terrain (T)"
+              style="padding: 8px"
+            >
+              <span>▢</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Text Tool (A)"
+              style="padding: 8px"
+            >
+              <span>A</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Feature Brush (F)"
+              style="padding: 8px"
+            >
+              <span>🖌</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Right side - User controls -->
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="bc-btn bc-btn-secondary bc-btn-sm">Settings</button>
-        <div class="bc-avatar" style="width: 32px; height: 32px; background: var(--bc-color-primary);">GM</div>
-      </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <div style="display: flex; flex: 1; overflow: hidden;">
-      <!-- Scene View Panel (Collapsed) -->
-      <div style="width: 48px; background: var(--bc-color-bg-secondary); border-right: 1px solid var(--bc-color-border); display: flex; flex-direction: column;">
-        <!-- Panel Header (Collapsed) -->
-        <div style="padding: 16px 12px; border-bottom: 1px solid var(--bc-color-border); display: flex; align-items: center; justify-content: center;">
-          <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Expand Panel (Ctrl+1)" style="padding: 4px 8px;">
-            <span>→</span>
-          </button>
+        <!-- Right side - User controls -->
+        <div style="display: flex; align-items: center; gap: 12px">
+          <button class="bc-btn bc-btn-secondary bc-btn-sm">Settings</button>
+          <div
+            class="bc-avatar"
+            style="
+              width: 32px;
+              height: 32px;
+              background: var(--bc-color-primary);
+            "
+          >
+            GM
+          </div>
         </div>
+      </header>
 
-        <!-- Collapsed Panel Indicators -->
-        <div style="flex: 1; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
-          <div title="Project Structure" style="color: var(--bc-color-text-muted); font-size: 16px;">🗺</div>
-          <div title="Layers" style="color: var(--bc-color-text-muted); font-size: 16px;">📚</div>
-        </div>
-      </div>
-
-      <!-- Central Canvas Area (Maximum Space) -->
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <!-- Tab Bar -->
-        <div style="background: var(--bc-color-bg-tertiary); border-bottom: 1px solid var(--bc-color-border); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 40px;">
-          <div class="bc-tabs">
-            <button class="bc-tab bc-tab-active">Main Swamp Map</button>
+      <!-- Main Content Area -->
+      <div style="display: flex; flex: 1; overflow: hidden">
+        <!-- Scene View Panel (Collapsed) -->
+        <div
+          style="
+            width: 48px;
+            background: var(--bc-color-bg-secondary);
+            border-right: 1px solid var(--bc-color-border);
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <!-- Panel Header (Collapsed) -->
+          <div
+            style="
+              padding: 16px 12px;
+              border-bottom: 1px solid var(--bc-color-border);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <button
+              class="bc-btn bc-btn-ghost bc-btn-sm"
+              title="Expand Panel (Ctrl+1)"
+              style="padding: 4px 8px"
+            >
+              <span>→</span>
+            </button>
           </div>
 
-          <!-- Quick Actions (visible when panels collapsed) -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 12px; color: var(--bc-color-text-muted);">Quick Tools:</span>
-            <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Show Scene Panel">🗺</button>
-            <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Show Properties">⚙️</button>
-            <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Export Map">📤</button>
+          <!-- Collapsed Panel Indicators -->
+          <div
+            style="
+              flex: 1;
+              padding: 16px 12px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 16px;
+            "
+          >
+            <div
+              title="Project Structure"
+              style="color: var(--bc-color-text-muted); font-size: 16px"
+            >
+              🗺
+            </div>
+            <div
+              title="Layers"
+              style="color: var(--bc-color-text-muted); font-size: 16px"
+            >
+              📚
+            </div>
           </div>
         </div>
 
-        <!-- Canvas (Full Space Available) -->
-        <div style="flex: 1; background: #2a2a2a; position: relative; overflow: auto;">
-          <!-- Hex Grid Placeholder -->
-          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-            <div style="text-align: center; color: var(--bc-color-text-muted);">
-              <div style="font-size: 72px; margin-bottom: 24px;">⬣ ⬣ ⬣</div>
-              <div style="font-size: 24px; margin-bottom: 8px;">Maximum Canvas Mode</div>
-              <div style="font-size: 14px; margin-bottom: 16px;">Both panels collapsed - full screen editing experience</div>
-              <div style="font-size: 12px; color: var(--bc-color-text-muted);">
-                Press Ctrl+1 for Scene panel • Ctrl+2 for Properties panel • Quick tools available in tab bar
+        <!-- Central Canvas Area (Maximum Space) -->
+        <div style="flex: 1; display: flex; flex-direction: column">
+          <!-- Tab Bar -->
+          <div
+            style="
+              background: var(--bc-color-bg-tertiary);
+              border-bottom: 1px solid var(--bc-color-border);
+              padding: 0 16px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              height: 40px;
+            "
+          >
+            <div class="bc-tabs">
+              <button class="bc-tab bc-tab-active">Main Swamp Map</button>
+            </div>
+
+            <!-- Quick Actions (visible when panels collapsed) -->
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 12px; color: var(--bc-color-text-muted)"
+                >Quick Tools:</span
+              >
+              <button
+                class="bc-btn bc-btn-ghost bc-btn-sm"
+                title="Show Scene Panel"
+              >
+                🗺
+              </button>
+              <button
+                class="bc-btn bc-btn-ghost bc-btn-sm"
+                title="Show Properties"
+              >
+                ⚙️
+              </button>
+              <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Export Map">
+                📤
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas (Full Space Available) -->
+          <div
+            style="
+              flex: 1;
+              background: #2a2a2a;
+              position: relative;
+              overflow: auto;
+            "
+          >
+            <!-- Hex Grid Placeholder -->
+            <div
+              style="
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <div
+                style="text-align: center; color: var(--bc-color-text-muted)"
+              >
+                <div style="font-size: 72px; margin-bottom: 24px">⬣ ⬣ ⬣</div>
+                <div style="font-size: 24px; margin-bottom: 8px">
+                  Maximum Canvas Mode
+                </div>
+                <div style="font-size: 14px; margin-bottom: 16px">
+                  Both panels collapsed - full screen editing experience
+                </div>
+                <div style="font-size: 12px; color: var(--bc-color-text-muted)">
+                  Press Ctrl+1 for Scene panel • Ctrl+2 for Properties panel •
+                  Quick tools available in tab bar
+                </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Panel (Collapsed) -->
+        <div
+          style="
+            width: 48px;
+            background: var(--bc-color-bg-secondary);
+            border-left: 1px solid var(--bc-color-border);
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <!-- Panel Header (Collapsed) -->
+          <div
+            style="
+              padding: 16px 12px;
+              border-bottom: 1px solid var(--bc-color-border);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <button
+              class="bc-btn bc-btn-ghost bc-btn-sm"
+              title="Expand Panel (Ctrl+2)"
+              style="padding: 4px 8px"
+            >
+              <span>←</span>
+            </button>
+          </div>
+
+          <!-- Collapsed Panel Indicators -->
+          <div
+            style="
+              flex: 1;
+              padding: 16px 8px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 16px;
+            "
+          >
+            <div
+              title="Map Properties"
+              style="color: var(--bc-color-text-muted); font-size: 16px"
+            >
+              ⚙️
+            </div>
+            <div
+              title="Export Settings"
+              style="color: var(--bc-color-text-muted); font-size: 16px"
+            >
+              📤
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Property Panel (Collapsed) -->
-      <div style="width: 48px; background: var(--bc-color-bg-secondary); border-left: 1px solid var(--bc-color-border); display: flex; flex-direction: column;">
-        <!-- Panel Header (Collapsed) -->
-        <div style="padding: 16px 12px; border-bottom: 1px solid var(--bc-color-border); display: flex; align-items: center; justify-content: center;">
-          <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Expand Panel (Ctrl+2)" style="padding: 4px 8px;">
-            <span>←</span>
-          </button>
+      <!-- Status Bar -->
+      <footer
+        style="
+          background: var(--bc-color-bg-tertiary);
+          border-top: 1px solid var(--bc-color-border);
+          padding: 8px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 32px;
+          font-size: 12px;
+          color: var(--bc-color-text-muted);
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span>Full canvas mode</span>
+          <span>•</span>
+          <span>Map: Main Swamp (20x15)</span>
+          <span>•</span>
+          <span>Use Ctrl+1/2 to toggle panels</span>
         </div>
-
-        <!-- Collapsed Panel Indicators -->
-        <div style="flex: 1; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
-          <div title="Map Properties" style="color: var(--bc-color-text-muted); font-size: 16px;">⚙️</div>
-          <div title="Export Settings" style="color: var(--bc-color-text-muted); font-size: 16px;">📤</div>
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span>Zoom: 100%</span>
+          <span>•</span>
+          <span>Cursor: 0,0</span>
         </div>
-      </div>
+      </footer>
     </div>
-
-    <!-- Status Bar -->
-    <footer style="background: var(--bc-color-bg-tertiary); border-top: 1px solid var(--bc-color-border); padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; height: 32px; font-size: 12px; color: var(--bc-color-text-muted);">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span>Full canvas mode</span>
-        <span>•</span>
-        <span>Map: Main Swamp (20x15)</span>
-        <span>•</span>
-        <span>Use Ctrl+1/2 to toggle panels</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span>Zoom: 100%</span>
-        <span>•</span>
-        <span>Cursor: 0,0</span>
-      </div>
-    </footer>
-  </div>
-</body>
+  </body>
 </html>

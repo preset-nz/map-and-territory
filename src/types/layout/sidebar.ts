@@ -1,10 +1,9 @@
 /**
  * Sidebar-specific types for the Professional Layout System
- * 
+ *
  * This file contains all interfaces and types related to sidebar state
  * and configuration, following single responsibility principle.
  */
-
 
 // ============================================================================
 // Sidebar State Interfaces
@@ -17,11 +16,10 @@ export interface SidebarState {
   /** Whether sidebar is currently open/expanded */
   isOpen: boolean;
   /** Sidebar display variant */
-  variant: 'sidebar' | 'inset';
+  variant: "sidebar" | "inset";
   /** Collapse behavior - 'icon' shows icons only when collapsed, 'none' hides completely */
-  collapsible: 'icon' | 'none';
+  collapsible: "icon" | "none";
 }
-
 
 // ============================================================================
 // Sidebar Actions
@@ -36,9 +34,9 @@ export interface SidebarActions {
   /** Set sidebar open state explicitly */
   setSidebarOpen: (open: boolean) => void;
   /** Change sidebar variant */
-  setSidebarVariant: (variant: SidebarState['variant']) => void;
+  setSidebarVariant: (variant: SidebarState["variant"]) => void;
   /** Set collapse behavior */
-  setSidebarCollapsible: (collapsible: SidebarState['collapsible']) => void;
+  setSidebarCollapsible: (collapsible: SidebarState["collapsible"]) => void;
 }
 
 // ============================================================================
@@ -59,25 +57,29 @@ export const SIDEBAR_WIDTH_CONSTRAINTS = {
  */
 export const DEFAULT_SIDEBAR_STATE: SidebarState = {
   isOpen: true,
-  variant: 'sidebar',
-  collapsible: 'icon',
+  variant: "sidebar",
+  collapsible: "icon",
 } as const;
 
 /**
- * Sidebar variant type guard  
+ * Sidebar variant type guard
  */
-export const isValidSidebarVariant = (variant: string): variant is SidebarState['variant'] => {
-  return ['sidebar', 'inset'].includes(variant);
+export const isValidSidebarVariant = (
+  variant: string,
+): variant is SidebarState["variant"] => {
+  return ["sidebar", "inset"].includes(variant);
 };
 
 /**
  * Sidebar collapsible type guard
  */
-export const isValidSidebarCollapsible = (collapsible: string): collapsible is SidebarState['collapsible'] => {
-  return ['icon', 'none'].includes(collapsible);
+export const isValidSidebarCollapsible = (
+  collapsible: string,
+): collapsible is SidebarState["collapsible"] => {
+  return ["icon", "none"].includes(collapsible);
 };
 
 /**
  * Type for sidebar section identifiers
  */
-export type SidebarSection = 'navigation' | 'tools' | 'layers';
+export type SidebarSection = "navigation" | "tools" | "layers";

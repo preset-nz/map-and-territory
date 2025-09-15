@@ -31,6 +31,7 @@ Related:
 - Manifest: structure and validation are correct; minimal surface area.
 - Contracts: stable, versioned interfaces; no hidden coupling.
 - Isolation: sandboxing boundaries respected; no direct global access.
+- ToolContext seam: confirm tools/commands mutate state through `ToolContext` or the plugin runtime helpers—flag any direct `@/stores/**` imports.
 - Performance: lazy loading; no blocking on plugin discovery.
 - Failure modes: graceful degradation and clear errors.
 
@@ -157,3 +158,4 @@ src/
 - Request measurable evidence for perf-sensitive changes.
 - Ask for tests when behavior is changed or added; reference testing_standards.md.
 - If a change spans architecture, reference or add an ADR.
+- When reviewing plugins, verify lint enforces the `ToolContext` seam (no `@/stores/**` imports) and point authors to the Interdependencies Refactor guidance when gaps appear.

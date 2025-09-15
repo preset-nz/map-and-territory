@@ -6,9 +6,15 @@ import {
 } from "@/properties/registry";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
 import { AppAPI } from "@/appapi";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
-import { useLayoutStore } from "@/stores/layout";
+import {
+  getCurrentCampaign,
+  getSelection,
+  insertLayerAbove,
+  insertLayerBeforeTopAnchor,
+  applyLayerState,
+  selectLayer,
+  setActiveTool,
+} from "@/platform/plugin-runtime/state";
 import { registerToolCursor } from "@/plugin/loader";
 
 export const freeformManifest: PluginManifest = {
@@ -146,25 +152,23 @@ export const freeformModule: PluginModule = {
           const key = `${h.q},${h.r}`;
           if (lastKey === key) return;
           lastKey = key;
-          // Determine brush from current layer state via store snapshot
-          const active = useCampaignStore.getState().current;
-          const map = active?.maps.find((m) => m.id === active?.activeMapId);
-          const layer = map?.layers?.find((l) => l.id === ctx.selection.id);
-          if (!layer || layer.type !== "freeform") return;
-          const lstate = (layer.state ?? {}) as Record<string, unknown>;
+          const st = (ctx.getActiveLayerState<Record<string, unknown>>() ??
+            {}) as Record<string, unknown>;
           const brushColor =
-            (lstate["brushColor"] as string | undefined) ?? undefined;
+            (st["brushColor"] as string | undefined) ?? undefined;
           const brushTerrainId =
-            (lstate["brushTerrainId"] as string | undefined) ?? undefined;
+            (st["brushTerrainId"] as string | undefined) ?? undefined;
           if (!brushColor && !brushTerrainId) return;
-          const cells = {
-            ...((lstate["cells"] as Record<string, unknown>) || {}),
-          };
-          cells[key] = {
-            terrainId: brushTerrainId,
-            color: brushColor,
-          } as unknown as Record<string, unknown>;
-          ctx.updateLayerState(ctx.selection.id!, { cells });
+          ctx.applyLayerState(ctx.selection.id!, (draft) => {
+            const cells = {
+              ...(draft["cells"] as Record<string, unknown> | undefined),
+            };
+            cells[key] = {
+              terrainId: brushTerrainId,
+              color: brushColor,
+            } as unknown as Record<string, unknown>;
+            draft["cells"] = cells;
+          });
         },
         onPointerMove(pt, env, ctx) {
           if (!lastKey) return this.onPointerDown?.(pt, env, ctx);
@@ -193,17 +197,18 @@ export const freeformModule: PluginModule = {
           const key = `${h.q},${h.r}`;
           if (lastKey === key) return;
           lastKey = key;
-          const active = useCampaignStore.getState().current;
-          const map = active?.maps.find((m) => m.id === active?.activeMapId);
-          const layer = map?.layers?.find((l) => l.id === ctx.selection.id);
-          if (!layer || layer.type !== "freeform") return;
-          const lstate = (layer.state ?? {}) as Record<string, unknown>;
-          const cells = {
-            ...((lstate["cells"] as Record<string, unknown>) || {}),
-          };
-          if (key in cells) {
-            delete cells[key];
-            ctx.updateLayerState(ctx.selection.id!, { cells });
+          const st = (ctx.getActiveLayerState<Record<string, unknown>>() ??
+            {}) as Record<string, unknown>;
+          const existing =
+            (st["cells"] as Record<string, unknown> | undefined) || {};
+          if (Object.prototype.hasOwnProperty.call(existing, key)) {
+            ctx.applyLayerState(ctx.selection.id!, (draft) => {
+              const cells = {
+                ...(draft["cells"] as Record<string, unknown> | undefined),
+              };
+              delete cells[key];
+              draft["cells"] = cells;
+            });
           }
         },
         onPointerMove(pt, env, ctx) {
@@ -218,44 +223,40 @@ export const freeformModule: PluginModule = {
   ],
   commands: {
     "layer.freeform.add": () => {
-      const campaign = useCampaignStore.getState().current;
+      const campaign = getCurrentCampaign();
       const activeMapId = campaign?.activeMapId ?? null;
       if (!campaign || !activeMapId) return;
       const map = campaign.maps.find((m) => m.id === activeMapId);
       if (!map) return;
-      const sel = useSelectionStore.getState().selection;
+      const sel = getSelection();
       const insertAboveSel = () =>
-        useCampaignStore
-          .getState()
-          .insertLayerAbove(sel.kind === "layer" ? sel.id : "", "freeform");
+        sel.kind === "layer" ? insertLayerAbove(sel.id, "freeform") : null;
       let id: string | null = null;
       if (sel.kind === "layer") {
-        id =
-          insertAboveSel() ||
-          useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = insertAboveSel() || insertLayerBeforeTopAnchor("freeform");
       } else if (sel.kind === "map") {
-        id = useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = insertLayerBeforeTopAnchor("freeform");
       } else {
-        id = useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = insertLayerBeforeTopAnchor("freeform");
       }
       if (!id) return;
       try {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          useCampaignStore.getState().updateLayerState(id, {
-            brushTerrainId: first.id,
-            brushColor: first.color,
+          applyLayerState(id, (draft) => {
+            draft["brushTerrainId"] = first.id;
+            draft["brushColor"] = first.color;
           });
         }
       } catch {}
-      useSelectionStore.getState().selectLayer(id);
+      selectLayer(id);
     },
     "tool.freeform.paint": () => {
-      useLayoutStore.getState().setActiveTool("paint");
+      setActiveTool("paint");
     },
     "tool.freeform.erase": () => {
-      useLayoutStore.getState().setActiveTool("erase");
+      setActiveTool("erase");
     },
   },
 };

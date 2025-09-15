@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import { getLayerPolicy, getLayerType } from "@/layers/registry";
 import type { LayerInstance } from "@/layers/types";
+import {
+  clampToAnchorRange,
+  getAnchorBounds,
+  HEXGRID_ANCHOR_TYPE,
+  isAnchorLayer,
+  PAPER_ANCHOR_TYPE,
+} from "./anchors";
 import { generateName } from "@/stores/naming";
 
 import type { MapPalette } from "@/palettes/types";
@@ -25,6 +32,35 @@ export interface Campaign {
     layers?: LayerInstance[];
   }>;
   activeMapId: string | null;
+}
+
+type PaperAspect = "square" | "4:3" | "16:10";
+
+const DEFAULT_PAPER_STATE: { aspect: PaperAspect; color: string } = {
+  aspect: "16:10",
+  color: "#ffffff",
+};
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+function sanitizePaperState(state: unknown) {
+  const base = isPlainObject(state)
+    ? { ...(state as Record<string, unknown>) }
+    : ({} as Record<string, unknown>);
+  const aspectInput = base.aspect as PaperAspect | undefined;
+  const aspect: PaperAspect =
+    aspectInput === "square" || aspectInput === "4:3" || aspectInput === "16:10"
+      ? aspectInput
+      : DEFAULT_PAPER_STATE.aspect;
+  const colorInput = base.color as string | undefined;
+  const color =
+    typeof colorInput === "string" && colorInput.trim().length > 0
+      ? colorInput
+      : DEFAULT_PAPER_STATE.color;
+  base.aspect = aspect;
+  base.color = color;
+  return { state: base, canonical: { aspect, color } } as const;
 }
 
 interface CampaignStoreState {
@@ -62,6 +98,11 @@ interface CampaignStoreState {
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   renameLayer: (layerId: string, name: string) => void;
   updateLayerState: (layerId: string, patch: Record<string, unknown>) => void;
+  // Transactional write seam for tools/plugins (seam-first)
+  applyLayerState: (
+    layerId: string,
+    updater: (draft: Record<string, unknown>) => void,
+  ) => void;
   // Internal helper exposed for tests
   _normalizeAnchorsForMap: (
     map: Campaign["maps"][number],
@@ -87,25 +128,46 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const layers: LayerInstance[] = Array.isArray(map.layers)
       ? [...map.layers]
       : [];
-    if (!layers.find((l) => l.type === "paper")) {
+    const existingPaperIdx = layers.findIndex(
+      (l) => l.type === PAPER_ANCHOR_TYPE,
+    );
+    const mapPaperDefaults = map.paper ?? DEFAULT_PAPER_STATE;
+    const mapPaperRecord = {
+      aspect: mapPaperDefaults.aspect,
+      color: mapPaperDefaults.color,
+    } as Record<string, unknown>;
+    if (existingPaperIdx === -1) {
+      const seedState = {
+        ...DEFAULT_PAPER_STATE,
+        ...mapPaperRecord,
+      };
+      const { state, canonical } = sanitizePaperState(seedState);
       layers.unshift({
         id: uuid(),
-        type: "paper",
+        type: PAPER_ANCHOR_TYPE,
         name: "Paper",
         visible: true,
-        state: getLayerType("paper")?.defaultState || {
-          color: "#ffffff",
-          aspect: "16:10",
-        },
+        state,
       });
+      map.paper = canonical;
+    } else {
+      const paperLayer = layers[existingPaperIdx];
+      const seedState = {
+        ...DEFAULT_PAPER_STATE,
+        ...mapPaperRecord,
+        ...(isPlainObject(paperLayer.state) ? paperLayer.state : {}),
+      };
+      const { state, canonical } = sanitizePaperState(seedState);
+      layers[existingPaperIdx] = { ...paperLayer, state } as typeof paperLayer;
+      map.paper = canonical;
     }
-    if (!layers.find((l) => l.type === "hexgrid")) {
+    if (!layers.find((l) => l.type === HEXGRID_ANCHOR_TYPE)) {
       layers.push({
         id: uuid(),
-        type: "hexgrid",
+        type: HEXGRID_ANCHOR_TYPE,
         name: "Hex Grid",
         visible: true,
-        state: getLayerType("hexgrid")?.defaultState || {
+        state: getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState || {
           size: 24,
           orientation: "pointy",
           color: "#000000",
@@ -115,8 +177,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         },
       });
     }
-    const paper = layers.find((l) => l.type === "paper")!;
-    const grid = layers.find((l) => l.type === "hexgrid")!;
+    const paper = layers.find((l) => l.type === PAPER_ANCHOR_TYPE)!;
+    const grid = layers.find((l) => l.type === HEXGRID_ANCHOR_TYPE)!;
     const rest = layers.filter((l) => l !== paper && l !== grid);
     map.layers = [paper, ...rest, grid];
     return map;
@@ -195,23 +257,34 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const description = params?.description ?? "";
     const next = cur;
     const id = uuid();
+    const paperDefaultsRecord = isPlainObject(
+      getLayerType(PAPER_ANCHOR_TYPE)?.defaultState,
+    )
+      ? (getLayerType(PAPER_ANCHOR_TYPE)?.defaultState as Record<
+          string,
+          unknown
+        >)
+      : {};
+    const basePaperState = {
+      ...DEFAULT_PAPER_STATE,
+      ...paperDefaultsRecord,
+    };
+    const { state: paperState, canonical: canonicalPaper } =
+      sanitizePaperState(basePaperState);
     const baseLayers: LayerInstance[] = [
       {
         id: uuid(),
-        type: "paper",
+        type: PAPER_ANCHOR_TYPE,
         name: "Paper",
         visible: true,
-        state: getLayerType("paper")?.defaultState || {
-          color: "#ffffff",
-          aspect: "16:10",
-        },
+        state: paperState,
       },
       {
         id: uuid(),
-        type: "hexgrid",
+        type: HEXGRID_ANCHOR_TYPE,
         name: "Hex Grid",
         visible: true,
-        state: getLayerType("hexgrid")?.defaultState || {
+        state: getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState || {
           size: 24,
           orientation: "pointy",
           color: "#000000",
@@ -228,7 +301,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         name,
         description,
         visible: true,
-        paper: { aspect: "16:10", color: "#ffffff" } as const,
+        paper: canonicalPaper,
         layers: baseLayers,
       },
     ];
@@ -288,9 +361,20 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     set({
       current: {
         ...cur,
-        maps: cur.maps.map((m) =>
-          m.id === id ? { ...m, paper: { ...m.paper, aspect } } : m,
-        ),
+        maps: cur.maps.map((m) => {
+          if (m.id !== id) return m;
+          const layers = [...(m.layers ?? [])];
+          const idx = layers.findIndex((l) => l.type === PAPER_ANCHOR_TYPE);
+          if (idx < 0) return m;
+          const paperLayer = layers[idx];
+          const rawState = {
+            ...(isPlainObject(paperLayer.state) ? paperLayer.state : {}),
+            aspect,
+          } as Record<string, unknown>;
+          const { state, canonical } = sanitizePaperState(rawState);
+          layers[idx] = { ...paperLayer, state } as typeof paperLayer;
+          return { ...m, layers, paper: canonical };
+        }),
       },
       dirty: true,
     });
@@ -301,9 +385,20 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     set({
       current: {
         ...cur,
-        maps: cur.maps.map((m) =>
-          m.id === id ? { ...m, paper: { ...m.paper, color } } : m,
-        ),
+        maps: cur.maps.map((m) => {
+          if (m.id !== id) return m;
+          const layers = [...(m.layers ?? [])];
+          const idx = layers.findIndex((l) => l.type === PAPER_ANCHOR_TYPE);
+          if (idx < 0) return m;
+          const paperLayer = layers[idx];
+          const rawState = {
+            ...(isPlainObject(paperLayer.state) ? paperLayer.state : {}),
+            color,
+          } as Record<string, unknown>;
+          const { state, canonical } = sanitizePaperState(rawState);
+          layers[idx] = { ...paperLayer, state } as typeof paperLayer;
+          return { ...m, layers, paper: canonical };
+        }),
       },
       dirty: true,
     });
@@ -335,11 +430,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       state: def.defaultState,
     };
     const layers = [...(map.layers ?? [])];
-    const gridIdx = Math.max(
-      1,
-      layers.findIndex((l) => l.type === "hexgrid"),
-    );
-    const insertAt = gridIdx >= 0 ? gridIdx : layers.length;
+    const bounds = getAnchorBounds(layers);
+    const insertAt = Math.min(bounds.top, layers.length);
     layers.splice(insertAt, 0, layer);
     set({
       current: {
@@ -377,8 +469,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       state: def.defaultState,
     };
     const layers = [...(map.layers ?? [])];
-    const gridIdx = layers.findIndex((l) => l.type === "hexgrid");
-    const insertAt = gridIdx >= 0 ? gridIdx : Math.max(1, layers.length);
+    const bounds = getAnchorBounds(layers);
+    const insertAt = Math.min(bounds.top, Math.max(bounds.min, layers.length));
     layers.splice(insertAt, 0, layer);
     set({
       current: {
@@ -402,7 +494,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const layers = [...(map.layers ?? [])];
     const targetIdx = layers.findIndex((l) => l.id === targetId);
     if (targetIdx < 0) return null;
-    if (layers[targetIdx]?.type === "hexgrid") return null;
+    if (isAnchorLayer(layers[targetIdx])) return null;
+    const bounds = getAnchorBounds(layers);
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
@@ -419,7 +512,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       visible: true,
       state: def.defaultState,
     };
-    const insertAt = Math.min(targetIdx + 1, layers.length);
+    const desiredIndex = Math.min(targetIdx + 1, layers.length);
+    const insertAt = Math.min(bounds.top, Math.max(bounds.min, desiredIndex));
     layers.splice(insertAt, 0, layer);
     set({
       current: {
@@ -465,7 +559,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const copy: LayerInstance = { ...layer, id: uuid(), name: copyName };
     const layers = [...(map.layers ?? [])];
     const idx = layers.findIndex((l) => l.id === layerId);
-    const insertAt = idx >= 0 ? idx + 1 : layers.length;
+    const bounds = getAnchorBounds(layers);
+    const desiredIndex = idx >= 0 ? idx + 1 : layers.length;
+    const insertAt = Math.min(bounds.top, Math.max(bounds.min, desiredIndex));
     layers.splice(insertAt, 0, copy);
     set({
       current: {
@@ -484,15 +580,10 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const layers = [...(map.layers ?? [])];
     const idx = layers.findIndex((l) => l.id === layerId);
     if (idx < 0) return;
-    const bottomIdx = layers.findIndex((l) => l.type === "paper");
-    const topIdx = layers.findIndex((l) => l.type === "hexgrid");
-    const isAnchor =
-      layers[idx].type === "paper" || layers[idx].type === "hexgrid";
-    if (isAnchor) return;
-    const minIdx = bottomIdx >= 0 ? bottomIdx + 1 : 0;
-    const maxIdx = topIdx >= 0 ? topIdx - 1 : layers.length - 1;
+    if (isAnchorLayer(layers[idx])) return;
+    const bounds = getAnchorBounds(layers);
     const [item] = layers.splice(idx, 1);
-    const clamped = Math.max(minIdx, Math.min(toIndex, maxIdx));
+    const clamped = clampToAnchorRange(toIndex, bounds, layers.length + 1);
     layers.splice(Math.max(0, Math.min(clamped, layers.length)), 0, item);
     set({
       current: {
@@ -516,7 +607,10 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
                 ...m,
                 layers: (m.layers ?? []).map((l) =>
                   l.id === layerId
-                    ? { ...l, visible: l.type === "paper" ? true : visible }
+                    ? {
+                        ...l,
+                        visible: l.type === PAPER_ANCHOR_TYPE ? true : visible,
+                      }
                     : l,
                 ),
               }
@@ -553,8 +647,70 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!cur) return;
     const map = cur.maps.find((m) => m.id === cur.activeMapId);
     if (!map) return;
-    const isRecord = (x: unknown): x is Record<string, unknown> =>
-      !!x && typeof x === "object" && !Array.isArray(x);
+    set({
+      current: {
+        ...cur,
+        maps: cur.maps.map((m) =>
+          m === map
+            ? (() => {
+                let paperCanonical: {
+                  aspect: PaperAspect;
+                  color: string;
+                } | null = null;
+                const layers = (m.layers ?? []).map((l) => {
+                  if (l.id !== layerId) return l;
+                  const mergedState = isPlainObject(l.state)
+                    ? { ...(l.state as Record<string, unknown>), ...patch }
+                    : { ...patch };
+                  if (l.type === PAPER_ANCHOR_TYPE) {
+                    const { state, canonical } =
+                      sanitizePaperState(mergedState);
+                    paperCanonical = canonical;
+                    return { ...l, state } as typeof l;
+                  }
+                  return { ...l, state: mergedState } as typeof l;
+                });
+                return {
+                  ...m,
+                  layers,
+                  paper: paperCanonical ? paperCanonical : m.paper,
+                };
+              })()
+            : m,
+        ),
+      },
+      dirty: true,
+    });
+  },
+  applyLayerState: (layerId, updater) => {
+    const cur = get().current;
+    if (!cur) return;
+    const map = cur.maps.find((m) => m.id === cur.activeMapId);
+    if (!map) return;
+    const layers = [...(map.layers ?? [])];
+    const idx = layers.findIndex((l) => l.id === layerId);
+    if (idx < 0) return;
+    const target = layers[idx];
+    const baseState: Record<string, unknown> = isPlainObject(target.state)
+      ? structuredClone
+        ? structuredClone(target.state as Record<string, unknown>)
+        : { ...(target.state as Record<string, unknown>) }
+      : {};
+    try {
+      updater(baseState);
+    } catch (e) {
+      // swallow updater errors to avoid corrupting state
+      console.warn("applyLayerState updater threw", e);
+      return;
+    }
+    let paperCanonical: { aspect: PaperAspect; color: string } | null = null;
+    if (target.type === PAPER_ANCHOR_TYPE) {
+      const { state, canonical } = sanitizePaperState(baseState);
+      paperCanonical = canonical;
+      layers[idx] = { ...target, state } as typeof target;
+    } else {
+      layers[idx] = { ...target, state: baseState } as typeof target;
+    }
     set({
       current: {
         ...cur,
@@ -562,16 +718,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
           m === map
             ? {
                 ...m,
-                layers: (m.layers ?? []).map((l) =>
-                  l.id === layerId
-                    ? {
-                        ...l,
-                        state: isRecord(l.state)
-                          ? { ...l.state, ...patch }
-                          : patch,
-                      }
-                    : l,
-                ),
+                layers,
+                paper: paperCanonical ? paperCanonical : m.paper,
               }
             : m,
         ),

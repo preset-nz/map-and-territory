@@ -31,4 +31,3 @@ We need seeded, deterministic gradient noise with better isotropy than grid Perl
 
 - Replace interim Simplex core with a faithful OpenSimplex2S implementation.
 - Add FBM helpers (octaves, persistence, lacunarity) and domain warp utilities building on `createOpenSimplexNoise`.
-

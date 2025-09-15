@@ -6,8 +6,14 @@ import {
 } from "@/properties/registry";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
 import { AppAPI } from "@/appapi";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
+import {
+  getCurrentCampaign,
+  getSelection,
+  insertLayerAbove,
+  insertLayerBeforeTopAnchor,
+  applyLayerState,
+  selectLayer,
+} from "@/platform/plugin-runtime/state";
 
 export const hexNoiseManifest: PluginManifest = {
   id: "app.plugins.hex-noise",
@@ -162,22 +168,18 @@ export const hexNoiseModule: PluginModule = {
   },
   commands: {
     "layer.hexnoise.add": () => {
-      const campaign = useCampaignStore.getState().current;
+      const campaign = getCurrentCampaign();
       const activeMapId = campaign?.activeMapId ?? null;
       if (!campaign || !activeMapId) return; // disabled state should prevent this
       const map = campaign.maps.find((m) => m.id === activeMapId);
       if (!map) return;
       // insert according to selection semantics
-      const sel = useSelectionStore.getState().selection;
+      const sel = getSelection();
       if (sel.kind === "layer") {
         // Try to insert above selection; if target is top anchor, fall back to just below grid
-        let id = useCampaignStore
-          .getState()
-          .insertLayerAbove(sel.id, "hexnoise");
+        let id = insertLayerAbove(sel.id, "hexnoise");
         if (!id) {
-          id = useCampaignStore
-            .getState()
-            .insertLayerBeforeTopAnchor("hexnoise");
+          id = insertLayerBeforeTopAnchor("hexnoise");
         }
         if (!id) return;
         // Initialize defaults: paint mode and first terrain entry color
@@ -186,48 +188,44 @@ export const hexNoiseModule: PluginModule = {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
-            useCampaignStore.getState().updateLayerState(id, {
-              terrainId: first.id,
-              paintColor: first.color,
+            applyLayerState(id, (draft) => {
+              draft["terrainId"] = first.id;
+              draft["paintColor"] = first.color;
             });
           }
         } catch {}
-        useSelectionStore.getState().selectLayer(id);
+        selectLayer(id);
         return;
       } else if (sel.kind === "map") {
-        const id = useCampaignStore
-          .getState()
-          .insertLayerBeforeTopAnchor("hexnoise");
+        const id = insertLayerBeforeTopAnchor("hexnoise");
         if (!id) return;
         try {
           const entries = AppAPI.palette.list();
           const first = entries[0];
           if (first) {
-            useCampaignStore.getState().updateLayerState(id, {
-              terrainId: first.id,
-              paintColor: first.color,
+            applyLayerState(id, (draft) => {
+              draft["terrainId"] = first.id;
+              draft["paintColor"] = first.color;
             });
           }
         } catch {}
-        useSelectionStore.getState().selectLayer(id);
+        selectLayer(id);
         return;
       }
       // Fallback when nothing is selected: treat as map-level insert
-      const id = useCampaignStore
-        .getState()
-        .insertLayerBeforeTopAnchor("hexnoise");
+      const id = insertLayerBeforeTopAnchor("hexnoise");
       if (!id) return;
       try {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          useCampaignStore.getState().updateLayerState(id, {
-            terrainId: first.id,
-            paintColor: first.color,
+          applyLayerState(id, (draft) => {
+            draft["terrainId"] = first.id;
+            draft["paintColor"] = first.color;
           });
         }
       } catch {}
-      useSelectionStore.getState().selectLayer(id);
+      selectLayer(id);
     },
   },
 };

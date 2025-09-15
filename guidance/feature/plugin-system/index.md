@@ -8,6 +8,7 @@ Use this page to request new plugins rapidly. Paste the prompt template into cha
 ## TL;DR – One-Liner Requests
 
 Say one sentence and I’ll ask the right follow‑ups:
+
 - "Add a plugin for Scene Buttons: New/Save/Load in toolbar group 'scene'."
 - "Add a Terrain layer type with paint tool and properties for opacity + blend mode."
 - "Add a Hexgrid layer with size and rotation controls, shown in scene + main views."
@@ -71,7 +72,8 @@ Open Questions for You:
 
 ## Quick Examples
 
-1) Scene Buttons Plugin
+1. Scene Buttons Plugin
+
 ```
 REQUEST: Add a plugin for Scene Buttons
 Intent: Quick access to create/save/load maps.
@@ -80,7 +82,8 @@ Capabilities: scene:write, storage:project
 Acceptance: Buttons show in 'scene' group; commands work; project saves round-trip.
 ```
 
-2) Terrain Layer + Paint Tool
+2. Terrain Layer + Paint Tool
+
 ```
 REQUEST: Add a plugin for Terrain + Paint
 Intent: Paint terrain onto maps.
@@ -90,7 +93,8 @@ Capabilities: layer:read|write, tool:register, render:canvas
 Acceptance: Paint modifies terrain; undo/redo; properties update rendering.
 ```
 
-3) Hexgrid Layer
+3. Hexgrid Layer
+
 ```
 REQUEST: Add a plugin for Hexgrid Layer
 Intent: Configurable hex grid overlay.
@@ -113,4 +117,3 @@ Acceptance: Grid renders correctly; properties update live; persists across save
 - Plugin API: `planning/plugin_api_design.md`
 - Properties System: `planning/properties_system_design.md`
 - ADRs: `guidance/adrs/0002-plugin-architecture.md`, `guidance/adrs/0003-map-default-creation-policy.md`
-

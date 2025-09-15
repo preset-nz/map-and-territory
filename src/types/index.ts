@@ -1,6 +1,6 @@
 /**
  * Type Definitions Export Barrel
- * 
+ *
  * Provides clean imports for all type definitions used throughout
  * the Professional Layout System. Follows TypeScript best practices
  * for type organization and exports.
@@ -16,7 +16,7 @@ export type {
   SidebarState,
   LayoutPreferences,
   NavigationState,
-  
+
   // Component prop interfaces
   BaseLayoutProps,
   AppLayoutProps,
@@ -24,25 +24,25 @@ export type {
   AppSidebarProps,
   MainContentProps,
   ContentHeaderProps,
-  
+
   // Provider interfaces
   LayoutProviderProps,
   StorePersistConfig,
-  
+
   // Utility types
   SidebarSection,
-} from './layout';
+} from "./layout";
 
 export {
   // Constants and defaults
   DEFAULT_LAYOUT_STATE,
   SIDEBAR_WIDTH_CONSTRAINTS,
-  
+
   // Type guards
   isValidTheme,
   isValidSidebarVariant,
   isValidSidebarCollapsible,
-} from './layout';
+} from "./layout";
 
 // Auth types
 export type {
@@ -50,33 +50,33 @@ export type {
   User,
   AuthContextValue,
   LoginCredentials,
-  
+
   // Provider interfaces
   AuthProviderProps,
   NoOpAuthProviderProps,
-  
+
   // State management
   AuthEvent,
   AuthError,
-  
+
   // Future auth types
   OAuthConfig,
   JWTToken,
-} from './auth';
+} from "./auth";
 
 export {
   // Enums
   AuthState,
   AuthErrorCode,
-  
+
   // Constants and defaults
   DEFAULT_AUTH_CONTEXT,
   AUTH_CONFIG,
-  
+
   // Utilities
   createAuthError,
-  
+
   // Type guards
   isUser,
   isAuthError,
-} from './auth';
+} from "./auth";

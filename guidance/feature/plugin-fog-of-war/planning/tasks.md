@@ -16,4 +16,3 @@ Last Updated: 2025-09-03
 ## Dependencies
 
 - Requires ADR-0006/0007 availability in host APIs
-

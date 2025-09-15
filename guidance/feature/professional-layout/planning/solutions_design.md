@@ -53,7 +53,7 @@ interface AuthContextValue {
 }
 
 // No-op implementation that provides auth interface without functionality
-const NoOpAuthProvider: React.FC<{ children: React.ReactNode }>
+const NoOpAuthProvider: React.FC<{ children: React.ReactNode }>;
 ```
 
 ### 2. Layout Provider (`LayoutProvider`)
@@ -68,7 +68,7 @@ interface LayoutProviderProps {
 }
 
 // Wraps app content and provides layout context
-const LayoutProvider: React.FC<LayoutProviderProps>
+const LayoutProvider: React.FC<LayoutProviderProps>;
 ```
 
 ### 3. App Layout (`AppLayout`)
@@ -82,7 +82,7 @@ interface AppLayoutProps {
 }
 
 // Main layout container with CSS Grid for desktop
-const AppLayout: React.FC<AppLayoutProps>
+const AppLayout: React.FC<AppLayoutProps>;
 ```
 
 ### 4. App Header (`AppHeader`)
@@ -97,7 +97,7 @@ interface AppHeaderProps {
 }
 
 // Fixed header with branding and global controls
-const AppHeader: React.FC<AppHeaderProps>
+const AppHeader: React.FC<AppHeaderProps>;
 ```
 
 ### 5. App Sidebar (`AppSidebar`)
@@ -107,12 +107,12 @@ const AppHeader: React.FC<AppHeaderProps>
 ```typescript
 interface AppSidebarProps {
   className?: string;
-  variant?: 'sidebar' | 'inset';
-  collapsible?: 'icon' | 'none';
+  variant?: "sidebar" | "inset";
+  collapsible?: "icon" | "none";
 }
 
 // Extends shadcn/ui Sidebar with app-specific content sections
-const AppSidebar: React.FC<AppSidebarProps>
+const AppSidebar: React.FC<AppSidebarProps>;
 ```
 
 ### 6. Content Area (`MainContent`)
@@ -127,7 +127,7 @@ interface MainContentProps {
 }
 
 // Desktop-optimized content area with optional contextual header
-const MainContent: React.FC<MainContentProps>
+const MainContent: React.FC<MainContentProps>;
 ```
 
 ## Data Models
@@ -139,17 +139,17 @@ interface LayoutState {
   // Sidebar state
   sidebar: {
     isOpen: boolean;
-    variant: 'sidebar' | 'inset';
-    collapsible: 'icon' | 'none';
+    variant: "sidebar" | "inset";
+    collapsible: "icon" | "none";
   };
-  
+
   // Layout preferences
   preferences: {
-    theme: 'light' | 'dark' | 'system';
+    theme: "light" | "dark" | "system";
     sidebarWidth: number;
     persistCollapsed: boolean;
   };
-  
+
   // Navigation state
   navigation: {
     activeSection: string;
@@ -171,17 +171,17 @@ interface LayoutActions {
   // Sidebar actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setSidebarVariant: (variant: LayoutState['sidebar']['variant']) => void;
-  
+  setSidebarVariant: (variant: LayoutState["sidebar"]["variant"]) => void;
+
   // Preference actions
-  setTheme: (theme: LayoutState['preferences']['theme']) => void;
+  setTheme: (theme: LayoutState["preferences"]["theme"]) => void;
   setSidebarWidth: (width: number) => void;
   setPersistCollapsed: (persist: boolean) => void;
-  
+
   // Navigation actions
   setActiveSection: (section: string) => void;
   setBreadcrumb: (items: BreadcrumbItem[]) => void;
-  
+
   // Utility actions
   resetLayout: () => void;
   loadPreferences: () => void;
@@ -203,40 +203,43 @@ export const useLayoutStore = create<LayoutStore>()(
         // Initial state
         sidebar: {
           isOpen: true,
-          variant: 'sidebar',
-          collapsible: 'icon',
+          variant: "sidebar",
+          collapsible: "icon",
         },
         preferences: {
-          theme: 'system',
+          theme: "system",
           sidebarWidth: 280,
           persistCollapsed: true,
         },
         navigation: {
-          activeSection: 'maps',
+          activeSection: "maps",
           breadcrumb: [],
         },
-        
+
         // Actions implementation
-        toggleSidebar: () => set((state) => ({
-          sidebar: { ...state.sidebar, isOpen: !state.sidebar.isOpen }
-        })),
-        
+        toggleSidebar: () =>
+          set((state) => ({
+            sidebar: { ...state.sidebar, isOpen: !state.sidebar.isOpen },
+          })),
+
         // ... other actions
       }),
       {
-        name: 'map-territory-layout',
+        name: "map-territory-layout",
         partialize: (state) => ({
           preferences: state.preferences,
-          sidebar: { 
-            isOpen: state.preferences.persistCollapsed ? state.sidebar.isOpen : true,
+          sidebar: {
+            isOpen: state.preferences.persistCollapsed
+              ? state.sidebar.isOpen
+              : true,
             variant: state.sidebar.variant,
             collapsible: state.sidebar.collapsible,
           },
         }),
-      }
+      },
     ),
-    { name: 'LayoutStore' }
-  )
+    { name: "LayoutStore" },
+  ),
 );
 ```
 
@@ -252,7 +255,7 @@ interface SceneStore {
   // scene management actions
 }
 
-// stores/selection-store.ts (future) 
+// stores/selection-store.ts (future)
 interface SelectionStore {
   selectedHexes: HexCoordinate[];
   activeTool: Tool;
@@ -309,6 +312,7 @@ export const useEditorStores = () => ({
 ## Testing Strategy
 
 ### Unit Tests
+
 - **File**: `tests/unit/components/layout/test_app-layout.test.tsx`
   - Layout component rendering with different props
   - Desktop-focused responsive behavior
@@ -325,6 +329,7 @@ export const useEditorStores = () => ({
   - Graceful auth call handling
 
 ### Integration Tests
+
 - **File**: `tests/integration/layout/test_layout-system.test.tsx`
   - Full layout system integration with Next.js
   - Sidebar state synchronization with UI
@@ -336,7 +341,8 @@ export const useEditorStores = () => ({
   - Future store composition readiness
   - Cross-store state consistency
 
-### Accessibility Tests  
+### Accessibility Tests
+
 - **File**: `tests/accessibility/test_layout-a11y.test.tsx`
   - Keyboard navigation through sidebar
   - Screen reader compatibility
@@ -344,6 +350,7 @@ export const useEditorStores = () => ({
   - WCAG compliance validation
 
 ### Performance Tests
+
 - **File**: `tests/performance/test_layout-performance.test.ts`
   - Layout rendering performance on desktop
   - State update performance with large datasets
@@ -355,6 +362,7 @@ export const useEditorStores = () => ({
 ## Success Criteria
 
 The layout system is successful when:
+
 - **Professional Desktop Interface**: Provides clean, efficient editing environment optimized for desktop usage
 - **State Persistence**: User preferences and layout state persist across sessions
 - **Store Modularity**: Layout store integrates cleanly with future scene and selection stores

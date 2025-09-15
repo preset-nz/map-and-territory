@@ -85,11 +85,13 @@ If a method is called without capability, throw a typed `PluginCapabilityError` 
 
 ## Example Capability Sets
 
-1) Scene Buttons Plugin (New/Save/Load)
+1. Scene Buttons Plugin (New/Save/Load)
+
 - Capabilities: `['scene:write','storage:project']`
 - Access: register three commands; toolbar binds to those command ids.
 
-2) Terrain Layer & Paint Tool
+2. Terrain Layer & Paint Tool
+
 - Capabilities: `['layer:read','layer:write','tool:register','render:canvas']`
 - Access: register layer type `terrain`, a `paint.brush` tool; pointer events mutate only selected terrain layers; `requestFrame()` after patch.
 
@@ -105,4 +107,3 @@ If a method is called without capability, throw a typed `PluginCapabilityError` 
 - Worker sandbox: proxy `AppAPI` over `postMessage` with structural cloning.
 - Permissions UX: optional prompts for elevated capabilities.
 - Rate limits / quotas for event emission and storage size.
-

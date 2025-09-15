@@ -1,6 +1,7 @@
 # Property Panel Design System
 
 ## Overview
+
 **Purpose:** Property panel for Map&Territory (hexmap editor) that connects to item stores and dynamically populates with map/layer/tool parameters. Balances a professional UI with gritty, analog content outputs.
 **Scope:** Parameter components, folder grouping, multi-selection support, read-only/readwrite modes. Extensible via the plugin architecture.
 **Target Users:** Game masters and creators (see guidance/personas.md) working with campaigns, maps, layers, and tools.
@@ -8,6 +9,7 @@
 ## Design Specifications
 
 ### Visual Hierarchy
+
 - **Panel Container:** Professional, quiet surface; subtle borders. UI recedes to let map content shine (see Product Brief).
 - **Folder Groups:** Collapsible sections with clear separation for Layers, Tools, Effects, Metadata.
 - **Parameters:** Consistent spacing and alignment with clear labels and optional descriptions.
@@ -18,6 +20,7 @@
   - Error/Success: tokens destructive/success
 
 ### Component Structure
+
 ```
 PropertyPanel
 ├── PanelHeader (optional)
@@ -29,6 +32,7 @@ PropertyPanel
 ```
 
 ### Parameter Types (MVP-aligned)
+
 1. **Text Input** — Single/multi-line text for names, notes.
 2. **Number Input (1D/2D/3D)** — Integer/float with validation (e.g., hex size, offset vectors).
 3. **Boolean** — Checkbox for toggles (e.g., snap to grid).
@@ -40,6 +44,7 @@ PropertyPanel
 9. (Deferred) **Date/Time, File Path, External Images** — Not core to MVP. Images are represented as textures/patterns rather than arbitrary URLs.
 
 ### Responsive Behavior
+
 - **Minimum Width:** 280px
 - **Optimal Width:** 320-400px
 - **Resize Handle:** Right edge for horizontal resizing
@@ -49,6 +54,7 @@ PropertyPanel
 ## Implementation Guide
 
 ### React Component Architecture
+
 ```typescript
 interface PropertyPanelProps {
   data: ItemStore;
@@ -78,6 +84,7 @@ interface FolderGroup {
 ```
 
 ### Component Mapping (Current Library)
+
 - **Panel Container/Groups:** use existing `Group` + `Separator` (upgrade to collapsible folders later).
 - **Labels/Help:** `PropertyLabel` with optional description; `Tooltip` for overflow or extra help.
 - **Text Inputs:** `Input`, `Textarea`.
@@ -88,9 +95,10 @@ interface FolderGroup {
 - **Texture Swatch:** small SVG preview + select (to be added when textures are available in the asset store).
 
 ### State Management
+
 ```typescript
 // Folder collapse states
-const [folderStates, setFolderStates] = useLocalStorage('panel-folders', {});
+const [folderStates, setFolderStates] = useLocalStorage("panel-folders", {});
 
 // Parameter values with validation
 const [parameterValues, setParameterValues] = useState({});
@@ -100,10 +108,11 @@ const [parameterErrors, setParameterErrors] = useState({});
 ## Design System Integration
 
 ### Design Tokens
+
 ```css
 --panel-bg: #ffffff;
 --panel-border: #e9ecef;
---panel-shadow: 0 2px 4px rgba(0,0,0,0.1);
+--panel-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 --accent-primary: #ff6b35;
 --accent-hover: #e55a2b;
 --text-primary: #343a40;
@@ -118,12 +127,14 @@ const [parameterErrors, setParameterErrors] = useState({});
 ```
 
 ### Component Dependencies
+
 - **FolderGroup** → Parameter components
 - **Parameter** → Input components, validation utilities
 - **TextureParameter** → SVG/pattern catalog and preview
 - **MultiSelectParameter (deferred)** → Chip display, selection management
 
 ### Accessibility Features
+
 - **Keyboard Navigation:** Tab order through parameters
 - **ARIA Labels:** Descriptive labels for screen readers
 - **Error Announcements:** Live regions for validation errors
@@ -133,30 +144,35 @@ const [parameterErrors, setParameterErrors] = useState({});
 ## Parameter Specifications
 
 ### Folder Group Component
+
 - **Header:** Clickable with expand/collapse icon
 - **State Persistence:** Remembers collapsed/expanded state
 - **Description:** Optional text below header
 - **Animation:** Smooth collapse/expand transition
 
 ### Read-Only Mode
+
 - **Visual Treatment:** Grayed out labels, disabled inputs
 - **Interaction:** No cursor changes, non-editable
 - **Toggle:** Runtime switching between modes
 - **Indication:** Clear visual cues for read-only state
 
 ### Error States
+
 - **Visual:** Red border, error icon, error text
 - **Tooltip:** Detailed error message on hover
 - **Validation:** Real-time or on blur/submit
 - **Recovery:** Clear errors when valid input provided
 
 ### Texture Swatch Parameter
+
 - **Display:** Small SVG/pattern preview swatch
 - **Source:** Internal asset catalog (not external URLs)
 - **Selection:** Dropdown or grid picker with search/filter
 - **Fallback:** Neutral pattern if missing
 
 ### Multi-Selection Support
+
 - **Chips:** Selected items as removable chips
 - **Dropdown:** Searchable list with checkboxes
 - **Bulk Actions:** Select all/none options
@@ -165,6 +181,7 @@ const [parameterErrors, setParameterErrors] = useState({});
 ## Validation & Testing
 
 ### Success Metrics
+
 - **Usability:** Task completion rate >95%
 - **Performance:** <100ms response time for value changes
 - **Accessibility:** WCAG 2.1 AA compliance
@@ -172,6 +189,7 @@ const [parameterErrors, setParameterErrors] = useState({});
 - **Theme Switching:** Seamless light/dark mode transitions
 
 ### Testing Approach
+
 - **Unit Tests:** Individual parameter components and search functionality
 - **Integration Tests:** Data binding (to stores), bulk operations, and multi-selection editing
 - **Accessibility Tests:** Screen reader labels, keyboard navigation, focus states
@@ -179,6 +197,7 @@ const [parameterErrors, setParameterErrors] = useState({});
 - **Usability Testing:** Task-based scenarios for map/layer/tool editing
 
 ### POC Validation Scenarios
+
 1. **Single Map Item:** Edit a tile’s parameters (color, texture, tags) with validation.
 2. **Multi-Selection:** Select multiple hexes and adjust shared parameters (e.g., material).
 3. **Bulk Operations:** Reset values across selected hexes/layers.
@@ -192,6 +211,7 @@ const [parameterErrors, setParameterErrors] = useState({});
 11. **Clipboard:** Copy color/texture tokens to external apps.
 
 ### Iteration Plan
+
 1. **Phase 1:** Core parameter types and folder grouping
 2. **Phase 2:** Advanced parameters (image, multi-select)
 3. **Phase 3:** Validation framework and error handling
@@ -199,6 +219,7 @@ const [parameterErrors, setParameterErrors] = useState({});
 5. **Phase 5:** Multi-panel coordination and state synchronization
 
 ## Implementation Priority
+
 1. **Folder Groups** — Collapsible containers
 2. **Basic Parameters** — Text, number (1/2/3D), boolean, dropdown, color
 3. **Description Text** — Inline documentation and tooltips

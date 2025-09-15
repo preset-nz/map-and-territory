@@ -27,7 +27,14 @@ function dot2(gx: number, gy: number, x: number, y: number) {
   return gx * x + gy * y;
 }
 
-function dot3(gx: number, gy: number, gz: number, x: number, y: number, z: number) {
+function dot3(
+  gx: number,
+  gy: number,
+  gz: number,
+  x: number,
+  y: number,
+  z: number,
+) {
   return gx * x + gy * y + gz * z;
 }
 
@@ -44,14 +51,29 @@ function buildPermutation(seed: Seed): Uint8Array {
 
 // Gradient directions for 2D and 3D
 const grad2: ReadonlyArray<[number, number]> = [
-  [1, 0], [-1, 0], [0, 1], [0, -1],
-  [Math.SQRT1_2, Math.SQRT1_2], [-Math.SQRT1_2, Math.SQRT1_2], [Math.SQRT1_2, -Math.SQRT1_2], [-Math.SQRT1_2, -Math.SQRT1_2],
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [Math.SQRT1_2, Math.SQRT1_2],
+  [-Math.SQRT1_2, Math.SQRT1_2],
+  [Math.SQRT1_2, -Math.SQRT1_2],
+  [-Math.SQRT1_2, -Math.SQRT1_2],
 ];
 
 const grad3: ReadonlyArray<[number, number, number]> = [
-  [1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0],
-  [1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1],
-  [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1],
+  [1, 1, 0],
+  [-1, 1, 0],
+  [1, -1, 0],
+  [-1, -1, 0],
+  [1, 0, 1],
+  [-1, 0, 1],
+  [1, 0, -1],
+  [-1, 0, -1],
+  [0, 1, 1],
+  [0, -1, 1],
+  [0, 1, -1],
+  [0, -1, -1],
 ];
 
 export function createPerlinNoise(seed: Seed): PerlinNoise {
@@ -62,8 +84,8 @@ export function createPerlinNoise(seed: Seed): PerlinNoise {
     const X = Math.floor(x) & 255;
     const xf = x - Math.floor(x);
     const u = fade(xf);
-    const g0 = ((perm[X] % 2) === 0 ? 1 : -1); // gradient along x only
-    const g1 = ((perm[X + 1] % 2) === 0 ? 1 : -1);
+    const g0 = perm[X] % 2 === 0 ? 1 : -1; // gradient along x only
+    const g1 = perm[X + 1] % 2 === 0 ? 1 : -1;
     const n0 = g0 * (xf - 0);
     const n1 = g1 * (xf - 1);
     return lerp(n0, n1, u); // already roughly in [-1,1]
@@ -88,10 +110,14 @@ export function createPerlinNoise(seed: Seed): PerlinNoise {
     const gAB = grad2[perm[ab] & 7];
     const gBB = grad2[perm[bb] & 7];
 
-    const x1 = xf, y1 = yf;
-    const x2 = xf - 1, y2 = yf;
-    const x3 = xf, y3 = yf - 1;
-    const x4 = xf - 1, y4 = yf - 1;
+    const x1 = xf,
+      y1 = yf;
+    const x2 = xf - 1,
+      y2 = yf;
+    const x3 = xf,
+      y3 = yf - 1;
+    const x4 = xf - 1,
+      y4 = yf - 1;
 
     const nAA = dot2(gAA[0], gAA[1], x1, y1);
     const nBA = dot2(gBA[0], gBA[1], x2, y2);
@@ -155,11 +181,24 @@ export function createPerlinNoise(seed: Seed): PerlinNoise {
     return res;
   }
 
-  function normalized1D(x: number): number { return fit01(noise1D(x)); }
-  function normalized2D(x: number, y: number): number { return fit01(noise2D(x, y)); }
-  function normalized3D(x: number, y: number, z: number): number { return fit01(noise3D(x, y, z)); }
+  function normalized1D(x: number): number {
+    return fit01(noise1D(x));
+  }
+  function normalized2D(x: number, y: number): number {
+    return fit01(noise2D(x, y));
+  }
+  function normalized3D(x: number, y: number, z: number): number {
+    return fit01(noise3D(x, y, z));
+  }
 
-  return { noise1D, noise2D, noise3D, normalized1D, normalized2D, normalized3D };
+  return {
+    noise1D,
+    noise2D,
+    noise3D,
+    normalized1D,
+    normalized2D,
+    normalized3D,
+  };
 }
 
 export default createPerlinNoise;

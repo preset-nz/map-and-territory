@@ -9,7 +9,7 @@ export function fit(
   nmax: number,
 ): number {
   if (omax === omin) {
-    throw new Error('fit(): input range cannot be zero (omin === omax)');
+    throw new Error("fit(): input range cannot be zero (omin === omax)");
   }
   const t = (value - omin) / (omax - omin);
   return nmin + t * (nmax - nmin);

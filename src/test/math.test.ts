@@ -1,14 +1,14 @@
-import { describe, it, expect } from 'vitest';
-import { fit, fit01, lerp, clamp } from '../lib/math';
+import { describe, it, expect } from "vitest";
+import { fit, fit01, lerp, clamp } from "../lib/math";
 
-describe('math utils', () => {
-  it('fit01 maps [-1,1] -> [0,1]', () => {
+describe("math utils", () => {
+  it("fit01 maps [-1,1] -> [0,1]", () => {
     expect(fit01(-1)).toBe(0);
     expect(fit01(0)).toBe(0.5);
     expect(fit01(1)).toBe(1);
   });
 
-  it('lerp interpolates between a and b', () => {
+  it("lerp interpolates between a and b", () => {
     expect(lerp(0, 10, 0)).toBe(0);
     expect(lerp(0, 10, 1)).toBe(10);
     expect(lerp(0, 10, 0.25)).toBeCloseTo(2.5, 10);
@@ -18,7 +18,7 @@ describe('math utils', () => {
     expect(lerp(0, 10, 1.5)).toBe(15);
   });
 
-  it('fit maps ranges correctly', () => {
+  it("fit maps ranges correctly", () => {
     // Simple mapping 0..10 -> 0..1
     expect(fit(0, 0, 10, 0, 1)).toBe(0);
     expect(fit(5, 0, 10, 0, 1)).toBe(0.5);
@@ -36,11 +36,11 @@ describe('math utils', () => {
     expect(fit(-5, -10, 0, 0, 100)).toBe(50);
   });
 
-  it('fit throws on zero input range', () => {
+  it("fit throws on zero input range", () => {
     expect(() => fit(1, 5, 5, 0, 1)).toThrow();
   });
 
-  it('clamp bounds values to [min,max]', () => {
+  it("clamp bounds values to [min,max]", () => {
     expect(clamp(-5, 0, 10)).toBe(0);
     expect(clamp(15, 0, 10)).toBe(10);
     expect(clamp(5, 0, 10)).toBe(5);

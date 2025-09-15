@@ -34,6 +34,22 @@ Current Phase Policy: see `guidance/process/forward_ever_phase.md` (no flags/bac
 4. Plugins:
 
 - Keep plugin code in `src/plugin/` (or `src/plugin/builtin/`). Avoid leaking internals; use exported types/APIs.
+- Mutate campaign state through `ToolContext` helpers (e.g., `ctx.applyLayerState`) or the platform runtime wrappers—importing `@/stores/**` from plugins is forbidden and linted.
+- Read state via `ctx.getActiveLayerState` or the exposed AppAPI selectors.
+
+Example: seam-first tool mutation
+
+```ts
+const paintTool: ToolHandler = {
+  id: "paint",
+  onPointerDown(_pt, _env, ctx) {
+    if (ctx.selection.kind !== "layer") return;
+    ctx.applyLayerState(ctx.selection.id!, (draft) => {
+      draft.lastEditedAt = Date.now();
+    });
+  },
+};
+```
 
 5. Performance:
 
