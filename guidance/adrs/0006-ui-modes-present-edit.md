@@ -9,22 +9,26 @@ We want a “game mode” that focuses the screen on the map and supports click-
 
 ## Decision
 
-1) Introduce UI Modes
+1. Introduce UI Modes
+
 - Add `edit` (default) and `present` modes to the host.
 - Expose in `AppAPI.ui`:
   - `setMode(mode: 'edit'|'present'): void`
   - `getMode(): 'edit'|'present'`
   - `onModeChange(cb: (mode) => void): () => void`
 
-2) Presentation Behavior
+2. Presentation Behavior
+
 - Present Mode hides non-canvas chrome by policy: scene panel, properties panel, status bar, and non-essential toolbars. A minimal top-level toggle remains accessible (keyboard/command).
 - No changes to rendering pipeline; canvas continues to render the active map and layers by z-order.
 
-3) Commands
+3. Commands
+
 - Register `app.mode.present.toggle` (and `app.mode.set:edit|present`).
 - Plugins and toolbar buttons may call these commands; the host enforces mode transitions.
 
-4) Input Gating
+4. Input Gating
+
 - Present Mode routes pointer/keyboard to canvas/tools only. Global shortcuts are reduced to essentials (escape, toggle mode).
 
 ## Rationale
@@ -48,4 +52,3 @@ We want a “game mode” that focuses the screen on the map and supports click-
 
 - Evaluate kiosk-friendly refinements (cursor hiding, auto-fit zoom) in Present Mode.
 - Consider per-project default mode and persistence once workflows stabilize.
-

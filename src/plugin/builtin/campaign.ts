@@ -5,6 +5,16 @@ import {
   unregisterPropertySchema,
 } from "@/properties/registry";
 import { TerrainSettings } from "@/palettes/settings";
+import {
+  getCurrentCampaign,
+  isCampaignDirty,
+  markCampaignDirty,
+} from "@/platform/plugin-runtime/state";
+import {
+  CAMPAIGN_MIME_V1,
+  loadIntoStoreV1,
+  saveActiveCampaignV1,
+} from "@/platform/plugin-runtime/persistence";
 
 export const campaignPluginManifest: PluginManifest = {
   id: "app.plugins.campaign",
@@ -92,9 +102,8 @@ export const campaignPluginModule: PluginModule = {
         "@/components/providers/dialog-global"
       );
       const d = getDialogApi();
-      const { useCampaignStore } = await import("@/stores/campaign");
-      const hasCampaign = !!useCampaignStore.getState().current;
-      const isDirty = !!useCampaignStore.getState().dirty;
+      const hasCampaign = !!getCurrentCampaign();
+      const isDirty = isCampaignDirty();
       if (d && hasCampaign && isDirty) {
         const ok = await d.confirm({
           title: "New Campaign",
@@ -106,7 +115,7 @@ export const campaignPluginModule: PluginModule = {
       }
       app.campaign.newCampaign();
       // New campaign starts clean
-      useCampaignStore.getState().setDirty(false);
+      markCampaignDirty(false);
     },
     "campaign.save": async () => {
       const { getDialogApi } = await import(
@@ -128,10 +137,6 @@ export const campaignPluginModule: PluginModule = {
         filename = v.trim();
       }
       if (!filename.toLowerCase().endsWith(".json")) filename += ".json";
-      const { saveActiveCampaignV1, CAMPAIGN_MIME_V1 } = await import(
-        "@/stores/campaign/persistence"
-      );
-      const { useCampaignStore } = await import("@/stores/campaign");
       const file = saveActiveCampaignV1();
       if (!file) return;
       const blob = new Blob([JSON.stringify(file, null, 2)], {
@@ -146,16 +151,15 @@ export const campaignPluginModule: PluginModule = {
       a.remove();
       URL.revokeObjectURL(url);
       // mark store clean post-save
-      useCampaignStore.getState().setDirty(false);
+      markCampaignDirty(false);
     },
     "campaign.load": async () => {
       const { getDialogApi } = await import(
         "@/components/providers/dialog-global"
       );
       const d = getDialogApi();
-      const { useCampaignStore } = await import("@/stores/campaign");
-      const hasCampaign = !!useCampaignStore.getState().current;
-      const isDirty = !!useCampaignStore.getState().dirty;
+      const hasCampaign = !!getCurrentCampaign();
+      const isDirty = isCampaignDirty();
       if (d && hasCampaign) {
         const ok = await d.confirm({
           title: "Load Campaign",
@@ -175,9 +179,6 @@ export const campaignPluginModule: PluginModule = {
         try {
           const text = await file.text();
           const json = JSON.parse(text);
-          const { loadIntoStoreV1 } = await import(
-            "@/stores/campaign/persistence"
-          );
           loadIntoStoreV1(json);
           if (d) await d.alert({ title: "Loaded", description: file.name });
         } catch (err) {

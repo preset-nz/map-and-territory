@@ -1,270 +1,489 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Multi-Document - Map & Territory Editor</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/basecoat.cdn.min.css">
-<script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/js/all.min.js" defer></script>
-  <style>
-    .prototype-nav {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--bc-color-bg-secondary);
-      border: 1px solid var(--bc-color-border);
-      border-radius: 8px;
-      padding: 16px;
-      z-index: 1000;
-    }
-    .prototype-nav h3 {
-      margin: 0 0 12px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .prototype-nav a {
-      display: block;
-      padding: 8px 12px;
-      margin: 4px 0;
-      text-decoration: none;
-      border-radius: 4px;
-      font-size: 13px;
-      color: var(--bc-color-text);
-    }
-    .prototype-nav a:hover {
-      background: var(--bc-color-bg-hover);
-    }
-    .prototype-nav .current {
-      background: var(--bc-color-primary);
-      color: var(--bc-color-primary-text);
-    }
-  </style>
-</head>
-<body class="bc-body bc-dark">
-  <!-- Prototype Navigation -->
-  <div class="prototype-nav">
-    <h3>Layout States</h3>
-    <a href="../index.html">Full Layout</a>
-    <a href="scene-collapsed.html">Scene Collapsed</a>
-    <a href="property-collapsed.html">Property Collapsed</a>
-    <a href="both-collapsed.html">Maximum Canvas</a>
-    <a href="multi-tab.html" class="current">Multi-Document</a>
-    <a href="context-terrain.html">Terrain Selected</a>
-    <a href="context-text.html">Text Selected</a>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Multi-Document - Map & Territory Editor</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/basecoat.cdn.min.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/js/all.min.js"
+      defer
+    ></script>
+    <style>
+      .prototype-nav {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bc-color-bg-secondary);
+        border: 1px solid var(--bc-color-border);
+        border-radius: 8px;
+        padding: 16px;
+        z-index: 1000;
+      }
+      .prototype-nav h3 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .prototype-nav a {
+        display: block;
+        padding: 8px 12px;
+        margin: 4px 0;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 13px;
+        color: var(--bc-color-text);
+      }
+      .prototype-nav a:hover {
+        background: var(--bc-color-bg-hover);
+      }
+      .prototype-nav .current {
+        background: var(--bc-color-primary);
+        color: var(--bc-color-primary-text);
+      }
+    </style>
+  </head>
+  <body class="bc-body bc-dark">
+    <!-- Prototype Navigation -->
+    <div class="prototype-nav">
+      <h3>Layout States</h3>
+      <a href="../index.html">Full Layout</a>
+      <a href="scene-collapsed.html">Scene Collapsed</a>
+      <a href="property-collapsed.html">Property Collapsed</a>
+      <a href="both-collapsed.html">Maximum Canvas</a>
+      <a href="multi-tab.html" class="current">Multi-Document</a>
+      <a href="context-terrain.html">Terrain Selected</a>
+      <a href="context-text.html">Text Selected</a>
+    </div>
 
-  <div class="bc-container-fluid" style="height: 100vh; display: flex; flex-direction: column;">
-    <!-- Header with Integrated Toolbar -->
-    <header style="background: var(--bc-color-bg-secondary); border-bottom: 1px solid var(--bc-color-border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; height: 60px;">
-      <!-- Left side - App branding and main controls -->
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <h1 style="margin: 0; font-size: 18px; font-weight: 600;">Map & Territory</h1>
+    <div
+      class="bc-container-fluid"
+      style="height: 100vh; display: flex; flex-direction: column"
+    >
+      <!-- Header with Integrated Toolbar -->
+      <header
+        style="
+          background: var(--bc-color-bg-secondary);
+          border-bottom: 1px solid var(--bc-color-border);
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 60px;
+        "
+      >
+        <!-- Left side - App branding and main controls -->
+        <div style="display: flex; align-items: center; gap: 20px">
+          <h1 style="margin: 0; font-size: 18px; font-weight: 600">
+            Map & Territory
+          </h1>
 
-        <!-- Integrated Toolbar -->
-        <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px; border-left: 1px solid var(--bc-color-border);">
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Select Tool (V)" style="padding: 8px;">
-            <span>⚬</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Hex Terrain (T)" style="padding: 8px;">
-            <span>▢</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Text Tool (A)" style="padding: 8px;">
-            <span>A</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Feature Brush (F)" style="padding: 8px;">
-            <span>🖌</span>
-          </button>
+          <!-- Integrated Toolbar -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding-left: 20px;
+              border-left: 1px solid var(--bc-color-border);
+            "
+          >
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Select Tool (V)"
+              style="padding: 8px"
+            >
+              <span>⚬</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Hex Terrain (T)"
+              style="padding: 8px"
+            >
+              <span>▢</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Text Tool (A)"
+              style="padding: 8px"
+            >
+              <span>A</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Feature Brush (F)"
+              style="padding: 8px"
+            >
+              <span>🖌</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Right side - User controls -->
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="bc-btn bc-btn-secondary bc-btn-sm">Settings</button>
-        <div class="bc-avatar" style="width: 32px; height: 32px; background: var(--bc-color-primary);">GM</div>
-      </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <div style="display: flex; flex: 1; overflow: hidden;">
-      <!-- Scene View Panel (Left) -->
-      <div style="width: 280px; background: var(--bc-color-bg-secondary); border-right: 1px solid var(--bc-color-border); display: flex; flex-direction: column;">
-        <!-- Panel Header -->
-        <div style="padding: 16px; border-bottom: 1px solid var(--bc-color-border); display: flex; align-items: center; justify-content: space-between;">
-          <h2 style="margin: 0; font-size: 14px; font-weight: 600;">Scene</h2>
-          <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Collapse Panel (Ctrl+1)" style="padding: 4px 8px;">
-            <span>←</span>
-          </button>
+        <!-- Right side - User controls -->
+        <div style="display: flex; align-items: center; gap: 12px">
+          <button class="bc-btn bc-btn-secondary bc-btn-sm">Settings</button>
+          <div
+            class="bc-avatar"
+            style="
+              width: 32px;
+              height: 32px;
+              background: var(--bc-color-primary);
+            "
+          >
+            GM
+          </div>
         </div>
+      </header>
 
-        <!-- Panel Content -->
-        <div style="flex: 1; padding: 16px; overflow-y: auto;">
-          <!-- Project Structure -->
-          <div style="margin-bottom: 20px;">
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--bc-color-text-muted);">PROJECT</div>
-            <div class="bc-tree">
-              <div class="bc-tree-item">
-                <span>🗺 Forbidden Swamp Campaign</span>
-                <div class="bc-tree-children">
-                  <div class="bc-tree-item">
-                    <span>📍 Main Swamp Map</span>
-                  </div>
-                  <div class="bc-tree-item bc-tree-item-active">
-                    <span>🏚 Abandoned Settlement</span>
-                  </div>
-                  <div class="bc-tree-item">
-                    <span>🌊 Toxic Lake Region</span>
+      <!-- Main Content Area -->
+      <div style="display: flex; flex: 1; overflow: hidden">
+        <!-- Scene View Panel (Left) -->
+        <div
+          style="
+            width: 280px;
+            background: var(--bc-color-bg-secondary);
+            border-right: 1px solid var(--bc-color-border);
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <!-- Panel Header -->
+          <div
+            style="
+              padding: 16px;
+              border-bottom: 1px solid var(--bc-color-border);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <h2 style="margin: 0; font-size: 14px; font-weight: 600">Scene</h2>
+            <button
+              class="bc-btn bc-btn-ghost bc-btn-sm"
+              title="Collapse Panel (Ctrl+1)"
+              style="padding: 4px 8px"
+            >
+              <span>←</span>
+            </button>
+          </div>
+
+          <!-- Panel Content -->
+          <div style="flex: 1; padding: 16px; overflow-y: auto">
+            <!-- Project Structure -->
+            <div style="margin-bottom: 20px">
+              <div
+                style="
+                  font-size: 12px;
+                  font-weight: 600;
+                  margin-bottom: 8px;
+                  color: var(--bc-color-text-muted);
+                "
+              >
+                PROJECT
+              </div>
+              <div class="bc-tree">
+                <div class="bc-tree-item">
+                  <span>🗺 Forbidden Swamp Campaign</span>
+                  <div class="bc-tree-children">
+                    <div class="bc-tree-item">
+                      <span>📍 Main Swamp Map</span>
+                    </div>
+                    <div class="bc-tree-item bc-tree-item-active">
+                      <span>🏚 Abandoned Settlement</span>
+                    </div>
+                    <div class="bc-tree-item">
+                      <span>🌊 Toxic Lake Region</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- Layers (for currently active map) -->
+            <div>
+              <div
+                style="
+                  font-size: 12px;
+                  font-weight: 600;
+                  margin-bottom: 8px;
+                  color: var(--bc-color-text-muted);
+                "
+              >
+                LAYERS (Settlement)
+              </div>
+              <div class="bc-tree">
+                <div class="bc-tree-item">
+                  <span>🏠 Buildings Layer</span>
+                </div>
+                <div class="bc-tree-item">
+                  <span>🌿 Vegetation Layer</span>
+                </div>
+                <div class="bc-tree-item">
+                  <span>📝 Labels Layer</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Central Canvas Area -->
+        <div style="flex: 1; display: flex; flex-direction: column">
+          <!-- Tab Bar with Multiple Documents -->
+          <div
+            style="
+              background: var(--bc-color-bg-tertiary);
+              border-bottom: 1px solid var(--bc-color-border);
+              padding: 0 16px;
+              display: flex;
+              align-items: center;
+              height: 40px;
+              overflow-x: auto;
+            "
+          >
+            <div
+              class="bc-tabs"
+              style="display: flex; align-items: center; gap: 0"
+            >
+              <button
+                class="bc-tab"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 8px 16px;
+                "
+              >
+                <span>Main Swamp Map</span>
+                <span style="font-size: 12px; color: var(--bc-color-text-muted)"
+                  >×</span
+                >
+              </button>
+              <button
+                class="bc-tab bc-tab-active"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 8px 16px;
+                "
+              >
+                <span>Abandoned Settlement</span>
+                <span style="font-size: 12px; color: var(--bc-color-text-muted)"
+                  >×</span
+                >
+              </button>
+              <button
+                class="bc-tab"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 8px 16px;
+                "
+              >
+                <span>Toxic Lake Region</span>
+                <span style="font-size: 12px; color: var(--bc-color-text-muted)"
+                  >×</span
+                >
+              </button>
+              <button
+                class="bc-btn bc-btn-ghost bc-btn-sm"
+                title="New Map (Ctrl+T)"
+                style="margin-left: 8px; padding: 4px 8px"
+              >
+                <span>+</span>
+              </button>
+            </div>
+
+            <!-- Tab overflow indicator -->
+            <div
+              style="
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span style="font-size: 12px; color: var(--bc-color-text-muted)"
+                >3 maps open</span
+              >
+            </div>
           </div>
 
-          <!-- Layers (for currently active map) -->
-          <div>
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--bc-color-text-muted);">LAYERS (Settlement)</div>
-            <div class="bc-tree">
-              <div class="bc-tree-item">
-                <span>🏠 Buildings Layer</span>
+          <!-- Canvas (showing active document) -->
+          <div
+            style="
+              flex: 1;
+              background: #2a2a2a;
+              position: relative;
+              overflow: auto;
+            "
+          >
+            <!-- Settlement Map Placeholder -->
+            <div
+              style="
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <div
+                style="text-align: center; color: var(--bc-color-text-muted)"
+              >
+                <div style="font-size: 48px; margin-bottom: 16px">🏚</div>
+                <div style="font-size: 18px; margin-bottom: 8px">
+                  Abandoned Settlement Map
+                </div>
+                <div style="font-size: 12px; margin-bottom: 16px">
+                  Multi-document editing - switch between maps using tabs
+                </div>
+                <div style="font-size: 11px; color: var(--bc-color-text-muted)">
+                  Active: Settlement • Background: Swamp Map, Lake Region<br />
+                  Ctrl+Tab to cycle • Middle-click to close tabs
+                </div>
               </div>
-              <div class="bc-tree-item">
-                <span>🌿 Vegetation Layer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Panel (Right) -->
+        <div
+          style="
+            width: 320px;
+            background: var(--bc-color-bg-secondary);
+            border-left: 1px solid var(--bc-color-border);
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <!-- Panel Header -->
+          <div
+            style="
+              padding: 16px;
+              border-bottom: 1px solid var(--bc-color-border);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <h2 style="margin: 0; font-size: 14px; font-weight: 600">
+              Map Properties
+            </h2>
+            <button
+              class="bc-btn bc-btn-ghost bc-btn-sm"
+              title="Collapse Panel (Ctrl+2)"
+              style="padding: 4px 8px"
+            >
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- Panel Content (contextual to active document) -->
+          <div style="flex: 1; padding: 16px; overflow-y: auto">
+            <!-- Current Map Settings -->
+            <div class="bc-form-group">
+              <label class="bc-label">Map Name</label>
+              <input
+                type="text"
+                class="bc-input"
+                value="Abandoned Settlement"
+              />
+            </div>
+
+            <div class="bc-form-group">
+              <label class="bc-label">Map Type</label>
+              <select class="bc-select">
+                <option selected>Settlement</option>
+                <option>Wilderness</option>
+                <option>Dungeon</option>
+              </select>
+            </div>
+
+            <div class="bc-form-group">
+              <label class="bc-label">Grid Size</label>
+              <select class="bc-select">
+                <option>15x12 hexes</option>
+                <option selected>18x14 hexes</option>
+                <option>25x20 hexes</option>
+              </select>
+            </div>
+
+            <div class="bc-form-group">
+              <label class="bc-label">Background Style</label>
+              <div
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px"
+              >
+                <button class="bc-btn bc-btn-outline bc-btn-sm">
+                  Parchment
+                </button>
+                <button class="bc-btn bc-btn-secondary bc-btn-sm">Stone</button>
               </div>
-              <div class="bc-tree-item">
-                <span>📝 Labels Layer</span>
+            </div>
+
+            <hr class="bc-divider" />
+
+            <!-- Multi-Document Context -->
+            <div>
+              <h3 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600">
+                Document Management
+              </h3>
+
+              <div class="bc-form-group">
+                <label class="bc-label">Save All Maps</label>
+                <button class="bc-btn bc-btn-outline" style="width: 100%">
+                  Save All (Ctrl+Shift+S)
+                </button>
+              </div>
+
+              <div class="bc-form-group">
+                <label class="bc-label">Export Current Map</label>
+                <button class="bc-btn bc-btn-primary" style="width: 100%">
+                  Export Settlement
+                </button>
+              </div>
+
+              <div class="bc-form-group">
+                <label class="bc-label">Export Campaign Pack</label>
+                <button class="bc-btn bc-btn-secondary" style="width: 100%">
+                  Export All Maps
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Central Canvas Area -->
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <!-- Tab Bar with Multiple Documents -->
-        <div style="background: var(--bc-color-bg-tertiary); border-bottom: 1px solid var(--bc-color-border); padding: 0 16px; display: flex; align-items: center; height: 40px; overflow-x: auto;">
-          <div class="bc-tabs" style="display: flex; align-items: center; gap: 0;">
-            <button class="bc-tab" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px;">
-              <span>Main Swamp Map</span>
-              <span style="font-size: 12px; color: var(--bc-color-text-muted);">×</span>
-            </button>
-            <button class="bc-tab bc-tab-active" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px;">
-              <span>Abandoned Settlement</span>
-              <span style="font-size: 12px; color: var(--bc-color-text-muted);">×</span>
-            </button>
-            <button class="bc-tab" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px;">
-              <span>Toxic Lake Region</span>
-              <span style="font-size: 12px; color: var(--bc-color-text-muted);">×</span>
-            </button>
-            <button class="bc-btn bc-btn-ghost bc-btn-sm" title="New Map (Ctrl+T)" style="margin-left: 8px; padding: 4px 8px;">
-              <span>+</span>
-            </button>
-          </div>
-
-          <!-- Tab overflow indicator -->
-          <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 12px; color: var(--bc-color-text-muted);">3 maps open</span>
-          </div>
+      <!-- Status Bar -->
+      <footer
+        style="
+          background: var(--bc-color-bg-tertiary);
+          border-top: 1px solid var(--bc-color-border);
+          padding: 8px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 32px;
+          font-size: 12px;
+          color: var(--bc-color-text-muted);
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span>Document: Abandoned Settlement (2/3)</span>
+          <span>•</span>
+          <span>Campaign: Forbidden Swamp</span>
+          <span>•</span>
+          <span>All changes saved</span>
         </div>
-
-        <!-- Canvas (showing active document) -->
-        <div style="flex: 1; background: #2a2a2a; position: relative; overflow: auto;">
-          <!-- Settlement Map Placeholder -->
-          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-            <div style="text-align: center; color: var(--bc-color-text-muted);">
-              <div style="font-size: 48px; margin-bottom: 16px;">🏚</div>
-              <div style="font-size: 18px; margin-bottom: 8px;">Abandoned Settlement Map</div>
-              <div style="font-size: 12px; margin-bottom: 16px;">Multi-document editing - switch between maps using tabs</div>
-              <div style="font-size: 11px; color: var(--bc-color-text-muted);">
-                Active: Settlement • Background: Swamp Map, Lake Region<br/>
-                Ctrl+Tab to cycle • Middle-click to close tabs
-              </div>
-            </div>
-          </div>
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span>Zoom: 100%</span>
+          <span>•</span>
+          <span>Cursor: 0,0</span>
         </div>
-      </div>
-
-      <!-- Property Panel (Right) -->
-      <div style="width: 320px; background: var(--bc-color-bg-secondary); border-left: 1px solid var(--bc-color-border); display: flex; flex-direction: column;">
-        <!-- Panel Header -->
-        <div style="padding: 16px; border-bottom: 1px solid var(--bc-color-border); display: flex; align-items: center; justify-content: space-between;">
-          <h2 style="margin: 0; font-size: 14px; font-weight: 600;">Map Properties</h2>
-          <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Collapse Panel (Ctrl+2)" style="padding: 4px 8px;">
-            <span>→</span>
-          </button>
-        </div>
-
-        <!-- Panel Content (contextual to active document) -->
-        <div style="flex: 1; padding: 16px; overflow-y: auto;">
-          <!-- Current Map Settings -->
-          <div class="bc-form-group">
-            <label class="bc-label">Map Name</label>
-            <input type="text" class="bc-input" value="Abandoned Settlement" />
-          </div>
-
-          <div class="bc-form-group">
-            <label class="bc-label">Map Type</label>
-            <select class="bc-select">
-              <option selected>Settlement</option>
-              <option>Wilderness</option>
-              <option>Dungeon</option>
-            </select>
-          </div>
-
-          <div class="bc-form-group">
-            <label class="bc-label">Grid Size</label>
-            <select class="bc-select">
-              <option>15x12 hexes</option>
-              <option selected>18x14 hexes</option>
-              <option>25x20 hexes</option>
-            </select>
-          </div>
-
-          <div class="bc-form-group">
-            <label class="bc-label">Background Style</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <button class="bc-btn bc-btn-outline bc-btn-sm">Parchment</button>
-              <button class="bc-btn bc-btn-secondary bc-btn-sm">Stone</button>
-            </div>
-          </div>
-
-          <hr class="bc-divider" />
-
-          <!-- Multi-Document Context -->
-          <div>
-            <h3 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600;">Document Management</h3>
-
-            <div class="bc-form-group">
-              <label class="bc-label">Save All Maps</label>
-              <button class="bc-btn bc-btn-outline" style="width: 100%;">Save All (Ctrl+Shift+S)</button>
-            </div>
-
-            <div class="bc-form-group">
-              <label class="bc-label">Export Current Map</label>
-              <button class="bc-btn bc-btn-primary" style="width: 100%;">Export Settlement</button>
-            </div>
-
-            <div class="bc-form-group">
-              <label class="bc-label">Export Campaign Pack</label>
-              <button class="bc-btn bc-btn-secondary" style="width: 100%;">Export All Maps</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      </footer>
     </div>
-
-    <!-- Status Bar -->
-    <footer style="background: var(--bc-color-bg-tertiary); border-top: 1px solid var(--bc-color-border); padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; height: 32px; font-size: 12px; color: var(--bc-color-text-muted);">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span>Document: Abandoned Settlement (2/3)</span>
-        <span>•</span>
-        <span>Campaign: Forbidden Swamp</span>
-        <span>•</span>
-        <span>All changes saved</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span>Zoom: 100%</span>
-        <span>•</span>
-        <span>Cursor: 0,0</span>
-      </div>
-    </footer>
-  </div>
-</body>
+  </body>
 </html>

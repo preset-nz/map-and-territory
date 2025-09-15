@@ -1,26 +1,28 @@
 /**
  * Preferences Store - Focused Zustand State Management for User Preferences
- * 
+ *
  * This store slice manages user preferences including theme settings,
  * sidebar width customization, and persistence options. Designed for
  * composition with other layout store slices.
  */
 
-import { StateCreator } from 'zustand';
+import { StateCreator } from "zustand";
 import {
   LayoutPreferences,
   PreferencesActions,
   DEFAULT_PREFERENCES,
   isValidTheme,
   validateSidebarWidth,
-} from '../../types/layout/preferences';
-import { SIDEBAR_WIDTH_CONSTRAINTS } from '../../types/layout/sidebar';
+} from "../../types/layout/preferences";
+import { SIDEBAR_WIDTH_CONSTRAINTS } from "../../types/layout/sidebar";
 
 // ============================================================================
 // Preferences Store Slice Type
 // ============================================================================
 
-export interface PreferencesSlice extends LayoutPreferences, PreferencesActions {}
+export interface PreferencesSlice
+  extends LayoutPreferences,
+    PreferencesActions {}
 
 // ============================================================================
 // Preferences Store Implementation
@@ -62,12 +64,15 @@ export const createPreferencesSlice: StateCreator<
    * @param width - Sidebar width in pixels
    */
   setSidebarWidth: (width: number) => {
-    const validatedWidth = validateSidebarWidth(width, SIDEBAR_WIDTH_CONSTRAINTS);
+    const validatedWidth = validateSidebarWidth(
+      width,
+      SIDEBAR_WIDTH_CONSTRAINTS,
+    );
 
     if (validatedWidth !== width) {
       console.warn(
         `Sidebar width ${width}px clamped to ${validatedWidth}px ` +
-        `(min: ${SIDEBAR_WIDTH_CONSTRAINTS.MIN}px, max: ${SIDEBAR_WIDTH_CONSTRAINTS.MAX}px)`
+          `(min: ${SIDEBAR_WIDTH_CONSTRAINTS.MIN}px, max: ${SIDEBAR_WIDTH_CONSTRAINTS.MAX}px)`,
       );
     }
 
@@ -99,7 +104,7 @@ export const createPreferencesSlice: StateCreator<
 export interface PreferencesSelectors {
   preferences: LayoutPreferences;
   preferencesActions: PreferencesActions;
-  theme: LayoutPreferences['theme'];
+  theme: LayoutPreferences["theme"];
   sidebarWidth: number;
   persistCollapsed: boolean;
 }
@@ -108,7 +113,7 @@ export interface PreferencesSelectors {
  * Create preferences selectors for a composed store
  */
 export const createPreferencesSelectors = <T extends PreferencesSlice>(
-  store: T
+  store: T,
 ): PreferencesSelectors => ({
   preferences: {
     theme: store.theme,

@@ -1,6 +1,6 @@
 ---
 title: Interdependencies Refactor Plan — Brittleness Reduction (Seam‑First)
-status: Draft
+status: In Progress
 date: 2025-09-15
 owner: Platform (Product Design · Architecture · Programme)
 links:
@@ -41,7 +41,7 @@ Recent tickets stalled due to brittle coupling across store, renderer, and plugi
 
 ## Decisions (Plan of Record)
 
-Scope update (2025‑09‑15): prioritize seams over bulk edits. Defer flood‑fill/batch feature work; keep interfaces minimal and stable so later batching slots in without churn.
+Scope update (2025‑09‑15): prioritize seams over bulk edits. Defer flood‑fill/batch feature work; keep interfaces minimal and stable so later batching slots in without churn. Phase 1 seam definition landed 2025‑09‑15; Freeform and Hex Noise tools now depend on the new entrypoints.
 
 1. Store Write Seam (Minimal Transaction)
 
@@ -74,21 +74,23 @@ Scope update (2025‑09‑15): prioritize seams over bulk edits. Defer flood‑f
 
 ## Phased Implementation & Dependencies
 
-Phase 0 — Guardrails (pre‑req)
+Phase 0 — Guardrails (Complete 2025‑09‑15)
 
-- Add a test or lint that fails if any plugin code (`src/plugin/**`) imports `@/stores/*`.
-- Capture current redraw behavior baseline to detect regressions, but do not target reduction yet.
+- ESLint guard (`no-restricted-imports`) blocks `@/stores/*` usage in `src/plugin/**`; documented under `eslint.config.mjs`.
+- Redraw baseline recorded (hex size probe + seam unit) in `guidance/interdependencies-refactor/baseline-redraw-2025-09-15.md`.
 
-Phase 1 — Define Seams
+Phase 1 — Define Seams (Complete 2025‑09‑15)
 
 - Implement `applyLayerState(layerId, updater)` with a single commit semantics; do not add `applyCellsDelta` yet.
 - Extend `ToolContext` with `applyLayerState` and `getActiveLayerState<T>(layerId?)`.
 - Migrate Freeform and Hex Noise tools to use `ToolContext` for all reads/writes; remove direct store imports in those tools.
+- Documented migration guidance for other plugins and captured lint follow-ups under Phase 5.
 
 Phase 2 — Geometry + Viewport Simplification
 
 - Extract `computePaperRect` helper/SceneAdapter and reuse in pointer routing and rendering.
 - Remove/limit broad store subscribe in `CanvasViewport`; rely on explicit deps and narrowly scoped selectors.
+- Inspect existing integration tests to ensure they cover viewport resize semantics before refactor; add missing cases alongside geometry changes if required.
 
 Phase 3 — Paper Canonicalization
 
@@ -108,7 +110,8 @@ Deferred (Post‑seams)
 
 ## Acceptance Criteria (Per Phase)
 
-- P1: `applyLayerState` exists; Freeform/Hex Noise tools use `ToolContext` only; no plugin imports `@/stores/*`.
+- P0 (Met 2025-09-15): Plugin lint guard active; redraw baseline captured for comparison ahead of Phase 2.
+- P1 (Met 2025-09-15): `applyLayerState` exists; Freeform/Hex Noise tools use `ToolContext` only; no plugin imports `@/stores/*`; lint baseline recorded for regression watch.
 - P2: Shared `computePaperRect` used in viewport and tools; broad subscribe removed or narrowed; invalidation E2E remains green.
 - P3: Paper layer is canonical; reads consistently prefer it; tests reflect single source of truth.
 - P4: Anchor bounds utility in place; layer move/insert behaviors unchanged and tested.
@@ -117,7 +120,7 @@ Deferred (Post‑seams)
 ## Validation & Test Strategy
 
 - Unit: store APIs (batch), geometry helper, anchor bounds, adapter keys stability.
-- Integration: `CanvasViewport` uses shared geometry; tool events mutate via `ToolContext` only.
+- Integration: `CanvasViewport` uses shared geometry; tool events mutate via `ToolContext` only; add focused regression covering viewport resize vs. new geometry helper.
 - E2E (Playwright): hex size change → redraw once; paint/erase still functional; no requirement yet for “one redraw per stroke”.
 - Coverage: maintain ≥80% (project threshold); run full suite: `pnpm test`, `pnpm test:e2e`.
 

@@ -11,19 +11,23 @@ The toolbar should remain predictable and professional. We need a consistent pla
 
 ## Decision
 
-1) Fixed Anchors
+1. Fixed Anchors
+
 - Left anchor: Scene Panel Toggle button (collapse/expand) is always the first item.
 - Right anchor: Properties Panel Toggle button (collapse/expand) is always the last item.
 
-2) Dividers
+2. Dividers
+
 - A vertical divider follows the left anchor.
 - A vertical divider precedes the right anchor.
 
-3) Group Ordering (Left → Right)
+3. Group Ordering (Left → Right)
+
 - First group: Campaign actions (e.g., New Campaign).
 - Followed by: Creative tool groups and view tool groups as needed.
 
-4) Tooltip Styling
+4. Tooltip Styling
+
 - Tooltips must be readable with sufficient contrast. For MVP, the New Campaign button omits a tooltip until a better style is specified.
 
 ## Rationale
@@ -40,4 +44,3 @@ The toolbar should remain predictable and professional. We need a consistent pla
 ## Follow-ups
 
 - Define global tooltip theme tokens to ensure accessible contrast for keyboard hints.
-

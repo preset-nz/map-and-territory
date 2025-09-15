@@ -1,14 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { useSelectionStore } from '@/stores/selection';
+import { describe, it, expect, beforeEach } from "vitest";
+import { useSelectionStore } from "@/stores/selection";
 
-describe('Selection Store', () => {
+describe("Selection Store", () => {
   beforeEach(() => {
-    useSelectionStore.setState({ selection: { kind: 'none' } });
+    useSelectionStore.setState({ selection: { kind: "none" } });
   });
 
-  it('selects campaign', () => {
+  it("selects campaign", () => {
     useSelectionStore.getState().selectCampaign();
-    expect(useSelectionStore.getState().selection).toEqual({ kind: 'campaign' });
+    expect(useSelectionStore.getState().selection).toEqual({
+      kind: "campaign",
+    });
   });
 });
-

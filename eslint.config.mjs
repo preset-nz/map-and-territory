@@ -19,6 +19,23 @@ const base = compat
 
 const eslintConfig = [
   ...base,
+  {
+    files: ["src/plugin/**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/stores", "@/stores/*"],
+              message:
+                "Plugins must use ToolContext seams; importing @/stores/* reintroduces brittle coupling.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Global ignores to keep lint focused
   {
     ignores: [
@@ -30,7 +47,6 @@ const eslintConfig = [
       "coverage/**",
       "playwright-report/**",
       "guidance/**",
-      "scripts/**",
       "next-env.d.ts",
       "**/*.md",
       "**/*.mdx",
@@ -41,7 +57,7 @@ const eslintConfig = [
   // Minimal config for root tool files so ESLint doesn't warn
   // when they are passed directly (e.g., via lint-staged).
   {
-    files: ["playwright.config.ts", "next.config.ts"],
+    files: ["playwright.config.ts", "next.config.ts", "scripts/**/*.mjs"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",

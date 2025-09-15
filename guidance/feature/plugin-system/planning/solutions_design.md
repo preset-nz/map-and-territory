@@ -29,41 +29,44 @@ The following are TypeScript interface shapes used as contracts. Implementation 
 
 ```ts
 export interface PluginManifest {
-  id: string;                   // unique, reverse-DNS recommended
+  id: string; // unique, reverse-DNS recommended
   name: string;
-  version: string;              // semver
-  capabilities: Capability[];   // declared access (scene, layers, tools, storage)
+  version: string; // semver
+  capabilities: Capability[]; // declared access (scene, layers, tools, storage)
   contributes?: {
     commands?: CommandContribution[];
-    toolbar?: ToolbarContribution[];      // buttons, groups
-    tools?: ToolContribution[];           // pointer/brush tools
-    layers?: LayerTypeContribution[];     // register new layer types
-    properties?: PropertyContribution[];  // inject sections into properties panel
-    panels?: PanelContribution[];         // optional custom panels/inspector sections
+    toolbar?: ToolbarContribution[]; // buttons, groups
+    tools?: ToolContribution[]; // pointer/brush tools
+    layers?: LayerTypeContribution[]; // register new layer types
+    properties?: PropertyContribution[]; // inject sections into properties panel
+    panels?: PanelContribution[]; // optional custom panels/inspector sections
   };
-  entry: string;                // ESM entry module path
+  entry: string; // ESM entry module path
 }
 
 export type Capability =
-  | 'scene:read' | 'scene:write'
-  | 'layer:read' | 'layer:write'
-  | 'render:canvas' | 'render:scene-view'
-  | 'tool:register'
-  | 'storage:project';
+  | "scene:read"
+  | "scene:write"
+  | "layer:read"
+  | "layer:write"
+  | "render:canvas"
+  | "render:scene-view"
+  | "tool:register"
+  | "storage:project";
 
 export interface CommandContribution {
-  id: string;                   // e.g., 'app.scene.new'
+  id: string; // e.g., 'app.scene.new'
   title: string;
-  when?: string;                // context expression (e.g., sceneExists && !dirty)
-  shortcut?: string;            // e.g., 'Mod+N'
+  when?: string; // context expression (e.g., sceneExists && !dirty)
+  shortcut?: string; // e.g., 'Mod+N'
 }
 
 export interface ToolbarContribution {
-  group: string;                // e.g., 'scene'
+  group: string; // e.g., 'scene'
   items: Array<{
-    type: 'button';
-    command: string;            // binds to contributed or existing command
-    icon?: string;              // icon id/name
+    type: "button";
+    command: string; // binds to contributed or existing command
+    icon?: string; // icon id/name
     label?: string;
     tooltip?: string;
     order?: number;
@@ -71,28 +74,28 @@ export interface ToolbarContribution {
 }
 
 export interface ToolContribution {
-  id: string;                   // e.g., 'paint.brush'
+  id: string; // e.g., 'paint.brush'
   title: string;
   icon?: string;
-  targetLayerTypes?: string[];  // e.g., ['terrain']
+  targetLayerTypes?: string[]; // e.g., ['terrain']
 }
 
 export interface LayerTypeContribution {
-  type: string;                 // e.g., 'paper' | 'hexgrid' | 'terrain'
+  type: string; // e.g., 'paper' | 'hexgrid' | 'terrain'
   title: string;
-  schema: unknown;              // Valibot schema; used for validation + migration
+  schema: unknown; // Valibot schema; used for validation + migration
   defaultState: unknown;
 }
 
 export interface PropertyContribution {
-  for: { kind: 'layer' | 'scene'; type?: string }; // target scope
-  sectionId: string;            // unique within target
+  for: { kind: "layer" | "scene"; type?: string }; // target scope
+  sectionId: string; // unique within target
   title: string;
   order?: number;
 }
 
 export interface PanelContribution {
-  slot: 'left' | 'right' | 'bottom' | 'floating';
+  slot: "left" | "right" | "bottom" | "floating";
   id: string;
   title: string;
   order?: number;
@@ -114,14 +117,17 @@ export interface PluginModule {
 }
 
 export interface PluginContext {
-  app: AppAPI;                  // stable, narrow app surface
-  events: EventBus;             // typed pub/sub
-  storage: ProjectStorage;      // controlled persistence
-  log: Logger;                  // namespaced logging
-  capabilities: Capability[];   // validated from manifest
+  app: AppAPI; // stable, narrow app surface
+  events: EventBus; // typed pub/sub
+  storage: ProjectStorage; // controlled persistence
+  log: Logger; // namespaced logging
+  capabilities: Capability[]; // validated from manifest
 }
 
-export type CommandHandler = (api: AppAPI, payload?: unknown) => Promise<void> | void;
+export type CommandHandler = (
+  api: AppAPI,
+  payload?: unknown,
+) => Promise<void> | void;
 
 export interface ToolAdapter {
   onPointerDown(e: PointerEventLike, api: ToolAPI): void;
@@ -132,17 +138,32 @@ export interface ToolAdapter {
 }
 
 export interface LayerAdapter<LayerState = unknown> {
-  drawMain?(ctx: CanvasRenderingContext2D, state: LayerState, env: RenderEnv): void; // main view
-  drawSceneView?(ctx: CanvasRenderingContext2D, state: LayerState, env: RenderEnv): void; // scene/overview
+  drawMain?(
+    ctx: CanvasRenderingContext2D,
+    state: LayerState,
+    env: RenderEnv,
+  ): void; // main view
+  drawSceneView?(
+    ctx: CanvasRenderingContext2D,
+    state: LayerState,
+    env: RenderEnv,
+  ): void; // scene/overview
   hitTest?(pt: Vec2, state: LayerState, env: RenderEnv): boolean;
-  serialize?(state: LayerState): unknown;   // default: state
-  deserialize?(raw: unknown): LayerState;   // default: validated via schema
+  serialize?(state: LayerState): unknown; // default: state
+  deserialize?(raw: unknown): LayerState; // default: validated via schema
 }
 
-export interface PropertyRendererProps<T> { state: T; update(patch: Partial<T>): void; }
-export type PropertyRenderer = (props: PropertyRendererProps<any>) => React.ReactNode;
+export interface PropertyRendererProps<T> {
+  state: T;
+  update(patch: Partial<T>): void;
+}
+export type PropertyRenderer = (
+  props: PropertyRendererProps<any>,
+) => React.ReactNode;
 
-export interface PanelRendererProps { app: AppAPI; }
+export interface PanelRendererProps {
+  app: AppAPI;
+}
 export type PanelRenderer = (props: PanelRendererProps) => React.ReactNode;
 ```
 
@@ -154,24 +175,24 @@ Keep lean and selector-based per ADR-0001 philosophy.
 export interface AppAPI {
   // Scenes
   scene: {
-    create(): string;                   // returns sceneId
+    create(): string; // returns sceneId
     load(projectJson: unknown): void;
-    save(): unknown;                    // returns projectJson
+    save(): unknown; // returns projectJson
     getActiveId(): string | null;
   };
 
   // Layers
   layers: {
-    add(type: string, initial?: unknown): string;         // returns layerId
+    add(type: string, initial?: unknown): string; // returns layerId
     update(id: string, patch: unknown): void;
     getById<T = unknown>(id: string): T | null;
-    all(): Array<{ id: string; type: string; state: unknown; }>;
+    all(): Array<{ id: string; type: string; state: unknown }>;
   };
 
   // Commands & UI
   commands: {
     execute(id: string, payload?: unknown): Promise<void>;
-    register(id: string, handler: CommandHandler): void;  // namespaced by plugin
+    register(id: string, handler: CommandHandler): void; // namespaced by plugin
   };
 
   // Tools
@@ -188,7 +209,8 @@ export interface AppAPI {
 }
 
 export interface ProjectStorage {
-  get(): unknown; set(next: unknown): void; // project-level persistence
+  get(): unknown;
+  set(next: unknown): void; // project-level persistence
 }
 
 export interface EventBus {
@@ -196,7 +218,11 @@ export interface EventBus {
   emit<T>(event: string, payload: T): void;
 }
 
-export interface RenderEnv { zoom: number; pixelRatio: number; size: { w: number; h: number }; }
+export interface RenderEnv {
+  zoom: number;
+  pixelRatio: number;
+  size: { w: number; h: number };
+}
 ```
 
 ## UI Composition & Slots
@@ -231,17 +257,20 @@ export interface RenderEnv { zoom: number; pixelRatio: number; size: { w: number
 
 ## Example Mappings (From Product Brief)
 
-1) Toolbar – Scene Toolgroup
+1. Toolbar – Scene Toolgroup
+
 - New Scene Button: plugin contributes command `app.scene.new` and toolbar item in group `scene`.
 - Save Scene Button: plugin contributes `app.scene.save` in same group.
 - Load Scene Button: plugin contributes `app.scene.load` in same group.
 
-2) Layer Plugins
+2. Layer Plugins
+
 - Paper Layer: registers `type: 'paper'`, properties for aspect ratio, color; implements `drawMain` + `drawSceneView` + properties UI.
 - Hexgrid Layer: registers `type: 'hexgrid'`, properties for size, rotation; implements both draw adapters + properties.
 - Terrain Layer: registers `type: 'terrain'`, adds a toolbar button (or panel action) to add a new terrain layer; draws in both views + properties.
 
-3) Paint Tool
+3. Paint Tool
+
 - Registers `tool: 'paint.brush'`, `targetLayerTypes: ['terrain']`; implements pointer handlers to modify terrain layer state; binds an icon button.
 
 ## Acceptance Criteria (MVP)
@@ -280,4 +309,3 @@ export interface RenderEnv { zoom: number; pixelRatio: number; size: { w: number
 - Worker sandbox for heavy or untrusted plugins.
 - Plugin marketplace metadata and signing.
 - Remote asset fetching with CSP allowlist and cache.
-

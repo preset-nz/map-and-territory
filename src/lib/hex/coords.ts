@@ -1,4 +1,4 @@
-import type { Axial, Cube } from './types';
+import type { Axial, Cube } from "./types";
 
 // Axial <-> Cube conversions
 export function axialToCube(a: Axial): Cube {
@@ -36,13 +36,19 @@ export function round(frac: Cube): Axial {
 export function distance(a: Axial, b: Axial): number {
   const ac = axialToCube(a);
   const bc = axialToCube(b);
-  return (Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y) + Math.abs(ac.z - bc.z)) / 2;
+  return (
+    (Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y) + Math.abs(ac.z - bc.z)) / 2
+  );
 }
 
 // Neighbor directions for axial coords (pointy and flat share these axial deltas)
 const DIRS: Axial[] = [
-  { q: +1, r: 0 }, { q: +1, r: -1 }, { q: 0, r: -1 },
-  { q: -1, r: 0 }, { q: -1, r: +1 }, { q: 0, r: +1 },
+  { q: +1, r: 0 },
+  { q: +1, r: -1 },
+  { q: 0, r: -1 },
+  { q: -1, r: 0 },
+  { q: -1, r: +1 },
+  { q: 0, r: +1 },
 ];
 
 export function neighbors(h: Axial): Axial[] {
@@ -51,11 +57,14 @@ export function neighbors(h: Axial): Axial[] {
 
 // Diagonals (optional utility)
 const DIAGS: Axial[] = [
-  { q: +2, r: -1 }, { q: +1, r: -2 }, { q: -1, r: -1 },
-  { q: -2, r: +1 }, { q: -1, r: +2 }, { q: +1, r: +1 },
+  { q: +2, r: -1 },
+  { q: +1, r: -2 },
+  { q: -1, r: -1 },
+  { q: -2, r: +1 },
+  { q: -1, r: +2 },
+  { q: +1, r: +1 },
 ];
 
 export function diagonals(h: Axial): Axial[] {
   return DIAGS.map((d) => ({ q: h.q + d.q, r: h.r + d.r }));
 }
-

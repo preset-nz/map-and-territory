@@ -1,325 +1,670 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Text Selected - Map & Territory Editor</title>
-  <link rel="stylesheet" href="https://basecoat.ui/css/basecoat.css" />
-  <style>
-    .prototype-nav {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--bc-color-bg-secondary);
-      border: 1px solid var(--bc-color-border);
-      border-radius: 8px;
-      padding: 16px;
-      z-index: 1000;
-    }
-    .prototype-nav h3 {
-      margin: 0 0 12px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .prototype-nav a {
-      display: block;
-      padding: 8px 12px;
-      margin: 4px 0;
-      text-decoration: none;
-      border-radius: 4px;
-      font-size: 13px;
-      color: var(--bc-color-text);
-    }
-    .prototype-nav a:hover {
-      background: var(--bc-color-bg-hover);
-    }
-    .prototype-nav .current {
-      background: var(--bc-color-primary);
-      color: var(--bc-color-primary-text);
-    }
-    .text-selected {
-      background: rgba(34, 197, 94, 0.2);
-      border: 2px solid #22c55e;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body class="bc-body bc-dark">
-  <!-- Prototype Navigation -->
-  <div class="prototype-nav">
-    <h3>Layout States</h3>
-    <a href="../index.html">Full Layout</a>
-    <a href="scene-collapsed.html">Scene Collapsed</a>
-    <a href="property-collapsed.html">Property Collapsed</a>
-    <a href="both-collapsed.html">Maximum Canvas</a>
-    <a href="multi-tab.html">Multi-Document</a>
-    <a href="context-terrain.html">Terrain Selected</a>
-    <a href="context-text.html" class="current">Text Selected</a>
-  </div>
-
-  <div class="bc-container-fluid" style="height: 100vh; display: flex; flex-direction: column;">
-    <!-- Header with Integrated Toolbar -->
-    <header style="background: var(--bc-color-bg-secondary); border-bottom: 1px solid var(--bc-color-border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; height: 60px;">
-      <!-- Left side - App branding and main controls -->
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <h1 style="margin: 0; font-size: 18px; font-weight: 600;">Map & Territory</h1>
-        
-        <!-- Integrated Toolbar -->
-        <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px; border-left: 1px solid var(--bc-color-border);">
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Select Tool (V)" style="padding: 8px;">
-            <span>⚬</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Hex Terrain (T)" style="padding: 8px;">
-            <span>▢</span>
-          </button>
-          <button class="bc-btn bc-btn-primary bc-btn-sm" title="Text Tool (A)" style="padding: 8px;">
-            <span>A</span>
-          </button>
-          <button class="bc-btn bc-btn-secondary bc-btn-sm" title="Feature Brush (F)" style="padding: 8px;">
-            <span>🖌</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Right side - User controls -->
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="bc-btn bc-btn-secondary bc-btn-sm">Settings</button>
-        <div class="bc-avatar" style="width: 32px; height: 32px; background: var(--bc-color-primary);">GM</div>
-      </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <div style="display: flex; flex: 1; overflow: hidden;">
-      <!-- Scene View Panel (Left) -->
-      <div style="width: 280px; background: var(--bc-color-bg-secondary); border-right: 1px solid var(--bc-color-border); display: flex; flex-direction: column;">
-        <!-- Panel Header -->
-        <div style="padding: 16px; border-bottom: 1px solid var(--bc-color-border); display: flex; align-items: center; justify-content: space-between;">
-          <h2 style="margin: 0; font-size: 14px; font-weight: 600;">Scene</h2>
-          <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Collapse Panel (Ctrl+1)" style="padding: 4px 8px;">
-            <span>←</span>
-          </button>
-        </div>
-        
-        <!-- Panel Content -->
-        <div style="flex: 1; padding: 16px; overflow-y: auto;">
-          <!-- Project Structure -->
-          <div style="margin-bottom: 20px;">
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--bc-color-text-muted);">PROJECT</div>
-            <div class="bc-tree">
-              <div class="bc-tree-item">
-                <span>🗺 Forbidden Swamp Campaign</span>
-                <div class="bc-tree-children">
-                  <div class="bc-tree-item bc-tree-item-active">
-                    <span>📍 Main Swamp Map</span>
-                  </div>
-                  <div class="bc-tree-item">
-                    <span>🏚 Abandoned Settlement</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Layers -->
-          <div>
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--bc-color-text-muted);">LAYERS</div>
-            <div class="bc-tree">
-              <div class="bc-tree-item">
-                <span>👁 Terrain Layer</span>
-              </div>
-              <div class="bc-tree-item">
-                <span>🏭 Features Layer</span>
-              </div>
-              <div class="bc-tree-item text-selected">
-                <span>📝 Text Layer</span>
-                <div class="bc-tree-children">
-                  <div class="bc-tree-item text-selected">
-                    <span>🏷 "The Dead Marsh"</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Central Canvas Area -->
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <!-- Tab Bar -->
-        <div style="background: var(--bc-color-bg-tertiary); border-bottom: 1px solid var(--bc-color-border); padding: 0 16px; display: flex; align-items: center; height: 40px;">
-          <div class="bc-tabs">
-            <button class="bc-tab bc-tab-active">Main Swamp Map</button>
-          </div>
-        </div>
-
-        <!-- Canvas with selected text -->
-        <div style="flex: 1; background: #2a2a2a; position: relative; overflow: auto;">
-          <!-- Selection indicator -->
-          <div style="position: absolute; top: 20px; left: 20px; background: rgba(34, 197, 94, 0.9); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 10;">
-            Selected: Text Label "The Dead Marsh"
-          </div>
-          
-          <!-- Text Element with Selection -->
-          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-            <div style="text-align: center; color: var(--bc-color-text-muted);">
-              <div style="border: 2px dashed #22c55e; border-radius: 8px; padding: 20px 40px; margin-bottom: 24px; background: rgba(34, 197, 94, 0.1);">
-                <div style="font-size: 28px; font-weight: bold; color: #22c55e; margin-bottom: 8px;">The Dead Marsh</div>
-                <div style="font-size: 12px; color: var(--bc-color-text-muted);">Text element selected • Double-click to edit</div>
-              </div>
-              <div style="font-size: 12px; margin-bottom: 16px;">Text formatting controls available in property panel</div>
-              <div style="font-size: 11px; color: var(--bc-color-text-muted);">
-                Selection synchronized between canvas and scene panel<br/>
-                Property panel shows typography and styling options
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Property Panel (Context: Text Properties) -->
-      <div style="width: 320px; background: var(--bc-color-bg-secondary); border-left: 1px solid var(--bc-color-border); display: flex; flex-direction: column;">
-        <!-- Panel Header (Context-sensitive) -->
-        <div style="padding: 16px; border-bottom: 1px solid var(--bc-color-border); display: flex; align-items: center; justify-content: space-between;">
-          <h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #22c55e;">Text Properties</h2>
-          <button class="bc-btn bc-btn-ghost bc-btn-sm" title="Collapse Panel (Ctrl+2)" style="padding: 4px 8px;">
-            <span>→</span>
-          </button>
-        </div>
-        
-        <!-- Panel Content (Text-specific controls) -->
-        <div style="flex: 1; padding: 16px; overflow-y: auto;">
-          <!-- Selection Info -->
-          <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">SELECTED TEXT</div>
-            <div style="font-size: 14px;">"The Dead Marsh"</div>
-          </div>
-
-          <!-- Text Content -->
-          <div class="bc-form-group">
-            <label class="bc-label">Text Content</label>
-            <input type="text" class="bc-input" value="The Dead Marsh" />
-          </div>
-
-          <!-- Typography -->
-          <div class="bc-form-group">
-            <label class="bc-label">Font Style</label>
-            <select class="bc-select">
-              <option>Blackletter Gothic</option>
-              <option selected>Distressed Serif</option>
-              <option>Ancient Script</option>
-              <option>Scratched Sans</option>
-              <option>Handwritten</option>
-            </select>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 16px;">
-            <div class="bc-form-group" style="margin: 0;">
-              <label class="bc-label">Font Size</label>
-              <input type="number" class="bc-input" value="28" min="8" max="72" />
-            </div>
-            <div class="bc-form-group" style="margin: 0;">
-              <label class="bc-label">Weight</label>
-              <select class="bc-select">
-                <option>Normal</option>
-                <option selected>Bold</option>
-                <option>Heavy</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Color & Effects -->
-          <div class="bc-form-group">
-            <label class="bc-label">Text Color</label>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
-              <div style="width: 32px; height: 32px; background: #1a1a1a; border: 2px solid var(--bc-color-border); border-radius: 4px; cursor: pointer;" title="Ink Black"></div>
-              <div style="width: 32px; height: 32px; background: #8b5cf6; border: 2px solid #8b5cf6; border-radius: 4px; cursor: pointer;" title="Mystical Purple"></div>
-              <div style="width: 32px; height: 32px; background: #ef4444; border: 2px solid var(--bc-color-border); border-radius: 4px; cursor: pointer;" title="Blood Red"></div>
-              <div style="width: 32px; height: 32px; background: #22c55e; border: 2px solid var(--bc-color-border); border-radius: 4px; cursor: pointer;" title="Poison Green"></div>
-              <div style="width: 32px; height: 32px; background: #f59e0b; border: 2px solid var(--bc-color-border); border-radius: 4px; cursor: pointer;" title="Ancient Gold"></div>
-            </div>
-          </div>
-
-          <!-- Analog Effects -->
-          <div class="bc-form-group">
-            <label class="bc-label">Distress Level</label>
-            <input type="range" class="bc-range" min="0" max="100" value="65" />
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--bc-color-text-muted); margin-top: 4px;">
-              <span>Clean</span>
-              <span>Weathered</span>
-            </div>
-          </div>
-
-          <div class="bc-form-group">
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-              <input type="checkbox" id="ink-bleed" class="bc-checkbox" checked />
-              <label for="ink-bleed" class="bc-label" style="margin: 0;">Ink Bleeding</label>
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-              <input type="checkbox" id="fade-edges" class="bc-checkbox" checked />
-              <label for="fade-edges" class="bc-label" style="margin: 0;">Faded Edges</label>
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="checkbox" id="drop-shadow" class="bc-checkbox" />
-              <label for="drop-shadow" class="bc-label" style="margin: 0;">Burnt Shadow</label>
-            </div>
-          </div>
-
-          <!-- Position & Layout -->
-          <hr class="bc-divider" />
-
-          <div>
-            <h3 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600;">Position & Layout</h3>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-              <div class="bc-form-group" style="margin: 0;">
-                <label class="bc-label">X Position</label>
-                <input type="number" class="bc-input" value="150" />
-              </div>
-              <div class="bc-form-group" style="margin: 0;">
-                <label class="bc-label">Y Position</label>
-                <input type="number" class="bc-input" value="85" />
-              </div>
-            </div>
-
-            <div class="bc-form-group">
-              <label class="bc-label">Text Alignment</label>
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                <button class="bc-btn bc-btn-outline bc-btn-sm">Left</button>
-                <button class="bc-btn bc-btn-secondary bc-btn-sm">Center</button>
-                <button class="bc-btn bc-btn-outline bc-btn-sm">Right</button>
-              </div>
-            </div>
-
-            <div class="bc-form-group">
-              <label class="bc-label">Rotation</label>
-              <input type="range" class="bc-range" min="-45" max="45" value="-3" />
-              <div style="text-align: center; font-size: 11px; color: var(--bc-color-text-muted); margin-top: 4px;">
-                -3°
-              </div>
-            </div>
-
-            <div class="bc-form-group">
-              <button class="bc-btn bc-btn-outline" style="width: 100%;">Duplicate Text Element</button>
-            </div>
-          </div>
-        </div>
-      </div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Text Selected - Map & Territory Editor</title>
+    <link rel="stylesheet" href="https://basecoat.ui/css/basecoat.css" />
+    <style>
+      .prototype-nav {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bc-color-bg-secondary);
+        border: 1px solid var(--bc-color-border);
+        border-radius: 8px;
+        padding: 16px;
+        z-index: 1000;
+      }
+      .prototype-nav h3 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .prototype-nav a {
+        display: block;
+        padding: 8px 12px;
+        margin: 4px 0;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 13px;
+        color: var(--bc-color-text);
+      }
+      .prototype-nav a:hover {
+        background: var(--bc-color-bg-hover);
+      }
+      .prototype-nav .current {
+        background: var(--bc-color-primary);
+        color: var(--bc-color-primary-text);
+      }
+      .text-selected {
+        background: rgba(34, 197, 94, 0.2);
+        border: 2px solid #22c55e;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body class="bc-body bc-dark">
+    <!-- Prototype Navigation -->
+    <div class="prototype-nav">
+      <h3>Layout States</h3>
+      <a href="../index.html">Full Layout</a>
+      <a href="scene-collapsed.html">Scene Collapsed</a>
+      <a href="property-collapsed.html">Property Collapsed</a>
+      <a href="both-collapsed.html">Maximum Canvas</a>
+      <a href="multi-tab.html">Multi-Document</a>
+      <a href="context-terrain.html">Terrain Selected</a>
+      <a href="context-text.html" class="current">Text Selected</a>
     </div>
 
-    <!-- Status Bar -->
-    <footer style="background: var(--bc-color-bg-tertiary); border-top: 1px solid var(--bc-color-border); padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; height: 32px; font-size: 12px; color: var(--bc-color-text-muted);">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span style="color: #22c55e;">Selected: Text "The Dead Marsh"</span>
-        <span>•</span>
-        <span>Font: Distressed Serif, 28px</span>
-        <span>•</span>
-        <span>Double-click to edit text</span>
+    <div
+      class="bc-container-fluid"
+      style="height: 100vh; display: flex; flex-direction: column"
+    >
+      <!-- Header with Integrated Toolbar -->
+      <header
+        style="
+          background: var(--bc-color-bg-secondary);
+          border-bottom: 1px solid var(--bc-color-border);
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 60px;
+        "
+      >
+        <!-- Left side - App branding and main controls -->
+        <div style="display: flex; align-items: center; gap: 20px">
+          <h1 style="margin: 0; font-size: 18px; font-weight: 600">
+            Map & Territory
+          </h1>
+
+          <!-- Integrated Toolbar -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding-left: 20px;
+              border-left: 1px solid var(--bc-color-border);
+            "
+          >
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Select Tool (V)"
+              style="padding: 8px"
+            >
+              <span>⚬</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Hex Terrain (T)"
+              style="padding: 8px"
+            >
+              <span>▢</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-primary bc-btn-sm"
+              title="Text Tool (A)"
+              style="padding: 8px"
+            >
+              <span>A</span>
+            </button>
+            <button
+              class="bc-btn bc-btn-secondary bc-btn-sm"
+              title="Feature Brush (F)"
+              style="padding: 8px"
+            >
+              <span>🖌</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right side - User controls -->
+        <div style="display: flex; align-items: center; gap: 12px">
+          <button class="bc-btn bc-btn-secondary bc-btn-sm">Settings</button>
+          <div
+            class="bc-avatar"
+            style="
+              width: 32px;
+              height: 32px;
+              background: var(--bc-color-primary);
+            "
+          >
+            GM
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <div style="display: flex; flex: 1; overflow: hidden">
+        <!-- Scene View Panel (Left) -->
+        <div
+          style="
+            width: 280px;
+            background: var(--bc-color-bg-secondary);
+            border-right: 1px solid var(--bc-color-border);
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <!-- Panel Header -->
+          <div
+            style="
+              padding: 16px;
+              border-bottom: 1px solid var(--bc-color-border);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <h2 style="margin: 0; font-size: 14px; font-weight: 600">Scene</h2>
+            <button
+              class="bc-btn bc-btn-ghost bc-btn-sm"
+              title="Collapse Panel (Ctrl+1)"
+              style="padding: 4px 8px"
+            >
+              <span>←</span>
+            </button>
+          </div>
+
+          <!-- Panel Content -->
+          <div style="flex: 1; padding: 16px; overflow-y: auto">
+            <!-- Project Structure -->
+            <div style="margin-bottom: 20px">
+              <div
+                style="
+                  font-size: 12px;
+                  font-weight: 600;
+                  margin-bottom: 8px;
+                  color: var(--bc-color-text-muted);
+                "
+              >
+                PROJECT
+              </div>
+              <div class="bc-tree">
+                <div class="bc-tree-item">
+                  <span>🗺 Forbidden Swamp Campaign</span>
+                  <div class="bc-tree-children">
+                    <div class="bc-tree-item bc-tree-item-active">
+                      <span>📍 Main Swamp Map</span>
+                    </div>
+                    <div class="bc-tree-item">
+                      <span>🏚 Abandoned Settlement</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Layers -->
+            <div>
+              <div
+                style="
+                  font-size: 12px;
+                  font-weight: 600;
+                  margin-bottom: 8px;
+                  color: var(--bc-color-text-muted);
+                "
+              >
+                LAYERS
+              </div>
+              <div class="bc-tree">
+                <div class="bc-tree-item">
+                  <span>👁 Terrain Layer</span>
+                </div>
+                <div class="bc-tree-item">
+                  <span>🏭 Features Layer</span>
+                </div>
+                <div class="bc-tree-item text-selected">
+                  <span>📝 Text Layer</span>
+                  <div class="bc-tree-children">
+                    <div class="bc-tree-item text-selected">
+                      <span>🏷 "The Dead Marsh"</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Central Canvas Area -->
+        <div style="flex: 1; display: flex; flex-direction: column">
+          <!-- Tab Bar -->
+          <div
+            style="
+              background: var(--bc-color-bg-tertiary);
+              border-bottom: 1px solid var(--bc-color-border);
+              padding: 0 16px;
+              display: flex;
+              align-items: center;
+              height: 40px;
+            "
+          >
+            <div class="bc-tabs">
+              <button class="bc-tab bc-tab-active">Main Swamp Map</button>
+            </div>
+          </div>
+
+          <!-- Canvas with selected text -->
+          <div
+            style="
+              flex: 1;
+              background: #2a2a2a;
+              position: relative;
+              overflow: auto;
+            "
+          >
+            <!-- Selection indicator -->
+            <div
+              style="
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                background: rgba(34, 197, 94, 0.9);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 4px;
+                font-size: 12px;
+                z-index: 10;
+              "
+            >
+              Selected: Text Label "The Dead Marsh"
+            </div>
+
+            <!-- Text Element with Selection -->
+            <div
+              style="
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <div
+                style="text-align: center; color: var(--bc-color-text-muted)"
+              >
+                <div
+                  style="
+                    border: 2px dashed #22c55e;
+                    border-radius: 8px;
+                    padding: 20px 40px;
+                    margin-bottom: 24px;
+                    background: rgba(34, 197, 94, 0.1);
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 28px;
+                      font-weight: bold;
+                      color: #22c55e;
+                      margin-bottom: 8px;
+                    "
+                  >
+                    The Dead Marsh
+                  </div>
+                  <div
+                    style="font-size: 12px; color: var(--bc-color-text-muted)"
+                  >
+                    Text element selected • Double-click to edit
+                  </div>
+                </div>
+                <div style="font-size: 12px; margin-bottom: 16px">
+                  Text formatting controls available in property panel
+                </div>
+                <div style="font-size: 11px; color: var(--bc-color-text-muted)">
+                  Selection synchronized between canvas and scene panel<br />
+                  Property panel shows typography and styling options
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Panel (Context: Text Properties) -->
+        <div
+          style="
+            width: 320px;
+            background: var(--bc-color-bg-secondary);
+            border-left: 1px solid var(--bc-color-border);
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <!-- Panel Header (Context-sensitive) -->
+          <div
+            style="
+              padding: 16px;
+              border-bottom: 1px solid var(--bc-color-border);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <h2
+              style="
+                margin: 0;
+                font-size: 14px;
+                font-weight: 600;
+                color: #22c55e;
+              "
+            >
+              Text Properties
+            </h2>
+            <button
+              class="bc-btn bc-btn-ghost bc-btn-sm"
+              title="Collapse Panel (Ctrl+2)"
+              style="padding: 4px 8px"
+            >
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- Panel Content (Text-specific controls) -->
+          <div style="flex: 1; padding: 16px; overflow-y: auto">
+            <!-- Selection Info -->
+            <div
+              style="
+                background: rgba(34, 197, 94, 0.1);
+                border: 1px solid #22c55e;
+                border-radius: 4px;
+                padding: 12px;
+                margin-bottom: 20px;
+              "
+            >
+              <div
+                style="font-size: 12px; font-weight: 600; margin-bottom: 4px"
+              >
+                SELECTED TEXT
+              </div>
+              <div style="font-size: 14px">"The Dead Marsh"</div>
+            </div>
+
+            <!-- Text Content -->
+            <div class="bc-form-group">
+              <label class="bc-label">Text Content</label>
+              <input type="text" class="bc-input" value="The Dead Marsh" />
+            </div>
+
+            <!-- Typography -->
+            <div class="bc-form-group">
+              <label class="bc-label">Font Style</label>
+              <select class="bc-select">
+                <option>Blackletter Gothic</option>
+                <option selected>Distressed Serif</option>
+                <option>Ancient Script</option>
+                <option>Scratched Sans</option>
+                <option>Handwritten</option>
+              </select>
+            </div>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 12px;
+                margin-bottom: 16px;
+              "
+            >
+              <div class="bc-form-group" style="margin: 0">
+                <label class="bc-label">Font Size</label>
+                <input
+                  type="number"
+                  class="bc-input"
+                  value="28"
+                  min="8"
+                  max="72"
+                />
+              </div>
+              <div class="bc-form-group" style="margin: 0">
+                <label class="bc-label">Weight</label>
+                <select class="bc-select">
+                  <option>Normal</option>
+                  <option selected>Bold</option>
+                  <option>Heavy</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Color & Effects -->
+            <div class="bc-form-group">
+              <label class="bc-label">Text Color</label>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(5, 1fr);
+                  gap: 8px;
+                "
+              >
+                <div
+                  style="
+                    width: 32px;
+                    height: 32px;
+                    background: #1a1a1a;
+                    border: 2px solid var(--bc-color-border);
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                  title="Ink Black"
+                ></div>
+                <div
+                  style="
+                    width: 32px;
+                    height: 32px;
+                    background: #8b5cf6;
+                    border: 2px solid #8b5cf6;
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                  title="Mystical Purple"
+                ></div>
+                <div
+                  style="
+                    width: 32px;
+                    height: 32px;
+                    background: #ef4444;
+                    border: 2px solid var(--bc-color-border);
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                  title="Blood Red"
+                ></div>
+                <div
+                  style="
+                    width: 32px;
+                    height: 32px;
+                    background: #22c55e;
+                    border: 2px solid var(--bc-color-border);
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                  title="Poison Green"
+                ></div>
+                <div
+                  style="
+                    width: 32px;
+                    height: 32px;
+                    background: #f59e0b;
+                    border: 2px solid var(--bc-color-border);
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                  title="Ancient Gold"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Analog Effects -->
+            <div class="bc-form-group">
+              <label class="bc-label">Distress Level</label>
+              <input
+                type="range"
+                class="bc-range"
+                min="0"
+                max="100"
+                value="65"
+              />
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  font-size: 11px;
+                  color: var(--bc-color-text-muted);
+                  margin-top: 4px;
+                "
+              >
+                <span>Clean</span>
+                <span>Weathered</span>
+              </div>
+            </div>
+
+            <div class="bc-form-group">
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  align-items: center;
+                  margin-bottom: 8px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="ink-bleed"
+                  class="bc-checkbox"
+                  checked
+                />
+                <label for="ink-bleed" class="bc-label" style="margin: 0"
+                  >Ink Bleeding</label
+                >
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  align-items: center;
+                  margin-bottom: 8px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="fade-edges"
+                  class="bc-checkbox"
+                  checked
+                />
+                <label for="fade-edges" class="bc-label" style="margin: 0"
+                  >Faded Edges</label
+                >
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center">
+                <input type="checkbox" id="drop-shadow" class="bc-checkbox" />
+                <label for="drop-shadow" class="bc-label" style="margin: 0"
+                  >Burnt Shadow</label
+                >
+              </div>
+            </div>
+
+            <!-- Position & Layout -->
+            <hr class="bc-divider" />
+
+            <div>
+              <h3 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600">
+                Position & Layout
+              </h3>
+
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 12px;
+                  margin-bottom: 16px;
+                "
+              >
+                <div class="bc-form-group" style="margin: 0">
+                  <label class="bc-label">X Position</label>
+                  <input type="number" class="bc-input" value="150" />
+                </div>
+                <div class="bc-form-group" style="margin: 0">
+                  <label class="bc-label">Y Position</label>
+                  <input type="number" class="bc-input" value="85" />
+                </div>
+              </div>
+
+              <div class="bc-form-group">
+                <label class="bc-label">Text Alignment</label>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 8px;
+                  "
+                >
+                  <button class="bc-btn bc-btn-outline bc-btn-sm">Left</button>
+                  <button class="bc-btn bc-btn-secondary bc-btn-sm">
+                    Center
+                  </button>
+                  <button class="bc-btn bc-btn-outline bc-btn-sm">Right</button>
+                </div>
+              </div>
+
+              <div class="bc-form-group">
+                <label class="bc-label">Rotation</label>
+                <input
+                  type="range"
+                  class="bc-range"
+                  min="-45"
+                  max="45"
+                  value="-3"
+                />
+                <div
+                  style="
+                    text-align: center;
+                    font-size: 11px;
+                    color: var(--bc-color-text-muted);
+                    margin-top: 4px;
+                  "
+                >
+                  -3°
+                </div>
+              </div>
+
+              <div class="bc-form-group">
+                <button class="bc-btn bc-btn-outline" style="width: 100%">
+                  Duplicate Text Element
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span>Zoom: 100%</span>
-        <span>•</span>
-        <span>Position: 150,85</span>
-      </div>
-    </footer>
-  </div>
-</body>
+
+      <!-- Status Bar -->
+      <footer
+        style="
+          background: var(--bc-color-bg-tertiary);
+          border-top: 1px solid var(--bc-color-border);
+          padding: 8px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 32px;
+          font-size: 12px;
+          color: var(--bc-color-text-muted);
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span style="color: #22c55e">Selected: Text "The Dead Marsh"</span>
+          <span>•</span>
+          <span>Font: Distressed Serif, 28px</span>
+          <span>•</span>
+          <span>Double-click to edit text</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span>Zoom: 100%</span>
+          <span>•</span>
+          <span>Position: 150,85</span>
+        </div>
+      </footer>
+    </div>
+  </body>
 </html>

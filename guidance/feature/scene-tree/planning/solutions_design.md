@@ -10,9 +10,28 @@ Support campaigns (volumes) with multiple maps. Each map initializes with requir
 ## Domain Model
 
 ```ts
-export interface Project { id: string; version: number; name: string; maps: MapDoc[]; activeMapId: string | null; }
-export interface MapDoc { id: string; name: string; createdAt: number; updatedAt: number; layers: LayerDoc[]; }
-export interface LayerDoc { id: string; type: string; name?: string; visible: boolean; locked?: boolean; state: unknown; }
+export interface Project {
+  id: string;
+  version: number;
+  name: string;
+  maps: MapDoc[];
+  activeMapId: string | null;
+}
+export interface MapDoc {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  layers: LayerDoc[];
+}
+export interface LayerDoc {
+  id: string;
+  type: string;
+  name?: string;
+  visible: boolean;
+  locked?: boolean;
+  state: unknown;
+}
 ```
 
 - IDs: UUID v7 (time-ordered). Names default to "Map 1", "Map 2", etc.
@@ -24,7 +43,7 @@ export interface LayerDoc { id: string; type: string; name?: string; visible: bo
 export interface AppAPI {
   scene: {
     list(): { id: string; name: string }[];
-    create(name?: string): string;            // returns mapId; auto-add required layers
+    create(name?: string): string; // returns mapId; auto-add required layers
     remove(id: string): void;
     rename(id: string, name: string): void;
     select(id: string): void;
@@ -32,13 +51,13 @@ export interface AppAPI {
   };
 
   layers: {
-    add(type: string, initial?: unknown): string;         // to active map
+    add(type: string, initial?: unknown): string; // to active map
     remove(id: string): void;
     rename(id: string, name: string): void;
-    move(id: string, toIndex: number): void;               // reorder within active map
+    move(id: string, toIndex: number): void; // reorder within active map
     setVisibility(id: string, visible: boolean): void;
     lock(id: string, locked: boolean): void;
-    all(): Array<{ id: string; type: string; name?: string; visible: boolean; }>;
+    all(): Array<{ id: string; type: string; name?: string; visible: boolean }>;
   };
 }
 ```

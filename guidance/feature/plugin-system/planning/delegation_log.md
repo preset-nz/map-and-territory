@@ -7,6 +7,7 @@ Kickoff: 2025-09-03
 Decision Authority: Core Orchestrator
 
 Quality Gates (all tickets)
+
 - Follow Implementation Standards and Testing Standards.
 - Add/adjust tests as specified in each ticket; run full test suite before handoff.
 - Provide short implementation notes and surface any integration risks.
@@ -27,4 +28,3 @@ Quality Gates (all tickets)
 - Icons & shortcuts per ADR-0004. Campaign empty policy per ADR-0005.
 - Host command contract in `planning/host_commands.md`.
 - Plugin manifest/module references in `plugins/new-campaign/`.
-

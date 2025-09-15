@@ -31,4 +31,3 @@ Initial plan for the New Campaign plugin auto-created a first map to demonstrate
 
 - Creating a campaign results in a project with zero maps; UI indicates empty.
 - Save/Load preserves campaign metadata.
-

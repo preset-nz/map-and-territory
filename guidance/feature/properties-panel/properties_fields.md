@@ -40,10 +40,17 @@ This document defines the reusable field components for the Properties Panel. Al
 Import from the properties barrel as needed (or direct paths):
 
 ```ts
-import { PropertyLabel } from '@/components/properties/label';
-import { SelectField } from '@/components/properties/select';
-import { ColorField } from '@/components/properties/color';
-import { Int1D, Int2D, Int3D, Float1D, Float2D, Float3D } from '@/components/properties/number';
+import { PropertyLabel } from "@/components/properties/label";
+import { SelectField } from "@/components/properties/select";
+import { ColorField } from "@/components/properties/color";
+import {
+  Int1D,
+  Int2D,
+  Int3D,
+  Float1D,
+  Float2D,
+  Float3D,
+} from "@/components/properties/number";
 ```
 
 ## Future Additions
@@ -51,4 +58,3 @@ import { Int1D, Int2D, Int3D, Float1D, Float2D, Float3D } from '@/components/pro
 - VectorN with configurable dimension and type; presets wrap it for 1D/2D/3D.
 - Validation/error states and helper text.
 - Preset pickers and advanced color inputs as needed.
-

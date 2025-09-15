@@ -18,7 +18,7 @@ The app had 8+ React component errors that triggered an `AuthErrorBoundary`, whi
    - **Code Location**: `src/stores/layout/index.ts`
 
 2. **Nested Button Elements (Invalid HTML)**
-   - **Problem**: `<Button>` components nested inside `<SidebarMenuButton>` 
+   - **Problem**: `<Button>` components nested inside `<SidebarMenuButton>`
    - **Solution**: Replaced nested buttons with `<span>` elements with click handlers
    - **Code Location**: `src/components/layout/app-sidebar.tsx`
 
@@ -46,10 +46,13 @@ export const useToolState = () =>
 
 // After (stable)
 export const useToolState = () =>
-  useLayoutStore((state) => ({
-    activeTool: state.activeTool,
-    propertiesPanelOpen: state.propertiesPanelOpen,
-  }), shallow);
+  useLayoutStore(
+    (state) => ({
+      activeTool: state.activeTool,
+      propertiesPanelOpen: state.propertiesPanelOpen,
+    }),
+    shallow,
+  );
 ```
 
 ### 2. HTML Structure Validation
@@ -88,7 +91,7 @@ export const useToolState = () =>
 ### Code Quality Measures
 
 1. **ESLint Rules**: Add rules to catch nested interactive elements
-2. **TypeScript Strict Mode**: Ensure proper typing for form components  
+2. **TypeScript Strict Mode**: Ensure proper typing for form components
 3. **Testing**: Include tests that verify no console errors during rendering
 4. **Zustand Best Practices**: Always use shallow comparison for object selectors
 

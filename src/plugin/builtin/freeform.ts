@@ -6,9 +6,15 @@ import {
 } from "@/properties/registry";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
 import { AppAPI } from "@/appapi";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
-import { useLayoutStore } from "@/stores/layout";
+import {
+  getCurrentCampaign,
+  getSelection,
+  insertLayerAbove,
+  insertLayerBeforeTopAnchor,
+  updateLayerState,
+  selectLayer,
+  setActiveTool,
+} from "@/platform/plugin-runtime/state";
 import { registerToolCursor } from "@/plugin/loader";
 
 export const freeformManifest: PluginManifest = {
@@ -217,44 +223,40 @@ export const freeformModule: PluginModule = {
   ],
   commands: {
     "layer.freeform.add": () => {
-      const campaign = useCampaignStore.getState().current;
+      const campaign = getCurrentCampaign();
       const activeMapId = campaign?.activeMapId ?? null;
       if (!campaign || !activeMapId) return;
       const map = campaign.maps.find((m) => m.id === activeMapId);
       if (!map) return;
-      const sel = useSelectionStore.getState().selection;
+      const sel = getSelection();
       const insertAboveSel = () =>
-        useCampaignStore
-          .getState()
-          .insertLayerAbove(sel.kind === "layer" ? sel.id : "", "freeform");
+        sel.kind === "layer" ? insertLayerAbove(sel.id, "freeform") : null;
       let id: string | null = null;
       if (sel.kind === "layer") {
-        id =
-          insertAboveSel() ||
-          useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = insertAboveSel() || insertLayerBeforeTopAnchor("freeform");
       } else if (sel.kind === "map") {
-        id = useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = insertLayerBeforeTopAnchor("freeform");
       } else {
-        id = useCampaignStore.getState().insertLayerBeforeTopAnchor("freeform");
+        id = insertLayerBeforeTopAnchor("freeform");
       }
       if (!id) return;
       try {
         const entries = AppAPI.palette.list();
         const first = entries[0];
         if (first) {
-          useCampaignStore.getState().updateLayerState(id, {
+          updateLayerState(id, {
             brushTerrainId: first.id,
             brushColor: first.color,
           });
         }
       } catch {}
-      useSelectionStore.getState().selectLayer(id);
+      selectLayer(id);
     },
     "tool.freeform.paint": () => {
-      useLayoutStore.getState().setActiveTool("paint");
+      setActiveTool("paint");
     },
     "tool.freeform.erase": () => {
-      useLayoutStore.getState().setActiveTool("erase");
+      setActiveTool("erase");
     },
   },
 };

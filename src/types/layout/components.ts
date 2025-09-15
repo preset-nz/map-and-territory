@@ -1,12 +1,12 @@
 /**
  * Component prop interfaces for the Professional Layout System
- * 
+ *
  * This file contains all interfaces for layout component props,
  * following single responsibility principle for component contracts.
  */
 
-import { ReactNode } from 'react';
-import React from 'react';
+import { ReactNode } from "react";
+import React from "react";
 
 // ============================================================================
 // Base Component Props
@@ -37,7 +37,7 @@ export interface AppLayoutProps extends BaseLayoutProps {
 /**
  * AppHeader component props for top-level navigation
  */
-export interface AppHeaderProps extends Omit<BaseLayoutProps, 'children'> {
+export interface AppHeaderProps extends Omit<BaseLayoutProps, "children"> {
   /** Optional title text to display */
   title?: string;
   /** Optional action buttons/components for header right side */
@@ -51,11 +51,11 @@ export interface AppHeaderProps extends Omit<BaseLayoutProps, 'children'> {
 /**
  * AppSidebar component props extending shadcn/ui Sidebar
  */
-export interface AppSidebarProps extends Omit<BaseLayoutProps, 'children'> {
+export interface AppSidebarProps extends Omit<BaseLayoutProps, "children"> {
   /** Sidebar display variant */
-  variant?: 'sidebar' | 'inset';
+  variant?: "sidebar" | "inset";
   /** Collapse behavior */
-  collapsible?: 'icon' | 'none';
+  collapsible?: "icon" | "none";
   /** Optional custom sidebar content */
   content?: ReactNode;
 }
@@ -69,7 +69,7 @@ export interface MainContentProps extends BaseLayoutProps {
   /** Whether content should fill available height */
   fillHeight?: boolean;
   /** Padding configuration */
-  padding?: 'none' | 'tight' | 'default' | 'loose';
+  padding?: "none" | "tight" | "default" | "loose";
   /** Whether content should be scrollable */
   scrollable?: boolean;
 }
@@ -115,11 +115,12 @@ export interface StorePersistConfig<T = Record<string, unknown>> {
 /**
  * Helper type to omit specific props from component interfaces
  */
-export type ComponentPropsWithoutRef<T extends keyof React.JSX.IntrinsicElements> = 
-  React.ComponentPropsWithoutRef<T>;
+export type ComponentPropsWithoutRef<
+  T extends keyof React.JSX.IntrinsicElements,
+> = React.ComponentPropsWithoutRef<T>;
 
 /**
  * Helper type for forwarded ref components
  */
-export type ComponentPropsWithRef<T extends keyof React.JSX.IntrinsicElements> = 
+export type ComponentPropsWithRef<T extends keyof React.JSX.IntrinsicElements> =
   React.ComponentPropsWithRef<T>;

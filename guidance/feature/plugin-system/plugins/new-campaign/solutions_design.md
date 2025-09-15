@@ -24,10 +24,10 @@ Optional (future): add `Open Campaign`, `Save Campaign` into same group.
 
 ## Flow (Commands-First)
 
-1) User clicks toolbar button or presses `Mod+Shift+N` → executes `app.campaign.new`.
-2) Host shows a minimal prompt (name, description). If name omitted, default to `Untitled Campaign`.
-3) Host creates a fresh `Project` object `{ id, version, name, description, maps: [], activeMapId: null }`.
-4) Host persists via `storage.set(project)` and refreshes UI. Scene Tree shows an empty-state CTA (e.g., "Create Map").
+1. User clicks toolbar button or presses `Mod+Shift+N` → executes `app.campaign.new`.
+2. Host shows a minimal prompt (name, description). If name omitted, default to `Untitled Campaign`.
+3. Host creates a fresh `Project` object `{ id, version, name, description, maps: [], activeMapId: null }`.
+4. Host persists via `storage.set(project)` and refreshes UI. Scene Tree shows an empty-state CTA (e.g., "Create Map").
 
 Note: The plugin triggers the command; the host handles stateful operations to avoid over-privileging the plugin.
 
@@ -41,13 +41,22 @@ Note: The plugin triggers the command; the host handles stateful operations to a
   "capabilities": ["storage:project"],
   "contributes": {
     "commands": [
-      { "id": "app.campaign.new", "title": "New Campaign", "shortcut": "Mod+Shift+N" }
+      {
+        "id": "app.campaign.new",
+        "title": "New Campaign",
+        "shortcut": "Mod+Shift+N"
+      }
     ],
     "toolbar": [
       {
         "group": "campaign",
         "items": [
-          { "type": "button", "command": "app.campaign.new", "icon": "ri:file-plus", "label": "New" }
+          {
+            "type": "button",
+            "command": "app.campaign.new",
+            "icon": "ri:file-plus",
+            "label": "New"
+          }
         ]
       }
     ]
@@ -60,15 +69,15 @@ Note: The plugin triggers the command; the host handles stateful operations to a
 
 ```ts
 export const commands = {
-  'app.campaign.new': async (app: AppAPI) => {
+  "app.campaign.new": async (app: AppAPI) => {
     // Delegate to host to collect inputs and create an empty campaign.
-    await app.commands.execute('host.prompt.newCampaign');
-  }
+    await app.commands.execute("host.prompt.newCampaign");
+  },
 };
 
 export async function activate(ctx: PluginContext) {
   // No-op; contributions are declarative. Optionally log readiness.
-  ctx.log.info('New Campaign plugin activated');
+  ctx.log.info("New Campaign plugin activated");
 }
 ```
 

@@ -22,8 +22,10 @@ function xfnv1a(str: string): () => number {
     h = Math.imul(h, 16777619);
   }
   return function () {
-    h += h << 13; h ^= h >>> 7;
-    h += h << 3; h ^= h >>> 17;
+    h += h << 13;
+    h ^= h >>> 7;
+    h += h << 3;
+    h ^= h >>> 17;
     h += h << 5;
     return h >>> 0;
   };
@@ -32,7 +34,8 @@ function xfnv1a(str: string): () => number {
 // splitmix32 to expand one seed into multiple 32-bit seeds
 function splitmix32(a: number) {
   return function () {
-    a |= 0; a = (a + 0x9e3779b9) | 0;
+    a |= 0;
+    a = (a + 0x9e3779b9) | 0;
     let t = Math.imul(a ^ (a >>> 16), 0x85ebca6b);
     t = Math.imul(t ^ (t >>> 13), 0xc2b2ae35);
     t = (t ^ (t >>> 16)) >>> 0;
@@ -43,7 +46,10 @@ function splitmix32(a: number) {
 // sfc32 PRNG, good quality and fast, deterministic in JS
 function sfc32(a: number, b: number, c: number, d: number) {
   return function () {
-    a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+    a >>>= 0;
+    b >>>= 0;
+    c >>>= 0;
+    d >>>= 0;
     const t = (a + b) | 0;
     a = b ^ (b >>> 9);
     b = (c + (c << 3)) | 0;
@@ -100,4 +106,3 @@ export function createRNG(seed: Seed): RNG {
 }
 
 export default createRNG;
-

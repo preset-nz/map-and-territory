@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 /**
  * NoOpAuthProvider - Authentication Provider Implementation
- * 
+ *
  * This provider implements a complete authentication interface without
  * actual authentication functionality. It can be easily replaced with
  * real authentication providers while maintaining the same interface.
- * 
+ *
  * Features:
  * - Full TypeScript interface compliance
  * - Simulated loading states for development
@@ -15,14 +15,14 @@
  * - Easy replacement path for real auth
  */
 
-import React, { 
-  createContext, 
-  useContext, 
-  useReducer, 
+import React, {
+  createContext,
+  useContext,
+  useReducer,
   useCallback,
   useEffect,
-  ReactNode 
-} from 'react';
+  ReactNode,
+} from "react";
 
 import {
   AuthContextValue,
@@ -34,7 +34,7 @@ import {
   AUTH_CONFIG,
   createAuthError,
   AuthErrorCode,
-} from '../../types/auth';
+} from "../../types/auth";
 
 // ============================================================================
 // Context Definition
@@ -74,18 +74,18 @@ const initialState: AuthReducerState = {
  * Handles all auth state transitions in a predictable manner
  */
 const authReducer = (
-  state: AuthReducerState, 
-  action: AuthEvent
+  state: AuthReducerState,
+  action: AuthEvent,
 ): AuthReducerState => {
   switch (action.type) {
-    case 'LOGIN_START':
+    case "LOGIN_START":
       return {
         ...state,
         isLoading: true,
         error: null,
       };
 
-    case 'LOGIN_SUCCESS':
+    case "LOGIN_SUCCESS":
       return {
         ...state,
         user: action.user,
@@ -94,7 +94,7 @@ const authReducer = (
         error: null,
       };
 
-    case 'LOGIN_ERROR':
+    case "LOGIN_ERROR":
       return {
         ...state,
         user: null,
@@ -103,14 +103,14 @@ const authReducer = (
         error: action.error,
       };
 
-    case 'LOGOUT_START':
+    case "LOGOUT_START":
       return {
         ...state,
         isLoading: true,
         error: null,
       };
 
-    case 'LOGOUT_SUCCESS':
+    case "LOGOUT_SUCCESS":
       return {
         ...state,
         user: null,
@@ -119,20 +119,20 @@ const authReducer = (
         error: null,
       };
 
-    case 'LOGOUT_ERROR':
+    case "LOGOUT_ERROR":
       return {
         ...state,
         isLoading: false,
         error: action.error,
       };
 
-    case 'CLEAR_ERROR':
+    case "CLEAR_ERROR":
       return {
         ...state,
         error: null,
       };
 
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return {
         ...state,
         isLoading: action.loading,
@@ -149,10 +149,10 @@ const authReducer = (
 
 /**
  * NoOpAuthProvider - No-operation authentication provider
- * 
+ *
  * Provides a complete auth interface without actual authentication.
  * Useful for development and can be easily replaced with real auth providers.
- * 
+ *
  * @param props - NoOpAuthProvider configuration props
  */
 export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
@@ -165,8 +165,8 @@ export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
 
   // Validate authDelay to prevent excessive delays
   const validatedAuthDelay = Math.min(
-    Math.max(authDelay, 0), 
-    AUTH_CONFIG.MAX_AUTH_DELAY
+    Math.max(authDelay, 0),
+    AUTH_CONFIG.MAX_AUTH_DELAY,
   );
 
   /**
@@ -174,7 +174,7 @@ export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
    */
   const simulateAuthDelay = useCallback(async (): Promise<void> => {
     if (simulateLoading && validatedAuthDelay > 0) {
-      await new Promise(resolve => setTimeout(resolve, validatedAuthDelay));
+      await new Promise((resolve) => setTimeout(resolve, validatedAuthDelay));
     }
   }, [simulateLoading, validatedAuthDelay]);
 
@@ -182,65 +182,68 @@ export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
    * No-op login implementation
    * Simulates successful login without actual authentication
    */
-  const login = useCallback(async (credentials?: LoginCredentials): Promise<void> => {
-    try {
-      dispatch({ type: 'LOGIN_START' });
-      
-      await simulateAuthDelay();
+  const login = useCallback(
+    async (credentials?: LoginCredentials): Promise<void> => {
+      try {
+        dispatch({ type: "LOGIN_START" });
 
-      // In real implementation, this would validate credentials and authenticate
-      // For now, we either use mockUser or resolve without authentication
-      if (mockUser) {
-        dispatch({ 
-          type: 'LOGIN_SUCCESS', 
-          user: mockUser 
-        });
-      } else {
-        // Simulate successful "login" without actually setting user
-        dispatch({ 
-          type: 'LOGIN_SUCCESS', 
-          user: {
-            id: 'noop-user-id',
-            email: credentials?.email || 'noop@example.com',
-            name: 'No-Op User',
-          }
+        await simulateAuthDelay();
+
+        // In real implementation, this would validate credentials and authenticate
+        // For now, we either use mockUser or resolve without authentication
+        if (mockUser) {
+          dispatch({
+            type: "LOGIN_SUCCESS",
+            user: mockUser,
+          });
+        } else {
+          // Simulate successful "login" without actually setting user
+          dispatch({
+            type: "LOGIN_SUCCESS",
+            user: {
+              id: "noop-user-id",
+              email: credentials?.email || "noop@example.com",
+              name: "No-Op User",
+            },
+          });
+        }
+      } catch (error) {
+        const authError = createAuthError(
+          AuthErrorCode.UNKNOWN_ERROR,
+          "Login simulation failed",
+          error,
+        );
+        dispatch({
+          type: "LOGIN_ERROR",
+          error: authError.message,
         });
       }
-    } catch (error) {
-      const authError = createAuthError(
-        AuthErrorCode.UNKNOWN_ERROR,
-        'Login simulation failed',
-        error
-      );
-      dispatch({ 
-        type: 'LOGIN_ERROR', 
-        error: authError.message 
-      });
-    }
-  }, [simulateAuthDelay, mockUser]);
+    },
+    [simulateAuthDelay, mockUser],
+  );
 
   /**
-   * No-op logout implementation  
+   * No-op logout implementation
    * Simulates successful logout without actual deauthentication
    */
   const logout = useCallback(async (): Promise<void> => {
     try {
-      dispatch({ type: 'LOGOUT_START' });
-      
+      dispatch({ type: "LOGOUT_START" });
+
       await simulateAuthDelay();
 
       // In real implementation, this would clear tokens and deauthenticate
       // For now, we just clear the local state
-      dispatch({ type: 'LOGOUT_SUCCESS' });
+      dispatch({ type: "LOGOUT_SUCCESS" });
     } catch (error) {
       const authError = createAuthError(
         AuthErrorCode.UNKNOWN_ERROR,
-        'Logout simulation failed',
-        error
+        "Logout simulation failed",
+        error,
       );
-      dispatch({ 
-        type: 'LOGOUT_ERROR', 
-        error: authError.message 
+      dispatch({
+        type: "LOGOUT_ERROR",
+        error: authError.message,
       });
     }
   }, [simulateAuthDelay]);
@@ -249,15 +252,15 @@ export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
    * Clear authentication errors
    */
   const clearError = useCallback((): void => {
-    dispatch({ type: 'CLEAR_ERROR' });
+    dispatch({ type: "CLEAR_ERROR" });
   }, []);
 
   // Initialize mock user if provided
   useEffect(() => {
     if (mockUser && !state.isAuthenticated && !state.isLoading) {
-      dispatch({ 
-        type: 'LOGIN_SUCCESS', 
-        user: mockUser 
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        user: mockUser,
       });
     }
   }, [mockUser, state.isAuthenticated, state.isLoading]);
@@ -276,9 +279,7 @@ export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
@@ -288,23 +289,23 @@ export const NoOpAuthProvider: React.FC<NoOpAuthProviderProps> = ({
 
 /**
  * useAuth - Hook to access authentication context
- * 
+ *
  * Provides type-safe access to authentication state and actions.
  * Throws error if used outside of AuthProvider.
- * 
+ *
  * @returns Authentication context value
  * @throws Error if used outside AuthProvider
  */
 export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);
-  
+
   if (context === DEFAULT_AUTH_CONTEXT) {
     throw new Error(
-      'useAuth must be used within an AuthProvider. ' +
-      'Make sure your component is wrapped with NoOpAuthProvider or another AuthProvider.'
+      "useAuth must be used within an AuthProvider. " +
+        "Make sure your component is wrapped with NoOpAuthProvider or another AuthProvider.",
     );
   }
-  
+
   return context;
 };
 
@@ -322,7 +323,7 @@ interface AuthErrorBoundaryState {
 
 /**
  * AuthErrorBoundary - Catches auth provider errors
- * 
+ *
  * Provides graceful fallback when authentication provider fails.
  * Useful for development and production error handling.
  */
@@ -340,7 +341,7 @@ export class AuthErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('AuthProvider Error:', error, errorInfo);
+    console.error("AuthProvider Error:", error, errorInfo);
   }
 
   handleReset = () => {
@@ -378,15 +379,15 @@ export class AuthErrorBoundary extends React.Component<
 
 /**
  * withAuth - HOC for components that require authentication
- * 
+ *
  * Wraps components to ensure they have access to auth context.
  * Useful for protecting routes or components.
- * 
+ *
  * @param Component - Component to wrap with auth context
  * @returns Component wrapped with auth provider
  */
 export const withAuth = <P extends object>(
-  Component: React.ComponentType<P>
+  Component: React.ComponentType<P>,
 ): React.FC<P> => {
   const WrappedComponent: React.FC<P> = (props) => {
     // Ensure auth context is available by calling useAuth
@@ -395,7 +396,7 @@ export const withAuth = <P extends object>(
   };
 
   WrappedComponent.displayName = `withAuth(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };
 

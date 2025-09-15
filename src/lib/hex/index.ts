@@ -3,9 +3,8 @@
 // https://www.redblobgames.com/grids/hexagons/
 // https://www.redblobgames.com/grids/hexagons/implementation.html
 
-export * from './types';
-export * from './coords';
-export * from './layout';
-export * from './kernels';
-export * from './offset';
-
+export * from "./types";
+export * from "./coords";
+export * from "./layout";
+export * from "./kernels";
+export * from "./offset";

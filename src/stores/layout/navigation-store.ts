@@ -1,12 +1,12 @@
 /**
  * Navigation Store - Focused Zustand State Management for Navigation
- * 
+ *
  * This store slice manages navigation state including active sections
  * and breadcrumb management. Designed for composition with other
  * layout store slices.
  */
 
-import { StateCreator } from 'zustand';
+import { StateCreator } from "zustand";
 import {
   NavigationState,
   NavigationActions,
@@ -14,7 +14,7 @@ import {
   DEFAULT_NAVIGATION_STATE,
   filterValidBreadcrumbs,
   isValidBreadcrumbItem,
-} from '../../types/layout/navigation';
+} from "../../types/layout/navigation";
 
 // ============================================================================
 // Navigation Store Slice Type
@@ -47,7 +47,7 @@ export const createNavigationSlice: StateCreator<
    */
   setActiveSection: (section: string) => {
     if (!section.trim()) {
-      console.warn('Active section cannot be empty');
+      console.warn("Active section cannot be empty");
       return;
     }
 
@@ -66,7 +66,9 @@ export const createNavigationSlice: StateCreator<
     const validItems = filterValidBreadcrumbs(items);
 
     if (validItems.length !== items.length) {
-      console.warn('Some breadcrumb items were filtered out due to missing labels');
+      console.warn(
+        "Some breadcrumb items were filtered out due to missing labels",
+      );
     }
 
     set((state) => ({
@@ -81,7 +83,7 @@ export const createNavigationSlice: StateCreator<
    */
   addBreadcrumb: (item: BreadcrumbItem) => {
     if (!isValidBreadcrumbItem(item)) {
-      console.warn('Breadcrumb item must have a label');
+      console.warn("Breadcrumb item must have a label");
       return;
     }
 
@@ -129,7 +131,7 @@ export interface NavigationSelectors {
  * Create navigation selectors for a composed store
  */
 export const createNavigationSelectors = <T extends NavigationSlice>(
-  store: T
+  store: T,
 ): NavigationSelectors => ({
   navigationState: {
     activeSection: store.activeSection,
@@ -143,5 +145,5 @@ export const createNavigationSelectors = <T extends NavigationSlice>(
   },
   activeSection: store.activeSection,
   breadcrumb: store.breadcrumb,
-  currentBreadcrumbItem: store.breadcrumb.find(item => item.isCurrent),
+  currentBreadcrumbItem: store.breadcrumb.find((item) => item.isCurrent),
 });

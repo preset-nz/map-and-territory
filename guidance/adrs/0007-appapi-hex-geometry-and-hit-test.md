@@ -9,7 +9,8 @@ Hex-centric tools and layers (terrain paint, fog-of-war) require reliable coordi
 
 ## Decision
 
-1) Public Hex Geometry in `AppAPI.hex`
+1. Public Hex Geometry in `AppAPI.hex`
+
 - Orientation: support pointy-top and flat-top only; no arbitrary rotation.
 - Layout: calculations take an explicit `layout` value (size, origin, orientation) to avoid hidden global state.
 - API surface (minimal, composable):
@@ -30,11 +31,13 @@ Hex-centric tools and layers (terrain paint, fog-of-war) require reliable coordi
   - `interface Axial { q: number; r: number }`
   - `interface Cube { x: number; y: number; z: number }`
 
-2) Pointer→Hex Routing
+2. Pointer→Hex Routing
+
 - Pointer events provide `{q,r}` alongside pixel coordinates when a `hexgrid` layer is visible. If absent/disabled, return `null` and degrade gracefully.
 - Calculations respect active hexgrid layer parameters via `layout` (size, origin, orientation). Rotation is not supported by design.
 
-3) Independence & Versioning
+3. Independence & Versioning
+
 - `AppAPI.hex` remains selector-oriented and versioned per ADR-0002, avoiding leakage of internal store shapes.
 
 ## Rationale

@@ -37,4 +37,3 @@ The platform needs testable, deterministic random and noise functions that are s
 - Add FBM helpers (octaves, persistence, lacunarity) when needed.
 - Consider `OpenSimplex2S` for better visual quality if artifacts surface.
 - Document utility usage in developer guide if adopted by plugins/features.
-

@@ -75,4 +75,3 @@ Serialization: store `revealed` as an array of strings in project JSON; convert 
 
 - Do we need quick presets for radius/spread on toolbar vs. properties?
 - Should export include fog state by default when sharing maps?
-

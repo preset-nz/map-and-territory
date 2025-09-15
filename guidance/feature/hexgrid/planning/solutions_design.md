@@ -19,12 +19,14 @@ We need a reliable, testable hex geometry library that supports both flat-top an
 ## API Surface
 
 Types:
+
 - `type Orientation = 'pointy' | 'flat'`
 - `interface Layout { orientation: Orientation; size: number; origin: { x: number; y: number } }`
 - `interface Axial { q: number; r: number }`
 - `interface Cube { x: number; y: number; z: number }`
 
 Functions (minimal viable):
+
 - `fromPoint(point: {x:number;y:number}, layout: Layout): Axial | null`
 - `toPoint(hex: Axial, layout: Layout): { x: number; y: number }`
 - `axialToCube(a: Axial): Cube`
@@ -40,6 +42,7 @@ Functions (minimal viable):
 - `offsetToAxial(o: {col:number;row:number}, orientation: Orientation, variant: 'odd-r'|'even-r'|'odd-q'|'even-q'): Axial`
 
 Notes:
+
 - `fromPoint` performs orientation-specific projection and cube rounding.
 - `toPoint` maps axial to pixel center; callers can compute corners if needed later.
 - Bounds/clipping reside in callers (e.g., visible paper region), not the lib.
@@ -65,6 +68,6 @@ Notes:
 ## Attribution
 
 This design and forthcoming implementation follow the well-established methodology described by Amit Patel at Red Blob Games:
+
 - https://www.redblobgames.com/grids/hexagons/
 - https://www.redblobgames.com/grids/hexagons/implementation.html
-
