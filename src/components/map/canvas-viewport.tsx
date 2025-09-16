@@ -267,6 +267,8 @@ export const CanvasViewport: React.FC = () => {
   const activeTool = useLayoutStore((s) => s.activeTool);
   const updateLayerState = useCampaignStore((s) => s.updateLayerState);
   const applyLayerState = useCampaignStore((s) => s.applyLayerState);
+  const applyCellsDelta = useCampaignStore((s) => s.applyCellsDelta);
+  const applyLayerStateBatch = useCampaignStore((s) => s.applyLayerStateBatch);
   const selection = useSelectionStore((s) => s.selection);
   const [isPointerDown, setIsPointerDown] = useState(false);
 
@@ -350,6 +352,9 @@ export const CanvasViewport: React.FC = () => {
       },
       selection,
       sceneAdapter: scene ?? null,
+      // Batch operations for efficient bulk updates
+      applyCellsDelta,
+      applyLayerStateBatch,
     };
     const pt = { x: px, y: py } as const;
     try {

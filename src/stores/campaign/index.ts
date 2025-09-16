@@ -53,24 +53,19 @@ export interface BatchLimits {
   maxMemoryMB: number;
 }
 
-export interface CellsDelta<TCell = FreeformCell> {
-  set?: Record<string, TCell>;
-  delete?: string[];
-}
+// Re-export batch operation types from shared location
+export type {
+  CellsDelta,
+  BatchResult,
+  BatchMetrics,
+} from "@/types/batch-operations";
 
-export interface BatchResult<T> {
-  success: boolean;
-  error?: string;
-  result?: T;
-  metrics?: BatchMetrics;
-}
-
-export interface BatchMetrics {
-  executionTimeMs: number;
-  memoryUsageMB?: number;
-  operationCount: number;
-  immerPatches?: number;
-}
+// Import types for local use
+import type {
+  CellsDelta,
+  BatchResult,
+  BatchMetrics,
+} from "@/types/batch-operations";
 
 const DEFAULT_BATCH_LIMITS: BatchLimits = {
   maxOperations: 10000,
@@ -1398,11 +1393,5 @@ export function withBatchMetrics<T>(
   }
 }
 
-export type {
-  CampaignStoreState,
-  BatchLimits,
-  CellsDelta,
-  BatchResult,
-  BatchMetrics,
-};
+export type { CampaignStoreState, BatchLimits };
 export { validateBatchOperation };

@@ -37,6 +37,8 @@ export interface PluginManifest {
 }
 
 import type { AppAPI } from "@/plugin/appapi";
+import { AppAPI as ActualAppAPI } from "@/appapi";
+import type { CellsDelta, BatchResult } from "@/types/batch-operations";
 
 export interface PluginContext {
   // Narrow API surface in MVP; extend later
@@ -89,7 +91,7 @@ export interface EnvProvider {
 
 export interface ToolContext {
   // Minimal context surface for tools; extend later
-  app?: AppAPI;
+  app?: AppAPI | typeof ActualAppAPI;
   updateLayerState: (id: string, patch: Record<string, unknown>) => void;
   applyLayerState: (
     id: string,
@@ -98,6 +100,15 @@ export interface ToolContext {
   getActiveLayerState: <T = unknown>(id?: string) => T | null;
   selection: { kind: string; id?: string };
   sceneAdapter?: SceneAdapter | null;
+  // Batch operations for efficient bulk updates (optional for backward compatibility)
+  applyCellsDelta?: <TCell = unknown>(
+    layerId: string,
+    delta: CellsDelta<TCell>,
+  ) => BatchResult<void>;
+  applyLayerStateBatch?: <T = Record<string, unknown>>(
+    layerId: string,
+    updater: (draft: T) => void,
+  ) => BatchResult<T>;
 }
 
 export interface ToolHandler {
