@@ -40,3 +40,85 @@ export function hexPath(
   }
   ctx.closePath();
 }
+
+// Configuration for hex tiling generation
+export interface HexTilingConfig {
+  size: number;
+  orientation: "pointy" | "flat";
+  center: Point;
+  bounds: { w: number; h: number };
+  padding?: number; // extra hexes beyond bounds
+}
+
+// Position data for a single hex tile
+export interface HexTilePosition {
+  center: Point;
+  axial: Axial; // for noise/data lookups
+  gridCoords: { col: number; row: number }; // for offset calculations
+}
+
+// Iterator for hex positions in a region
+export function* hexTiles(config: HexTilingConfig): Generator<HexTilePosition> {
+  const { size, orientation, center, bounds, padding = 2 } = config;
+  const r = size;
+  const sqrt3 = Math.sqrt(3);
+
+  if (orientation === "flat") {
+    const colStep = 1.5 * r;
+    const rowStep = sqrt3 * r;
+    const cols = Math.ceil(bounds.w / colStep) + padding;
+    const rows = Math.ceil(bounds.h / rowStep) + padding;
+
+    const cmin = -Math.ceil(cols / 2);
+    const cmax = Math.ceil(cols / 2);
+    const rmin = -Math.ceil(rows / 2);
+    const rmax = Math.ceil(rows / 2);
+
+    for (let c = cmin; c <= cmax; c++) {
+      const yOffset = c & 1 ? rowStep / 2 : 0;
+      for (let rr = rmin; rr <= rmax; rr++) {
+        const x = c * colStep + center.x;
+        const y = rr * rowStep + yOffset + center.y;
+
+        yield {
+          center: { x, y },
+          axial: { q: c, r: rr },
+          gridCoords: { col: c, row: rr },
+        };
+      }
+    }
+  } else {
+    // pointy orientation
+    const colStep = sqrt3 * r;
+    const rowStep = 1.5 * r;
+    const cols = Math.ceil(bounds.w / colStep) + padding;
+    const rows = Math.ceil(bounds.h / rowStep) + padding;
+
+    const rmin = -Math.ceil(rows / 2);
+    const rmax = Math.ceil(rows / 2);
+    const cmin = -Math.ceil(cols / 2);
+    const cmax = Math.ceil(cols / 2);
+
+    for (let rr = rmin; rr <= rmax; rr++) {
+      const xOffset = rr & 1 ? colStep / 2 : 0;
+      for (let c = cmin; c <= cmax; c++) {
+        const x = c * colStep + xOffset + center.x;
+        const y = rr * rowStep + center.y;
+
+        yield {
+          center: { x, y },
+          axial: { q: c, r: rr },
+          gridCoords: { col: c, row: rr },
+        };
+      }
+    }
+  }
+}
+
+// Shared layout creation helper
+export function createHexLayout(
+  size: number,
+  orientation: "pointy" | "flat",
+): Pick<Layout, "size" | "orientation"> {
+  return { size, orientation };
+}

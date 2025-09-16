@@ -50,7 +50,7 @@ Dependencies & Order
 
 - Phase 1: T-020
 - Phase 2: T-023, T-007, T-008, T-009b, T-010
-- Phase 3: T-011, T-013, T-014, T-018
+- Phase 3: T-011, T-013, T-014
 
 ---
 
@@ -59,18 +59,6 @@ Working Notes
 - Keep SOLID/CUPID: Layer adapters remain small and composable; AppAPI stays narrow and selector-based.
 - Platform thinking: early investment in layering, invalidation, and AppAPI yields long-term extensibility.
 - Interdependencies Refactor Migration: when a ticket touches plugins/tools, ensure adoption of the `ToolContext` seam (no `@/stores/**` imports) and leave lint passing with zero warnings.
-
----
-
-T-018 [S] Consolidate Hex Utilities
-
-- Goal: Migrate Hex Grid and Hex Noise adapters to shared hex utilities introduced for Freeform (centerFor, hexPath, axialKey).
-- Deliverables: refactor adapters to use `src/layers/hex-utils.ts`; remove duplicated tiling/path math where safe; add unit tests.
-- Links: src/layers/adapters/hexgrid.ts, src/layers/adapters/hex-noise.ts, src/layers/hex-utils.ts
-- Acceptance:
-  - Adapters compile and render identically (snapshot or pixel-diff tolerance acceptable).
-  - Unit tests for utils; integration tests remain green.
-  - No behavioral regressions in E2E.
 
 ---
 

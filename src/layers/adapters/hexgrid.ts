@@ -1,4 +1,5 @@
 import type { LayerAdapter, RenderEnv } from "@/layers/types";
+import { hexPath, hexTiles, createHexLayout } from "@/layers/hex-utils";
 
 export type HexOrientation = "pointy" | "flat";
 
@@ -30,61 +31,22 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
     ctx.globalAlpha = a;
     ctx.strokeStyle = stroke;
     ctx.lineWidth = Math.max(1, lineWidth ?? 1) / dpr;
-    // Orientation-specific tiling based on Red Blob Games
-    const sqrt3 = Math.sqrt(3);
-    const drawHex = (cx: number, cy: number, startAngle: number) => {
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const ang = startAngle + i * (Math.PI / 3);
-        const px = cx + Math.cos(ang) * r;
-        const py = cy + Math.sin(ang) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.stroke();
+
+    // Use shared hex utilities for tiling and drawing
+    const layout = createHexLayout(r, orientation);
+    const tilingConfig = {
+      size: r,
+      orientation,
+      center: { x: w / 2, y: h / 2 },
+      bounds: { w, h },
+      padding: 2,
     };
 
-    if (orientation === "flat") {
-      const colStep = 1.5 * r;
-      const rowStep = sqrt3 * r;
-      const cols = Math.ceil(w / colStep) + 2;
-      const rows = Math.ceil(h / rowStep) + 2;
-      const centerX = w / 2;
-      const centerY = h / 2;
-      const cmin = -Math.ceil(cols / 2),
-        cmax = Math.ceil(cols / 2);
-      const rmin = -Math.ceil(rows / 2),
-        rmax = Math.ceil(rows / 2);
-      for (let c = cmin; c <= cmax; c++) {
-        const yOffset = c & 1 ? rowStep / 2 : 0;
-        for (let rr = rmin; rr <= rmax; rr++) {
-          const x = c * colStep + centerX;
-          const y = rr * rowStep + yOffset + centerY;
-          drawHex(x, y, 0); // flat-top starts at 0 rad
-        }
-      }
-    } else {
-      // pointy
-      const colStep = sqrt3 * r; // horizontal distance between columns
-      const rowStep = 1.5 * r; // vertical distance between rows
-      const cols = Math.ceil(w / colStep) + 2;
-      const rows = Math.ceil(h / rowStep) + 2;
-      const centerX = w / 2;
-      const centerY = h / 2;
-      const rmin = -Math.ceil(rows / 2),
-        rmax = Math.ceil(rows / 2);
-      const cmin = -Math.ceil(cols / 2),
-        cmax = Math.ceil(cols / 2);
-      for (let rr = rmin; rr <= rmax; rr++) {
-        const xOffset = rr & 1 ? colStep / 2 : 0;
-        for (let c = cmin; c <= cmax; c++) {
-          const x = c * colStep + xOffset + centerX;
-          const y = rr * rowStep + centerY;
-          drawHex(x, y, -Math.PI / 6); // pointy-top starts at -30°
-        }
-      }
+    for (const tile of hexTiles(tilingConfig)) {
+      hexPath(ctx, tile.center, layout);
+      ctx.stroke();
     }
+
     ctx.restore();
   },
   getInvalidationKey(state) {
