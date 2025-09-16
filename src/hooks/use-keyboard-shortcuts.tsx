@@ -12,7 +12,7 @@ import { executeCommand } from "@/lib/commands";
 const TOOL_SHORTCUTS: Record<string, string> = {
   "1": "select",
   "2": "paint",
-  "3": "draw",
+  "3": "fill",
   "4": "erase",
   "5": "text",
 };

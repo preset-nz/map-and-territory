@@ -16,6 +16,9 @@ import {
   setActiveTool,
 } from "@/platform/plugin-runtime/state";
 import { registerToolCursor } from "@/plugin/loader";
+import { floodFill } from "@/lib/flood-fill";
+import type { Axial } from "@/lib/hex";
+import { debugEnabled } from "@/lib/debug";
 
 export const freeformManifest: PluginManifest = {
   id: "app.plugins.freeform-layer",
@@ -27,6 +30,7 @@ export const freeformManifest: PluginManifest = {
       { id: "layer.freeform.add", title: "Add Freeform Layer" },
       { id: "tool.freeform.paint", title: "Paint Tool" },
       { id: "tool.freeform.erase", title: "Erase Tool" },
+      { id: "tool.freeform.fill", title: "Flood Fill Tool" },
     ],
     toolbar: [
       {
@@ -64,6 +68,15 @@ export const freeformManifest: PluginManifest = {
             enableWhen: ["activeLayerIs:freeform", "gridVisible"],
             disabledReason: "Select a Freeform layer",
           },
+          {
+            type: "button",
+            command: "tool.freeform.fill",
+            icon: "lucide:bucket",
+            label: "Fill",
+            order: 3,
+            enableWhen: ["activeLayerIs:freeform", "gridVisible"],
+            disabledReason: "Select a Freeform layer",
+          },
         ],
       },
     ],
@@ -76,6 +89,7 @@ export const freeformModule: PluginModule = {
     // Declare CSS cursors for tools
     registerToolCursor("paint", "crosshair");
     registerToolCursor("erase", "cell");
+    registerToolCursor("fill", "crosshair");
     // Register Freeform properties schema
     registerPropertySchema("layer:freeform", {
       groups: [
@@ -92,6 +106,19 @@ export const freeformModule: PluginModule = {
               max: 1,
               step: 0.01,
             },
+            [
+              {
+                kind: "select",
+                id: "fillMode",
+                label: "Fill Mode",
+                path: "fillMode",
+                options: [
+                  { value: "auto", label: "Auto (Smart Detection)" },
+                  { value: "same-value", label: "Fill Same" },
+                  { value: "empty-only", label: "Fill Empty" },
+                ],
+              },
+            ],
             [
               {
                 kind: "select",
@@ -220,6 +247,131 @@ export const freeformModule: PluginModule = {
         },
       };
     })(),
+    (function makeFloodFillTool(): ToolHandler {
+      return {
+        id: "fill",
+        onPointerDown(pt, env, ctx) {
+          // Only operate on freeform layer selection
+          if (ctx.selection.kind !== "layer") return;
+
+          // Compute axial from point using env.grid
+          const grid = env.grid;
+          if (!grid) return;
+
+          const layout = {
+            orientation: grid.orientation === "flat" ? "flat" : "pointy",
+            size: Math.max(4, Number(grid.size || 16)),
+            origin: { x: env.size.w / 2, y: env.size.h / 2 },
+          } as const;
+
+          const h = (ctx.app as typeof AppAPI).hex.fromPoint(pt, layout);
+          const origin: Axial = { q: h.q, r: h.r };
+
+          // Get current layer state
+          const layerState = (ctx.getActiveLayerState<
+            Record<string, unknown>
+          >() ?? {}) as Record<string, unknown>;
+          const cells =
+            (layerState["cells"] as Record<string, unknown> | undefined) || {};
+
+          // Get brush configuration from layer properties
+          const brushColor =
+            (layerState["brushColor"] as string | undefined) ?? undefined;
+          const brushTerrainId =
+            (layerState["brushTerrainId"] as string | undefined) ?? undefined;
+
+          if (!brushColor && !brushTerrainId) {
+            console.warn("Flood fill: No brush color or terrain selected");
+            return;
+          }
+
+          // Create lookup function for current cell values
+          const getCellValue = (axial: Axial): string | undefined => {
+            const key = `${axial.q},${axial.r}`;
+            const cell = cells[key] as { terrainId?: string } | undefined;
+            return cell?.terrainId;
+          };
+
+          // Get fill mode from layer properties with smart auto-detection
+          const configuredFillMode =
+            (layerState["fillMode"] as string | undefined) ?? "auto";
+
+          let fillMode: "empty-only" | "same-value";
+
+          if (configuredFillMode === "auto") {
+            // Smart mode detection: if clicked cell is empty, use empty-only; if filled, use same-value
+            const originValue = getCellValue(origin);
+            fillMode = originValue === undefined ? "empty-only" : "same-value";
+          } else {
+            fillMode = configuredFillMode as "empty-only" | "same-value";
+          }
+
+          // Run flood fill algorithm
+          const fillResult = floodFill({
+            origin,
+            mode: fillMode,
+            maxCells: 1000, // Performance guardrail
+            getCellValue,
+          });
+
+          if (fillResult.cells.length === 0) {
+            return; // Nothing to fill
+          }
+
+          // Apply results using batch API for atomic update
+          if (ctx.applyCellsDelta) {
+            const delta = {
+              set: {} as Record<string, { terrainId?: string; color?: string }>,
+            };
+
+            // Convert flood fill results to cell delta
+            fillResult.cells.forEach((axial) => {
+              const key = `${axial.q},${axial.r}`;
+              delta.set[key] = {
+                terrainId: brushTerrainId,
+                color: brushColor,
+              };
+            });
+
+            const result = ctx.applyCellsDelta(ctx.selection.id!, delta);
+
+            if (result.success) {
+              if (debugEnabled()) {
+                console.log(
+                  `Flood fill: Applied ${fillResult.cells.length} cells in ${result.metrics?.executionTimeMs}ms`,
+                );
+                if (fillResult.truncated) {
+                  console.warn(
+                    `Flood fill: Operation truncated - ${fillResult.truncationReason}`,
+                  );
+                }
+              }
+            } else {
+              console.error(
+                "Flood fill: Batch operation failed:",
+                result.error,
+              );
+            }
+          } else {
+            // Fallback to individual updates if batch API not available
+            console.warn("Flood fill: Batch API not available, using fallback");
+            fillResult.cells.forEach((axial) => {
+              const key = `${axial.q},${axial.r}`;
+              ctx.applyLayerState(ctx.selection.id!, (draft) => {
+                const cells = {
+                  ...(draft["cells"] as Record<string, unknown> | undefined),
+                };
+                cells[key] = {
+                  terrainId: brushTerrainId,
+                  color: brushColor,
+                } as unknown as Record<string, unknown>;
+                draft["cells"] = cells;
+              });
+            });
+          }
+        },
+      };
+    })(),
   ],
   commands: {
     "layer.freeform.add": () => {
@@ -247,6 +399,7 @@ export const freeformModule: PluginModule = {
           applyLayerState(id, (draft) => {
             draft["brushTerrainId"] = first.id;
             draft["brushColor"] = first.color;
+            draft["fillMode"] = "auto"; // Default to auto (smart detection)
           });
         }
       } catch {}
@@ -257,6 +410,9 @@ export const freeformModule: PluginModule = {
     },
     "tool.freeform.erase": () => {
       setActiveTool("erase");
+    },
+    "tool.freeform.fill": () => {
+      setActiveTool("fill");
     },
   },
 };
