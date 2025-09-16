@@ -48,7 +48,6 @@ T-014 [C] E2E Expansion
 
 Dependencies & Order
 
-- Phase 1: T-020
 - Phase 2: T-023, T-007, T-008, T-009b, T-010
 - Phase 3: T-011, T-013, T-014
 
@@ -61,20 +60,6 @@ Working Notes
 - Interdependencies Refactor Migration: when a ticket touches plugins/tools, ensure adoption of the `ToolContext` seam (no `@/stores/**` imports) and leave lint passing with zero warnings.
 
 ---
-
----
-
-T-020 [M] Batched Layer State Mutations
-
-- Goal: Efficiently apply large edits (e.g., flood fill) with a single render invalidation.
-- Deliverables:
-  - Store API: `applyLayerState(layerId, updater)` using immer OR `applyCellsDelta(layerId, { set: Record<key,cell>; del: string[] })`.
-  - Ensure renderer recomputes once per batch; avoid intermediate re-renders.
-- Links: src/stores/project/index.ts, freeform layer docs
-- Acceptance:
-  - Applying 1k cell edits executes <50ms in local tests on baseline hardware.
-  - Invalidation key updates once per batch.
-  - Unit tests cover add/remove/replace semantics.
 
 ---
 
