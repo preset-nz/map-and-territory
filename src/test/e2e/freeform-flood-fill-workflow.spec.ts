@@ -34,8 +34,10 @@ test.describe("Flood Fill Tool Workflow", () => {
     await page.getByRole("button", { name: "New Campaign" }).click();
     await page.getByRole("button", { name: "New Map" }).click();
 
-    // Verify flood fill tool exists but is initially disabled
-    const floodFillButton = page.getByRole("button", { name: "Fill (3)" });
+    // Verify flood fill tool exists but is initially disabled (in the toolbar)
+    const floodFillButton = page
+      .locator('[data-toolbar-ready="true"]')
+      .getByRole("button", { name: "Fill", exact: true });
     await expect(floodFillButton).toBeVisible({ timeout: 5000 });
     await expect(floodFillButton).toBeDisabled(); // Should be disabled without freeform layer
 
@@ -82,8 +84,10 @@ test.describe("Flood Fill Tool Workflow", () => {
     await page.getByRole("button", { name: "New Campaign" }).click();
     await page.getByRole("button", { name: "New Map" }).click();
 
-    // Verify flood fill tool is present but disabled initially
-    const floodFillButton = page.getByRole("button", { name: "Fill (3)" });
+    // Verify flood fill tool is present but disabled initially (in the toolbar)
+    const floodFillButton = page
+      .locator('[data-toolbar-ready="true"]')
+      .getByRole("button", { name: "Fill", exact: true });
     await expect(floodFillButton).toBeVisible({ timeout: 5000 });
     await expect(floodFillButton).toBeDisabled();
 
