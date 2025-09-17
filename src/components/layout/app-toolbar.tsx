@@ -158,7 +158,9 @@ export const AppToolbar: React.FC = () => {
                         ? activeTool === "paint"
                         : item.command === "tool.freeform.erase"
                           ? activeTool === "erase"
-                          : false;
+                          : item.command === "tool.freeform.fill"
+                            ? activeTool === "fill"
+                            : false;
                     return (
                       <Tooltip
                         key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
@@ -185,7 +187,9 @@ export const AppToolbar: React.FC = () => {
                                 ? " (2)"
                                 : item.command === "tool.freeform.erase"
                                   ? " (4)"
-                                  : ""}
+                                  : item.command === "tool.freeform.fill"
+                                    ? " (3)"
+                                    : ""}
                             </span>
                             {disabled ? (
                               <span className="text-muted-foreground">

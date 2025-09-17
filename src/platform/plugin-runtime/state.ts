@@ -111,3 +111,20 @@ export function markCampaignDirty(dirty: boolean): void {
 export function isCampaignDirty(): boolean {
   return !!useCampaignStore.getState().dirty;
 }
+
+/**
+ * Batch API wrappers for plugin tool context
+ */
+export function applyCellsDelta<TCell = unknown>(
+  layerId: string,
+  delta: import("@/types/batch-operations").CellsDelta<TCell>,
+): import("@/types/batch-operations").BatchResult<void> {
+  return useCampaignStore.getState().applyCellsDelta(layerId, delta);
+}
+
+export function applyLayerStateBatch<T = Record<string, unknown>>(
+  layerId: string,
+  updater: (draft: T) => void,
+): import("@/types/batch-operations").BatchResult<T> {
+  return useCampaignStore.getState().applyLayerStateBatch(layerId, updater);
+}
