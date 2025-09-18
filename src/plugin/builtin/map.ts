@@ -77,6 +77,13 @@ export const mapPluginModule: PluginModule = {
                   ...settings.map((setting) => ({
                     value: setting.id,
                     label: setting.name,
+                    swatches: [
+                      setting.palette.colors.primary,
+                      setting.palette.colors.secondary,
+                      setting.palette.colors.accent,
+                      setting.palette.colors.background,
+                      setting.palette.gridLine,
+                    ],
                   })),
                 ];
               },

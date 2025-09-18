@@ -16,13 +16,19 @@ export interface BaseField {
   disabledWhen?: { path: string; equals?: unknown; notEquals?: unknown };
 }
 
+export interface SelectOption {
+  value: string;
+  label: string;
+  swatches?: string[];
+}
+
 export interface SelectFieldDef extends BaseField {
   kind: "select";
-  options?: Array<{ value: string; label: string }>;
+  options?: SelectOption[];
   // Dynamic options provider for host-app dependent lists (e.g., palette)
   // Note: the function receives the AppAPI via a very light indirection to avoid cycles.
   // The panel calls this with `getAppAPI()`.
-  optionsProvider?: (app: unknown) => Array<{ value: string; label: string }>;
+  optionsProvider?: (app: unknown) => SelectOption[];
 }
 
 export interface ColorFieldDef extends BaseField {
