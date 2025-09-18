@@ -33,6 +33,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const generatedId = React.useId();
   const buttonId = id ?? generatedId;
   const current = options.find((o) => o.value === value) ?? options[0];
+
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label ? (

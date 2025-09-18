@@ -159,10 +159,23 @@ const GenericProperties: React.FC = () => {
     if (!layer) return null;
     const scope = `layer:${layer.type}`;
     const schema = getPropertySchema(scope);
-    const getVal = (path: string) =>
-      (layer.state as Record<string, unknown> | undefined)?.[
+    const getVal = (path: string) => {
+      if (layer.type === "hexgrid") {
+        const st = (layer.state ?? {}) as {
+          color?: string;
+          usePaletteColor: boolean;
+        };
+        if (path === "color") {
+          return st.color ?? AppAPI.palette.gridLine();
+        }
+        if (path === "usePaletteColor") {
+          return st.usePaletteColor !== false;
+        }
+      }
+      return (layer.state as Record<string, unknown> | undefined)?.[
         path as keyof Record<string, unknown>
       ];
+    };
     const setVal = (path: string, val: unknown) => {
       if (layer.type === "hexnoise" && path === "terrainId") {
         const color = val ? AppAPI.palette.fillById(String(val)) : undefined;
@@ -179,6 +192,27 @@ const GenericProperties: React.FC = () => {
           brushColor: color,
         });
         return;
+      }
+      if (layer.type === "hexgrid") {
+        if (path === "color" && typeof val === "string") {
+          updateLayerState(layer.id, {
+            usePaletteColor: false,
+            color: val,
+          });
+          return;
+        }
+        if (path === "usePaletteColor") {
+          const checked = Boolean(val);
+          updateLayerState(layer.id, {
+            usePaletteColor: checked,
+          });
+          if (checked) {
+            updateLayerState(layer.id, {
+              color: AppAPI.palette.gridLine(),
+            });
+          }
+          return;
+        }
       }
       updateLayerState(layer.id, { [path]: val });
     };
@@ -256,6 +290,7 @@ function renderSchemaGroups(
                   }
                   if (f.kind === "color") {
                     const v = getVal(f.path) ?? "#ffffff";
+                    const cf = f as ColorFieldDef;
                     return (
                       <div
                         key={f.id}
@@ -267,6 +302,7 @@ function renderSchemaGroups(
                           label={f.label}
                           value={String(v)}
                           onChange={(val) => setVal(f.path, val)}
+                          presets={cf.presets}
                         />
                       </div>
                     );

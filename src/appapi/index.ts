@@ -1,5 +1,9 @@
 // Public AppAPI surface
-import { resolvePalette, resolveTerrainFill } from "@/stores/selectors/palette";
+import {
+  resolvePalette,
+  resolveTerrainFill,
+  resolveGridLine,
+} from "@/stores/selectors/palette";
 import type { TerrainCategory } from "@/palettes/types";
 import { useCampaignStore } from "@/stores/campaign";
 import { TerrainSettings, BaseTerrainType } from "@/palettes/settings";
@@ -53,8 +57,21 @@ export const AppAPI = {
     gridLine() {
       const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
-      const palette = resolvePalette(cur, active);
-      return palette.grid.line;
+      const map = cur?.maps.find((m) => m.id === active);
+      const hexgrid = map?.layers?.find((l) => l.type === "hexgrid");
+      const hexState = hexgrid?.state as
+        | { color?: string; usePaletteColor?: boolean }
+        | undefined;
+      return resolveGridLine(
+        cur,
+        active,
+        hexState
+          ? {
+              color: hexState.color,
+              usePaletteColor: hexState.usePaletteColor !== false,
+            }
+          : undefined,
+      );
     },
     // Lists terrain entries from the active setting (MVP: default Doom Forge until settings UI lands)
     list(category?: BaseTerrainType) {

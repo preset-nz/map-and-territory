@@ -51,10 +51,12 @@ export function resolveTerrainFill(
 export function resolveGridLine(
   campaign: Campaign | null,
   mapId: string | null,
-  hexgridState?: { color?: string },
+  hexgridState?: { color?: string; usePaletteColor: boolean },
 ): string {
-  const userColor = hexgridState?.color;
-  if (userColor && userColor !== "#000000") return userColor;
+  const usePalette = hexgridState?.usePaletteColor !== false;
+  if (!usePalette && typeof hexgridState?.color === "string") {
+    return hexgridState.color.length > 0 ? hexgridState.color : "#000000";
+  }
   const p = resolvePalette(campaign, mapId);
   return p.grid.line || "#000000";
 }

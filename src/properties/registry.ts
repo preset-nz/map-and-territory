@@ -27,6 +27,7 @@ export interface SelectFieldDef extends BaseField {
 
 export interface ColorFieldDef extends BaseField {
   kind: "color";
+  presets?: string[];
 }
 export interface TextFieldDef extends BaseField {
   kind: "text";

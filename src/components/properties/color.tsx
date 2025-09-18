@@ -70,11 +70,12 @@ export const ColorField: React.FC<ColorFieldProps> = ({
                 key={c}
                 onClick={() => onChange?.(c)}
                 className="p-0"
+                aria-label={c}
               >
                 <div
                   className="h-6 w-6 rounded border"
                   style={{ backgroundColor: c }}
-                  aria-label={c}
+                  aria-hidden="true"
                 />
               </DropdownMenuItem>
             ))}
