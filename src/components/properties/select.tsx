@@ -7,11 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-
-export interface SelectOption {
-  value: string;
-  label: string;
-}
+import type { SelectOption } from "@/properties/registry";
 
 export interface SelectFieldProps {
   id?: string;
@@ -33,6 +29,22 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const generatedId = React.useId();
   const buttonId = id ?? generatedId;
   const current = options.find((o) => o.value === value) ?? options[0];
+  const renderSwatches = (swatches?: string[]) => {
+    if (!swatches?.length) return null;
+    const limited = swatches.slice(0, 5);
+    return (
+      <span className="flex items-center gap-1" aria-hidden="true">
+        {limited.map((color, idx) => (
+          <span
+            key={`${color}-${idx}`}
+            className="h-3 w-3 rounded-sm border border-border"
+            style={{ backgroundColor: color }}
+          />
+        ))}
+      </span>
+    );
+  };
+
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label ? (
@@ -47,7 +59,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             variant="outline"
             className="justify-between h-9 px-3 text-sm"
           >
-            <span>{current?.label ?? value}</span>
+            <span className="flex items-center gap-2">
+              {renderSwatches(current?.swatches)}
+              <span>{current?.label ?? value}</span>
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-[10rem]">
@@ -57,7 +72,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
               onClick={() => onChange?.(opt.value)}
               aria-label={opt.label}
             >
-              {opt.label}
+              <span className="flex items-center gap-2">
+                {renderSwatches(opt.swatches)}
+                <span>{opt.label}</span>
+              </span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

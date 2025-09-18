@@ -92,13 +92,19 @@ describe("palette resolution", () => {
 
   it("resolveGridLine uses layer override when provided", () => {
     const proj = makeProject();
-    const color = resolveGridLine(proj, "m1", { color: "#abcabc" });
+    const color = resolveGridLine(proj, "m1", {
+      color: "#abcabc",
+      usePaletteColor: false,
+    });
     expect(color).toBe("#abcabc");
   });
 
   it("resolveGridLine falls back to palette when layer color is default/empty", () => {
     const proj = makeProject();
-    const color = resolveGridLine(proj, "m1", { color: "#000000" });
+    const color = resolveGridLine(proj, "m1", {
+      color: "#000000",
+      usePaletteColor: true,
+    });
     expect(color).toBeDefined();
   });
 });

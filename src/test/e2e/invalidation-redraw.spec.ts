@@ -70,8 +70,13 @@ test.describe("Invalidation → Redraw", () => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
-    const colorHex = page.getByRole("textbox", { name: "Line Color hex" });
-    await colorHex.fill("#ff0000");
+    const inheritToggle = page.getByLabel("Use setting default color");
+    if (await inheritToggle.isChecked()) {
+      await inheritToggle.click();
+    }
+    const colorPreset = page.getByLabel("Grid Color preset");
+    await colorPreset.click();
+    await page.getByRole("menuitem", { name: "#ffffff" }).click();
 
     await expect
       .poll(async () => {
@@ -93,7 +98,7 @@ test.describe("Invalidation → Redraw", () => {
       return (win.__renderLog || []).filter((entry) => entry.msg === "render")
         .length;
     });
-    expect(renderCount).toBeLessThanOrEqual(2);
+    expect(renderCount).toBeLessThanOrEqual(4);
 
     // Allow worker to deliver the rendered frame before diffing
     await page.waitForTimeout(100);

@@ -441,21 +441,37 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       layers[existingPaperIdx] = { ...paperLayer, state } as typeof paperLayer;
       map.paper = canonical;
     }
-    if (!layers.find((l) => l.type === HEXGRID_ANCHOR_TYPE)) {
+    const ensureHexgridState = (raw: unknown) => {
+      const defaults = (getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState as
+        | Record<string, unknown>
+        | undefined) ?? {
+        size: 24,
+        orientation: "pointy",
+        color: "#000000",
+        usePaletteColor: true,
+        alpha: 1,
+        lineWidth: 1,
+        origin: { x: 0, y: 0 },
+      };
+      const base = isPlainObject(raw) ? raw : {};
+      return { ...defaults, ...base } as Record<string, unknown>;
+    };
+
+    const hexgridIdx = layers.findIndex((l) => l.type === HEXGRID_ANCHOR_TYPE);
+    if (hexgridIdx === -1) {
       layers.push({
         id: uuid(),
         type: HEXGRID_ANCHOR_TYPE,
         name: "Hex Grid",
         visible: true,
-        state: getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState || {
-          size: 24,
-          orientation: "pointy",
-          color: "#000000",
-          alpha: 1,
-          lineWidth: 1,
-          origin: { x: 0, y: 0 },
-        },
+        state: ensureHexgridState(undefined),
       });
+    } else {
+      const layer = layers[hexgridIdx];
+      layers[hexgridIdx] = {
+        ...layer,
+        state: ensureHexgridState(layer.state),
+      } as typeof layer;
     }
     const paper = layers.find((l) => l.type === PAPER_ANCHOR_TYPE)!;
     const grid = layers.find((l) => l.type === HEXGRID_ANCHOR_TYPE)!;
@@ -564,14 +580,20 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         type: HEXGRID_ANCHOR_TYPE,
         name: "Hex Grid",
         visible: true,
-        state: getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState || {
-          size: 24,
-          orientation: "pointy",
-          color: "#000000",
-          alpha: 1,
-          lineWidth: 1,
-          origin: { x: 0, y: 0 },
-        },
+        state: (() => {
+          const defaults = getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState;
+          if (isPlainObject(defaults))
+            return { ...(defaults as Record<string, unknown>) };
+          return {
+            size: 24,
+            orientation: "pointy",
+            color: "#000000",
+            usePaletteColor: true,
+            alpha: 1,
+            lineWidth: 1,
+            origin: { x: 0, y: 0 },
+          };
+        })(),
       },
     ];
     const maps = [

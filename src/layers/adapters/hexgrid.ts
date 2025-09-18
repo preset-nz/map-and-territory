@@ -6,7 +6,8 @@ export type HexOrientation = "pointy" | "flat";
 export interface HexgridState {
   size: number; // hex radius in px
   orientation: HexOrientation; // 'pointy' | 'flat'
-  color: string; // stroke color
+  color: string; // stroke color when not inheriting from palette
+  usePaletteColor: boolean; // inherit color from active palette setting when true
   alpha?: number;
   lineWidth?: number;
   origin?: { x: number; y: number }; // future use
@@ -18,12 +19,15 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   title: "Hex Grid",
   drawMain(ctx, state, env: RenderEnv) {
     const { w, h } = env.size;
-    const { size, orientation, color, alpha, lineWidth } = state;
+    const { size, orientation, color, alpha, lineWidth, usePaletteColor } =
+      state;
     const r = Math.max(4, size || 16);
-    const stroke =
-      color && color !== "#000000"
+    const paletteStroke = env.palette?.grid.line || "#000000";
+    const stroke = usePaletteColor
+      ? paletteStroke
+      : color && color.length > 0
         ? color
-        : env.palette?.grid.line || "#000000";
+        : paletteStroke;
     const a = alpha ?? 0.25;
     const dpr = env.pixelRatio || 1;
 
@@ -51,7 +55,8 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   },
   getInvalidationKey(state) {
     const s = state;
-    return `hexgrid:${s.size}:${s.orientation}:${s.color}:${s.alpha ?? 1}:${s.lineWidth ?? 1}`;
+    const colorKey = s.usePaletteColor ? "palette" : s.color;
+    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}`;
   },
 };
 
@@ -62,6 +67,7 @@ export const HexgridType = {
     size: 24,
     orientation: "pointy",
     color: "#000000",
+    usePaletteColor: true,
     alpha: 1,
     lineWidth: 1,
     origin: { x: 0, y: 0 },

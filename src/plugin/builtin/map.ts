@@ -4,7 +4,7 @@ import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
-import { AppAPI } from "@/appapi";
+import { TerrainSettings } from "@/palettes/settings";
 
 export const mapPluginManifest: PluginManifest = {
   id: "app.plugins.map",
@@ -70,21 +70,22 @@ export const mapPluginModule: PluginModule = {
               label: "Map Setting (when override on)",
               path: "settingId",
               disabledWhen: { path: "overrideEnabled", equals: false },
-              optionsProvider: (app: unknown) => {
-                try {
-                  type AppApi = typeof AppAPI;
-                  const api = app as AppApi;
-                  const entries = api.palette.list();
-                  return [
-                    { value: "", label: "— Select Terrain —" },
-                    ...entries.map((e) => ({
-                      value: e.id,
-                      label: e.themedName,
-                    })),
-                  ];
-                } catch {
-                  return [{ value: "", label: "— Select Terrain —" }];
-                }
+              optionsProvider: () => {
+                const settings = TerrainSettings.getAllSettings();
+                return [
+                  { value: "", label: "— Select Setting —" },
+                  ...settings.map((setting) => ({
+                    value: setting.id,
+                    label: setting.name,
+                    swatches: [
+                      setting.palette.colors.primary,
+                      setting.palette.colors.secondary,
+                      setting.palette.colors.accent,
+                      setting.palette.colors.background,
+                      setting.palette.gridLine,
+                    ],
+                  })),
+                ];
               },
             },
           ],

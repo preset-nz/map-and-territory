@@ -85,6 +85,13 @@ export const campaignPluginModule: PluginModule = {
               options: TerrainSettings.getAllSettings().map((s) => ({
                 value: s.id,
                 label: s.name,
+                swatches: [
+                  s.palette.colors.primary,
+                  s.palette.colors.secondary,
+                  s.palette.colors.accent,
+                  s.palette.colors.background,
+                  s.palette.gridLine,
+                ],
               })),
             },
           ],
