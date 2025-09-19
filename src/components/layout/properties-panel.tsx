@@ -7,6 +7,7 @@ import {
   ColorField,
   SelectField,
   CheckboxField,
+  FileField,
 } from "@/components/properties";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -17,6 +18,7 @@ import {
   type NumberFieldDef,
   type SliderFieldDef,
   type TextareaFieldDef,
+  type FileFieldDef,
 } from "@/properties/registry";
 import { Separator } from "@/components/ui/separator";
 import { useLayoutStore } from "@/stores/layout";
@@ -72,6 +74,45 @@ const Group: React.FC<{
     <Separator className="my-3" />
   </div>
 );
+
+async function readFileAsDataUrl(file: File): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function measureImage(
+  dataUrl: string,
+): Promise<{ width: number; height: number }> {
+  return await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = (event) => reject(event);
+    img.src = dataUrl;
+  });
+}
+
+function generateTextureId(name: string): string {
+  const base = name.replace(/\s+/g, "-").toLowerCase();
+  return `texture-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${base}`;
+}
+
+async function buildTexturePayload(file: File) {
+  const dataUrl = await readFileAsDataUrl(file);
+  const { width, height } = await measureImage(dataUrl);
+  return {
+    id: generateTextureId(file.name || "texture"),
+    name: file.name || "texture",
+    mimeType: file.type || "application/octet-stream",
+    dataUrl,
+    width,
+    height,
+  };
+}
 
 const GenericProperties: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
@@ -170,6 +211,21 @@ const GenericProperties: React.FC = () => {
         }
         if (path === "usePaletteColor") {
           return st.usePaletteColor !== false;
+        }
+      }
+      if (layer.type === "freeform") {
+        const st = (layer.state ?? {}) as Record<string, unknown>;
+        if (path === "renderMode") {
+          return (st["renderMode"] as string | undefined) ?? "paint";
+        }
+        if (path === "textureFill") {
+          return st["textureFill"] as
+            | Record<string, unknown>
+            | null
+            | undefined;
+        }
+        if (path === "fillMode") {
+          return (st["fillMode"] as string | undefined) ?? "auto";
         }
       }
       return (layer.state as Record<string, unknown> | undefined)?.[
@@ -388,6 +444,55 @@ function renderSchemaGroups(
                           max={sf.max}
                           step={sf.step ?? 1}
                           onChange={(val) => setVal(f.path, val)}
+                        />
+                      </div>
+                    );
+                  }
+                  if (f.kind === "file") {
+                    const ff = f as FileFieldDef;
+                    const asset = getVal(f.path) as
+                      | { name?: string }
+                      | null
+                      | undefined;
+                    const handlePick = (file: File) => {
+                      void (async () => {
+                        try {
+                          const payload = await buildTexturePayload(file);
+                          setVal(f.path, payload);
+                          ff.cascade?.forEach(({ path, value }) =>
+                            setVal(path, value),
+                          );
+                        } catch (error) {
+                          console.error(
+                            "[properties] failed to load file",
+                            error,
+                          );
+                        }
+                      })();
+                    };
+                    const handleClear = asset
+                      ? () => {
+                          setVal(f.path, null);
+                          ff.clearCascade?.forEach(({ path, value }) =>
+                            setVal(path, value),
+                          );
+                        }
+                      : undefined;
+                    return (
+                      <div
+                        key={f.id}
+                        className={
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }
+                      >
+                        <FileField
+                          label={f.label || f.id}
+                          fileName={asset?.name}
+                          disabled={disabled}
+                          accept={ff.accept}
+                          helperText={ff.helperText}
+                          onPick={handlePick}
+                          onClear={handleClear}
                         />
                       </div>
                     );

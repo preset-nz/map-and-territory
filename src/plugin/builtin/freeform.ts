@@ -106,6 +106,30 @@ export const freeformModule: PluginModule = {
               max: 1,
               step: 0.01,
             },
+            {
+              kind: "select",
+              id: "renderMode",
+              label: "Render Mode",
+              path: "renderMode",
+              options: [
+                { value: "paint", label: "Paint" },
+                {
+                  value: "texture-fill",
+                  label: "Texture Fill (beta)",
+                },
+              ],
+            },
+            {
+              kind: "file",
+              id: "textureFill",
+              label: "Texture Asset",
+              path: "textureFill",
+              accept: "image/png,image/jpeg,image/webp,image/svg+xml",
+              helperText: "PNG, JPG, WebP, or SVG. Scales to fit the paper.",
+              disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
+              cascade: [{ path: "renderMode", value: "texture-fill" }],
+              clearCascade: [{ path: "renderMode", value: "paint" }],
+            },
             [
               {
                 kind: "select",

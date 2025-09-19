@@ -5,7 +5,8 @@ export type FieldKind =
   | "textarea"
   | "number"
   | "slider"
-  | "checkbox";
+  | "checkbox"
+  | "file";
 
 export interface BaseField {
   kind: FieldKind;
@@ -60,6 +61,19 @@ export interface CheckboxFieldDef extends BaseField {
   kind: "checkbox";
 }
 
+export interface FileCascadeTarget {
+  path: string;
+  value: unknown;
+}
+
+export interface FileFieldDef extends BaseField {
+  kind: "file";
+  accept?: string;
+  helperText?: string;
+  cascade?: FileCascadeTarget[];
+  clearCascade?: FileCascadeTarget[];
+}
+
 export type FieldDef =
   | SelectFieldDef
   | ColorFieldDef
@@ -67,7 +81,8 @@ export type FieldDef =
   | TextareaFieldDef
   | NumberFieldDef
   | SliderFieldDef
-  | CheckboxFieldDef;
+  | CheckboxFieldDef
+  | FileFieldDef;
 
 export interface PropertyGroupDef {
   id: string;
