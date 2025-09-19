@@ -227,6 +227,9 @@ const GenericProperties: React.FC = () => {
         if (path === "fillMode") {
           return (st["fillMode"] as string | undefined) ?? "auto";
         }
+        if (path === "textureFillInvert") {
+          return Boolean(st["textureFillInvert"]);
+        }
       }
       return (layer.state as Record<string, unknown> | undefined)?.[
         path as keyof Record<string, unknown>
@@ -247,6 +250,10 @@ const GenericProperties: React.FC = () => {
           brushTerrainId: val || undefined,
           brushColor: color,
         });
+        return;
+      }
+      if (layer.type === "freeform" && path === "textureFillInvert") {
+        updateLayerState(layer.id, { textureFillInvert: Boolean(val) });
         return;
       }
       if (layer.type === "hexgrid") {

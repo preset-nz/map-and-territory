@@ -128,7 +128,17 @@ export const freeformModule: PluginModule = {
               helperText: "PNG, JPG, WebP, or SVG. Scales to fit the paper.",
               disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
               cascade: [{ path: "renderMode", value: "texture-fill" }],
-              clearCascade: [{ path: "renderMode", value: "paint" }],
+              clearCascade: [
+                { path: "renderMode", value: "paint" },
+                { path: "textureFillInvert", value: false },
+              ],
+            },
+            {
+              kind: "checkbox",
+              id: "textureFillInvert",
+              label: "Invert Mask",
+              path: "textureFillInvert",
+              disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
             },
             [
               {

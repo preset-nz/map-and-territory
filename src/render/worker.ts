@@ -96,6 +96,7 @@ function handleDestroy() {
   backend = null;
   canvasRef = null;
   lastFrame = null;
+  workerGlobal.__freeformTextureReady = undefined;
 }
 
 self.onmessage = async (ev: MessageEvent<RenderMessage>) => {

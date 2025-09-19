@@ -1,6 +1,6 @@
 import type { LayerAdapter } from "@/layers/types";
 import { parseAxialKey, hexPath } from "@/layers/hex-utils";
-import { toPoint } from "@/lib/hex/layout";
+import { toPoint, corners } from "@/lib/hex/layout";
 import type { MapPalette } from "@/palettes/types";
 import { resolveTerrainFill } from "@/stores/selectors/palette";
 
@@ -28,6 +28,7 @@ export interface FreeformState {
   fillMode?: "auto" | "same-value" | "empty-only";
   renderMode?: FreeformRenderMode;
   textureFill?: TextureFillSettings | null;
+  textureFillInvert?: boolean;
 }
 
 const textureBitmapCache = new Map<string, ImageBitmap>();
@@ -64,6 +65,30 @@ function notifyTextureReady() {
   } catch (error) {
     console.warn("[freeform] texture ready notification failed", error);
   }
+}
+
+interface PathSink {
+  moveTo(x: number, y: number): void;
+  lineTo(x: number, y: number): void;
+  closePath(): void;
+}
+
+function traceHexPath(
+  target: PathSink,
+  center: { x: number; y: number },
+  layout: { size: number; orientation: "pointy" | "flat" },
+) {
+  const pts = corners(center, {
+    size: layout.size,
+    orientation: layout.orientation,
+    origin: { x: 0, y: 0 },
+  });
+  if (!pts.length) return;
+  target.moveTo(pts[0]!.x, pts[0]!.y);
+  for (let i = 1; i < pts.length; i++) {
+    target.lineTo(pts[i]!.x, pts[i]!.y);
+  }
+  target.closePath();
 }
 
 function ensureTextureBitmap(
@@ -119,7 +144,10 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
 
     if ((state.renderMode ?? "paint") === "texture-fill") {
       const settings = state.textureFill;
+      const cells = Object.entries(state.cells || {});
+      const invert = Boolean(state.textureFillInvert);
       if (!settings) return;
+      if (!invert && cells.length === 0) return;
       const bitmap = ensureTextureBitmap(settings);
       if (!bitmap) return;
       const width = env.size?.w ?? bitmap.width;
@@ -127,6 +155,24 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
       ctx.save();
       ctx.globalAlpha = a;
       ctx.globalCompositeOperation = "source-over";
+      ctx.beginPath();
+      if (invert) {
+        ctx.rect(0, 0, width, height);
+      }
+      for (const [key] of cells) {
+        const axial = parseAxialKey(key);
+        const center = toPoint(axial, {
+          size,
+          origin,
+          orientation,
+        } as const);
+        traceHexPath(ctx, center, layout);
+      }
+      if (invert) {
+        ctx.clip("evenodd");
+      } else {
+        ctx.clip();
+      }
       ctx.drawImage(bitmap, 0, 0, width, height);
       ctx.restore();
       return;
@@ -150,7 +196,8 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     const lastKey = Object.keys(state.cells || {}).slice(-1)[0] || "-";
     const mode = state.renderMode ?? "paint";
     const textureId = state.textureFill?.id ?? "-";
-    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${textureId}`;
+    const invert = state.textureFillInvert ? 1 : 0;
+    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${textureId}:${invert}`;
   },
 };
 
@@ -165,6 +212,7 @@ export const FreeformType = {
     fillMode: "auto",
     renderMode: "paint",
     textureFill: null,
+    textureFillInvert: false,
   },
   adapter: FreeformAdapter,
   policy: { canDelete: true, canDuplicate: true },
