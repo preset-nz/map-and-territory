@@ -69,15 +69,19 @@ envProviderList.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 const toolRegistry = new Map<string, ToolHandler>();
 
 function notifyToolbarUpdate() {
+  if (typeof globalThis === "undefined") return;
+  const target = globalThis as unknown as EventTarget & {
+    CustomEvent?: typeof CustomEvent;
+  };
+  const CustomEventCtor = target.CustomEvent;
   if (
-    typeof window !== "undefined" &&
-    typeof window.dispatchEvent === "function" &&
-    typeof window.CustomEvent === "function"
+    typeof target.dispatchEvent === "function" &&
+    typeof CustomEventCtor === "function"
   ) {
     try {
-      window.dispatchEvent(new window.CustomEvent("plugin:toolbar-updated"));
+      target.dispatchEvent(new CustomEventCtor("plugin:toolbar-updated"));
     } catch {
-      // no-op in non-DOM contexts
+      // Non-DOM contexts (e.g. worker without CustomEvent) simply skip notifications.
     }
   }
 }
@@ -211,7 +215,9 @@ export async function loadPluginsWithPriority(
 
   // Fire a deferred update to ensure subscribers that mounted slightly later
   // still receive a change signal (avoids race on initial hydration).
-  if (typeof window !== "undefined") {
+  if (typeof queueMicrotask === "function") {
+    queueMicrotask(() => notifyToolbarUpdate());
+  } else if (typeof setTimeout === "function") {
     setTimeout(() => notifyToolbarUpdate(), 0);
   }
 }

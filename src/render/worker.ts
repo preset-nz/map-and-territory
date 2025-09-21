@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { RenderMessage } from "@/render/types";
+import type { RenderMessage, SceneFrame } from "@/render/types";
 import { Canvas2DBackend } from "@/render/backends/canvas2d";
 import bootstrapPlugins from "@/plugin/bootstrap";
 import { registerLayerType } from "@/layers/registry";
@@ -10,6 +10,20 @@ import { FreeformType } from "@/layers/adapters/freeform-hex";
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
+let lastFrame: SceneFrame | null = null;
+
+const workerGlobal = globalThis as unknown as {
+  __freeformTextureReady?: () => void;
+};
+
+workerGlobal.__freeformTextureReady = () => {
+  if (!backend || !lastFrame) return;
+  try {
+    backend.render(lastFrame);
+  } catch (error) {
+    console.warn("[worker] re-render after texture ready failed", error);
+  }
+};
 
 async function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
   // Load plugins inside the worker to register layer adapters and render SPI.
@@ -74,12 +88,15 @@ function handleRender(msg: Extract<RenderMessage, { type: "render" }>) {
     backend?.resize(msg.frame.size, dpr);
   }
   backend?.render(msg.frame);
+  lastFrame = msg.frame;
 }
 
 function handleDestroy() {
   backend?.destroy();
   backend = null;
   canvasRef = null;
+  lastFrame = null;
+  workerGlobal.__freeformTextureReady = undefined;
 }
 
 self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
