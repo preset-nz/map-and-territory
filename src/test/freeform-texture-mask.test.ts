@@ -27,6 +27,12 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
   public restored = 0;
   public globalAlpha = 1;
   public globalCompositeOperation = "source-over";
+  public translateCalls: Array<[number, number]> = [];
+  public rotateCalls: number[] = [];
+  public scaleCalls: Array<[number, number]> = [];
+  public fillRectCalls: Array<[number, number, number, number]> = [];
+  public patternRequested = false;
+  public fillStyle: string | CanvasGradient | CanvasPattern = "#000";
 
   beginPath() {
     this.beginPathCount++;
@@ -65,6 +71,27 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
     dh: number,
   ) {
     this.drawImageCalls.push([dx, dy, dw, dh]);
+  }
+
+  createPattern(): CanvasPattern | null {
+    this.patternRequested = true;
+    return {} as CanvasPattern;
+  }
+
+  fillRect(x: number, y: number, w: number, h: number) {
+    this.fillRectCalls.push([x, y, w, h]);
+  }
+
+  translate(x: number, y: number) {
+    this.translateCalls.push([x, y]);
+  }
+
+  rotate(angle: number) {
+    this.rotateCalls.push(angle);
+  }
+
+  scale(x: number, y: number) {
+    this.scaleCalls.push([x, y]);
   }
 
   save() {
@@ -203,7 +230,39 @@ describe("Freeform texture masking", () => {
 
     expect(ctx.clipMode).toBe("evenodd");
     expect(ctx.rectCalls[0]).toEqual([0, 0, 200, 200]);
-    expect(ctx.drawImageCalls[0]).toEqual([0, 0, 200, 200]);
+    expect(ctx.drawImageCalls[0]).toEqual([-100, -100, 200, 200]);
+  });
+
+  it("uses pattern fill when tiling set to repeat", async () => {
+    const ctx = new MockContext();
+    const state: FreeformState = {
+      cells: { "0,0": {} },
+      opacity: 1,
+      brushTerrainId: undefined,
+      brushColor: undefined,
+      fillMode: "auto",
+      renderMode: "texture-fill",
+      textureFill: baseTexture,
+      textureFillInvert: false,
+      textureTiling: "repeat",
+    };
+
+    FreeformAdapter.drawMain?.(
+      ctx as unknown as CanvasRenderingContext2D,
+      state,
+      env,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    FreeformAdapter.drawMain?.(
+      ctx as unknown as CanvasRenderingContext2D,
+      state,
+      env,
+    );
+
+    expect(ctx.patternRequested).toBe(true);
+    expect(ctx.fillRectCalls.length).toBeGreaterThan(0);
   });
 });
 

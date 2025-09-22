@@ -5,6 +5,7 @@ import type { MapPalette } from "@/palettes/types";
 import { resolveTerrainFill } from "@/stores/selectors/palette";
 
 type FreeformRenderMode = "paint" | "texture-fill";
+type TextureTilingMode = "stretch" | "fit" | "repeat";
 
 export interface TextureFillSettings {
   id: string;
@@ -29,6 +30,11 @@ export interface FreeformState {
   renderMode?: FreeformRenderMode;
   textureFill?: TextureFillSettings | null;
   textureFillInvert?: boolean;
+  textureOffsetX?: number;
+  textureOffsetY?: number;
+  textureScale?: number;
+  textureRotation?: number; // degrees
+  textureTiling?: TextureTilingMode;
 }
 
 const textureBitmapCache = new Map<string, ImageBitmap>();
@@ -152,6 +158,24 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
       if (!bitmap) return;
       const width = env.size?.w ?? bitmap.width;
       const height = env.size?.h ?? bitmap.height;
+      const offsetX = Number.isFinite(state.textureOffsetX)
+        ? Number(state.textureOffsetX)
+        : 0;
+      const offsetY = Number.isFinite(state.textureOffsetY)
+        ? Number(state.textureOffsetY)
+        : 0;
+      const scaleRaw = Number.isFinite(state.textureScale)
+        ? Number(state.textureScale)
+        : 1;
+      const scale = Math.max(0.05, Math.min(8, scaleRaw || 1));
+      const rotationDeg = Number.isFinite(state.textureRotation)
+        ? Number(state.textureRotation)
+        : 0;
+      const rotation = (rotationDeg * Math.PI) / 180;
+      const tiling: TextureTilingMode =
+        state.textureTiling === "fit" || state.textureTiling === "repeat"
+          ? state.textureTiling
+          : "stretch";
       ctx.save();
       ctx.globalAlpha = a;
       ctx.globalCompositeOperation = "source-over";
@@ -173,7 +197,36 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
       } else {
         ctx.clip();
       }
-      ctx.drawImage(bitmap, 0, 0, width, height);
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(rotation);
+      ctx.scale(scale, scale);
+      ctx.translate(offsetX, offsetY);
+
+      if (tiling === "repeat") {
+        const pattern = ctx.createPattern(
+          bitmap as CanvasImageSource,
+          "repeat",
+        );
+        if (pattern) {
+          ctx.fillStyle = pattern;
+          const span = Math.max(width, height) * 2;
+          ctx.fillRect(-span, -span, span * 2, span * 2);
+        } else {
+          ctx.drawImage(bitmap, -width / 2, -height / 2, width, height);
+        }
+      } else {
+        let drawW = width;
+        let drawH = height;
+        if (tiling === "fit") {
+          const ratio = Math.min(width / bitmap.width, height / bitmap.height);
+          drawW = bitmap.width * ratio;
+          drawH = bitmap.height * ratio;
+        }
+        ctx.drawImage(bitmap, -drawW / 2, -drawH / 2, drawW, drawH);
+      }
+
+      ctx.restore();
       ctx.restore();
       return;
     }
@@ -197,7 +250,12 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     const mode = state.renderMode ?? "paint";
     const textureId = state.textureFill?.id ?? "-";
     const invert = state.textureFillInvert ? 1 : 0;
-    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${textureId}:${invert}`;
+    const offsetX = Number(state.textureOffsetX ?? 0).toFixed(2);
+    const offsetY = Number(state.textureOffsetY ?? 0).toFixed(2);
+    const scale = Number(state.textureScale ?? 1).toFixed(3);
+    const rotation = Number(state.textureRotation ?? 0).toFixed(2);
+    const tiling = state.textureTiling ?? "stretch";
+    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${textureId}:${invert}:${offsetX}:${offsetY}:${scale}:${rotation}:${tiling}`;
   },
 };
 
@@ -213,6 +271,11 @@ export const FreeformType = {
     renderMode: "paint",
     textureFill: null,
     textureFillInvert: false,
+    textureOffsetX: 0,
+    textureOffsetY: 0,
+    textureScale: 1,
+    textureRotation: 0,
+    textureTiling: "stretch",
   },
   adapter: FreeformAdapter,
   policy: { canDelete: true, canDuplicate: true },
