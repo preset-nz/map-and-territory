@@ -88,6 +88,9 @@ export interface PropertyGroupDef {
   id: string;
   title: string;
   rows: Array<FieldDef | FieldDef[]>;
+  description?: string;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
 }
 
 export interface PropertySchema {

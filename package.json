@@ -20,7 +20,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "validate": "pnpm format:write && pnpm lint && pnpm test:run && CI=1 PORT=3210 pnpm test:e2e"
+    "validate": "pnpm format:write && pnpm lint &&  pnpm test:run --reporter=dot --silent && CI=1 PORT=3210 pnpm test:e2e"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs,json,css,scss,md,mdx,yml,yaml,html,svg}": [

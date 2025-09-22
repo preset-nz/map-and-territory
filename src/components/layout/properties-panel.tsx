@@ -8,6 +8,7 @@ import {
   SelectField,
   CheckboxField,
   FileField,
+  PropertyGroup,
 } from "@/components/properties";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -20,7 +21,6 @@ import {
   type TextareaFieldDef,
   type FileFieldDef,
 } from "@/properties/registry";
-import { Separator } from "@/components/ui/separator";
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
 import { useCampaignStore } from "@/stores/campaign";
@@ -56,23 +56,6 @@ export default PropertiesPanel;
 
 const FieldLabel: React.FC<{ label: string }> = ({ label }) => (
   <div className="text-xs text-foreground mb-1">{label}</div>
-);
-
-const Group: React.FC<{
-  title: string;
-  children: React.ReactNode;
-  actions?: React.ReactNode;
-}> = ({ title, children, actions }) => (
-  <div>
-    <div className="flex items-center justify-between mb-2">
-      <div className="text-[11px] uppercase tracking-wide text-foreground">
-        {title}
-      </div>
-      {actions}
-    </div>
-    <div className="space-y-3">{children}</div>
-    <Separator className="my-3" />
-  </div>
 );
 
 async function readFileAsDataUrl(file: File): Promise<string> {
@@ -149,7 +132,7 @@ const GenericProperties: React.FC = () => {
         setCampaignDescription(val);
       else if (path === "settingId") setCampaignSetting(String(val || ""));
     };
-    return <>{renderSchemaGroups(schema, getVal, setVal)}</>;
+    return renderSchemaGroups(schema, getVal, setVal);
   }
 
   if (selection.kind === "map") {
@@ -190,7 +173,7 @@ const GenericProperties: React.FC = () => {
           break;
       }
     };
-    return <>{renderSchemaGroups(schema, getVal, setVal)}</>;
+    return renderSchemaGroups(schema, getVal, setVal);
   }
 
   if (selection.kind === "layer") {
@@ -323,17 +306,19 @@ const GenericProperties: React.FC = () => {
     };
     return (
       <>
-        <Group title="Layer">
-          <div>
-            <FieldLabel label="Name" />
-            <Input
-              aria-label="Layer Name"
-              value={layer.name ?? ""}
-              onChange={(e) => renameLayer(layer.id, e.target.value)}
-              placeholder="Layer Name"
-            />
+        <PropertyGroup title="Layer" collapsible={false}>
+          <div className="space-y-3">
+            <div>
+              <FieldLabel label="Name" />
+              <Input
+                aria-label="Layer Name"
+                value={layer.name ?? ""}
+                onChange={(e) => renameLayer(layer.id, e.target.value)}
+                placeholder="Layer Name"
+              />
+            </div>
           </div>
-        </Group>
+        </PropertyGroup>
         {schema ? renderSchemaGroups(schema, getVal, setVal) : null}
       </>
     );
@@ -346,230 +331,240 @@ function renderSchemaGroups(
   getVal: (path: string) => unknown,
   setVal: (path: string, val: unknown) => void,
 ) {
-  return (
-    <>
-      {schema.groups.map((g) => (
-        <Group key={g.id} title={g.title}>
-          {g.rows.map((row, idx) => {
-            const fields = Array.isArray(row) ? row : [row];
-            return (
-              <div
-                key={idx}
-                className={fields.length > 1 ? "grid grid-cols-2 gap-2" : ""}
-              >
-                {fields.map((f: FieldDef) => {
-                  const disabled = (() => {
-                    const cond = f.disabledWhen as
-                      | { path: string; equals?: unknown; notEquals?: unknown }
-                      | undefined;
-                    if (!cond) return false;
-                    const v = getVal(cond.path);
-                    if (Object.prototype.hasOwnProperty.call(cond, "equals"))
-                      return v === cond.equals;
-                    if (Object.prototype.hasOwnProperty.call(cond, "notEquals"))
-                      return v !== cond.notEquals;
-                    return false;
-                  })();
+  return schema.groups.map((g) => (
+    <PropertyGroup
+      key={g.id}
+      title={g.title}
+      description={g.description}
+      collapsible={g.collapsible ?? false}
+      defaultCollapsed={g.defaultCollapsed ?? false}
+    >
+      <div className="space-y-3">
+        {g.rows.map((row, idx) => {
+          const fields = Array.isArray(row) ? row : [row];
+          return (
+            <div
+              key={idx}
+              className={fields.length > 1 ? "grid grid-cols-2 gap-2" : ""}
+            >
+              {fields.map((f: FieldDef) => {
+                const disabled = (() => {
+                  const cond = f.disabledWhen as
+                    | { path: string; equals?: unknown; notEquals?: unknown }
+                    | undefined;
+                  if (!cond) return false;
+                  const v = getVal(cond.path);
+                  if (Object.prototype.hasOwnProperty.call(cond, "equals"))
+                    return v === cond.equals;
+                  if (Object.prototype.hasOwnProperty.call(cond, "notEquals"))
+                    return v !== cond.notEquals;
+                  return false;
+                })();
 
-                  if (f.kind === "select") {
-                    const v = getVal(f.path) ?? "";
-                    const sel = f as SelectFieldDef;
-                    const options = sel.optionsProvider
-                      ? sel.optionsProvider(AppAPI)
-                      : (sel.options ?? []);
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <SelectField
-                          label={f.label}
-                          value={String(v)}
-                          options={options}
-                          onChange={(val) => setVal(f.path, val)}
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "color") {
-                    const v = getVal(f.path) ?? "#ffffff";
-                    const cf = f as ColorFieldDef;
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <ColorField
-                          label={f.label}
-                          value={String(v)}
-                          onChange={(val) => setVal(f.path, val)}
-                          presets={cf.presets}
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "text") {
-                    const v = String(getVal(f.path) ?? "");
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <FieldLabel label={f.label || f.id} />
-                        <Input
-                          type="text"
-                          aria-label={f.label || f.id}
-                          value={v}
-                          onChange={(e) => setVal(f.path, e.target.value)}
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "textarea") {
-                    const v = String(getVal(f.path) ?? "");
-                    const tf = f as TextareaFieldDef;
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <FieldLabel label={f.label || f.id} />
-                        <Textarea
-                          aria-label={f.label || f.id}
-                          value={v}
-                          rows={tf.rows ?? 3}
-                          onChange={(e) => setVal(f.path, e.target.value)}
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "number") {
-                    const v = Number(getVal(f.path) ?? 0);
-                    const nf = f as NumberFieldDef;
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <FieldLabel label={f.label || f.id} />
-                        <Input
-                          type="number"
-                          aria-label={f.label || f.id}
-                          value={v}
-                          min={nf.min}
-                          max={nf.max}
-                          step={nf.step ?? 1}
-                          onChange={(e) =>
-                            setVal(f.path, Number(e.target.value))
-                          }
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "slider") {
-                    const v = Number(getVal(f.path) ?? 0);
-                    const sf = f as SliderFieldDef;
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <FieldLabel label={f.label || f.id} />
-                        <Slider
-                          value={v}
-                          min={sf.min}
-                          max={sf.max}
-                          step={sf.step ?? 1}
-                          onChange={(val) => setVal(f.path, val)}
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "file") {
-                    const ff = f as FileFieldDef;
-                    const asset = getVal(f.path) as
-                      | { name?: string }
-                      | null
-                      | undefined;
-                    const handlePick = (file: File) => {
-                      void (async () => {
-                        try {
-                          const payload = await buildTexturePayload(file);
-                          setVal(f.path, payload);
-                          ff.cascade?.forEach(({ path, value }) =>
-                            setVal(path, value),
-                          );
-                        } catch (error) {
-                          console.error(
-                            "[properties] failed to load file",
-                            error,
-                          );
-                        }
-                      })();
-                    };
-                    const handleClear = asset
-                      ? () => {
-                          setVal(f.path, null);
-                          ff.clearCascade?.forEach(({ path, value }) =>
-                            setVal(path, value),
-                          );
-                        }
-                      : undefined;
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <FileField
-                          label={f.label || f.id}
-                          fileName={asset?.name}
-                          disabled={disabled}
-                          accept={ff.accept}
-                          helperText={ff.helperText}
-                          onPick={handlePick}
-                          onClear={handleClear}
-                        />
-                      </div>
-                    );
-                  }
-                  if (f.kind === "checkbox") {
-                    const v = Boolean(getVal(f.path));
-                    return (
-                      <div
-                        key={f.id}
-                        className={
-                          disabled ? "opacity-50 pointer-events-none" : ""
-                        }
-                      >
-                        <CheckboxField
-                          label={f.label}
-                          checked={v}
-                          onChange={(checked) => setVal(f.path, checked)}
-                        />
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            );
-          })}
-        </Group>
-      ))}
-    </>
-  );
+                if (f.kind === "select") {
+                  const v = getVal(f.path) ?? "";
+                  const sel = f as SelectFieldDef;
+                  const options = sel.optionsProvider
+                    ? sel.optionsProvider(AppAPI)
+                    : (sel.options ?? []);
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <SelectField
+                        label={f.label}
+                        value={String(v)}
+                        options={options}
+                        onChange={(val) => setVal(f.path, val)}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "color") {
+                  const v = getVal(f.path) ?? "#ffffff";
+                  const cf = f as ColorFieldDef;
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <ColorField
+                        label={f.label}
+                        value={String(v)}
+                        presets={cf.presets}
+                        onChange={(val) => setVal(f.path, val)}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "text") {
+                  const v = String(getVal(f.path) ?? "");
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <FieldLabel label={f.label || f.id} />
+                      <Input
+                        type="text"
+                        aria-label={f.label || f.id}
+                        value={v}
+                        onChange={(e) => setVal(f.path, e.target.value)}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "textarea") {
+                  const v = String(getVal(f.path) ?? "");
+                  const tf = f as TextareaFieldDef;
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <FieldLabel label={f.label || f.id} />
+                      <Textarea
+                        aria-label={f.label || f.id}
+                        value={v}
+                        rows={tf.rows ?? 3}
+                        onChange={(e) => setVal(f.path, e.target.value)}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "number") {
+                  const current = getVal(f.path);
+                  const parsed =
+                    typeof current === "number" || typeof current === "string"
+                      ? Number(current)
+                      : 0;
+                  const nf = f as NumberFieldDef;
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <FieldLabel label={f.label || f.id} />
+                      <Input
+                        type="number"
+                        aria-label={f.label || f.id}
+                        value={Number.isFinite(parsed) ? String(parsed) : ""}
+                        min={nf.min}
+                        max={nf.max}
+                        step={nf.step ?? 1}
+                        onChange={(e) => setVal(f.path, Number(e.target.value))}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "slider") {
+                  const current = getVal(f.path);
+                  const value =
+                    typeof current === "number"
+                      ? current
+                      : Number(current ?? 0);
+                  const sf = f as SliderFieldDef;
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <FieldLabel label={f.label || f.id} />
+                      <Slider
+                        value={Number.isFinite(value) ? value : (sf.min ?? 0)}
+                        min={sf.min}
+                        max={sf.max}
+                        step={sf.step ?? 1}
+                        onChange={(val) => setVal(f.path, val)}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "file") {
+                  const ff = f as FileFieldDef;
+                  const asset = getVal(f.path) as
+                    | { name?: string }
+                    | null
+                    | undefined;
+                  const handlePick = (file: File) => {
+                    void (async () => {
+                      try {
+                        const payload = await buildTexturePayload(file);
+                        setVal(f.path, payload);
+                        ff.cascade?.forEach(({ path, value }) =>
+                          setVal(path, value),
+                        );
+                      } catch (error) {
+                        console.error(
+                          "[properties] failed to load file",
+                          error,
+                        );
+                      }
+                    })();
+                  };
+                  const handleClear = asset
+                    ? () => {
+                        setVal(f.path, null);
+                        ff.clearCascade?.forEach(({ path, value }) =>
+                          setVal(path, value),
+                        );
+                      }
+                    : undefined;
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <FileField
+                        label={f.label || f.id}
+                        fileName={asset?.name}
+                        disabled={disabled}
+                        accept={ff.accept}
+                        helperText={ff.helperText}
+                        onPick={handlePick}
+                        onClear={handleClear}
+                      />
+                    </div>
+                  );
+                }
+                if (f.kind === "checkbox") {
+                  const checked = Boolean(getVal(f.path));
+                  return (
+                    <div
+                      key={f.id}
+                      className={
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                      }
+                    >
+                      <CheckboxField
+                        label={f.label}
+                        checked={checked}
+                        onChange={(next) => setVal(f.path, next)}
+                      />
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </PropertyGroup>
+  ));
 }

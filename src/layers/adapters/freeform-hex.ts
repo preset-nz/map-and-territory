@@ -6,6 +6,7 @@ import { resolveTerrainFill } from "@/stores/selectors/palette";
 
 type FreeformRenderMode = "paint" | "texture-fill";
 type TextureTilingMode = "stretch" | "fit" | "repeat";
+type TextureOverlayMode = "normal" | "overlay" | "screen" | "multiply";
 
 export interface TextureFillSettings {
   id: string;
@@ -35,6 +36,7 @@ export interface FreeformState {
   textureScale?: number;
   textureRotation?: number; // degrees
   textureTiling?: TextureTilingMode;
+  textureOverlayMode?: TextureOverlayMode;
 }
 
 const textureBitmapCache = new Map<string, ImageBitmap>();
@@ -178,7 +180,9 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
           : "stretch";
       ctx.save();
       ctx.globalAlpha = a;
-      ctx.globalCompositeOperation = "source-over";
+      const overlayMode = state.textureOverlayMode ?? "normal";
+      const compositeOperation =
+        overlayMode === "normal" ? "source-over" : overlayMode;
       ctx.beginPath();
       if (invert) {
         ctx.rect(0, 0, width, height);
@@ -197,6 +201,24 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
       } else {
         ctx.clip();
       }
+
+      if (!invert && overlayMode !== "normal") {
+        for (const [key, cell] of cells) {
+          ctx.beginPath();
+          const axial = parseAxialKey(key);
+          const center = toPoint(axial, {
+            size,
+            origin,
+            orientation,
+          } as const);
+          traceHexPath(ctx, center, layout);
+          ctx.fillStyle = colorForCell(env.palette, cell);
+          ctx.fill();
+        }
+      }
+
+      ctx.globalCompositeOperation =
+        compositeOperation as CanvasRenderingContext2D["globalCompositeOperation"];
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate(rotation);
@@ -255,7 +277,8 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     const scale = Number(state.textureScale ?? 1).toFixed(3);
     const rotation = Number(state.textureRotation ?? 0).toFixed(2);
     const tiling = state.textureTiling ?? "stretch";
-    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${textureId}:${invert}:${offsetX}:${offsetY}:${scale}:${rotation}:${tiling}`;
+    const overlay = state.textureOverlayMode ?? "normal";
+    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${overlay}:${textureId}:${invert}:${offsetX}:${offsetY}:${scale}:${rotation}:${tiling}`;
   },
 };
 
@@ -276,6 +299,7 @@ export const FreeformType = {
     textureScale: 1,
     textureRotation: 0,
     textureTiling: "stretch",
+    textureOverlayMode: "normal",
   },
   adapter: FreeformAdapter,
   policy: { canDelete: true, canDuplicate: true },

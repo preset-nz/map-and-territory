@@ -44,6 +44,21 @@ export const PropertyGroup: React.FC<PropertyGroupProps> = ({
 
   const toggle = () => setCollapsed(!isCollapsed);
 
+  const headerClasses = cn(
+    "flex min-w-0 items-center gap-2 text-sm text-foreground/90 outline-none",
+    collapsible ? "cursor-pointer" : "cursor-default",
+  );
+
+  const icon = collapsible ? (
+    isCollapsed ? (
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    ) : (
+      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+    )
+  ) : (
+    <span className="h-4 w-4" aria-hidden />
+  );
+
   return (
     <div
       className={cn(
@@ -53,33 +68,24 @@ export const PropertyGroup: React.FC<PropertyGroupProps> = ({
       data-collapsible={collapsible ? "true" : "false"}
       data-collapsed={isCollapsed ? "true" : "false"}
     >
-      <div
-        className={cn(
-          "flex items-center justify-between gap-2 px-3 py-2",
-          collapsible ? "cursor-pointer select-none" : "",
+      <div className="flex items-center justify-between gap-2 px-3 py-2">
+        {collapsible ? (
+          <button
+            type="button"
+            className={headerClasses}
+            aria-expanded={!isCollapsed}
+            aria-controls={panelId}
+            onClick={toggle}
+          >
+            {icon}
+            <span className="truncate font-medium">{title}</span>
+          </button>
+        ) : (
+          <div className={headerClasses} role="heading" aria-level={3}>
+            {icon}
+            <span className="truncate font-medium">{title}</span>
+          </div>
         )}
-      >
-        <button
-          type="button"
-          className={cn(
-            "flex min-w-0 items-center gap-2 text-sm text-foreground/90 outline-none",
-            !collapsible && "cursor-default",
-          )}
-          aria-expanded={!isCollapsed}
-          aria-controls={panelId}
-          onClick={collapsible ? toggle : undefined}
-        >
-          {collapsible ? (
-            isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            )
-          ) : (
-            <span className="h-4 w-4" aria-hidden />
-          )}
-          <span className="truncate font-medium">{title}</span>
-        </button>
         {actions ? (
           <div className="flex items-center gap-2 text-sm">{actions}</div>
         ) : null}
