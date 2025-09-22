@@ -229,6 +229,21 @@ const GenericProperties: React.FC = () => {
           return (st["textureTiling"] as string | undefined) ?? "stretch";
         }
       }
+      if (layer.type === "outline") {
+        const st = (layer.state ?? {}) as Record<string, unknown>;
+        if (path === "strokeColor") {
+          return (st["strokeColor"] as string | undefined) ?? "#f8f5e5";
+        }
+        if (path === "strokeWidth") {
+          return Number(st["strokeWidth"] ?? 4);
+        }
+        if (path === "strokePattern") {
+          return (st["strokePattern"] as string | undefined) ?? "solid";
+        }
+        if (path === "roughness") {
+          return Number(st["roughness"] ?? 0);
+        }
+      }
       return (layer.state as Record<string, unknown> | undefined)?.[
         path as keyof Record<string, unknown>
       ];
@@ -299,6 +314,28 @@ const GenericProperties: React.FC = () => {
               color: AppAPI.palette.gridLine(),
             });
           }
+          return;
+        }
+      }
+      if (layer.type === "outline") {
+        if (path === "strokeColor" && typeof val === "string") {
+          updateLayerState(layer.id, { strokeColor: val });
+          return;
+        }
+        if (path === "strokeWidth") {
+          const width = Math.min(12, Math.max(1, Number(val) || 1));
+          updateLayerState(layer.id, { strokeWidth: width });
+          return;
+        }
+        if (path === "strokePattern") {
+          const pattern =
+            val === "dashed" || val === "dotted" ? (val as string) : "solid";
+          updateLayerState(layer.id, { strokePattern: pattern });
+          return;
+        }
+        if (path === "roughness") {
+          const rough = Math.min(1, Math.max(0, Number(val) || 0));
+          updateLayerState(layer.id, { roughness: rough });
           return;
         }
       }
