@@ -33,6 +33,7 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
   public fillRectCalls: Array<[number, number, number, number]> = [];
   public patternRequested = false;
   public fillStyle: string | CanvasGradient | CanvasPattern = "#000";
+  public fillCalls: Array<string | CanvasGradient | CanvasPattern> = [];
 
   beginPath() {
     this.beginPathCount++;
@@ -80,6 +81,10 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
 
   fillRect(x: number, y: number, w: number, h: number) {
     this.fillRectCalls.push([x, y, w, h]);
+  }
+
+  fill() {
+    this.fillCalls.push(this.fillStyle);
   }
 
   translate(x: number, y: number) {
@@ -263,6 +268,38 @@ describe("Freeform texture masking", () => {
 
     expect(ctx.patternRequested).toBe(true);
     expect(ctx.fillRectCalls.length).toBeGreaterThan(0);
+  });
+
+  it("applies selected overlay mode when rendering texture", async () => {
+    const ctx = new MockContext();
+    const state: FreeformState = {
+      cells: { "0,0": { color: "#112233" } },
+      opacity: 1,
+      brushTerrainId: undefined,
+      brushColor: undefined,
+      fillMode: "auto",
+      renderMode: "texture-fill",
+      textureFill: baseTexture,
+      textureFillInvert: false,
+      textureOverlayMode: "multiply",
+    };
+
+    FreeformAdapter.drawMain?.(
+      ctx as unknown as CanvasRenderingContext2D,
+      state,
+      env,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    FreeformAdapter.drawMain?.(
+      ctx as unknown as CanvasRenderingContext2D,
+      state,
+      env,
+    );
+
+    expect(ctx.globalCompositeOperation).toBe("multiply");
+    expect(ctx.fillCalls).toContain("#112233");
   });
 });
 

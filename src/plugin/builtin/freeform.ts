@@ -135,6 +135,7 @@ export const freeformModule: PluginModule = {
                 { path: "textureOffsetY", value: 0 },
                 { path: "textureScale", value: 1 },
                 { path: "textureRotation", value: 0 },
+                { path: "textureOverlayMode", value: "normal" },
                 { path: "textureTiling", value: "stretch" },
               ],
             },
@@ -185,6 +186,19 @@ export const freeformModule: PluginModule = {
               min: 0,
               max: 360,
               step: 1,
+              disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
+            },
+            {
+              kind: "select",
+              id: "textureOverlayMode",
+              label: "Overlay Mode",
+              path: "textureOverlayMode",
+              options: [
+                { value: "normal", label: "Normal" },
+                { value: "multiply", label: "Multiply" },
+                { value: "overlay", label: "Overlay" },
+                { value: "screen", label: "Screen" },
+              ],
               disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
             },
             {

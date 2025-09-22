@@ -76,4 +76,38 @@ describe("Freeform texture render mode", () => {
 
     expect(keyA).not.toEqual(keyB);
   });
+
+  it("changes key when overlay mode updates", () => {
+    const state: FreeformState = {
+      cells: { "0,0": {} },
+      opacity: 1,
+      brushTerrainId: undefined,
+      brushColor: undefined,
+      fillMode: "auto",
+      renderMode: "texture-fill",
+      textureFill: {
+        id: "tx-1",
+        name: "texture.png",
+        mimeType: "image/png",
+        dataUrl: "data:image/png;base64,AAA",
+        width: 256,
+        height: 256,
+      },
+      textureFillInvert: false,
+      textureOffsetX: 0,
+      textureOffsetY: 0,
+      textureScale: 1,
+      textureRotation: 0,
+      textureTiling: "stretch",
+      textureOverlayMode: "normal",
+    };
+
+    const keyA = FreeformAdapter.getInvalidationKey?.(state);
+    const keyB = FreeformAdapter.getInvalidationKey?.({
+      ...state,
+      textureOverlayMode: "screen",
+    });
+
+    expect(keyA).not.toEqual(keyB);
+  });
 });
