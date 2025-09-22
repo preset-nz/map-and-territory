@@ -128,4 +128,5 @@ export interface ToolHandler {
     env: RenderEnv,
     ctx: ToolContext,
   ) => void;
+  onKeyDown?: (key: string, ctx: ToolContext) => void;
 }

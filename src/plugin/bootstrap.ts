@@ -17,6 +17,7 @@ import {
   settingsPaletteModule,
 } from "@/plugin/builtin/settings-palette";
 import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
+import { outlineManifest, outlineModule } from "@/plugin/builtin/outline";
 
 export async function bootstrapPlugins() {
   await loadPluginsWithPriority([
@@ -29,6 +30,7 @@ export async function bootstrapPlugins() {
     { manifest: hexNoiseManifest, module: hexNoiseModule },
     { manifest: settingsPaletteManifest, module: settingsPaletteModule },
     { manifest: freeformManifest, module: freeformModule },
+    { manifest: outlineManifest, module: outlineModule },
   ]);
 }
 

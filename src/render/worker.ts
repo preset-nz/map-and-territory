@@ -7,6 +7,7 @@ import { PaperType } from "@/layers/adapters/paper";
 import { HexgridType } from "@/layers/adapters/hexgrid";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { OutlineType } from "@/layers/adapters/outline";
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
@@ -40,6 +41,7 @@ async function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
     registerLayerType(HexgridType);
     registerLayerType(HexNoiseType);
     registerLayerType(FreeformType);
+    registerLayerType(OutlineType);
   } catch {
     // non-fatal, ignore duplicate registration errors
   }

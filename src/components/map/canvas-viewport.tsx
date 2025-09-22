@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useCampaignStore } from "@/stores/campaign";
 import { getLayerType } from "@/layers/registry";
 import type { LayerAdapter } from "@/layers/types";
@@ -17,6 +23,11 @@ import {
   composeEnv,
   getTool,
 } from "@/plugin/loader";
+import type { ToolContext } from "@/plugin/types";
+import { findNearestCorner } from "@/lib/outline/geometry";
+import { cornersEqual } from "@/lib/outline/types";
+import type { OutlineState } from "@/lib/outline/types";
+import type { Layout } from "@/lib/hex";
 // import { createPerlinNoise } from "@/lib/noise";
 import { resolvePalette } from "@/stores/selectors/palette";
 import { debugEnabled } from "@/lib/debug";
@@ -272,6 +283,42 @@ export const CanvasViewport: React.FC = () => {
   const selection = useSelectionStore((s) => s.selection);
   const [isPointerDown, setIsPointerDown] = useState(false);
 
+  const buildToolContext = useCallback(
+    (scene: ReturnType<typeof getSceneAdapter> | null): ToolContext | null => {
+      if (selection.kind !== "layer") return null;
+      return {
+        app: AppAPI,
+        updateLayerState,
+        applyLayerState,
+        getActiveLayerState: <T = unknown,>(id?: string): T | null => {
+          try {
+            const cur = campaignStoreRaw.getState().current;
+            const activeMapId = cur?.activeMapId ?? null;
+            const map = cur?.maps.find((m) => m.id === activeMapId);
+            const layerId =
+              id ?? (selection.kind === "layer" ? selection.id : undefined);
+            if (!map || !layerId) return null;
+            const layer = (map.layers ?? []).find((l) => l.id === layerId);
+            return (layer?.state as T) ?? null;
+          } catch {
+            return null;
+          }
+        },
+        selection,
+        sceneAdapter: scene ?? null,
+        applyCellsDelta,
+        applyLayerStateBatch,
+      };
+    },
+    [
+      selection,
+      updateLayerState,
+      applyLayerState,
+      applyCellsDelta,
+      applyLayerStateBatch,
+    ],
+  );
+
   const dispatchToolEvent = (
     kind: "down" | "move" | "up",
     e: React.PointerEvent,
@@ -332,30 +379,8 @@ export const CanvasViewport: React.FC = () => {
       ...envBase,
       ...(composeEnv(frame) as Partial<import("@/layers/types").RenderEnv>),
     };
-    const ctx: import("@/plugin/types").ToolContext = {
-      app: AppAPI,
-      updateLayerState,
-      applyLayerState,
-      getActiveLayerState: <T = unknown,>(id?: string): T | null => {
-        try {
-          const cur = campaignStoreRaw.getState().current;
-          const activeMapId = cur?.activeMapId ?? null;
-          const map = cur?.maps.find((m) => m.id === activeMapId);
-          const layerId =
-            id ?? (selection.kind === "layer" ? selection.id : undefined);
-          if (!map || !layerId) return null;
-          const layer = (map.layers ?? []).find((l) => l.id === layerId);
-          return (layer?.state as T) ?? null;
-        } catch {
-          return null;
-        }
-      },
-      selection,
-      sceneAdapter: scene ?? null,
-      // Batch operations for efficient bulk updates
-      applyCellsDelta,
-      applyLayerStateBatch,
-    };
+    const ctx = buildToolContext(scene);
+    if (!ctx) return;
     const pt = { x: px, y: py } as const;
     try {
       if (kind === "down") handler.onPointerDown?.(pt, envWithGrid, ctx);
@@ -388,20 +413,44 @@ export const CanvasViewport: React.FC = () => {
     const py = my - paperRect.y;
     // Default: outside or no grid
     let hex: { q: number; r: number } | null = null;
+    let gridLayout: Layout | null = null;
     if (px >= 0 && py >= 0 && px <= paperRect.w && py <= paperRect.h) {
       const layer = layers.find((l) => l.type === "hexgrid" && l.visible);
       if (layer) {
         const st = (layer.state ?? {}) as Record<string, unknown>;
-        const layout = {
+        gridLayout = {
           orientation: st.orientation === "flat" ? "flat" : "pointy",
           size: Math.max(4, Number(st.size ?? 16)),
           origin: { x: paperRect.w / 2, y: paperRect.h / 2 },
-        } as const;
-        const h = AppAPI.hex.fromPoint({ x: px, y: py }, layout);
-        hex = h;
+        };
+        hex = AppAPI.hex.fromPoint({ x: px, y: py }, gridLayout);
       }
     }
     setMousePosition(Math.round(mx), Math.round(my), hex);
+
+    const selectionLayer =
+      selection.kind === "layer"
+        ? layers.find((l) => l.id === selection.id)
+        : null;
+    if (
+      selection.kind === "layer" &&
+      selectionLayer?.type === "outline" &&
+      gridLayout
+    ) {
+      const nearest = findNearestCorner({ x: px, y: py }, gridLayout);
+      if (nearest) {
+        applyLayerState(selection.id, (draft: OutlineState) => {
+          if (!cornersEqual(draft.hoverCorner ?? null, nearest)) {
+            draft.hoverCorner = nearest;
+          }
+        });
+      } else {
+        applyLayerState(selection.id, (draft: OutlineState) => {
+          if (draft.hoverCorner) draft.hoverCorner = null;
+        });
+      }
+    }
+
     if (isPointerDown) dispatchToolEvent("move", e);
   };
 
@@ -423,6 +472,19 @@ export const CanvasViewport: React.FC = () => {
     [useWorker],
   );
   const showDebugOverlay = debugEnabled("renderer");
+
+  useEffect(() => {
+    const handleKeyDown = (ev: KeyboardEvent) => {
+      const handler = getTool(activeTool);
+      if (!handler?.onKeyDown) return;
+      const ctx = buildToolContext(getSceneAdapter());
+      if (!ctx) return;
+      handler.onKeyDown(ev.key, ctx);
+      ev.preventDefault();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeTool, buildToolContext]);
 
   return (
     <div className="h-full w-full overflow-hidden">
