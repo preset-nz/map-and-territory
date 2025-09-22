@@ -230,6 +230,21 @@ const GenericProperties: React.FC = () => {
         if (path === "textureFillInvert") {
           return Boolean(st["textureFillInvert"]);
         }
+        if (path === "textureOffsetX") {
+          return Number(st["textureOffsetX"] ?? 0);
+        }
+        if (path === "textureOffsetY") {
+          return Number(st["textureOffsetY"] ?? 0);
+        }
+        if (path === "textureScale") {
+          return Number(st["textureScale"] ?? 1);
+        }
+        if (path === "textureRotation") {
+          return Number(st["textureRotation"] ?? 0);
+        }
+        if (path === "textureTiling") {
+          return (st["textureTiling"] as string | undefined) ?? "stretch";
+        }
       }
       return (layer.state as Record<string, unknown> | undefined)?.[
         path as keyof Record<string, unknown>
@@ -254,6 +269,33 @@ const GenericProperties: React.FC = () => {
       }
       if (layer.type === "freeform" && path === "textureFillInvert") {
         updateLayerState(layer.id, { textureFillInvert: Boolean(val) });
+        return;
+      }
+      if (layer.type === "freeform" && path === "textureOffsetX") {
+        const num = Math.max(-1024, Math.min(1024, Number(val) || 0));
+        updateLayerState(layer.id, { textureOffsetX: num });
+        return;
+      }
+      if (layer.type === "freeform" && path === "textureOffsetY") {
+        const num = Math.max(-1024, Math.min(1024, Number(val) || 0));
+        updateLayerState(layer.id, { textureOffsetY: num });
+        return;
+      }
+      if (layer.type === "freeform" && path === "textureScale") {
+        const num = Math.max(0.1, Math.min(4, Number(val) || 1));
+        updateLayerState(layer.id, { textureScale: num });
+        return;
+      }
+      if (layer.type === "freeform" && path === "textureRotation") {
+        let num = Number(val) || 0;
+        num = ((num % 360) + 360) % 360;
+        updateLayerState(layer.id, { textureRotation: num });
+        return;
+      }
+      if (layer.type === "freeform" && path === "textureTiling") {
+        const mode =
+          val === "fit" || val === "repeat" ? String(val) : "stretch";
+        updateLayerState(layer.id, { textureTiling: mode });
         return;
       }
       if (layer.type === "hexgrid") {
