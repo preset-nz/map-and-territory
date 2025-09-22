@@ -94,8 +94,9 @@ export const freeformModule: PluginModule = {
     registerPropertySchema("layer:freeform", {
       groups: [
         {
-          id: "freeform",
-          title: "Freeform",
+          id: "freeform-display",
+          title: "Display",
+          collapsible: false,
           rows: [
             {
               kind: "slider",
@@ -119,6 +120,66 @@ export const freeformModule: PluginModule = {
                 },
               ],
             },
+          ],
+        },
+        {
+          id: "freeform-brush",
+          title: "Brush & Fill",
+          description:
+            "Configure the active paint brush and flood fill behaviour.",
+          collapsible: true,
+          rows: [
+            [
+              {
+                kind: "select",
+                id: "brushTerrainId",
+                label: "Brush Terrain",
+                path: "brushTerrainId",
+                options: [{ value: "", label: "— Select Terrain —" }],
+                optionsProvider: (app: unknown) => {
+                  try {
+                    type AppApi = typeof AppAPI;
+                    const api = app as AppApi;
+                    const entries = api.palette.list();
+                    return [
+                      { value: "", label: "— Select Terrain —" },
+                      ...entries.map((e) => ({
+                        value: e.id,
+                        label: e.themedName,
+                      })),
+                    ];
+                  } catch {
+                    return [{ value: "", label: "— Select Terrain —" }];
+                  }
+                },
+              },
+              {
+                kind: "color",
+                id: "brushColor",
+                label: "Brush Color Override",
+                path: "brushColor",
+              },
+            ],
+            {
+              kind: "select",
+              id: "fillMode",
+              label: "Flood Fill Mode",
+              path: "fillMode",
+              options: [
+                { value: "auto", label: "Auto (Smart Detection)" },
+                { value: "same-value", label: "Fill Same" },
+                { value: "empty-only", label: "Fill Empty" },
+              ],
+            },
+          ],
+        },
+        {
+          id: "freeform-texture-asset",
+          title: "Texture Overlay",
+          description: "Upload and mask a texture to blend with painted cells.",
+          collapsible: true,
+          defaultCollapsed: true,
+          rows: [
             {
               kind: "file",
               id: "textureFill",
@@ -146,6 +207,14 @@ export const freeformModule: PluginModule = {
               path: "textureFillInvert",
               disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
             },
+          ],
+        },
+        {
+          id: "freeform-texture-transform",
+          title: "Texture Transform",
+          collapsible: true,
+          defaultCollapsed: true,
+          rows: [
             [
               {
                 kind: "number",
@@ -190,6 +259,26 @@ export const freeformModule: PluginModule = {
             },
             {
               kind: "select",
+              id: "textureTiling",
+              label: "Tiling Mode",
+              path: "textureTiling",
+              options: [
+                { value: "stretch", label: "Stretch" },
+                { value: "fit", label: "Fit" },
+                { value: "repeat", label: "Repeat" },
+              ],
+              disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
+            },
+          ],
+        },
+        {
+          id: "freeform-texture-blend",
+          title: "Texture Blend",
+          collapsible: true,
+          defaultCollapsed: true,
+          rows: [
+            {
+              kind: "select",
               id: "textureOverlayMode",
               label: "Overlay Mode",
               path: "textureOverlayMode",
@@ -201,62 +290,6 @@ export const freeformModule: PluginModule = {
               ],
               disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
             },
-            {
-              kind: "select",
-              id: "textureTiling",
-              label: "Tiling Mode",
-              path: "textureTiling",
-              options: [
-                { value: "stretch", label: "Stretch" },
-                { value: "fit", label: "Fit" },
-                { value: "repeat", label: "Repeat" },
-              ],
-              disabledWhen: { path: "renderMode", notEquals: "texture-fill" },
-            },
-            [
-              {
-                kind: "select",
-                id: "fillMode",
-                label: "Fill Mode",
-                path: "fillMode",
-                options: [
-                  { value: "auto", label: "Auto (Smart Detection)" },
-                  { value: "same-value", label: "Fill Same" },
-                  { value: "empty-only", label: "Fill Empty" },
-                ],
-              },
-            ],
-            [
-              {
-                kind: "select",
-                id: "brushTerrainId",
-                label: "Brush Terrain",
-                path: "brushTerrainId",
-                options: [{ value: "", label: "— Select Terrain —" }],
-                optionsProvider: (app: unknown) => {
-                  try {
-                    type AppApi = typeof AppAPI;
-                    const api = app as AppApi;
-                    const entries = api.palette.list();
-                    return [
-                      { value: "", label: "— Select Terrain —" },
-                      ...entries.map((e) => ({
-                        value: e.id,
-                        label: e.themedName,
-                      })),
-                    ];
-                  } catch {
-                    return [{ value: "", label: "— Select Terrain —" }];
-                  }
-                },
-              },
-              {
-                kind: "color",
-                id: "brushColor",
-                label: "Brush Color (Override)",
-                path: "brushColor",
-              },
-            ],
           ],
         },
       ],
