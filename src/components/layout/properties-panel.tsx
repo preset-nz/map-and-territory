@@ -106,6 +106,7 @@ const GenericProperties: React.FC = () => {
   const renameMap = useCampaignStore((s) => s.renameMap);
   const setMapDescription = useCampaignStore((s) => s.setMapDescription);
   const setMapSetting = useCampaignStore((s) => s.setMapSetting);
+  const updateMapScale = useCampaignStore((s) => s.updateMapScale);
   const updateLayerState = useCampaignStore((s) => s.updateLayerState);
   const renameLayer = useCampaignStore((s) => s.renameLayer);
 
@@ -141,6 +142,21 @@ const GenericProperties: React.FC = () => {
     const schema = getPropertySchema("map");
     if (!schema) return null;
     const getVal = (path: string) => {
+      if (path.startsWith("scale.")) {
+        const scaleConfig = AppAPI.scale.normalizedConfig(map.id);
+        switch (path) {
+          case "scale.enabled":
+            return scaleConfig.enabled;
+          case "scale.placement":
+            return scaleConfig.placement;
+          case "scale.useSettingUnits":
+            return scaleConfig.useSettingUnits;
+          case "scale.customUnitId":
+            return scaleConfig.customUnitId ?? "";
+          default:
+            return undefined;
+        }
+      }
       switch (path) {
         case "name":
           return map.name;
@@ -155,6 +171,28 @@ const GenericProperties: React.FC = () => {
       }
     };
     const setVal = (path: string, val: unknown) => {
+      if (path.startsWith("scale.")) {
+        switch (path) {
+          case "scale.enabled":
+            updateMapScale(map.id, { enabled: Boolean(val) });
+            break;
+          case "scale.placement": {
+            const placement = val === "below" ? "below" : "overlay";
+            updateMapScale(map.id, { placement });
+            break;
+          }
+          case "scale.useSettingUnits":
+            updateMapScale(map.id, { useSettingUnits: Boolean(val) });
+            break;
+          case "scale.customUnitId": {
+            const unitId =
+              typeof val === "string" && val.length > 0 ? val : undefined;
+            updateMapScale(map.id, { customUnitId: unitId });
+            break;
+          }
+        }
+        return;
+      }
       switch (path) {
         case "name":
           if (typeof val === "string") renameMap(map.id, val);

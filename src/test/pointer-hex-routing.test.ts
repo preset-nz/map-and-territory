@@ -1,10 +1,22 @@
 import React from "react";
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { render, fireEvent } from "@testing-library/react";
 import CanvasViewport from "@/components/map/canvas-viewport";
 import { useCampaignStore } from "@/stores/campaign";
 import { useLayoutStore } from "@/stores/layout";
 import { registerCoreLayerTypes } from "@/test/test-helpers";
+
+vi.mock("@/stores/selectors/scale", () => ({
+  useActiveScaleConfig: () => ({
+    enabled: false,
+    placement: "overlay" as const,
+    unitId: "kilometers",
+    label: "Kilometers",
+    shortLabel: "km",
+    unitsPerHex: 5,
+    useSettingUnits: true,
+  }),
+}));
 
 // Minimal canvas 2D context mock so fallback renderer can initialize
 beforeAll(() => {

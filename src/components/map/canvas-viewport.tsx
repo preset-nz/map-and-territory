@@ -33,6 +33,9 @@ import { resolvePalette } from "@/stores/selectors/palette";
 import { debugEnabled } from "@/lib/debug";
 import { useCampaignStore as campaignStoreRaw } from "@/stores/campaign";
 import { computePaperRect, PaperAspect } from "@/app/scene/geometry";
+import ScaleBar from "@/components/map/scale-bar";
+import type { HexgridState } from "@/layers/adapters/hexgrid";
+import { useActiveScaleConfig } from "@/stores/selectors/scale";
 
 export const CanvasViewport: React.FC = () => {
   const campaignSnapshot = useCampaignStore((s) => s.current);
@@ -104,6 +107,49 @@ export const CanvasViewport: React.FC = () => {
     typeof window !== "undefined"
       ? (window as unknown as DebugWindow)
       : (undefined as unknown as DebugWindow);
+
+  const paperRect = useMemo(
+    () =>
+      computePaperRect({
+        canvasSize: { w: size.w, h: size.h },
+        paper: { aspect },
+      }),
+    [size.w, size.h, aspect],
+  );
+
+  const scaleConfig = useActiveScaleConfig();
+  const hexLayer = useMemo(
+    () => layers.find((l) => l.type === "hexgrid") ?? null,
+    [layers],
+  );
+  const hexState = (hexLayer?.state ?? null) as HexgridState | null;
+  const hexSize = Math.max(1, Number(hexState?.size ?? 24));
+  const hexOrientation = hexState?.orientation === "flat" ? "flat" : "pointy";
+
+  const canRenderScale =
+    scaleConfig.enabled &&
+    scaleConfig.unitsPerHex > 0 &&
+    Number.isFinite(scaleConfig.unitsPerHex) &&
+    paperRect.w > 0 &&
+    hexSize > 0;
+
+  const overlayMargin = 18;
+  const estimatedScaleHeight = 64;
+  const scaleLeft = Math.max(overlayMargin, paperRect.x + overlayMargin);
+  const overlayTop = Math.max(
+    overlayMargin,
+    Math.min(
+      size.h - estimatedScaleHeight - overlayMargin,
+      paperRect.y + paperRect.h - estimatedScaleHeight - overlayMargin,
+    ),
+  );
+  const belowTop = Math.max(
+    overlayMargin,
+    Math.min(
+      size.h - estimatedScaleHeight - overlayMargin,
+      paperRect.y + paperRect.h + overlayMargin,
+    ),
+  );
 
   // Observe container size precisely
   useEffect(() => {
@@ -515,6 +561,44 @@ export const CanvasViewport: React.FC = () => {
               onPointerUp={onPointerUp}
               style={{ cursor: getCursorForTool(activeTool) || "default" }}
             />
+            {canRenderScale && scaleConfig.placement === "overlay" ? (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${scaleLeft}px`,
+                  top: `${overlayTop}px`,
+                }}
+              >
+                <ScaleBar
+                  placement="overlay"
+                  unitLabel={scaleConfig.label}
+                  unitShortLabel={scaleConfig.shortLabel}
+                  unitsPerHex={scaleConfig.unitsPerHex}
+                  hexSize={hexSize}
+                  orientation={hexOrientation}
+                  paperWidth={paperRect.w}
+                />
+              </div>
+            ) : null}
+            {canRenderScale && scaleConfig.placement === "below" ? (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${scaleLeft}px`,
+                  top: `${belowTop}px`,
+                }}
+              >
+                <ScaleBar
+                  placement="below"
+                  unitLabel={scaleConfig.label}
+                  unitShortLabel={scaleConfig.shortLabel}
+                  unitsPerHex={scaleConfig.unitsPerHex}
+                  hexSize={hexSize}
+                  orientation={hexOrientation}
+                  paperWidth={paperRect.w}
+                />
+              </div>
+            ) : null}
             {showDebugOverlay ? (
               <div
                 className="pointer-events-none absolute top-2 left-2 text-[10px] bg-black/40 text-white px-2 py-1 rounded"

@@ -6,7 +6,15 @@ import {
 } from "@/stores/selectors/palette";
 import type { TerrainCategory } from "@/palettes/types";
 import { useCampaignStore } from "@/stores/campaign";
+import { useSelectionStore } from "@/stores/selection";
 import { TerrainSettings, BaseTerrainType } from "@/palettes/settings";
+import { listScaleUnits } from "@/scale/profiles";
+import {
+  normalizeScaleConfig as normalizeScale,
+  resolveScaleConfig as computeScaleConfig,
+  resolveSettingId as resolveScaleSettingId,
+} from "@/scale/resolution";
+import type { ResolvedScaleConfig, MapScaleConfig } from "@/types/scale";
 // Intent: provide a stable, minimal interface for app-level consumers
 // without leaking internal store or lib shapes.
 
@@ -24,6 +32,24 @@ import {
   axialToCube,
   cubeToAxial,
 } from "@/lib/hex";
+
+function resolveScaleContext(mapId?: string | null) {
+  const campaign = useCampaignStore.getState().current;
+  if (!campaign) {
+    return {
+      campaign: null,
+      map: null,
+      settingId: resolveScaleSettingId(),
+    };
+  }
+  const selection = useSelectionStore.getState().selection;
+  const fallbackId =
+    mapId ??
+    (selection.kind === "map" ? selection.id : (campaign.activeMapId ?? null));
+  const map = campaign.maps.find((m) => m.id === fallbackId) ?? null;
+  const settingId = resolveScaleSettingId(map?.settingId, campaign.settingId);
+  return { campaign, map, settingId };
+}
 
 export const AppAPI = {
   hex: {
@@ -107,6 +133,30 @@ export const AppAPI = {
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
       return map?.settingId || cur?.settingId || "doom-forge";
+    },
+  },
+  scale: {
+    current(): ResolvedScaleConfig {
+      const { map, settingId } = resolveScaleContext();
+      return computeScaleConfig(map?.scale, settingId);
+    },
+    forMap(mapId?: string | null): ResolvedScaleConfig {
+      const { map, settingId } = resolveScaleContext(mapId);
+      return computeScaleConfig(map?.scale, settingId);
+    },
+    unitOptions(settingId?: string | null) {
+      const context = resolveScaleContext();
+      const resolvedSettingId = settingId ?? context.settingId;
+      return listScaleUnits(resolvedSettingId).map((unit) => ({
+        id: unit.id,
+        label: `${unit.label} (${unit.shortLabel})`,
+        shortLabel: unit.shortLabel,
+        description: unit.description,
+      }));
+    },
+    normalizedConfig(mapId?: string | null): MapScaleConfig {
+      const { map, settingId } = resolveScaleContext(mapId);
+      return normalizeScale(map?.scale, settingId);
     },
   },
 } as const;

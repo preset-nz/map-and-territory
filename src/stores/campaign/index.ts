@@ -21,6 +21,9 @@ import { debugEnabled } from "@/lib/debug";
 
 import type { MapPalette } from "@/palettes/types";
 import type { FreeformCell } from "@/layers/adapters/freeform-hex";
+import type { MapScaleConfig } from "@/types/scale";
+import { normalizeScaleConfig, resolveSettingId } from "@/scale/resolution";
+import { TerrainSettings } from "@/palettes/settings";
 
 export interface Campaign {
   id: string;
@@ -39,6 +42,7 @@ export interface Campaign {
     // Per-map setting override (T-012)
     settingId?: string;
     palette?: MapPalette; // optional per-map override
+    scale?: MapScaleConfig;
     layers?: LayerInstance[];
   }>;
   activeMapId: string | null;
@@ -340,6 +344,7 @@ interface CampaignStoreState {
   // Settings (T-012)
   setCampaignSetting: (settingId: string | undefined) => void;
   setMapSetting: (mapId: string, settingId: string | undefined) => void;
+  updateMapScale: (mapId: string, patch: Partial<MapScaleConfig>) => void;
   // Map actions
   addMap: (params?: { name?: string; description?: string }) => string | null; // returns mapId or null if no campaign
   selectMap: (id: string) => void;
@@ -404,7 +409,10 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   current: null,
   dirty: false,
   // --- helpers (internal) ---
-  _normalizeAnchorsForMap(map: Campaign["maps"][number]) {
+  _normalizeAnchorsForMap(
+    map: Campaign["maps"][number],
+    campaignSettingId?: string | null,
+  ) {
     const layers: LayerInstance[] = Array.isArray(map.layers)
       ? [...map.layers]
       : [];
@@ -477,6 +485,11 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const grid = layers.find((l) => l.type === HEXGRID_ANCHOR_TYPE)!;
     const rest = layers.filter((l) => l !== paper && l !== grid);
     map.layers = [paper, ...rest, grid];
+    const effectiveSettingId = resolveSettingId(
+      map.settingId,
+      campaignSettingId,
+    );
+    map.scale = normalizeScaleConfig(map.scale, effectiveSettingId);
     return map;
   },
   createEmpty: (params) => {
@@ -505,7 +518,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       return;
     }
     const maps = campaign.maps.map((m) =>
-      useCampaignStore.getState()._normalizeAnchorsForMap({ ...m }),
+      useCampaignStore
+        .getState()
+        ._normalizeAnchorsForMap({ ...m }, campaign.settingId),
     );
     set({ current: { ...campaign, maps }, dirty: false });
   },
@@ -536,6 +551,27 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       dirty: true,
     });
   },
+  updateMapScale: (mapId, patch) => {
+    const cur = get().current;
+    if (!cur) return;
+    set({
+      current: {
+        ...cur,
+        maps: cur.maps.map((m) => {
+          if (m.id !== mapId) return m;
+          const effectiveSettingId = resolveSettingId(
+            m.settingId,
+            cur.settingId,
+          );
+          const base = normalizeScaleConfig(m.scale, effectiveSettingId);
+          const merged = { ...base, ...patch };
+          const normalized = normalizeScaleConfig(merged, effectiveSettingId);
+          return { ...m, scale: normalized };
+        }),
+      },
+      dirty: true,
+    });
+  },
   addMap: (params) => {
     const cur = get().current;
     if (!cur) {
@@ -553,6 +589,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const description = params?.description ?? "";
     const next = cur;
     const id = uuid();
+    const campaignSettingId = next.settingId ?? TerrainSettings.DOOM_FORGE.id;
     const paperDefaultsRecord = isPlainObject(
       getLayerType(PAPER_ANCHOR_TYPE)?.defaultState,
     )
@@ -604,6 +641,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         description,
         visible: true,
         paper: canonicalPaper,
+        scale: normalizeScaleConfig(undefined, campaignSettingId),
         layers: baseLayers,
       },
     ];

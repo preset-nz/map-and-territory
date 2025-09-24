@@ -90,6 +90,54 @@ export const mapPluginModule: PluginModule = {
             },
           ],
         },
+        {
+          id: "scale",
+          title: "Scale Bar",
+          rows: [
+            {
+              kind: "checkbox",
+              id: "scale.enabled",
+              label: "Show scale bar",
+              path: "scale.enabled",
+            },
+            [
+              {
+                kind: "select",
+                id: "scale.placement",
+                label: "Placement",
+                path: "scale.placement",
+                options: [
+                  { value: "overlay", label: "On map" },
+                  { value: "below", label: "Below map" },
+                ],
+              },
+              {
+                kind: "checkbox",
+                id: "scale.useSettingUnits",
+                label: "Use setting units",
+                path: "scale.useSettingUnits",
+              },
+            ],
+            {
+              kind: "select",
+              id: "scale.customUnitId",
+              label: "Unit",
+              path: "scale.customUnitId",
+              disabledWhen: { path: "scale.useSettingUnits", equals: true },
+              optionsProvider: (app) => {
+                const api = app as typeof import("@/appapi").AppAPI;
+                const units = api.scale?.unitOptions?.();
+                if (!units || units.length === 0) {
+                  return [{ value: "", label: "—" }];
+                }
+                return units.map((unit) => ({
+                  value: unit.id,
+                  label: unit.label,
+                }));
+              },
+            },
+          ],
+        },
       ],
     });
   },

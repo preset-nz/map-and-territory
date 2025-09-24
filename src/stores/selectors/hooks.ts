@@ -27,3 +27,5 @@ export function useActiveSetting() {
     TerrainSettings.DOOM_FORGE
   );
 }
+
+export { useActiveScaleConfig } from "./scale";
