@@ -2,7 +2,7 @@
 
 # Map & Territory
 
-Gritty, analog‑style hexmap editor for TTRPGs — built with Next.js.
+Gritty, analog‑style hexmap editor for TTRPGs. Part of the preset.nz desktop app family; re-platforming from Next.js to Tauri.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
@@ -17,7 +17,7 @@ Gritty, analog‑style hexmap editor for TTRPGs — built with Next.js.
 
 Map & Territory is a hexmap editor focused on a clean, professional editing experience. The editor itself is polished; the goal is to enable creating maps with an analog, gritty feel over time.
 
-Project context, goals, and design philosophy: `guidance/product_brief.md`.
+Project context, decisions and roadmap live in the guidance repo: `~/rhizomatic-preset/guidance/projects/map-and-territory/`. Coding conventions: `CLAUDE.md`.
 
 ## Current Scope
 
@@ -26,11 +26,11 @@ Project context, goals, and design philosophy: `guidance/product_brief.md`.
 - Unit and E2E testing setup (Vitest, Playwright).
 - Guidance and ADRs to steer architecture and product direction.
 
-Status: early learning project; see `guidance/tickets.md` and `guidance/todos.md` for active work and roadmap.
+Status: re-platforming to a native Tauri app (adopted 2026-09-17). See the guidance repo's `features/roadmap.md`.
 
 ## Tech Stack
 
-See `guidance/tech_stack.md` for details and rationale.
+See the guidance repo's `tech-stack.md` for the target stack.
 
 ## Getting Started
 
@@ -100,7 +100,6 @@ All contributions should keep the test suite green.
 
 - `src/`: Application source.
 - `public/`: Static assets.
-- `guidance/`: Product brief, ADRs, features, and process docs.
 
 ## Credits
 
