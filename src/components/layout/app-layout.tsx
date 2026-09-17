@@ -23,23 +23,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { cn } from "@/lib/utils";
-import {
-  campaignPluginManifest,
-  campaignPluginModule,
-} from "@/plugin/builtin/campaign";
-import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
-import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
-import {
-  hexgridPluginManifest,
-  hexgridPluginModule,
-} from "@/plugin/builtin/hexgrid";
-import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
-import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
-import {
-  settingsPaletteManifest,
-  settingsPaletteModule,
-} from "@/plugin/builtin/settings-palette";
-import { loadPluginsWithPriority } from "@/plugin/loader";
+import bootstrapPlugins from "@/plugin/bootstrap";
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
 import type { BaseLayoutProps } from "@/types/layout";
@@ -92,17 +76,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   // Load built-in plugins in priority order (registers commands + toolbar contributions)
   // Use layout effect to avoid initial UI race where toolbar subscribes after update.
   useLayoutEffect(() => {
-    loadPluginsWithPriority([
-      // Anchor layers load first (priority 100)
-      { manifest: paperPluginManifest, module: paperPluginModule },
-      { manifest: hexgridPluginManifest, module: hexgridPluginModule },
-      // Content plugins load second (default priority 10)
-      { manifest: campaignPluginManifest, module: campaignPluginModule },
-      { manifest: mapPluginManifest, module: mapPluginModule },
-      { manifest: hexNoiseManifest, module: hexNoiseModule },
-      { manifest: settingsPaletteManifest, module: settingsPaletteModule },
-      { manifest: freeformManifest, module: freeformModule },
-    ]);
+    void bootstrapPlugins();
   }, []);
 
   // Sync selection count for status bar
