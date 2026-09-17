@@ -73,17 +73,6 @@ export function setActiveTool(tool: string): void {
   useLayoutStore.getState().setActiveTool(tool);
 }
 
-export function setCampaignSetting(settingId: string | undefined): void {
-  useCampaignStore.getState().setCampaignSetting(settingId);
-}
-
-export function setMapSetting(
-  mapId: string,
-  settingId: string | undefined,
-): void {
-  useCampaignStore.getState().setMapSetting(mapId, settingId);
-}
-
 export function addMap(params?: { name?: string; description?: string }) {
   return useCampaignStore.getState().addMap(params);
 }
