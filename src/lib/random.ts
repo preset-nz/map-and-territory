@@ -21,7 +21,7 @@ function xfnv1a(str: string): () => number {
     h ^= str.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
-  return function () {
+  return () => {
     h += h << 13;
     h ^= h >>> 7;
     h += h << 3;
@@ -33,7 +33,7 @@ function xfnv1a(str: string): () => number {
 
 // splitmix32 to expand one seed into multiple 32-bit seeds
 function splitmix32(a: number) {
-  return function () {
+  return () => {
     a |= 0;
     a = (a + 0x9e3779b9) | 0;
     let t = Math.imul(a ^ (a >>> 16), 0x85ebca6b);
@@ -45,7 +45,7 @@ function splitmix32(a: number) {
 
 // sfc32 PRNG, good quality and fast, deterministic in JS
 function sfc32(a: number, b: number, c: number, d: number) {
-  return function () {
+  return () => {
     a >>>= 0;
     b >>>= 0;
     c >>>= 0;

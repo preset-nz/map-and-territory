@@ -1,5 +1,5 @@
-import type { MapPalette } from "@/palettes/types";
 import { BaseTerrainType, type TerrainSetting } from "@/palettes/settings";
+import type { MapPalette } from "@/palettes/types";
 
 // Mapping retained for potential future use when selecting variants
 

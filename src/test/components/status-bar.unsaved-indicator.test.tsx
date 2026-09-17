@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
 import StatusBar from "@/components/layout/status-bar";
 import { useCampaignStore } from "@/stores/campaign";
 import { registerCoreLayerTypes } from "@/test/test-helpers";

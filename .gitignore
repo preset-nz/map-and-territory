@@ -22,8 +22,6 @@ dist/
 # Testing and coverage
 coverage/
 .nyc_output
-/playwright-report/
-/test-results/
 Trace-*.json
 
 # Logs and debug
@@ -38,7 +36,7 @@ yarn-error.log*
 .env*
 
 # Tool caches
-.eslintcache
+.biomecache
 .stylelintcache
 .cache
 .parcel-cache
@@ -59,7 +57,5 @@ next-env.d.ts
 # Certificates and keys (keep out of VCS)
 *.pem
 
-# Internal private docs (keep local only)
-CLAUDE.md
-CORE.md
+# Local Claude state
 .claude/

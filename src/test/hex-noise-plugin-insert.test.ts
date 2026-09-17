@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
-import { loadPlugin } from "@/plugin/loader";
+import { beforeEach, describe, expect, it } from "vitest";
 import { executeCommand } from "@/lib/commands";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
+import { loadPlugin } from "@/plugin/loader";
+import { useCampaignStore } from "@/stores/campaign";
+import { useSelectionStore } from "@/stores/selection";
 
 describe("Hex Noise plugin insertion rules", () => {
   beforeEach(() => {

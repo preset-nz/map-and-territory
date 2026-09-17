@@ -1,20 +1,20 @@
-import type { PluginManifest, PluginModule } from "@/plugin/types";
-import { getAppAPI } from "@/plugin/appapi";
-import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
 import { TerrainSettings } from "@/palettes/settings";
-import {
-  getCurrentCampaign,
-  isCampaignDirty,
-  markCampaignDirty,
-} from "@/platform/plugin-runtime/state";
 import {
   CAMPAIGN_MIME_V1,
   loadIntoStoreV1,
   saveActiveCampaignV1,
 } from "@/platform/plugin-runtime/persistence";
+import {
+  getCurrentCampaign,
+  isCampaignDirty,
+  markCampaignDirty,
+} from "@/platform/plugin-runtime/state";
+import { getAppAPI } from "@/plugin/appapi";
+import type { PluginManifest, PluginModule } from "@/plugin/types";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
 
 export const campaignPluginManifest: PluginManifest = {
   id: "app.plugins.campaign",

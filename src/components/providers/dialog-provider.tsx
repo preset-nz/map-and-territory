@@ -7,6 +7,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { setDialogApi } from "@/components/providers/dialog-global";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { setDialogApi } from "@/components/providers/dialog-global";
 
 type DialogKind = "alert" | "confirm" | "prompt";
 

@@ -1,30 +1,31 @@
 "use client";
 
-import React from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import type React from "react";
+import { AppAPI } from "@/appapi";
 import {
-  ColorField,
-  SelectField,
   CheckboxField,
+  ColorField,
   FileField,
   PropertyGroup,
+  SelectField,
 } from "@/components/properties";
+import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
+import type { ColorFieldDef } from "@/properties/registry";
 import {
-  getPropertySchema,
-  type PropertySchema,
   type FieldDef,
-  type SelectFieldDef,
+  type FileFieldDef,
+  getPropertySchema,
   type NumberFieldDef,
+  type PropertySchema,
+  type SelectFieldDef,
   type SliderFieldDef,
   type TextareaFieldDef,
-  type FileFieldDef,
 } from "@/properties/registry";
+import { useCampaignStore } from "@/stores/campaign";
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-import { useCampaignStore } from "@/stores/campaign";
-import { AppAPI } from "@/appapi";
 
 interface PropertiesPanelProps {
   className?: string;
@@ -381,7 +382,7 @@ function renderSchemaGroups(
           const fields = Array.isArray(row) ? row : [row];
           return (
             <div
-              key={idx}
+              key={fields.map((f) => f.id).join("+")}
               className={fields.length > 1 ? "grid grid-cols-2 gap-2" : ""}
             >
               {fields.map((f: FieldDef) => {
@@ -391,9 +392,8 @@ function renderSchemaGroups(
                     | undefined;
                   if (!cond) return false;
                   const v = getVal(cond.path);
-                  if (Object.prototype.hasOwnProperty.call(cond, "equals"))
-                    return v === cond.equals;
-                  if (Object.prototype.hasOwnProperty.call(cond, "notEquals"))
+                  if (Object.hasOwn(cond, "equals")) return v === cond.equals;
+                  if (Object.hasOwn(cond, "notEquals"))
                     return v !== cond.notEquals;
                   return false;
                 })();
@@ -541,9 +541,9 @@ function renderSchemaGroups(
                       try {
                         const payload = await buildTexturePayload(file);
                         setVal(f.path, payload);
-                        ff.cascade?.forEach(({ path, value }) =>
-                          setVal(path, value),
-                        );
+                        for (const { path, value } of ff.cascade ?? []) {
+                          setVal(path, value);
+                        }
                       } catch (error) {
                         console.error(
                           "[properties] failed to load file",
@@ -555,9 +555,9 @@ function renderSchemaGroups(
                   const handleClear = asset
                     ? () => {
                         setVal(f.path, null);
-                        ff.clearCascade?.forEach(({ path, value }) =>
-                          setVal(path, value),
-                        );
+                        for (const { path, value } of ff.clearCascade ?? []) {
+                          setVal(path, value);
+                        }
                       }
                     : undefined;
                   return (

@@ -4,13 +4,13 @@
  * BDD-style tests for core flood fill functionality with hex neighbors
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-  floodFill,
   createPaperBounds,
-  isValidFloodFillConfig,
   type FloodFillConfig,
   type FloodFillResult,
+  floodFill,
+  isValidFloodFillConfig,
   type PaperBounds,
 } from "@/lib/flood-fill";
 import type { Axial } from "@/lib/hex";

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-import type { SelectFieldDef } from "@/properties/registry";
+import { describe, expect, it, vi } from "vitest";
 import { AppAPI } from "@/appapi";
+import type { SelectFieldDef } from "@/properties/registry";
 
 describe("Property SelectField optionsProvider", () => {
   it("returns dynamic options from AppAPI", () => {

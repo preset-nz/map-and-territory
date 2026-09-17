@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import AppToolbar from "@/components/layout/app-toolbar";
-import { loadPlugin } from "@/plugin/loader";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
+import { loadPlugin } from "@/plugin/loader";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 

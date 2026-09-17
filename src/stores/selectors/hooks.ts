@@ -1,6 +1,6 @@
+import { TerrainSettings } from "@/palettes/settings";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
-import { TerrainSettings } from "@/palettes/settings";
 
 /**
  * Returns the resolved active setting id (map → campaign → default)

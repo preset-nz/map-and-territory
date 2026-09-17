@@ -1,6 +1,6 @@
+import { hexPath, parseAxialKey } from "@/layers/hex-utils";
 import type { LayerAdapter } from "@/layers/types";
-import { parseAxialKey, hexPath } from "@/layers/hex-utils";
-import { toPoint, corners } from "@/lib/hex/layout";
+import { corners, toPoint } from "@/lib/hex/layout";
 import type { MapPalette } from "@/palettes/types";
 import { resolveTerrainFill } from "@/stores/selectors/palette";
 

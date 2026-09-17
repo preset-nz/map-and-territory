@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useCampaignStore } from "@/stores/campaign";
-import { registerLayerType } from "@/layers/registry";
+import { beforeEach, describe, expect, it } from "vitest";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { registerLayerType } from "@/layers/registry";
+import { useCampaignStore } from "@/stores/campaign";
 
 describe("Layering Model Foundation — Store Semantics", () => {
   beforeEach(() => {

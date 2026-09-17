@@ -1,13 +1,13 @@
-import React from "react";
-import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import React from "react";
+import { beforeEach, describe, expect, it } from "vitest";
 import PropertiesPanel from "@/components/layout/properties-panel";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
 import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
+import { useCampaignStore } from "@/stores/campaign";
+import { useSelectionStore } from "@/stores/selection";
 
 describe("PropertiesPanel — disabledWhen", () => {
   beforeEach(() => {

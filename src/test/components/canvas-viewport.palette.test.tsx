@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render } from "@testing-library/react";
 import React from "react";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { CanvasViewport } from "@/components/map/canvas-viewport";
-import { useCampaignStore } from "@/stores/campaign";
-import { useLayerOrderingStore } from "@/stores/layer-ordering";
-import { useLayoutStore } from "@/stores/layout";
-import { resolvePalette, resolveTerrainFill } from "@/stores/selectors/palette";
 import { DefaultPalette } from "@/palettes/defaults";
 import { Presets } from "@/palettes/presets";
 import type { MapPalette } from "@/palettes/types";
 import type { Campaign } from "@/stores/campaign";
+import { useCampaignStore } from "@/stores/campaign";
+import { useLayerOrderingStore } from "@/stores/layer-ordering";
+import { useLayoutStore } from "@/stores/layout";
+import { resolvePalette, resolveTerrainFill } from "@/stores/selectors/palette";
 
 // Mock stores
 vi.mock("@/stores/campaign");

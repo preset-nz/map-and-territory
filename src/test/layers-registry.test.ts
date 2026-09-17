@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { HexgridAdapter } from "@/layers/adapters/hexgrid";
+import { PaperAdapter } from "@/layers/adapters/paper";
 import {
-  registerLayerType,
   getLayerType,
-  unregisterLayerType,
   listLayerTypes,
+  registerLayerType,
+  unregisterLayerType,
 } from "@/layers/registry";
 import type { LayerType } from "@/layers/types";
-import { PaperAdapter } from "@/layers/adapters/paper";
-import { HexgridAdapter } from "@/layers/adapters/hexgrid";
 
 describe("Layer Registry", () => {
   beforeEach(() => {

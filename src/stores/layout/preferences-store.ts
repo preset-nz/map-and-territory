@@ -6,12 +6,12 @@
  * composition with other layout store slices.
  */
 
-import { StateCreator } from "zustand";
+import type { StateCreator } from "zustand";
 import {
-  LayoutPreferences,
-  PreferencesActions,
   DEFAULT_PREFERENCES,
   isValidTheme,
+  type LayoutPreferences,
+  type PreferencesActions,
   validateSidebarWidth,
 } from "../../types/layout/preferences";
 import { SIDEBAR_WIDTH_CONSTRAINTS } from "../../types/layout/sidebar";

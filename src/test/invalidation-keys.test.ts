@@ -1,10 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { PaperAdapter, type PaperState } from "@/layers/adapters/paper";
-import { HexgridAdapter, type HexgridState } from "@/layers/adapters/hexgrid";
+import { describe, expect, it } from "vitest";
 import {
   HexNoiseAdapter,
   type HexNoiseState,
 } from "@/layers/adapters/hex-noise";
+import { HexgridAdapter, type HexgridState } from "@/layers/adapters/hexgrid";
+import { PaperAdapter, type PaperState } from "@/layers/adapters/paper";
 
 describe("Layer Adapter Invalidation Keys", () => {
   it("PaperAdapter key changes on aspect/color", () => {

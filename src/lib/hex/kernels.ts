@@ -1,5 +1,5 @@
-import type { Axial } from "./types";
 import { axialToCube, cubeToAxial, distance } from "./coords";
+import type { Axial } from "./types";
 
 export function ring(center: Axial, radius: number): Axial[] {
   if (radius <= 0) return [];

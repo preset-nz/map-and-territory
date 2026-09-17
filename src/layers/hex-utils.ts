@@ -1,5 +1,5 @@
+import { corners, toPoint } from "@/lib/hex/layout";
 import type { Axial, Layout, Point } from "@/lib/hex/types";
-import { toPoint, corners } from "@/lib/hex/layout";
 
 // Stable axial key for sparse maps
 export function axialKey(q: number, r: number): string {

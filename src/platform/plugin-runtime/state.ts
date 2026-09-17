@@ -1,8 +1,8 @@
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
-import { useLayoutStore } from "@/stores/layout";
 import type { Campaign } from "@/stores/campaign";
+import { useCampaignStore } from "@/stores/campaign";
+import { useLayoutStore } from "@/stores/layout";
 import type { Selection } from "@/stores/selection";
+import { useSelectionStore } from "@/stores/selection";
 
 /**
  * Narrow host-side seam exposing only the operations plugins need.

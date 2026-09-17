@@ -12,10 +12,9 @@
  * - Smooth transitions and visual feedback
  */
 
-import React, { useEffect, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
-import { cn } from "@/lib/utils";
-
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 import { useLayoutStore } from "@/stores/layout";
 import type { Theme } from "@/types/layout";

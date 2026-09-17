@@ -5,8 +5,15 @@
  * following single responsibility principle for component contracts.
  */
 
-import { ReactNode } from "react";
-import React from "react";
+/**
+ * Component prop interfaces for the Professional Layout System
+ *
+ * This file contains all interfaces for layout component props,
+ * following single responsibility principle for component contracts.
+ */
+
+import type React from "react";
+import type { ReactNode } from "react";
 
 // ============================================================================
 // Base Component Props

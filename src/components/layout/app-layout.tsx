@@ -15,42 +15,41 @@
  * - Accessibility compliance and keyboard navigation
  */
 
-import React, { useEffect, useMemo, useRef, useLayoutEffect } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
-
-import AppHeader from "./app-header";
-import AppSidebar from "./app-sidebar";
-import AppToolbar from "./app-toolbar";
-import PropertiesPanel from "./properties-panel";
-import MainContent from "./main-content";
+import type React from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import WorkerSupportGate from "@/components/providers/worker-support-gate";
-import { AuthErrorBoundary } from "../providers/auth-provider";
-import StatusBar from "./status-bar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useSelectionStore } from "@/stores/selection";
-import { useLayoutStore } from "@/stores/layout";
-import { loadPluginsWithPriority } from "@/plugin/loader";
+import { cn } from "@/lib/utils";
 import {
   campaignPluginManifest,
   campaignPluginModule,
 } from "@/plugin/builtin/campaign";
-import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
-import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
-import {
-  settingsPaletteManifest,
-  settingsPaletteModule,
-} from "@/plugin/builtin/settings-palette";
 import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
-import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
+import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
 import {
   hexgridPluginManifest,
   hexgridPluginModule,
 } from "@/plugin/builtin/hexgrid";
-
-import { BaseLayoutProps } from "@/types/layout";
-import { cn } from "@/lib/utils";
+import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
+import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
+import {
+  settingsPaletteManifest,
+  settingsPaletteModule,
+} from "@/plugin/builtin/settings-palette";
+import { loadPluginsWithPriority } from "@/plugin/loader";
+import { useLayoutStore } from "@/stores/layout";
+import { useSelectionStore } from "@/stores/selection";
+import type { BaseLayoutProps } from "@/types/layout";
+import { AuthErrorBoundary } from "../providers/auth-provider";
+import AppHeader from "./app-header";
+import AppSidebar from "./app-sidebar";
+import AppToolbar from "./app-toolbar";
+import MainContent from "./main-content";
+import PropertiesPanel from "./properties-panel";
+import StatusBar from "./status-bar";
 
 // ============================================================================
 // AppLayout Component
@@ -64,6 +63,9 @@ import { cn } from "@/lib/utils";
  *
  * @param props - AppLayout configuration props
  */
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
+
 export const AppLayout: React.FC<BaseLayoutProps> = ({
   children,
   className = "",
@@ -115,8 +117,6 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
     };
   }, []);
 
-  const clamp = (n: number, min: number, max: number) =>
-    Math.max(min, Math.min(max, n));
   const vw = typeof window !== "undefined" ? window.innerWidth : 0;
 
   // Keep last known percentages in refs (restored on expand)

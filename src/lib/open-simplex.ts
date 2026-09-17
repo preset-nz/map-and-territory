@@ -2,8 +2,8 @@
 // NOTE: This is a classic Simplex noise implementation (Gustavson) used as an interim
 // while we evaluate OpenSimplex2S. It is seeded and deterministic via our RNG.
 
-import { createRNG, type Seed } from "./random";
 import { fit01 } from "./math";
+import { createRNG, type Seed } from "./random";
 
 export interface OpenSimplexNoise {
   noise2D: (x: number, y: number) => number; // ~[-1,1]
@@ -59,7 +59,8 @@ export function createOpenSimplexNoise(seed: Seed): OpenSimplexNoise {
     const x0 = xin - X0;
     const y0 = yin - Y0;
 
-    let i1, j1;
+    let i1: number;
+    let j1: number;
     if (x0 > y0) {
       i1 = 1;
       j1 = 0;

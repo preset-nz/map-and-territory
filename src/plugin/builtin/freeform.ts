@@ -1,24 +1,24 @@
-import type { PluginManifest, PluginModule, ToolHandler } from "@/plugin/types";
-import { registerLayerType } from "@/layers/registry";
-import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
 import { AppAPI } from "@/appapi";
+import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
+import { debugEnabled } from "@/lib/debug";
+import { floodFill } from "@/lib/flood-fill";
+import type { Axial } from "@/lib/hex";
 import {
+  applyLayerState,
   getCurrentCampaign,
   getSelection,
   insertLayerAbove,
   insertLayerBeforeTopAnchor,
-  applyLayerState,
   selectLayer,
   setActiveTool,
 } from "@/platform/plugin-runtime/state";
 import { registerToolCursor } from "@/plugin/loader";
-import { floodFill } from "@/lib/flood-fill";
-import type { Axial } from "@/lib/hex";
-import { debugEnabled } from "@/lib/debug";
+import type { PluginManifest, PluginModule, ToolHandler } from "@/plugin/types";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
 
 export const freeformManifest: PluginManifest = {
   id: "app.plugins.freeform-layer",
@@ -368,7 +368,7 @@ export const freeformModule: PluginModule = {
             {}) as Record<string, unknown>;
           const existing =
             (st["cells"] as Record<string, unknown> | undefined) || {};
-          if (Object.prototype.hasOwnProperty.call(existing, key)) {
+          if (Object.hasOwn(existing, key)) {
             ctx.applyLayerState(ctx.selection.id!, (draft) => {
               const cells = {
                 ...(draft["cells"] as Record<string, unknown> | undefined),

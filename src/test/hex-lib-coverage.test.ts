@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { toPoint, fromPoint, corners } from "@/lib/hex";
+import { describe, expect, it } from "vitest";
+import { corners, fromPoint, toPoint } from "@/lib/hex";
 
 describe("hex lib coverage additions", () => {
   it("round-trips with non-zero origin for both orientations", () => {

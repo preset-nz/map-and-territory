@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import React from "react";
+import { describe, expect, it } from "vitest";
 import StatusBar from "@/components/layout/status-bar";
 import { useCampaignStore } from "@/stores/campaign";
 

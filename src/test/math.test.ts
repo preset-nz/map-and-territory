@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { fit, fit01, lerp, clamp } from "../lib/math";
+import { describe, expect, it } from "vitest";
+import { clamp, fit, fit01, lerp } from "../lib/math";
 
 describe("math utils", () => {
   it("fit01 maps [-1,1] -> [0,1]", () => {

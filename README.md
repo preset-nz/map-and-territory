@@ -2,7 +2,7 @@
 
 # Map & Territory
 
-Gritty, analog‑style hexmap editor for TTRPGs — built with Next.js.
+Gritty, analog‑style hexmap editor for TTRPGs. Part of the preset.nz desktop app family; re-platforming from Next.js to Tauri.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
@@ -17,20 +17,20 @@ Gritty, analog‑style hexmap editor for TTRPGs — built with Next.js.
 
 Map & Territory is a hexmap editor focused on a clean, professional editing experience. The editor itself is polished; the goal is to enable creating maps with an analog, gritty feel over time.
 
-Project context, goals, and design philosophy: `guidance/product_brief.md`.
+Project context, decisions and roadmap live in the guidance repo: `~/rhizomatic-preset/guidance/projects/map-and-territory/`. Coding conventions: `CLAUDE.md`.
 
 ## Current Scope
 
 - Editor app scaffold in Next.js with a polished UI foundation.
 - Foundational hex grid primitives used by the editor.
-- Unit and E2E testing setup (Vitest, Playwright).
+- Unit and integration tests with Vitest.
 - Guidance and ADRs to steer architecture and product direction.
 
-Status: early learning project; see `guidance/tickets.md` and `guidance/todos.md` for active work and roadmap.
+Status: re-platforming to a native Tauri app (adopted 2026-09-17). See the guidance repo's `features/roadmap.md`.
 
 ## Tech Stack
 
-See `guidance/tech_stack.md` for details and rationale.
+See the guidance repo's `tech-stack.md` for the target stack.
 
 ## Getting Started
 
@@ -54,45 +54,23 @@ pnpm build
 pnpm start
 ```
 
-## Git Hooks
+## Tooling
 
-This repo uses Husky + lint-staged to run commit-time checks:
-
-- Block commits directly to `main`.
-- Prevent committing large files (>10MB) or CRLF line endings.
-- Format and lint staged files (Prettier + ESLint).
-
-Setup (one-time):
+`just` is the task surface; hooks and CI call the same recipes.
 
 ```bash
-pnpm add -D husky lint-staged
-pnpm run prepare   # initializes Husky hooks
+just install   # pnpm install + lefthook hooks
+just run       # dev server
+just check     # tsc, Biome, Vitest — the gate for pre-push and CI
+just fmt       # Biome writes fixes in place
 ```
 
-Husky runs `.husky/pre-commit`, which delegates to `scripts/pre-commit.sh` and then runs lint-staged. This hook uses a bash shebang and does not rely on deprecated `husky.sh` shims.
-
-Prefer Husky?
-
-- Keep the existing `.githooks` for now. If you want Husky later:
-  1. Install: `pnpm add -D husky` (and optionally `lint-staged`)
-  2. Init: `pnpm husky` (or `npx husky init`)
-  3. Create `.husky/pre-commit` that delegates to our script:
-     ```sh
-     #!/usr/bin/env sh
-     . "$(dirname "$0")/_/husky.sh"
-     .githooks/pre-commit
-     ```
-     This reuses the same checks without duplicating logic.
-
-Editor settings
-
-- Project ships with `.editorconfig` for LF line endings, UTF‑8, final newline, and 2‑space indentation.
+Hooks are lefthook (`lefthook.yml`): Biome on staged files at pre-commit, `just check` at pre-push. Never use `--no-verify`; if a hook is wrong, fix the hook.
 
 ## Testing
 
 - Unit: `pnpm test` or `pnpm test:run`
 - Coverage: `pnpm test:coverage`
-- E2E: `pnpm test:e2e` (or `pnpm test:e2e:ui`)
 
 All contributions should keep the test suite green.
 
@@ -100,7 +78,6 @@ All contributions should keep the test suite green.
 
 - `src/`: Application source.
 - `public/`: Static assets.
-- `guidance/`: Product brief, ADRs, features, and process docs.
 
 ## Credits
 

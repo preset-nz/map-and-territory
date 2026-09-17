@@ -12,19 +12,22 @@
 // Re-export Individual Domain Types
 // ============================================================================
 
-export * from "./sidebar";
-export * from "./preferences";
-export * from "./navigation";
 export * from "./components";
+export * from "./navigation";
+export * from "./preferences";
+export * from "./sidebar";
 
 // ============================================================================
 // Composed State Interfaces
 // ============================================================================
 
-import { SidebarState, SidebarActions } from "./sidebar";
-import { LayoutPreferences, PreferencesActions } from "./preferences";
-import { NavigationState, NavigationActions } from "./navigation";
-import type { LayoutPreferences as _LP } from "./preferences";
+import type { NavigationActions, NavigationState } from "./navigation";
+import type {
+  LayoutPreferences as _LP,
+  LayoutPreferences,
+  PreferencesActions,
+} from "./preferences";
+import type { SidebarActions, SidebarState } from "./sidebar";
 
 /**
  * Complete layout state interface combining all state slices
@@ -80,9 +83,9 @@ export interface LayoutStore extends LayoutState, LayoutActions {}
 // Composed Default Values
 // ============================================================================
 
-import { DEFAULT_SIDEBAR_STATE } from "./sidebar";
-import { DEFAULT_PREFERENCES } from "./preferences";
 import { DEFAULT_NAVIGATION_STATE } from "./navigation";
+import { DEFAULT_PREFERENCES } from "./preferences";
+import { DEFAULT_SIDEBAR_STATE } from "./sidebar";
 
 /**
  * Complete default layout state combining all defaults
@@ -97,19 +100,22 @@ export const DEFAULT_LAYOUT_STATE: LayoutState = {
 // Backwards Compatibility Exports
 // ============================================================================
 
-// Re-export commonly used interfaces with original names for compatibility
-export type { BreadcrumbItem } from "./navigation";
 export type {
-  AppSidebarProps,
   AppHeaderProps,
+  AppSidebarProps,
+  BaseLayoutProps,
+  LayoutProviderProps,
   MainContentProps,
 } from "./components";
-export type { BaseLayoutProps, LayoutProviderProps } from "./components";
-
-// Re-export constants for compatibility
-export { SIDEBAR_WIDTH_CONSTRAINTS } from "./sidebar";
+// Re-export commonly used interfaces with original names for compatibility
+export type { BreadcrumbItem } from "./navigation";
 export { isValidTheme } from "./preferences";
-export { isValidSidebarVariant, isValidSidebarCollapsible } from "./sidebar";
+// Re-export constants for compatibility
+export {
+  isValidSidebarCollapsible,
+  isValidSidebarVariant,
+  SIDEBAR_WIDTH_CONSTRAINTS,
+} from "./sidebar";
 
 // ============================================================================
 // Convenience Public Types

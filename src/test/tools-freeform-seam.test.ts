@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AppAPI } from "@/appapi";
+import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
+import { freeformModule } from "@/plugin/builtin/freeform";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
-import { registerLayerType } from "@/layers/registry";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
-import { freeformModule } from "@/plugin/builtin/freeform";
-import { AppAPI } from "@/appapi";
 
 const paintTool = freeformModule.tools!.find((t) => t.id === "paint")!;
 const eraseTool = freeformModule.tools!.find((t) => t.id === "erase")!;

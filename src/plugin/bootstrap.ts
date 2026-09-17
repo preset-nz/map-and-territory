@@ -1,23 +1,22 @@
-import { loadPluginsWithPriority } from "@/plugin/loader";
-
-// Built-in plugins
-import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
-import {
-  hexgridPluginManifest,
-  hexgridPluginModule,
-} from "@/plugin/builtin/hexgrid";
 import {
   campaignPluginManifest,
   campaignPluginModule,
 } from "@/plugin/builtin/campaign";
-import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
+import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
 import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
+import {
+  hexgridPluginManifest,
+  hexgridPluginModule,
+} from "@/plugin/builtin/hexgrid";
+import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
+import { outlineManifest, outlineModule } from "@/plugin/builtin/outline";
+// Built-in plugins
+import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
 import {
   settingsPaletteManifest,
   settingsPaletteModule,
 } from "@/plugin/builtin/settings-palette";
-import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
-import { outlineManifest, outlineModule } from "@/plugin/builtin/outline";
+import { loadPluginsWithPriority } from "@/plugin/loader";
 
 export async function bootstrapPlugins() {
   await loadPluginsWithPriority([

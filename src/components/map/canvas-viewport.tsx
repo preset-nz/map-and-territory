@@ -1,38 +1,35 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useCampaignStore } from "@/stores/campaign";
-import { getLayerType } from "@/layers/registry";
-import type { LayerAdapter } from "@/layers/types";
-// import type { RenderEnv } from '@/layers/types';
-import RenderService from "@/render/service";
-import type { SceneFrame } from "@/render/types";
-import { useLayoutStore } from "@/stores/layout";
-import { useSelectionStore } from "@/stores/selection";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { computePaperRect, type PaperAspect } from "@/app/scene/geometry";
 // import { axialKey } from "@/layers/hex-utils";
 import { AppAPI } from "@/appapi";
+import { getLayerType } from "@/layers/registry";
+import type { LayerAdapter } from "@/layers/types";
+import { debugEnabled } from "@/lib/debug";
+import type { Layout } from "@/lib/hex";
+import { findNearestCorner } from "@/lib/outline/geometry";
+import type { OutlineState } from "@/lib/outline/types";
+import { cornersEqual } from "@/lib/outline/types";
 import {
+  composeEnv,
   getCursorForTool,
   getSceneAdapter,
-  composeEnv,
   getTool,
 } from "@/plugin/loader";
 import type { ToolContext } from "@/plugin/types";
-import { findNearestCorner } from "@/lib/outline/geometry";
-import { cornersEqual } from "@/lib/outline/types";
-import type { OutlineState } from "@/lib/outline/types";
-import type { Layout } from "@/lib/hex";
+// import type { RenderEnv } from '@/layers/types';
+import RenderService from "@/render/service";
+import type { SceneFrame } from "@/render/types";
+import {
+  useCampaignStore as campaignStoreRaw,
+  useCampaignStore,
+} from "@/stores/campaign";
+import { useLayoutStore } from "@/stores/layout";
+import { useSelectionStore } from "@/stores/selection";
 // import { createPerlinNoise } from "@/lib/noise";
 import { resolvePalette } from "@/stores/selectors/palette";
-import { debugEnabled } from "@/lib/debug";
-import { useCampaignStore as campaignStoreRaw } from "@/stores/campaign";
-import { computePaperRect, PaperAspect } from "@/app/scene/geometry";
 
 export const CanvasViewport: React.FC = () => {
   const campaignSnapshot = useCampaignStore((s) => s.current);
@@ -127,6 +124,7 @@ export const CanvasViewport: React.FC = () => {
   }, []);
 
   // Init worker-based renderer - recreate completely when campaign changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: campaignId and activeMapId are intentional triggers for teardown and re-init
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -227,6 +225,7 @@ export const CanvasViewport: React.FC = () => {
   // the campaign changes. The mount/unmount effect above handles init/teardown.
 
   // Push size and frame updates
+  // biome-ignore lint/correctness/useExhaustiveDependencies: useWorker and layersKey are intentional redraw triggers
   useEffect(() => {
     const svc = renderSvcRef.current;
     const canvas = canvasRef.current;
@@ -290,7 +289,7 @@ export const CanvasViewport: React.FC = () => {
         app: AppAPI,
         updateLayerState,
         applyLayerState,
-        getActiveLayerState: <T = unknown,>(id?: string): T | null => {
+        getActiveLayerState: <T = unknown>(id?: string): T | null => {
           try {
             const cur = campaignStoreRaw.getState().current;
             const activeMapId = cur?.activeMapId ?? null;

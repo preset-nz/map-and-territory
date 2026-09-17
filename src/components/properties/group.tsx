@@ -1,6 +1,6 @@
+import { ChevronDown, ChevronRight } from "lucide-react";
 import React from "react";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
 export interface PropertyGroupProps {
   title: string;
@@ -81,10 +81,10 @@ export const PropertyGroup: React.FC<PropertyGroupProps> = ({
             <span className="truncate font-medium">{title}</span>
           </button>
         ) : (
-          <div className={headerClasses} role="heading" aria-level={3}>
+          <h3 className={headerClasses}>
             {icon}
             <span className="truncate font-medium">{title}</span>
-          </div>
+          </h3>
         )}
         {actions ? (
           <div className="flex items-center gap-2 text-sm">{actions}</div>

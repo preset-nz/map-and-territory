@@ -1,6 +1,6 @@
-import { neighbors } from "@/lib/hex/coords";
-import { toPoint, corners, fromPoint } from "@/lib/hex/layout";
 import type { Layout, Point } from "@/lib/hex";
+import { neighbors } from "@/lib/hex/coords";
+import { corners, fromPoint, toPoint } from "@/lib/hex/layout";
 import type { OutlineCorner, OutlineCornerIndex } from "@/lib/outline/types";
 import { cornersEqual } from "@/lib/outline/types";
 

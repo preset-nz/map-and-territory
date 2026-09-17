@@ -17,28 +17,28 @@
 // Core Layout Components
 // ============================================================================
 
-export {
-  default as AppLayout,
-  LayoutProvider,
-  FullscreenLayout,
-  CenteredLayout,
-  withLayout,
-  ConditionalLayout,
-} from "./app-layout";
 export { default as AppHeader } from "./app-header";
+export {
+  CenteredLayout,
+  ConditionalLayout,
+  default as AppLayout,
+  FullscreenLayout,
+  LayoutProvider,
+  withLayout,
+} from "./app-layout";
 export { default as AppSidebar } from "./app-sidebar";
 export { default as AppToolbar } from "./app-toolbar";
+export {
+  ContentContainer,
+  ContentError,
+  ContentGrid,
+  ContentLoading,
+  ContentSection,
+  default as MainContent,
+  PageHeader,
+} from "./main-content";
 export { default as PropertiesPanel } from "./properties-panel";
 export { default as StatusBar } from "./status-bar";
-export {
-  default as MainContent,
-  ContentContainer,
-  ContentGrid,
-  PageHeader,
-  ContentSection,
-  ContentLoading,
-  ContentError,
-} from "./main-content";
 
 // ============================================================================
 // Specialized Navigation Components
@@ -51,19 +51,17 @@ export { default as NavigationSections } from "./navigation-sections";
 // ============================================================================
 
 export type {
-  // Base layout props
-  BaseLayoutProps,
-  LayoutProviderProps,
-
   // Component-specific props
   AppHeaderProps,
   AppSidebarProps,
-  MainContentProps,
-
+  // Base layout props
+  BaseLayoutProps,
+  BreadcrumbItem,
+  LayoutProviderProps,
   // State interfaces
   LayoutState,
   LayoutStore,
-  BreadcrumbItem,
+  MainContentProps,
 } from "@/types/layout";
 
 // ============================================================================
@@ -71,14 +69,13 @@ export type {
 // ============================================================================
 
 export {
-  // Main store
-  useLayoutStore,
-
+  debugLayoutState,
   // Utilities
   getLayoutState,
-  subscribeToLayoutChanges,
   resetLayoutStore,
-  debugLayoutState,
+  subscribeToLayoutChanges,
+  // Main store
+  useLayoutStore,
 } from "@/stores/layout";
 
 // ============================================================================
@@ -87,8 +84,8 @@ export {
 
 export {
   DEFAULT_LAYOUT_STATE,
-  SIDEBAR_WIDTH_CONSTRAINTS,
-  isValidTheme,
-  isValidSidebarVariant,
   isValidSidebarCollapsible,
+  isValidSidebarVariant,
+  isValidTheme,
+  SIDEBAR_WIDTH_CONSTRAINTS,
 } from "@/types/layout";

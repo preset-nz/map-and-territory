@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { useCampaignStore } from "@/stores/campaign";
-import { registerLayerType } from "@/layers/registry";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
+import { useCampaignStore } from "@/stores/campaign";
 
 describe("applyLayerState seam", () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
-import { describe, it, beforeEach, expect } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
 import { SimpleThemeToggle } from "@/components/layout/theme-toggle";
 import { useLayoutStore } from "@/stores/layout";
 

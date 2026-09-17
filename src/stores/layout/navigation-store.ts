@@ -6,14 +6,14 @@
  * layout store slices.
  */
 
-import { StateCreator } from "zustand";
+import type { StateCreator } from "zustand";
 import {
-  NavigationState,
-  NavigationActions,
-  BreadcrumbItem,
+  type BreadcrumbItem,
   DEFAULT_NAVIGATION_STATE,
   filterValidBreadcrumbs,
   isValidBreadcrumbItem,
+  type NavigationActions,
+  type NavigationState,
 } from "../../types/layout/navigation";
 
 // ============================================================================

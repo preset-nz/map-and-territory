@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  hexTiles,
   createHexLayout,
-  type HexTilingConfig,
   type HexTilePosition,
+  type HexTilingConfig,
+  hexTiles,
 } from "@/layers/hex-utils";
 
 describe("hex utilities consolidation", () => {

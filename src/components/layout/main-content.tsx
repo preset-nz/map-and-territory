@@ -15,9 +15,9 @@
  * - Desktop-optimized responsive behavior
  */
 
-import React from "react";
+import type React from "react";
 import { cn } from "@/lib/utils";
-import { MainContentProps } from "@/types/layout";
+import type { MainContentProps } from "@/types/layout";
 
 // ============================================================================
 // MainContent Component
@@ -331,9 +331,9 @@ export const ContentLoading: React.FC<ContentLoadingProps> = ({
 
       {/* Content lines */}
       <div className="space-y-3">
-        {Array.from({ length: lines }).map((_, i) => (
+        {Array.from({ length: lines }, (_, i) => `line-${i}`).map((id, i) => (
           <div
-            key={i}
+            key={id}
             className={cn(
               "h-4 bg-muted rounded",
               i === lines - 1 ? "w-2/3" : "w-full",
@@ -378,6 +378,7 @@ export const ContentError: React.FC<ContentErrorProps> = ({
         <p className="text-muted-foreground max-w-md mx-auto">{message}</p>
         {onRetry && (
           <button
+            type="button"
             onClick={onRetry}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4"
           >

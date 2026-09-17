@@ -1,13 +1,14 @@
 /// <reference lib="webworker" />
-import type { RenderMessage, SceneFrame } from "@/render/types";
-import { Canvas2DBackend } from "@/render/backends/canvas2d";
-import bootstrapPlugins from "@/plugin/bootstrap";
-import { registerLayerType } from "@/layers/registry";
-import { PaperType } from "@/layers/adapters/paper";
-import { HexgridType } from "@/layers/adapters/hexgrid";
-import { HexNoiseType } from "@/layers/adapters/hex-noise";
+
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { HexgridType } from "@/layers/adapters/hexgrid";
 import { OutlineType } from "@/layers/adapters/outline";
+import { PaperType } from "@/layers/adapters/paper";
+import { registerLayerType } from "@/layers/registry";
+import bootstrapPlugins from "@/plugin/bootstrap";
+import { Canvas2DBackend } from "@/render/backends/canvas2d";
+import type { RenderMessage, SceneFrame } from "@/render/types";
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
@@ -118,5 +119,3 @@ self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
       break;
   }
 };
-
-export {}; // ensure module scope

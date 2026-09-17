@@ -1,6 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useCampaignStore } from "@/stores/campaign";
-import { resolvePalette } from "@/stores/selectors/palette";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   executeCommand,
   registerCommand,
@@ -11,6 +9,8 @@ import {
   settingsPaletteModule,
 } from "@/plugin/builtin/settings-palette";
 import { loadPlugin } from "@/plugin/loader";
+import { useCampaignStore } from "@/stores/campaign";
+import { resolvePalette } from "@/stores/selectors/palette";
 
 describe("T-012 Settings / Palettes", () => {
   beforeEach(() => {

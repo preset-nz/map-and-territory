@@ -17,23 +17,23 @@
 
 import React, {
   createContext,
-  useContext,
-  useReducer,
+  type ReactNode,
   useCallback,
+  useContext,
   useEffect,
-  ReactNode,
+  useReducer,
 } from "react";
 
 import {
-  AuthContextValue,
-  NoOpAuthProviderProps,
-  AuthEvent,
-  User,
-  LoginCredentials,
-  DEFAULT_AUTH_CONTEXT,
   AUTH_CONFIG,
-  createAuthError,
+  type AuthContextValue,
   AuthErrorCode,
+  type AuthEvent,
+  createAuthError,
+  DEFAULT_AUTH_CONTEXT,
+  type LoginCredentials,
+  type NoOpAuthProviderProps,
+  type User,
 } from "../../types/auth";
 
 // ============================================================================
@@ -358,6 +358,7 @@ export class AuthErrorBoundary extends React.Component<
                 Authentication provider failed to load.
               </p>
               <button
+                type="button"
                 onClick={this.handleReset}
                 className="mt-2 text-sm text-primary hover:underline"
               >

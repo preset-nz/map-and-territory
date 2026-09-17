@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { OutlineAdapter } from "@/layers/adapters/outline";
-import type { OutlineState } from "@/lib/outline/types";
 import type { RenderEnv } from "@/layers/types";
+import type { OutlineState } from "@/lib/outline/types";
 
 class MockContext implements Partial<CanvasRenderingContext2D> {
   public moves: Array<[number, number]> = [];

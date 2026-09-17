@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
-import { beforeAll, afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { afterEach, beforeAll } from "vitest";
 
 // Mock Next.js router
 beforeAll(() => {

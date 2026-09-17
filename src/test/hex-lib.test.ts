@@ -1,10 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  fromPoint,
-  toPoint,
   axialToCube,
   cubeToAxial,
   distance,
+  fromPoint,
+  toPoint,
 } from "@/lib/hex";
 
 describe("hex lib basics", () => {

@@ -1,5 +1,5 @@
+import { type Draft, enablePatches, produce } from "immer";
 import { create } from "zustand";
-import { produce, enablePatches } from "immer";
 
 // Enable patches support for performance monitoring
 try {
@@ -7,8 +7,13 @@ try {
 } catch {
   // Patches already enabled or not available
 }
+
+import type { FreeformCell } from "@/layers/adapters/freeform-hex";
 import { getLayerPolicy, getLayerType } from "@/layers/registry";
 import type { LayerInstance } from "@/layers/types";
+import { debugEnabled } from "@/lib/debug";
+import type { MapPalette } from "@/palettes/types";
+import { generateName } from "@/stores/naming";
 import {
   clampToAnchorRange,
   getAnchorBounds,
@@ -16,11 +21,6 @@ import {
   isAnchorLayer,
   PAPER_ANCHOR_TYPE,
 } from "./anchors";
-import { generateName } from "@/stores/naming";
-import { debugEnabled } from "@/lib/debug";
-
-import type { MapPalette } from "@/palettes/types";
-import type { FreeformCell } from "@/layers/adapters/freeform-hex";
 
 export interface Campaign {
   id: string;
@@ -55,16 +55,16 @@ export interface BatchLimits {
 
 // Re-export batch operation types from shared location
 export type {
-  CellsDelta,
-  BatchResult,
   BatchMetrics,
+  BatchResult,
+  CellsDelta,
 } from "@/types/batch-operations";
 
 // Import types for local use
 import type {
-  CellsDelta,
-  BatchResult,
   BatchMetrics,
+  BatchResult,
+  CellsDelta,
 } from "@/types/batch-operations";
 
 const DEFAULT_BATCH_LIMITS: BatchLimits = {
@@ -364,9 +364,9 @@ interface CampaignStoreState {
   renameLayer: (layerId: string, name: string) => void;
   updateLayerState: (layerId: string, patch: Record<string, unknown>) => void;
   // Transactional write seam for tools/plugins (seam-first)
-  applyLayerState: (
+  applyLayerState: <T extends object = Record<string, unknown>>(
     layerId: string,
-    updater: (draft: Record<string, unknown>) => void,
+    updater: (draft: T) => void,
   ) => void;
   // Batch operations for efficient bulk updates
   applyLayerStateBatch: <T = Record<string, unknown>>(
@@ -984,7 +984,10 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       dirty: true,
     });
   },
-  applyLayerState: (layerId, updater) => {
+  applyLayerState: <T extends object = Record<string, unknown>>(
+    layerId: string,
+    updater: (draft: T) => void,
+  ) => {
     const cur = get().current;
     if (!cur) return;
     const map = cur.maps.find((m) => m.id === cur.activeMapId);
@@ -999,7 +1002,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         : { ...(target.state as Record<string, unknown>) }
       : {};
     try {
-      updater(baseState);
+      updater(baseState as T);
     } catch (e) {
       // swallow updater errors to avoid corrupting state
       console.warn("applyLayerState updater threw", e);
@@ -1103,7 +1106,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
 
           const result = updater(draft as T);
           // If updater returns a value, use it (allows both mutation and return patterns)
-          return result !== undefined ? result : draft;
+          return (result !== undefined ? result : draft) as Draft<T>;
         },
         (patches) => {
           // Clear timeout as soon as patches are available
@@ -1291,7 +1294,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     }
 
     // Validate batch operation
-    const validation = validateBatchOperation(delta);
+    const validation = validateBatchOperation(
+      delta as CellsDelta<FreeformCell>,
+    );
     if (!validation.valid) {
       return { success: false, error: validation.error };
     }
@@ -1415,5 +1420,5 @@ export function withBatchMetrics<T>(
   }
 }
 
-export type { CampaignStoreState, BatchLimits };
+export type { CampaignStoreState };
 export { validateBatchOperation };

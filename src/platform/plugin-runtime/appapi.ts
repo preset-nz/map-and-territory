@@ -1,7 +1,6 @@
+import type { Campaign } from "@/stores/campaign";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
-
-import type { Campaign } from "@/stores/campaign";
 
 export interface CampaignAPI {
   newCampaign: (params?: { name?: string; description?: string }) => Campaign;

@@ -1,4 +1,4 @@
-import type { LayerType, LayerTypeId, LayerPolicy } from "./types";
+import type { LayerPolicy, LayerType, LayerTypeId } from "./types";
 
 const layerTypes = new Map<LayerTypeId, LayerType<unknown>>();
 

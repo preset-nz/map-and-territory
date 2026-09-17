@@ -1,10 +1,10 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
-import { SelectField } from "@/components/properties/select";
-import { ColorField } from "@/components/properties/color";
-import { Int1D, Float2D } from "@/components/properties/number";
-import { PropertyLabel } from "@/components/properties/label";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { CheckboxField } from "@/components/properties/checkbox";
+import { ColorField } from "@/components/properties/color";
+import { PropertyLabel } from "@/components/properties/label";
+import { Float2D, Int1D } from "@/components/properties/number";
+import { SelectField } from "@/components/properties/select";
 
 describe("Properties fields", () => {
   it("SelectField fires onChange when not readOnly", () => {

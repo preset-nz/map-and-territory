@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { executeCommand, hasCommand } from "@/lib/commands";
 import {
+  getToolbarContributions,
   loadPlugin,
   unloadPlugin,
-  getToolbarContributions,
 } from "@/plugin/loader";
 import type { PluginManifest, PluginModule } from "@/plugin/types";
-import { executeCommand, hasCommand } from "@/lib/commands";
 
 describe("Plugin Loader (stub)", () => {
   beforeEach(async () => {
