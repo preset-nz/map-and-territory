@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { Presets } from "@/palettes/presets";
+import { describe, expect, it } from "vitest";
 import { DefaultPalette } from "@/palettes/defaults";
+import { Presets } from "@/palettes/presets";
 import type { MapPalette, TerrainCategory } from "@/palettes/types";
 
 const terrainCategories: TerrainCategory[] = [

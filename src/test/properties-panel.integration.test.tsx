@@ -1,18 +1,18 @@
-import React from "react";
-import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import React from "react";
+import { beforeEach, describe, expect, it } from "vitest";
 import PropertiesPanel from "@/components/layout/properties-panel";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
+import { HexgridType } from "@/layers/adapters/hexgrid";
+import { PaperType } from "@/layers/adapters/paper";
+import { registerLayerType } from "@/layers/registry";
 import { campaignPluginModule } from "@/plugin/builtin/campaign";
+import { freeformModule } from "@/plugin/builtin/freeform";
+import { hexNoiseModule } from "@/plugin/builtin/hex-noise";
+import { hexgridPluginModule } from "@/plugin/builtin/hexgrid";
 import { mapPluginModule } from "@/plugin/builtin/map";
 import { paperPluginModule } from "@/plugin/builtin/paper";
-import { hexgridPluginModule } from "@/plugin/builtin/hexgrid";
-import { hexNoiseModule } from "@/plugin/builtin/hex-noise";
-import { freeformModule } from "@/plugin/builtin/freeform";
-import { registerLayerType } from "@/layers/registry";
-import { PaperType } from "@/layers/adapters/paper";
-import { HexgridType } from "@/layers/adapters/hexgrid";
+import { useCampaignStore } from "@/stores/campaign";
+import { useSelectionStore } from "@/stores/selection";
 
 describe("PropertiesPanel Integration — campaign/map/layer", () => {
   beforeEach(async () => {

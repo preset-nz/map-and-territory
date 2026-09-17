@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  registerPropertySchema,
-  unregisterPropertySchema,
   getPropertySchema,
   type PropertySchema,
+  registerPropertySchema,
+  unregisterPropertySchema,
 } from "@/properties/registry";
 
 describe("Property Registry — register/unregister", () => {

@@ -2,12 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import AppLayout from "@/components/layout/app-layout";
 // Layout system imports
 import {
-  NoOpAuthProvider,
   AuthErrorBoundary,
+  NoOpAuthProvider,
 } from "@/components/providers/auth-provider";
-import AppLayout from "@/components/layout/app-layout";
 import DialogProvider from "@/components/providers/dialog-provider";
 import PluginProvider from "@/components/providers/plugin-provider";
 

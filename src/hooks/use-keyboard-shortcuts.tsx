@@ -6,8 +6,8 @@
  */
 
 import { useEffect } from "react";
-import { useLayoutStore, useToolActions } from "@/stores/layout";
 import { executeCommand } from "@/lib/commands";
+import { useLayoutStore, useToolActions } from "@/stores/layout";
 
 const TOOL_SHORTCUTS: Record<string, string> = {
   "1": "select",

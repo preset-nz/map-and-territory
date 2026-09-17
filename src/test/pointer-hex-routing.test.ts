@@ -1,6 +1,6 @@
+import { fireEvent, render } from "@testing-library/react";
 import React from "react";
-import { describe, it, expect, beforeAll } from "vitest";
-import { render, fireEvent } from "@testing-library/react";
+import { beforeAll, describe, expect, it } from "vitest";
 import CanvasViewport from "@/components/map/canvas-viewport";
 import { useCampaignStore } from "@/stores/campaign";
 import { useLayoutStore } from "@/stores/layout";

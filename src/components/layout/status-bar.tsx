@@ -12,13 +12,13 @@
  * - Integration with layout and tool stores
  */
 
-import React from "react";
+import type React from "react";
 import { Separator } from "@/components/ui/separator";
-import { useActiveSetting, useActiveSettingId } from "@/stores/selectors/hooks";
+import { useCampaignStore } from "@/stores/campaign";
 
 import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
-import { useCampaignStore } from "@/stores/campaign";
+import { useActiveSetting, useActiveSettingId } from "@/stores/selectors/hooks";
 
 // ============================================================================
 // StatusBar Component

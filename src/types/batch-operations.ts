@@ -5,7 +5,7 @@
  * to enable efficient bulk updates to layer state.
  */
 
-import type { FreeformCell } from "@/stores/campaign";
+import type { FreeformCell } from "@/layers/adapters/freeform-hex";
 
 /**
  * Delta object for batch cell operations

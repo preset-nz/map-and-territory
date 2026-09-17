@@ -1,37 +1,26 @@
-import { describe, expect, it } from "vitest";
-import { ESLint } from "eslint";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+/**
+ * Plugins must not import store modules directly; they go through
+ * ToolContext and AppAPI seams. Biome enforces this at lint time
+ * (biome.json override for src/plugin/**); this test keeps the rule
+ * visible in the suite and independent of the linter.
+ */
+function walk(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) walk(p, out);
+    else if (/\.(ts|tsx)$/.test(name)) out.push(p);
+  }
+  return out;
+}
 
-const eslint = new ESLint({
-  cwd: resolve(__dirname, "../../.."),
-});
-
-describe("plugin lint guard", () => {
-  it("rejects direct store imports", async () => {
-    const results = await eslint.lintText(
-      'import { useCampaignStore } from "@/stores/campaign";',
-      { filePath: "src/plugin/example.ts" },
+describe("plugin store import boundary", () => {
+  it("no file under src/plugin imports @/stores", () => {
+    const offenders = walk(join(process.cwd(), "src/plugin")).filter((f) =>
+      /from\s+["']@\/stores(\/|["'])/.test(readFileSync(f, "utf8")),
     );
-    const messages = results[0]?.messages ?? [];
-    const restricted = messages.filter(
-      (m) => m.ruleId === "no-restricted-imports",
-    );
-    expect(restricted.length).toBeGreaterThan(0);
-    expect(restricted[0]?.message ?? "").toContain("ToolContext seams");
-  });
-
-  it("allows plugin runtime helpers", async () => {
-    const results = await eslint.lintText(
-      'import { getCurrentCampaign } from "@/platform/plugin-runtime/state";',
-      { filePath: "src/plugin/example.ts" },
-    );
-    const messages = results[0]?.messages ?? [];
-    expect(messages.every((m) => m.ruleId !== "no-restricted-imports")).toBe(
-      true,
-    );
+    expect(offenders).toEqual([]);
   });
 });

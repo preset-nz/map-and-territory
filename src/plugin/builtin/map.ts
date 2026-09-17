@@ -1,10 +1,10 @@
-import type { PluginManifest, PluginModule } from "@/plugin/types";
+import { TerrainSettings } from "@/palettes/settings";
 import { getAppAPI } from "@/plugin/appapi";
+import type { PluginManifest, PluginModule } from "@/plugin/types";
 import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
-import { TerrainSettings } from "@/palettes/settings";
 
 export const mapPluginManifest: PluginManifest = {
   id: "app.plugins.map",

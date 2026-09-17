@@ -13,16 +13,16 @@ import { create } from "zustand";
 import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-import { LayoutState, DEFAULT_LAYOUT_STATE } from "../../types/layout";
+import { DEFAULT_LAYOUT_STATE, type LayoutState } from "../../types/layout";
 
 // ============================================================================
 // Re-export Individual Slices
 // ============================================================================
 
-export * from "./sidebar-store";
-export * from "./preferences-store";
-export * from "./navigation-store";
 export * from "./composition";
+export * from "./navigation-store";
+export * from "./preferences-store";
+export * from "./sidebar-store";
 
 // ============================================================================
 // Complete Layout Store Implementation

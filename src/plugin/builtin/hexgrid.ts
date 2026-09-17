@@ -1,10 +1,10 @@
-import type { PluginManifest, PluginModule, EnvProvider } from "@/plugin/types";
+import { HexgridType } from "@/layers/adapters/hexgrid";
+import { registerLayerType } from "@/layers/registry";
+import type { EnvProvider, PluginManifest, PluginModule } from "@/plugin/types";
 import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
-import { registerLayerType } from "@/layers/registry";
-import { HexgridType } from "@/layers/adapters/hexgrid";
 
 export const hexgridPluginManifest: PluginManifest = {
   id: "core.hexgrid",

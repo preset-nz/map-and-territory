@@ -1,10 +1,10 @@
-import React from "react";
-import { describe, it, expect, beforeAll } from "vitest";
 import { render } from "@testing-library/react";
+import React from "react";
+import { beforeAll, describe, expect, it } from "vitest";
 import CanvasViewport from "@/components/map/canvas-viewport";
-import { useCampaignStore } from "@/stores/campaign";
 import { registerLayerType, unregisterLayerType } from "@/layers/registry";
-import type { LayerType, LayerAdapter } from "@/layers/types";
+import type { LayerAdapter, LayerType } from "@/layers/types";
+import { useCampaignStore } from "@/stores/campaign";
 
 // Minimal canvas 2D context mock so fallback renderer can initialize
 beforeAll(() => {

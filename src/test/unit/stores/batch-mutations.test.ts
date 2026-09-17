@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useCampaignStore } from "@/stores/campaign";
-import type { CellsDelta } from "@/stores/campaign";
-import { registerLayerType } from "@/layers/registry";
+import { beforeEach, describe, expect, it } from "vitest";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
+import type { CellsDelta } from "@/stores/campaign";
+import { useCampaignStore } from "@/stores/campaign";
 
 describe("Batch Layer State Mutations - Core Functionality", () => {
   beforeEach(() => {
@@ -137,7 +137,7 @@ describe("Batch Layer State Mutations - Core Functionality", () => {
       expect(layer?.state).toMatchObject({
         cells: { "1,1": { terrainId: "water" } },
       });
-      expect((layer?.state as any).cells["0,0"]).toBeUndefined();
+      expect((layer?.state as any)?.cells["0,0"]).toBeUndefined();
     });
 
     it("should reject invalid batch operations", () => {

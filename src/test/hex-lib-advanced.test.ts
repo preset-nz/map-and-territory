@@ -1,13 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  neighbors,
-  diagonals,
-  ring,
-  range,
-  line,
-  distance,
   axialToOffset,
+  diagonals,
+  distance,
+  line,
+  neighbors,
   offsetToAxial,
+  range,
+  ring,
 } from "@/lib/hex";
 
 describe("hex lib advanced", () => {

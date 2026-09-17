@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import {
-  loadPluginsWithPriority,
-  getToolbarContributions,
-} from "@/plugin/loader";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   campaignPluginManifest,
   campaignPluginModule,
 } from "@/plugin/builtin/campaign";
 import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
 import { resolvePreconditions } from "@/plugin/capabilities";
+import {
+  getToolbarContributions,
+  loadPluginsWithPriority,
+} from "@/plugin/loader";
 import { useCampaignStore } from "@/stores/campaign";
 
 describe("Toolbar gating: map.new requires a campaign", () => {

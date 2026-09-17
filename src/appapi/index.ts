@@ -1,28 +1,29 @@
 // Public AppAPI surface
-import {
-  resolvePalette,
-  resolveTerrainFill,
-  resolveGridLine,
-} from "@/stores/selectors/palette";
+
+import { type BaseTerrainType, TerrainSettings } from "@/palettes/settings";
 import type { TerrainCategory } from "@/palettes/types";
 import { useCampaignStore } from "@/stores/campaign";
-import { TerrainSettings, BaseTerrainType } from "@/palettes/settings";
+import {
+  resolveGridLine,
+  resolvePalette,
+  resolveTerrainFill,
+} from "@/stores/selectors/palette";
 // Intent: provide a stable, minimal interface for app-level consumers
 // without leaking internal store or lib shapes.
 
 import type { Axial, Layout, Point } from "@/lib/hex";
 import {
-  fromPoint,
-  toPoint,
-  round,
-  distance,
-  neighbors,
-  diagonals,
-  ring,
-  range,
-  line,
   axialToCube,
   cubeToAxial,
+  diagonals,
+  distance,
+  fromPoint,
+  line,
+  neighbors,
+  range,
+  ring,
+  round,
+  toPoint,
 } from "@/lib/hex";
 
 export const AppAPI = {

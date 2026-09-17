@@ -1,5 +1,5 @@
-import type { Axial, Layout, Point } from "./types";
 import { round } from "./coords";
+import type { Axial, Layout, Point } from "./types";
 
 const SQRT3 = Math.sqrt(3);
 

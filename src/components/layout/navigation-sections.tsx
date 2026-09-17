@@ -15,10 +15,10 @@
  * - Collapsible sections with smooth transitions
  */
 
-import React, { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -248,6 +248,7 @@ const NavigationItemComponent: React.FC<NavigationItemComponentProps> = ({
       </Link>
     ) : (
       <button
+        type="button"
         className={itemClasses}
         onClick={handleClick}
         disabled={item.disabled}

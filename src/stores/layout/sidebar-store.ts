@@ -6,13 +6,13 @@
  * with other layout store slices.
  */
 
-import { StateCreator } from "zustand";
+import type { StateCreator } from "zustand";
 import {
-  SidebarState,
-  SidebarActions,
   DEFAULT_SIDEBAR_STATE,
-  isValidSidebarVariant,
   isValidSidebarCollapsible,
+  isValidSidebarVariant,
+  type SidebarActions,
+  type SidebarState,
 } from "../../types/layout/sidebar";
 
 // ============================================================================

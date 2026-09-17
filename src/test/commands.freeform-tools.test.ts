@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { executeCommand } from "@/lib/commands";
-import { loadPlugin } from "@/plugin/loader";
 import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
+import { loadPlugin } from "@/plugin/loader";
 import { useLayoutStore } from "@/stores/layout";
 
 describe("Freeform tool commands", () => {

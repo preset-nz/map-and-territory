@@ -36,9 +36,9 @@ export interface PluginManifest {
   entry?: string;
 }
 
+import type { AppAPI as ActualAppAPI } from "@/appapi";
 import type { AppAPI } from "@/plugin/appapi";
-import { AppAPI as ActualAppAPI } from "@/appapi";
-import type { CellsDelta, BatchResult } from "@/types/batch-operations";
+import type { BatchResult, CellsDelta } from "@/types/batch-operations";
 
 export interface PluginContext {
   // Narrow API surface in MVP; extend later
@@ -63,9 +63,9 @@ export interface PluginModule {
 // CSS cursor mapping for tools declared by plugins
 export type CssCursor = "default" | "crosshair" | "cell" | "pointer" | "move";
 
+import type { RenderEnv } from "@/layers/types";
 // -------- Render SPI (M1 scaffolding) --------
 import type { SceneFrame } from "@/render/types";
-import type { RenderEnv } from "@/layers/types";
 
 export interface SceneAdapter {
   computePaperRect?: (input: {
@@ -93,9 +93,9 @@ export interface ToolContext {
   // Minimal context surface for tools; extend later
   app?: AppAPI | typeof ActualAppAPI;
   updateLayerState: (id: string, patch: Record<string, unknown>) => void;
-  applyLayerState: (
-    id: string,
-    updater: (draft: Record<string, unknown>) => void,
+  applyLayerState: <T extends object = Record<string, unknown>>(
+    layerId: string,
+    updater: (draft: T) => void,
   ) => void;
   getActiveLayerState: <T = unknown>(id?: string) => T | null;
   selection: { kind: string; id?: string };

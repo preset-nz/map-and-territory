@@ -11,27 +11,27 @@ import React from "react";
 
 // Render custom lightweight sidebar to work inside PanelGroup without fixed positioning
 
-import { useLayoutStore } from "@/stores/layout";
-import { AppSidebarProps } from "@/types/layout";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
-import { Button } from "@/components/ui/button";
-import { executeCommand } from "@/lib/commands";
-import { Trash, Eye, EyeOff, Copy, GripVertical } from "lucide-react";
 import {
-  DndContext,
-  PointerSensor,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  verticalListSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Copy, Eye, EyeOff, GripVertical, Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { executeCommand } from "@/lib/commands";
+import { useCampaignStore } from "@/stores/campaign";
+import { useLayoutStore } from "@/stores/layout";
+import { useSelectionStore } from "@/stores/selection";
+import type { AppSidebarProps } from "@/types/layout";
 
 // ============================================================================
 // Mock Data - Scene Structure
@@ -107,6 +107,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
       className={`h-full w-full flex flex-col border-r bg-muted/20 ${className}`}
     >
       <button
+        type="button"
         className={`w-full text-left p-3 border-b transition-colors ${
           selection.kind === "campaign" ? "bg-accent" : "hover:bg-accent/50"
         }`}
@@ -161,6 +162,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ className = "" }) => {
                   }
                 >
                   <button
+                    type="button"
                     className="flex-1 text-left truncate"
                     onClick={() => {
                       projectSelectMap(m.id);
@@ -289,7 +291,11 @@ function StaticLayerRow({
       data-selected={isSelected ? "true" : "false"}
     >
       <span className="h-6 w-6" aria-hidden="true" />
-      <button className="flex-1 text-left truncate" onClick={onSelect}>
+      <button
+        type="button"
+        className="flex-1 text-left truncate"
+        onClick={onSelect}
+      >
         <span className="text-sm">{layer.name ?? layer.type}</span>
       </button>
       {layer.type !== "paper" && (
@@ -377,7 +383,11 @@ function SortableLayerRow({
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <button className="flex-1 text-left truncate" onClick={onSelect}>
+      <button
+        type="button"
+        className="flex-1 text-left truncate"
+        onClick={onSelect}
+      >
         <span className="text-sm">{layer.name ?? layer.type}</span>
       </button>
       <Button

@@ -7,6 +7,13 @@
  * Positioned below header, spans full width.
  */
 
+// Creative tool icons
+import {
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+} from "lucide-react";
 import React, { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,21 +22,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-import { useLayoutStore } from "@/stores/layout";
 import { executeCommand } from "@/lib/commands";
-import { getToolbarContributions } from "@/plugin/loader";
-
-// Creative tool icons
-import {
-  PanelLeftOpen,
-  PanelLeftClose,
-  PanelRightOpen,
-  PanelRightClose,
-} from "lucide-react";
 import { resolveIcon } from "@/lib/icon-resolver";
 import { resolvePreconditions } from "@/plugin/capabilities";
+import { getToolbarContributions } from "@/plugin/loader";
 import { useCampaignStore } from "@/stores/campaign";
+import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
 
 // Dynamic toolbar contributions are rendered from the plugin loader
@@ -163,7 +161,7 @@ export const AppToolbar: React.FC = () => {
                             : false;
                     return (
                       <Tooltip
-                        key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
+                        key={`${item.pluginId}:${item.group}:${item.command}`}
                       >
                         <TooltipTrigger asChild>
                           <Button

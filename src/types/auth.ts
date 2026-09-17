@@ -9,7 +9,7 @@
  * and dependency inversion for future auth provider implementations.
  */
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 // ============================================================================
 // Core Authentication Interfaces

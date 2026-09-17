@@ -5,9 +5,9 @@
  * Supports empty-only and same-value replacement modes with boundary detection.
  */
 
-import type { Axial } from "@/lib/hex";
 import { AppAPI } from "@/appapi";
 import { axialKey } from "@/layers/hex-utils";
+import type { Axial } from "@/lib/hex";
 
 /**
  * Fill mode configuration

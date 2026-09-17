@@ -1,4 +1,4 @@
-import type { SceneFrame, RenderMessage } from "@/render/types";
+import type { RenderMessage, SceneFrame } from "@/render/types";
 
 export class RenderService {
   private worker: Worker | null = null;

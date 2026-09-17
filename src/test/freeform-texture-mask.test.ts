@@ -1,11 +1,11 @@
 import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
   afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
 } from "vitest";
 import {
   FreeformAdapter,

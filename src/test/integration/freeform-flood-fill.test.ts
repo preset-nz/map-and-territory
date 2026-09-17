@@ -4,12 +4,12 @@
  * Tests the integration between flood fill algorithm and the freeform plugin tool system
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { ToolHandler, ToolContext } from "@/plugin/types";
-import { freeformModule } from "@/plugin/builtin/freeform";
-import type { RenderEnv } from "@/layers/types";
-import type { BatchResult } from "@/types/batch-operations";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppAPI } from "@/appapi";
+import type { RenderEnv } from "@/layers/types";
+import { freeformModule } from "@/plugin/builtin/freeform";
+import type { ToolContext, ToolHandler } from "@/plugin/types";
+import type { BatchResult } from "@/types/batch-operations";
 
 describe("Freeform flood fill tool integration", () => {
   let toolHandler: ToolHandler | undefined;

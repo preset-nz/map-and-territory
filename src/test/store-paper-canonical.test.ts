@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { useCampaignStore } from "@/stores/campaign";
-import { registerLayerType } from "@/layers/registry";
-import { PaperType } from "@/layers/adapters/paper";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { HexgridType } from "@/layers/adapters/hexgrid";
+import { PaperType } from "@/layers/adapters/paper";
+import { registerLayerType } from "@/layers/registry";
+import { useCampaignStore } from "@/stores/campaign";
 
 describe("Paper layer canonicalization", () => {
   beforeEach(() => {

@@ -5,7 +5,7 @@
  * breadcrumb management, and routing.
  */
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 // ============================================================================
 // Navigation Interfaces

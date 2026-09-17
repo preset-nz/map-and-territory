@@ -1,13 +1,10 @@
-import type { PluginManifest, PluginModule, ToolHandler } from "@/plugin/types";
-import { registerLayerType } from "@/layers/registry";
-import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
 import { OutlineType } from "@/layers/adapters/outline";
-import type { OutlineState, OutlineCorner } from "@/lib/outline/types";
-import { cornersEqual } from "@/lib/outline/types";
+import { registerLayerType } from "@/layers/registry";
+import type { RenderEnv } from "@/layers/types";
+import type { Layout } from "@/lib/hex";
 import { findNearestCorner, interpolateCorners } from "@/lib/outline/geometry";
+import type { OutlineCorner, OutlineState } from "@/lib/outline/types";
+import { cornersEqual } from "@/lib/outline/types";
 import {
   getCurrentCampaign,
   getSelection,
@@ -16,7 +13,11 @@ import {
   setActiveTool,
 } from "@/platform/plugin-runtime/state";
 import { registerToolCursor } from "@/plugin/loader";
-import type { Layout } from "@/lib/hex";
+import type { PluginManifest, PluginModule, ToolHandler } from "@/plugin/types";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
 
 export const outlineManifest: PluginManifest = {
   id: "app.plugins.outline-layer",
@@ -63,7 +64,7 @@ export const outlineManifest: PluginManifest = {
 
 const TOLERANCE_PX = 14;
 
-function buildLayout(env: Parameters<ToolHandler["onPointerDown"]>[1]): Layout {
+function buildLayout(env: RenderEnv): Layout {
   const size = Math.max(4, env.grid?.size ?? 16);
   const orientation = env.grid?.orientation === "flat" ? "flat" : "pointy";
   const origin = { x: env.size.w / 2, y: env.size.h / 2 };

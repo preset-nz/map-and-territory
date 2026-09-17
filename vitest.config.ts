@@ -1,7 +1,8 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vitest/config";
+
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
@@ -11,8 +12,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     // Only include our unit/integration tests under src/test/**/*.test.ts
     include: ["src/test/**/*.test.ts"],
-    // Exclude Playwright E2E specs from Vitest collection to avoid runner conflicts
-    exclude: ["src/test/e2e/**", "node_modules/**", "dist/**"],
+    exclude: ["node_modules/**", "dist/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
@@ -24,8 +24,6 @@ export default defineConfig({
         "**/*.spec.*",
         "**/*.stories.*",
         ".next/**",
-        "playwright-report/**",
-        "test-results/**",
         "public/**",
         "scripts/**",
       ],

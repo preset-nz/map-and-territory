@@ -1,13 +1,13 @@
-import { describe, it, expect } from "vitest";
-import { HexgridAdapter, type HexgridState } from "@/layers/adapters/hexgrid";
-import {
-  HexNoiseAdapter,
-  type HexNoiseState,
-} from "@/layers/adapters/hex-noise";
+import { describe, expect, it } from "vitest";
 import {
   FreeformAdapter,
   type FreeformState,
 } from "@/layers/adapters/freeform-hex";
+import {
+  HexNoiseAdapter,
+  type HexNoiseState,
+} from "@/layers/adapters/hex-noise";
+import { HexgridAdapter, type HexgridState } from "@/layers/adapters/hexgrid";
 import type { RenderEnv } from "@/layers/types";
 
 type Pt = { x: number; y: number };

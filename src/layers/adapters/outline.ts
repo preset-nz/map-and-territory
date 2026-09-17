@@ -1,11 +1,11 @@
 import type { LayerAdapter, RenderEnv } from "@/layers/types";
 import type { Layout, Point } from "@/lib/hex";
+import { cornerPoint, interpolateCorners } from "@/lib/outline/geometry";
 import type {
-  OutlineState,
-  OutlinePath,
   OutlineCorner,
+  OutlinePath,
+  OutlineState,
 } from "@/lib/outline/types";
-import { interpolateCorners, cornerPoint } from "@/lib/outline/geometry";
 
 function applyPattern(
   ctx: CanvasRenderingContext2D,

@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
+import type { LayerType } from "@/layers/types";
 import { resolvePreconditions } from "@/plugin/capabilities";
 import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
-import { registerLayerType } from "@/layers/registry";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
-import type { LayerType } from "@/layers/types";
 
 describe("Plugin capability tokens — freeform/tools", () => {
   beforeEach(() => {

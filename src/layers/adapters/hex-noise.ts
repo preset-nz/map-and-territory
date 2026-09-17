@@ -1,7 +1,7 @@
+import { createHexLayout, hexPath, hexTiles } from "@/layers/hex-utils";
 import type { LayerAdapter } from "@/layers/types";
-import { hexPath, hexTiles, createHexLayout } from "@/layers/hex-utils";
-import { DefaultPalette } from "@/palettes/defaults";
 import { createPerlinNoise } from "@/lib/noise";
+import { DefaultPalette } from "@/palettes/defaults";
 // (no direct adapter drawing; rendering handled elsewhere)
 
 export interface HexNoiseState {
@@ -52,7 +52,7 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
         tile.axial.q * freq + ox,
         tile.axial.r * freq + oy,
       );
-      v = Math.pow(v, gamma);
+      v = v ** gamma;
       if (v < clampMin || v > clampMax) continue;
 
       const mode = (state.mode as "shape" | "paint" | undefined) ?? "shape";

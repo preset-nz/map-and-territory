@@ -1,8 +1,8 @@
-import type { PluginManifest, PluginModule } from "@/plugin/types";
 import {
   setCampaignSetting,
   setMapSetting,
 } from "@/platform/plugin-runtime/state";
+import type { PluginManifest, PluginModule } from "@/plugin/types";
 
 export const settingsPaletteManifest: PluginManifest = {
   id: "app.plugins.settings.palette",

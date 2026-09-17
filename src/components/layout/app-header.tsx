@@ -15,9 +15,12 @@
  * - Desktop-optimized layout (no mobile breakpoints)
  */
 
-import React from "react";
 import Link from "next/link";
-
+import type React from "react";
+import { SimpleThemeToggle } from "@/components/layout/theme-toggle";
+import { useAuth } from "@/components/providers/auth-provider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,14 +29,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-
-import { useLayoutStore } from "@/stores/layout";
-import { useAuth } from "@/components/providers/auth-provider";
-import { AppHeaderProps } from "@/types/layout";
 import { useCampaignStore } from "@/stores/campaign";
-import { SimpleThemeToggle } from "@/components/layout/theme-toggle";
+import { useLayoutStore } from "@/stores/layout";
+import type { AppHeaderProps } from "@/types/layout";
 
 // ============================================================================
 // Navigation Configuration
@@ -147,6 +145,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ className = "" }) => {
               — {projectName}
               {dirty ? (
                 <span
+                  role="img"
                   className="text-amber-500"
                   title="Unsaved changes"
                   aria-label="Unsaved changes"

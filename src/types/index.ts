@@ -6,77 +6,64 @@
  * for type organization and exports.
  */
 
+// Auth types
+export type {
+  AuthContextValue,
+  AuthError,
+  // State management
+  AuthEvent,
+  // Provider interfaces
+  AuthProviderProps,
+  JWTToken,
+  LoginCredentials,
+  NoOpAuthProviderProps,
+  // Future auth types
+  OAuthConfig,
+  // Core auth interfaces
+  User,
+} from "./auth";
+export {
+  AUTH_CONFIG,
+  AuthErrorCode,
+  // Enums
+  AuthState,
+  // Utilities
+  createAuthError,
+  // Constants and defaults
+  DEFAULT_AUTH_CONTEXT,
+  isAuthError,
+  // Type guards
+  isUser,
+} from "./auth";
 // Layout types
 export type {
-  // Core state interfaces
-  LayoutState,
-  LayoutActions,
-  LayoutStore,
-  BreadcrumbItem,
-  SidebarState,
-  LayoutPreferences,
-  NavigationState,
-
+  AppHeaderProps,
+  AppLayoutProps,
+  AppSidebarProps,
   // Component prop interfaces
   BaseLayoutProps,
-  AppLayoutProps,
-  AppHeaderProps,
-  AppSidebarProps,
-  MainContentProps,
+  BreadcrumbItem,
   ContentHeaderProps,
-
+  LayoutActions,
+  LayoutPreferences,
   // Provider interfaces
   LayoutProviderProps,
-  StorePersistConfig,
-
+  // Core state interfaces
+  LayoutState,
+  LayoutStore,
+  MainContentProps,
+  NavigationState,
   // Utility types
   SidebarSection,
+  SidebarState,
+  StorePersistConfig,
 } from "./layout";
-
 export {
   // Constants and defaults
   DEFAULT_LAYOUT_STATE,
-  SIDEBAR_WIDTH_CONSTRAINTS,
-
+  isValidSidebarCollapsible,
+  isValidSidebarVariant,
   // Type guards
   isValidTheme,
-  isValidSidebarVariant,
-  isValidSidebarCollapsible,
+  SIDEBAR_WIDTH_CONSTRAINTS,
 } from "./layout";
-
-// Auth types
-export type {
-  // Core auth interfaces
-  User,
-  AuthContextValue,
-  LoginCredentials,
-
-  // Provider interfaces
-  AuthProviderProps,
-  NoOpAuthProviderProps,
-
-  // State management
-  AuthEvent,
-  AuthError,
-
-  // Future auth types
-  OAuthConfig,
-  JWTToken,
-} from "./auth";
-
-export {
-  // Enums
-  AuthState,
-  AuthErrorCode,
-
-  // Constants and defaults
-  DEFAULT_AUTH_CONTEXT,
-  AUTH_CONFIG,
-
-  // Utilities
-  createAuthError,
-
-  // Type guards
-  isUser,
-  isAuthError,
-} from "./auth";

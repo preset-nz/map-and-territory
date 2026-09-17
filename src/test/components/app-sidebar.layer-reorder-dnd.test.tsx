@@ -1,10 +1,10 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import "@testing-library/jest-dom";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { useCampaignStore } from "@/stores/campaign";
-import { registerLayerType } from "@/layers/registry";
 import { HexNoiseType } from "@/layers/adapters/hex-noise";
+import { registerLayerType } from "@/layers/registry";
+import { useCampaignStore } from "@/stores/campaign";
 import { useSelectionStore } from "@/stores/selection";
 
 describe("AppSidebar DnD ordering (UI reflects store order)", () => {

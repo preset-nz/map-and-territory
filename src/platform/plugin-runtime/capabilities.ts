@@ -1,5 +1,5 @@
-import { getCurrentCampaign, getSelection } from "./state";
 import type { CapabilityToken } from "@/plugin/types";
+import { getCurrentCampaign, getSelection } from "./state";
 
 export type CapabilityResult = { enabled: boolean; reason?: string };
 

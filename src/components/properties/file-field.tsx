@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef } from "react";
+import type React from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { PropertyLabel } from "./label";
 

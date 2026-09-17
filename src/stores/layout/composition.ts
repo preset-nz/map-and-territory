@@ -6,11 +6,11 @@
  * composed store functionality.
  */
 
-import { StateCreator } from "zustand";
-import { SidebarSlice } from "./sidebar-store";
-import { PreferencesSlice } from "./preferences-store";
-import { NavigationSlice } from "./navigation-store";
-import { LayoutActions, DEFAULT_LAYOUT_STATE } from "../../types/layout";
+import type { StateCreator } from "zustand";
+import { DEFAULT_LAYOUT_STATE, type LayoutActions } from "../../types/layout";
+import type { NavigationSlice } from "./navigation-store";
+import type { PreferencesSlice } from "./preferences-store";
+import type { SidebarSlice } from "./sidebar-store";
 
 // ============================================================================
 // Composed Store Types

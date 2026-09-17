@@ -1,13 +1,13 @@
 import { registerCommand, unregisterCommand } from "@/lib/commands";
 import { getAppAPI } from "@/plugin/appapi";
 import type {
-  PluginManifest,
-  PluginModule,
-  PluginContext,
   CapabilityToken,
   CssCursor,
-  SceneAdapter,
   EnvProvider,
+  PluginContext,
+  PluginManifest,
+  PluginModule,
+  SceneAdapter,
   ToolHandler,
 } from "./types";
 
@@ -135,8 +135,8 @@ export function registerEnvProvider(provider: EnvProvider) {
   };
 }
 
-import type { SceneFrame } from "@/render/types";
 import type { RenderEnv } from "@/layers/types";
+import type { SceneFrame } from "@/render/types";
 
 export function composeEnv(frame: SceneFrame): Partial<RenderEnv> {
   const out: Partial<RenderEnv> = {};

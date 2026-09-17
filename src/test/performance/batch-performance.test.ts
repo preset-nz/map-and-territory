@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useCampaignStore, withBatchMetrics } from "@/stores/campaign";
-import type { CellsDelta } from "@/stores/campaign";
-import { registerLayerType } from "@/layers/registry";
+import { beforeEach, describe, expect, it } from "vitest";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
+import type { CellsDelta } from "@/stores/campaign";
+import { useCampaignStore, withBatchMetrics } from "@/stores/campaign";
 
 describe("Batch Operations Performance", () => {
   beforeEach(() => {

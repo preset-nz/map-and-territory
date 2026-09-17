@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadPluginsWithPriority } from "@/plugin/loader";
 import type { PluginManifest, PluginModule } from "@/plugin/types";
 

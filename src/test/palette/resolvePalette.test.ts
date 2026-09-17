@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { DefaultPalette } from "@/palettes/defaults";
+import type { MapPalette } from "@/palettes/types";
+import type { Campaign } from "@/stores/campaign";
 import {
+  resolveGridLine,
   resolvePalette,
   resolveTerrainFill,
-  resolveGridLine,
 } from "@/stores/selectors/palette";
-import type { Campaign } from "@/stores/campaign";
-import type { MapPalette } from "@/palettes/types";
-import { DefaultPalette } from "@/palettes/defaults";
 
 function makeProject(overrides?: Partial<Campaign>): Campaign {
   return {

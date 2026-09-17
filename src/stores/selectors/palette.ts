@@ -1,8 +1,8 @@
-import type { Campaign } from "@/stores/campaign";
-import type { MapPalette, TerrainCategory } from "@/palettes/types";
 import { DefaultPalette } from "@/palettes/defaults";
-import { TerrainSettings } from "@/palettes/settings";
 import { makePaletteFromSetting } from "@/palettes/derive";
+import { TerrainSettings } from "@/palettes/settings";
+import type { MapPalette, TerrainCategory } from "@/palettes/types";
+import type { Campaign } from "@/stores/campaign";
 
 function coerceTerrainKey(key: string | undefined): TerrainCategory {
   switch (key) {

@@ -1,5 +1,5 @@
+import { createHexLayout, hexPath, hexTiles } from "@/layers/hex-utils";
 import type { LayerAdapter, RenderEnv } from "@/layers/types";
-import { hexPath, hexTiles, createHexLayout } from "@/layers/hex-utils";
 
 export type HexOrientation = "pointy" | "flat";
 

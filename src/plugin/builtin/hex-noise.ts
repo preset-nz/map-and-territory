@@ -1,19 +1,19 @@
-import type { PluginManifest, PluginModule } from "@/plugin/types";
+import { AppAPI } from "@/appapi";
+import { HexNoiseType } from "@/layers/adapters/hex-noise";
 import { registerLayerType } from "@/layers/registry";
 import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
-import { HexNoiseType } from "@/layers/adapters/hex-noise";
-import { AppAPI } from "@/appapi";
-import {
+  applyLayerState,
   getCurrentCampaign,
   getSelection,
   insertLayerAbove,
   insertLayerBeforeTopAnchor,
-  applyLayerState,
   selectLayer,
 } from "@/platform/plugin-runtime/state";
+import type { PluginManifest, PluginModule } from "@/plugin/types";
+import {
+  registerPropertySchema,
+  unregisterPropertySchema,
+} from "@/properties/registry";
 
 export const hexNoiseManifest: PluginManifest = {
   id: "app.plugins.hex-noise",

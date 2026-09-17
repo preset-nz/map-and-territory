@@ -34,9 +34,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     const limited = swatches.slice(0, 5);
     return (
       <span className="flex items-center gap-1" aria-hidden="true">
-        {limited.map((color, idx) => (
+        {limited.map((color) => (
           <span
-            key={`${color}-${idx}`}
+            key={color}
             className="h-3 w-3 rounded-sm border border-border"
             style={{ backgroundColor: color }}
           />

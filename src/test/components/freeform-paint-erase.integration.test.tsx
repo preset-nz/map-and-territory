@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { fireEvent, render } from "@testing-library/react";
 import React from "react";
-import { render, fireEvent } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
 import CanvasViewport from "@/components/map/canvas-viewport";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
-import { useLayoutStore } from "@/stores/layout";
-import { registerLayerType } from "@/layers/registry";
 import { FreeformType } from "@/layers/adapters/freeform-hex";
+import { registerLayerType } from "@/layers/registry";
 import type { LayerType } from "@/layers/types";
+import { useCampaignStore } from "@/stores/campaign";
+import { useLayoutStore } from "@/stores/layout";
+import { useSelectionStore } from "@/stores/selection";
 
 function mockCanvasRect(canvas: HTMLCanvasElement, w = 800, h = 600) {
   Object.defineProperty(canvas, "getBoundingClientRect", {

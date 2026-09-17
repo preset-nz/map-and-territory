@@ -1,6 +1,6 @@
 import type {
-  SidebarSection,
   BreadcrumbItem,
+  SidebarSection,
   Theme,
   // FontSize,
   // Density,

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { resolvePreconditions } from "@/plugin/capabilities";
 import { useCampaignStore } from "@/stores/campaign";
 

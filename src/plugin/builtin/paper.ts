@@ -1,3 +1,6 @@
+import { computePaperRect } from "@/app/scene/geometry";
+import { PaperType } from "@/layers/adapters/paper";
+import { registerLayerType } from "@/layers/registry";
 import type {
   PluginManifest,
   PluginModule,
@@ -7,9 +10,6 @@ import {
   registerPropertySchema,
   unregisterPropertySchema,
 } from "@/properties/registry";
-import { registerLayerType } from "@/layers/registry";
-import { PaperType } from "@/layers/adapters/paper";
-import { computePaperRect } from "@/app/scene/geometry";
 
 export const paperPluginManifest: PluginManifest = {
   id: "core.paper",

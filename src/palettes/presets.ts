@@ -1,12 +1,12 @@
-import { TerrainSettings } from "@/palettes/settings";
 import { makePaletteFromSetting } from "@/palettes/derive";
+import { TerrainSettings } from "@/palettes/settings";
 import type { MapPalette } from "@/palettes/types";
 
 function deepFreeze<T>(obj: T): T {
   Object.freeze(obj);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // biome-ignore lint/suspicious/noExplicitAny: generic deep-freeze walker
   Object.getOwnPropertyNames(obj as any).forEach((prop) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: generic deep-freeze walker
     const value: any = (obj as any)[prop];
     if (
       value &&
