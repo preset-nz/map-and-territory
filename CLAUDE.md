@@ -14,11 +14,7 @@ Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looki
 
 ## Workflow
 
-- One story = one unit of work = one commit. Don't bundle stories.
-- When a story or epic ships: update its guidance doc's frontmatter — `status: shipped`, `updated: <today>` — in the same session as the code commit.
-- Run `just check` before finishing any task. Never use `--no-verify`; if a hook is wrong, fix the hook. (Until epic 01 story 3 lands, `pnpm validate` is the gate.)
-- Justfile verbs are the standard surface: `prep, install, run, check, build, fmt`. Call `just <verb>`, not raw pnpm or cargo.
-- Subagents implement; the orchestrating session reviews and commits. If you are a subagent: do not commit.
+Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. Until epic 01 story 3 lands, `pnpm validate` is the gate.
 
 ## Hard rules
 
@@ -27,14 +23,9 @@ Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looki
 - **No consumer reads store shape directly.** Plugins go through the host API; components go through selector hooks.
 - **Plugins declare contributions; the host wires them.** A plugin never reaches into a registry or store. First-party only; capability tokens are authoring discipline, not security.
 - **Layer state is serialisable JSON.** No handles, canvases or functions in the campaign store. Derived fields are dropped by the adapter's `serialize`.
-- **Deterministic randomness.** Seeded RNG and noise only; same seed, same map.
 - **Rust does files and OS, TypeScript does everything else.** The renderer never imports Tauri APIs.
 - **Native menu owns commands** once the Tauri shell lands. Held-gesture keys (Space to pan while painting, Shift to constrain) are the only keydown handlers, and they are listed here so the exception does not spread.
 
 ## Naming
 
-Product name is Map & Territory, final. It still lives in exactly two places: `src/branding.ts` (`PRODUCT_NAME`) and `src-tauri/tauri.conf.json`. Never hardcode it in user-facing strings. Domain term is Campaign, never Project or Scene.
-
-## Language
-
-NZ English in user-facing strings (`colour`, `organisation`); identifiers, CSS properties and platform spellings stay standard (`color`).
+Product name is Map & Territory, final; it still goes through `PRODUCT_NAME`. Domain term is Campaign, never Project or Scene.
