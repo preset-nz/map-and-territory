@@ -2,7 +2,6 @@
 
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { computePaperRect, type PaperAspect } from "@/app/scene/geometry";
 // import { axialKey } from "@/layers/hex-utils";
 import { AppAPI } from "@/appapi";
 import { getLayerType } from "@/layers/registry";
@@ -19,6 +18,7 @@ import {
   getTool,
 } from "@/plugin/loader";
 import type { ToolContext } from "@/plugin/types";
+import { computePaperRect, type PaperAspect } from "@/render/geometry";
 // import type { RenderEnv } from '@/layers/types';
 import RenderService from "@/render/service";
 import type { SceneFrame } from "@/render/types";

@@ -6,7 +6,7 @@ version = 1
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "db30105df6ee475d3b9d9bddd9887b98611889d95041613bfd4f228588ce5c88"
+sha256 = "f4c3531fa5740ef6152b5e3929460bdb26a1fd8326b338e363bd40cd34dae438"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -30,7 +30,7 @@ name = "@ampproject/remapping"
 version = "2.3.0"
 source = "registry"
 declared = "Apache-2.0"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -46,7 +46,7 @@ name = "@babel/code-frame"
 version = "7.27.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -54,7 +54,7 @@ name = "@babel/compat-data"
 version = "7.28.0"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -62,7 +62,7 @@ name = "@babel/core"
 version = "7.28.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -70,7 +70,7 @@ name = "@babel/generator"
 version = "7.28.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -78,7 +78,7 @@ name = "@babel/helper-compilation-targets"
 version = "7.27.2"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -86,7 +86,7 @@ name = "@babel/helper-globals"
 version = "7.28.0"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -94,7 +94,7 @@ name = "@babel/helper-module-imports"
 version = "7.27.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -102,7 +102,7 @@ name = "@babel/helper-module-transforms"
 version = "7.28.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -118,7 +118,7 @@ name = "@babel/helper-string-parser"
 version = "7.27.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -126,7 +126,7 @@ name = "@babel/helper-validator-identifier"
 version = "7.27.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -134,7 +134,7 @@ name = "@babel/helper-validator-option"
 version = "7.27.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -142,7 +142,7 @@ name = "@babel/helpers"
 version = "7.28.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -150,7 +150,7 @@ name = "@babel/parser"
 version = "7.28.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -190,7 +190,7 @@ name = "@babel/template"
 version = "7.27.2"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -198,7 +198,7 @@ name = "@babel/traverse"
 version = "7.28.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -206,7 +206,7 @@ name = "@babel/types"
 version = "7.28.2"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -356,14 +356,6 @@ scope = "shipped"
 ecosystem = "pnpm"
 name = "@dnd-kit/utilities"
 version = "3.2.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@emnapi/runtime"
-version = "1.5.0"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -610,182 +602,6 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "@img/sharp-darwin-arm64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-darwin-x64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-darwin-arm64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-darwin-x64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linux-arm"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linux-arm64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linux-ppc64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linux-s390x"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linux-x64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linuxmusl-arm64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-libvips-linuxmusl-x64"
-version = "1.2.0"
-source = "registry"
-declared = "LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linux-arm"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linux-arm64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linux-ppc64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linux-s390x"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linux-x64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linuxmusl-arm64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-linuxmusl-x64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-wasm32"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0 AND LGPL-3.0-or-later AND MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-win32-arm64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0 AND LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-win32-ia32"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0 AND LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@img/sharp-win32-x64"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0 AND LGPL-3.0-or-later"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "@isaacs/cliui"
 version = "8.0.2"
 source = "registry"
@@ -814,7 +630,7 @@ name = "@jridgewell/gen-mapping"
 version = "0.3.13"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -830,7 +646,7 @@ name = "@jridgewell/resolve-uri"
 version = "3.1.2"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -838,7 +654,7 @@ name = "@jridgewell/sourcemap-codec"
 version = "1.5.5"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -846,79 +662,7 @@ name = "@jridgewell/trace-mapping"
 version = "0.3.30"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/env"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-darwin-arm64"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-darwin-x64"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-linux-arm64-gnu"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-linux-arm64-musl"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-linux-x64-gnu"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-linux-x64-musl"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-win32-arm64-msvc"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "@next/swc-win32-x64-msvc"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1386,14 +1130,6 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "@swc/helpers"
-version = "0.5.15"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "@tailwindcss/node"
 version = "4.1.12"
 source = "registry"
@@ -1806,7 +1542,7 @@ name = "browserslist"
 version = "4.25.4"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1822,7 +1558,7 @@ name = "caniuse-lite"
 version = "1.0.30001739"
 source = "registry"
 declared = "CC-BY-4.0"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1858,24 +1594,8 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "client-only"
-version = "0.0.1"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "clsx"
 version = "2.1.1"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "color"
-version = "4.2.3"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -1886,7 +1606,7 @@ name = "color-convert"
 version = "2.0.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1894,15 +1614,7 @@ name = "color-name"
 version = "1.1.4"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "color-string"
-version = "1.9.1"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1910,7 +1622,7 @@ name = "convert-source-map"
 version = "2.0.0"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1958,7 +1670,7 @@ name = "debug"
 version = "4.4.1"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -1990,7 +1702,7 @@ name = "detect-libc"
 version = "2.0.4"
 source = "registry"
 declared = "Apache-2.0"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2030,7 +1742,7 @@ name = "electron-to-chromium"
 version = "1.5.214"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2086,7 +1798,7 @@ name = "escalade"
 version = "3.2.0"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2134,7 +1846,7 @@ name = "gensync"
 version = "1.0.0-beta.2"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2226,14 +1938,6 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "is-arrayish"
-version = "0.3.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "is-fullwidth-code-point"
 version = "3.0.0"
 source = "registry"
@@ -2310,7 +2014,7 @@ name = "js-tokens"
 version = "4.0.0"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2334,7 +2038,7 @@ name = "jsesc"
 version = "3.1.0"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2342,7 +2046,7 @@ name = "json5"
 version = "2.2.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2542,7 +2246,7 @@ name = "lru-cache"
 version = "5.1.1"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2630,7 +2334,7 @@ name = "ms"
 version = "2.1.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2638,15 +2342,7 @@ name = "nanoid"
 version = "3.3.11"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "next"
-version = "15.5.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2654,7 +2350,7 @@ name = "node-releases"
 version = "2.0.19"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2718,7 +2414,7 @@ name = "picocolors"
 version = "1.1.1"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2727,14 +2423,6 @@ version = "4.0.3"
 source = "registry"
 declared = "MIT"
 scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "postcss"
-version = "8.4.31"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2886,7 +2574,7 @@ name = "semver"
 version = "6.3.1"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2894,15 +2582,7 @@ name = "semver"
 version = "7.7.2"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "sharp"
-version = "0.34.3"
-source = "registry"
-declared = "Apache-2.0"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -2938,19 +2618,11 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "simple-swizzle"
-version = "0.2.2"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "source-map-js"
 version = "1.2.1"
 source = "registry"
 declared = "BSD-3-Clause"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -3015,14 +2687,6 @@ version = "3.0.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "styled-jsx"
-version = "5.1.6"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -3198,7 +2862,7 @@ name = "update-browserslist-db"
 version = "1.1.3"
 source = "registry"
 declared = "MIT"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -3350,7 +3014,7 @@ name = "yallist"
 version = "3.1.1"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"

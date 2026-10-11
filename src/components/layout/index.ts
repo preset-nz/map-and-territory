@@ -17,7 +17,6 @@
 // Core Layout Components
 // ============================================================================
 
-export { default as AppHeader } from "./app-header";
 export {
   CenteredLayout,
   ConditionalLayout,
@@ -39,12 +38,6 @@ export {
 } from "./main-content";
 export { default as PropertiesPanel } from "./properties-panel";
 export { default as StatusBar } from "./status-bar";
-
-// ============================================================================
-// Specialized Navigation Components
-// ============================================================================
-
-export { default as NavigationSections } from "./navigation-sections";
 
 // ============================================================================
 // Re-export Layout Types

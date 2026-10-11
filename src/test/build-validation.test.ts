@@ -3,11 +3,9 @@ import { describe, expect, it } from "vitest";
 describe("Build and Import Validation", () => {
   it("should import layout components without errors", async () => {
     const { AppLayout } = await import("@/components/layout/app-layout");
-    const { AppHeader } = await import("@/components/layout/app-header");
     const { MainContent } = await import("@/components/layout/main-content");
 
     expect(AppLayout).toBeDefined();
-    expect(AppHeader).toBeDefined();
     expect(MainContent).toBeDefined();
   });
 

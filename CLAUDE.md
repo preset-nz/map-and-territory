@@ -1,6 +1,6 @@
 # Map & Territory — Claude instructions
 
-Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looking maps. Part of the preset.nz desktop family with Oblique, Strata, Fault and Shard. Adopted 2026-09-17; being re-platformed from Next.js to a native Tauri 2 app on Vite + React 19 + TypeScript + Tailwind v4 + shadcn/ui + Zustand.
+Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looking maps. Part of the preset.nz desktop family with Oblique, Strata, Fault and Shard. Adopted 2026-09-17; being rebuilt as a native Tauri 2 app from the family template (`create-preset-app`), with its object model on POM in Rust. Next.js was removed 2026-10-12; the 2025 app is the tag `v2025-next`, and `src/` is port material until the shell lands (roadmap epics 13 to 16).
 
 ## Where the truth lives
 
@@ -14,7 +14,7 @@ Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looki
 
 ## Workflow
 
-Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. Until epic 01 story 3 lands, `pnpm validate` is the gate.
+Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. `just check` is the gate; `just run` and `just build` have nothing to run until epic 14.
 
 ## Hard rules
 

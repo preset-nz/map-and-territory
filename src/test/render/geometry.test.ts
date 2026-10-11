@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computePaperRect } from "@/app/scene/geometry";
+import { computePaperRect } from "@/render/geometry";
 
 describe("computePaperRect", () => {
   it("maintains 16:10 aspect within canvas bounds", () => {

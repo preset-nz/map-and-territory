@@ -23,7 +23,6 @@ export default defineConfig({
         "**/*.test.*",
         "**/*.spec.*",
         "**/*.stories.*",
-        ".next/**",
         "public/**",
         "scripts/**",
       ],

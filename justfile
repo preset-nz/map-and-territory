@@ -18,7 +18,7 @@ install:
 
 [group('dev')]
 run:
-    pnpm dev
+    @echo "No app until epic 14 (shell from the template). The 2025 app is the tag v2025-next." && exit 1
 
 [group('quality')]
 check:
@@ -38,7 +38,7 @@ test:
 
 [group('build')]
 build:
-    pnpm build
+    @echo "No app until epic 14 (shell from the template). The 2025 app is the tag v2025-next." && exit 1
 
 # Licence check against the committed lock. Reads files only, no network.
 # Re-resolve with `preset-compliance licences scan` after changing dependencies.

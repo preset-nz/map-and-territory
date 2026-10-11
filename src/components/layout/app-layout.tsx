@@ -28,7 +28,6 @@ import { useLayoutStore } from "@/stores/layout";
 import { useSelectionStore } from "@/stores/selection";
 import type { BaseLayoutProps } from "@/types/layout";
 import { AuthErrorBoundary } from "../providers/auth-provider";
-import AppHeader from "./app-header";
 import AppSidebar from "./app-sidebar";
 import AppToolbar from "./app-toolbar";
 import MainContent from "./main-content";
@@ -136,12 +135,10 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
       <SidebarProvider>
         <div
           className={cn(
-            "grid h-screen w-full grid-rows-[auto_auto_1fr_auto]",
+            "grid h-screen w-full grid-rows-[auto_1fr_auto]",
             className,
           )}
         >
-          {/* Row 1: Header */}
-          <AppHeader />
           {/* Row 2: Toolbar */}
           <AppToolbar />
 
@@ -300,7 +297,7 @@ export const LayoutProvider: React.FC<LayoutProviderProps> = ({
       return <CustomHeader />;
     }
 
-    return <AppHeader />;
+    return null;
   };
 
   /**

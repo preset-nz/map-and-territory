@@ -1,7 +1,7 @@
-import { computePaperRect } from "@/app/scene/geometry";
 import { getLayerType } from "@/layers/registry";
 import type { RenderEnv } from "@/layers/types";
 import { composeEnv, getSceneAdapter } from "@/plugin/loader";
+import { computePaperRect } from "@/render/geometry";
 import type { RenderBackend, SceneFrame } from "@/render/types";
 
 export class Canvas2DBackend implements RenderBackend {
