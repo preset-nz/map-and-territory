@@ -1,22 +1,49 @@
 import { useCommands } from '@preset.nz/app-kit/core';
 import { useMirror } from '@preset.nz/pom';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { CanvasHost } from './app/canvas-host';
+import { AppFrame, useScenePanel } from './app/frame';
+import { addedMap } from './app/scene/active-map';
+import { useMapIds } from './app/scene/maps';
+import { selection } from './app/selection';
+
+/** A map that has just been added becomes the selection, as in 2025. */
+function useSelectNewMaps() {
+  const maps = useMapIds();
+  const before = useRef<readonly string[] | null>(null);
+  useEffect(() => {
+    const added = before.current === null ? null : addedMap(before.current, maps);
+    before.current = maps;
+    if (added) selection.selectMap(added);
+  }, [maps]);
+}
 
 export default function App() {
-  // The command table arrives from Rust; this app binds none of its own yet.
-  // The hook still follows the history and routes Cmd+Z inside text fields.
-  useCommands({});
+  const panel = useScenePanel();
+
+  // The command table arrives from Rust; app-kit forwards the ones Rust doesn't handle here.
+  // It also follows the history and routes Cmd+Z inside text fields.
+  const bindings = useMemo(
+    () => ({
+      'view.toggle-left-panel': { pressed: panel.open, run: panel.toggle },
+    }),
+    [panel.open, panel.toggle],
+  );
+  const { shortcut } = useCommands(bindings);
 
   // Connect, listen, then read the document. Starting twice is a no-op.
   const mirror = useMirror();
   useEffect(() => {
     mirror.start().catch((error) => console.error('[document] could not connect', error));
   }, [mirror]);
+  useSelectNewMaps();
 
   return (
-    <main className="h-screen bg-background text-foreground">
-      <CanvasHost />
-    </main>
+    <AppFrame
+      panel={panel}
+      panelShortcut={shortcut('view.toggle-left-panel')}
+      scene={null}
+      canvas={<CanvasHost />}
+    />
   );
 }

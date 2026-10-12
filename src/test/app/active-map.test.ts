@@ -1,22 +1,45 @@
-import { nextActiveMap } from '@/app/scene/active-map';
+import { addedMap } from '@/app/scene/active-map';
+import type { FrameRow, RowSource } from '@/app/scene/frame';
+import { activeMapId } from '@/app/selection';
+
+function source(rows: (FrameRow & { path: string; parent?: string | null })[]): RowSource {
+  return {
+    node: (id) => rows.find((r) => r.id === id),
+    nodeAt: (p) => rows.find((r) => r.path === p),
+  };
+}
+
+const rows = source([
+  { id: 'maps', type: 'category', path: '/maps', orders: { maps: ['a', 'b'] } },
+  { id: 'a', type: 'map', path: '/maps/map', parent: 'maps' },
+  { id: 'b', type: 'map', path: '/maps/map-2', parent: 'maps' },
+  { id: 'g', type: 'hexgrid', path: '/maps/map-2/hexgrid', parent: 'b' },
+]);
 
 describe('the active map', () => {
-  it('is the first map until something chooses another', () => {
-    expect(nextActiveMap(null, [], [])).toBeNull();
-    expect(nextActiveMap(null, [], ['a'])).toBe('a');
+  it('is the selected map, or the selected layer’s map', () => {
+    expect(activeMapId({ kind: 'map', id: 'b' }, rows)).toBe('b');
+    expect(activeMapId({ kind: 'layer', id: 'g' }, rows)).toBe('b');
   });
 
-  it('becomes a map that has just been added', () => {
-    expect(nextActiveMap('a', ['a'], ['a', 'b'])).toBe('b');
+  it('falls back to the first map when nothing, the campaign, or a gone node is selected', () => {
+    expect(activeMapId({ kind: 'none' }, rows)).toBe('a');
+    expect(activeMapId({ kind: 'campaign' }, rows)).toBe('a');
+    expect(activeMapId({ kind: 'map', id: 'gone' }, rows)).toBe('a');
+    expect(activeMapId({ kind: 'layer', id: 'gone' }, rows)).toBe('a');
+    expect(activeMapId({ kind: 'none' }, source([]))).toBeNull();
+  });
+});
+
+describe('a map that has just been added', () => {
+  it('is found when exactly one new map appears', () => {
+    expect(addedMap([], ['a'])).toBe('a');
+    expect(addedMap(['a'], ['a', 'b'])).toBe('b');
   });
 
-  it('stays while it exists, and falls back to the first when it goes', () => {
-    expect(nextActiveMap('b', ['a', 'b'], ['b', 'a'])).toBe('b');
-    expect(nextActiveMap('b', ['a', 'b'], ['a'])).toBe('a');
-    expect(nextActiveMap('b', ['b'], [])).toBeNull();
-  });
-
-  it('does not jump on a wholesale change, such as opening another campaign', () => {
-    expect(nextActiveMap('a', ['a'], ['x', 'y'])).toBe('x');
+  it('is nothing on a removal, a reorder or a wholesale change', () => {
+    expect(addedMap(['a', 'b'], ['a'])).toBeNull();
+    expect(addedMap(['a', 'b'], ['b', 'a'])).toBeNull();
+    expect(addedMap(['a'], ['x', 'y'])).toBeNull();
   });
 });

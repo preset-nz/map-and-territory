@@ -1,15 +1,10 @@
 /**
- * Which map is drawn. Selection lives in the webview, never in the document: switching maps is
- * not an edit. A map that has just appeared (New Map, or a paste) becomes active, as in 2025;
- * otherwise the active map stays while it exists, and falls back to the first.
+ * The map that has just appeared between two readings of the `maps` order (New Map, or a
+ * paste): exactly one more map, and that one new. It becomes the selection, as in 2025.
+ * A wholesale change (another campaign opened) selects nothing.
  */
-export function nextActiveMap(
-  active: string | null,
-  before: readonly string[],
-  maps: readonly string[],
-): string | null {
-  const added = maps.find((id) => !before.includes(id));
-  if (added !== undefined && before.length + 1 === maps.length) return added;
-  if (active !== null && maps.includes(active)) return active;
-  return maps[0] ?? null;
+export function addedMap(before: readonly string[], after: readonly string[]): string | null {
+  if (after.length !== before.length + 1) return null;
+  const added = after.filter((id) => !before.includes(id));
+  return added.length === 1 ? added[0] : null;
 }

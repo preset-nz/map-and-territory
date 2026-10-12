@@ -1,12 +1,12 @@
 import { useMirror } from '@preset.nz/pom';
 import { useEffect, useRef } from 'react';
 import RenderService from '@/render/service';
-import { nextActiveMap } from './scene/active-map';
-import { createFrameBuilder, type FrameBuilder, MAPS_PATH } from './scene/frame';
+import { createFrameBuilder, type FrameBuilder } from './scene/frame';
+import { activeMapId, selection } from './selection';
 
 /**
  * Mounts a canvas, hands it to the render worker, and draws the active map from the document
- * mirror whenever the mirror or the window size changes.
+ * mirror whenever the mirror, the selection or the canvas size changes.
  */
 export function CanvasHost() {
   const mirror = useMirror();
@@ -29,8 +29,6 @@ export function CanvasHost() {
     // The builder's memo is per schema: a new document brings a new one.
     let schema = mirror.schema;
     let builder: FrameBuilder = createFrameBuilder(schema);
-    let active: string | null = null;
-    let known: readonly string[] = [];
     let lastSize = { w: 0, h: 0, dpr: 0 };
 
     const draw = () => {
@@ -45,17 +43,16 @@ export function CanvasHost() {
         schema = mirror.schema;
         builder = createFrameBuilder(schema);
       }
-      const maps = mirror.nodeAt(MAPS_PATH)?.orders?.maps ?? [];
-      active = nextActiveMap(active, known, maps);
-      known = maps;
-      svc.render(builder.build(mirror, active, size, dpr));
+      svc.render(builder.build(mirror, activeMapId(selection.get(), mirror), size, dpr));
     };
     const observer = new ResizeObserver(draw);
     observer.observe(wrap);
     const unsubscribe = mirror.subscribe(draw);
+    const unselect = selection.subscribe(draw);
     draw();
     return () => {
       unsubscribe();
+      unselect();
       observer.disconnect();
       svc.destroy();
       canvas.remove();
