@@ -1,8 +1,8 @@
 import { hexPath, parseAxialKey } from '@/layers/hex-utils';
 import type { LayerAdapter } from '@/layers/types';
 import { corners, toPoint } from '@/lib/hex/layout';
+import { resolveTerrainFill } from '@/palettes/terrain-fill';
 import type { MapPalette } from '@/palettes/types';
-import { resolveTerrainFill } from '@/stores/selectors/palette';
 
 type FreeformRenderMode = 'paint' | 'texture-fill';
 type TextureTilingMode = 'stretch' | 'fit' | 'repeat';

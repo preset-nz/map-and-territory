@@ -6,7 +6,7 @@ version = 1
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "b9a170cfc3196c543dcb371f3528f3135070b7ee673b09ed2a1c0bf08a483e95"
+sha256 = "4b858659e7bf385a15649fb44b0fde22a27910ed4bc728c6b07a756f7a64c4a5"
 
 [[inputs]]
 path = "src-tauri/Cargo.lock"
@@ -4883,6 +4883,46 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "acorn"
+version = "8.18.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "acorn-jsx"
+version = "5.3.2"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "acorn-jsx-walk"
+version = "2.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "acorn-loose"
+version = "8.5.2"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "acorn-walk"
+version = "8.3.5"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "agent-base"
 version = "7.1.4"
 source = "registry"
@@ -5132,6 +5172,14 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "chalk"
+version = "4.1.2"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "chalk"
 version = "5.6.2"
 source = "registry"
 declared = "MIT"
@@ -5224,6 +5272,14 @@ version = "14.0.3"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "commander"
+version = "15.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -5424,6 +5480,14 @@ version = "2.0.0"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "dependency-cruiser"
+version = "18.5.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -5915,6 +5979,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "global-directory"
+version = "4.0.1"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "gopd"
 version = "1.2.0"
 source = "registry"
@@ -6043,6 +6115,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "ignore"
+version = "7.0.11"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "immer"
 version = "10.1.3"
 source = "registry"
@@ -6067,6 +6147,22 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "ini"
+version = "4.1.1"
+source = "registry"
+declared = "ISC"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "interpret"
+version = "3.1.1"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "ip-address"
 version = "10.7.3"
 source = "registry"
@@ -6080,6 +6176,14 @@ version = "1.9.1"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "is-core-module"
+version = "2.17.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -6139,6 +6243,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "is-installed-globally"
+version = "1.0.1"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "is-interactive"
 version = "2.0.0"
 source = "registry"
@@ -6168,6 +6280,14 @@ version = "3.0.0"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "is-path-inside"
+version = "4.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -7019,6 +7139,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "path-parse"
+version = "1.0.7"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "path-scurry"
 version = "1.11.1"
 source = "registry"
@@ -7227,8 +7355,24 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "rechoir"
+version = "0.8.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "redent"
 version = "3.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "regexp-tree"
+version = "0.1.27"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -7248,6 +7392,14 @@ version = "5.3.0"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "resolve"
+version = "1.22.13"
+source = "registry"
+declared = "MIT"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -7307,6 +7459,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "safe-regex"
+version = "2.1.1"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "safer-buffer"
 version = "2.1.2"
 source = "registry"
@@ -7344,6 +7504,14 @@ version = "7.7.2"
 source = "registry"
 declared = "ISC"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "semver"
+version = "7.8.5"
+source = "registry"
+declared = "ISC"
+scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
@@ -7619,6 +7787,14 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "supports-preserve-symlinks-flag"
+version = "1.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "symbol-tree"
 version = "3.2.4"
 source = "registry"
@@ -7787,6 +7963,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "tsconfig-paths-webpack-plugin"
+version = "4.2.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "tslib"
 version = "2.8.1"
 source = "registry"
@@ -7933,6 +8117,14 @@ scope = "dev"
 ecosystem = "pnpm"
 name = "w3c-xmlserializer"
 version = "5.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "watskeburt"
+version = "6.0.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"

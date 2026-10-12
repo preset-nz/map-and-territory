@@ -1,6 +1,10 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "includes": ["src/**", "**/*.json", "*.ts", "!src/index.css", "!src/components/ui"]
   },
@@ -17,35 +21,29 @@
       "semicolons": "always"
     }
   },
-  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "overrides": [
     {
-      "includes": ["src/plugin/**"],
+      "includes": ["src/test/**"],
       "linter": {
         "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "@/stores": "Plugins must use ToolContext and AppAPI seams (see CLAUDE.md hard rules); importing @/stores reintroduces brittle coupling."
-                },
-                "patterns": [
-                  {
-                    "group": ["@/stores/**"],
-                    "message": "Plugins must use ToolContext and AppAPI seams (see CLAUDE.md hard rules); importing @/stores reintroduces brittle coupling."
-                  }
-                ]
-              }
-            }
+          "suspicious": {
+            "noExplicitAny": "off"
           }
         }
       }
-    },
-    {
-      "includes": ["src/test/**"],
-      "linter": { "rules": { "suspicious": { "noExplicitAny": "off" } } }
     }
   ]
 }

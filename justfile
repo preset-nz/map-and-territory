@@ -26,6 +26,7 @@ run:
 check:
     ./node_modules/.bin/tsc --noEmit
     ./node_modules/.bin/biome check .
+    ./node_modules/.bin/depcruise src
     ./node_modules/.bin/vite build
     ./node_modules/.bin/vitest run
     cargo fmt --manifest-path src-tauri/Cargo.toml --check
