@@ -1,4 +1,5 @@
-# Releases: `just release`. Bumps package.json (which tauri.conf.json reads),
+# Releases: `just release`. Bumps package.json (which tauri.conf.json reads, so
+# knope never touches the Tauri config),
 # src-tauri/Cargo.toml and Cargo.lock in lockstep from the conventional
 # commits since the last tag, writes CHANGELOG.md, rescans the licence lock,
 # commits and tags. Pushing stays manual.
@@ -8,7 +9,6 @@ versioned_files = [
     "package.json",
     "src-tauri/Cargo.toml",
     { path = "src-tauri/Cargo.lock", dependency = "map-and-territory" },
-    "src-tauri/tauri.conf.json",
 ]
 changelog = "CHANGELOG.md"
 
