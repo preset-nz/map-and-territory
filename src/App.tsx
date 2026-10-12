@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import { CanvasHost } from './app/canvas-host';
 import { AppFrame, useScenePanel } from './app/frame';
 import { addedMap } from './app/scene/active-map';
+import { useSceneBindings } from './app/scene/commands';
 import { useMapIds } from './app/scene/maps';
+import { ScenePanel } from './app/scene/scene-panel';
 import { selection } from './app/selection';
 
 /** A map that has just been added becomes the selection, as in 2025. */
@@ -23,11 +25,13 @@ export default function App() {
 
   // The command table arrives from Rust; app-kit forwards the ones Rust doesn't handle here.
   // It also follows the history and routes Cmd+Z inside text fields.
+  const scene = useSceneBindings();
   const bindings = useMemo(
     () => ({
+      ...scene,
       'view.toggle-left-panel': { pressed: panel.open, run: panel.toggle },
     }),
-    [panel.open, panel.toggle],
+    [scene, panel.open, panel.toggle],
   );
   const { shortcut } = useCommands(bindings);
 
@@ -42,7 +46,7 @@ export default function App() {
     <AppFrame
       panel={panel}
       panelShortcut={shortcut('view.toggle-left-panel')}
-      scene={null}
+      scene={<ScenePanel />}
       canvas={<CanvasHost />}
     />
   );
