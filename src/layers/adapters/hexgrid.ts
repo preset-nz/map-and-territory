@@ -1,7 +1,7 @@
-import { createHexLayout, hexPath, hexTiles } from "@/layers/hex-utils";
-import type { LayerAdapter, RenderEnv } from "@/layers/types";
+import { createHexLayout, hexPath, hexTiles } from '@/layers/hex-utils';
+import type { LayerAdapter, RenderEnv } from '@/layers/types';
 
-export type HexOrientation = "pointy" | "flat";
+export type HexOrientation = 'pointy' | 'flat';
 
 export interface HexgridState {
   size: number; // hex radius in px
@@ -16,13 +16,12 @@ export interface HexgridState {
 // (removed unused pattern cache helper)
 
 export const HexgridAdapter: LayerAdapter<HexgridState> = {
-  title: "Hex Grid",
+  title: 'Hex Grid',
   drawMain(ctx, state, env: RenderEnv) {
     const { w, h } = env.size;
-    const { size, orientation, color, alpha, lineWidth, usePaletteColor } =
-      state;
+    const { size, orientation, color, alpha, lineWidth, usePaletteColor } = state;
     const r = Math.max(4, size || 16);
-    const paletteStroke = env.palette?.grid.line || "#000000";
+    const paletteStroke = env.palette?.grid.line || '#000000';
     const stroke = usePaletteColor
       ? paletteStroke
       : color && color.length > 0
@@ -55,18 +54,18 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   },
   getInvalidationKey(state) {
     const s = state;
-    const colorKey = s.usePaletteColor ? "palette" : s.color;
+    const colorKey = s.usePaletteColor ? 'palette' : s.color;
     return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}`;
   },
 };
 
 export const HexgridType = {
-  id: "hexgrid",
-  title: "Hex Grid",
+  id: 'hexgrid',
+  title: 'Hex Grid',
   defaultState: {
     size: 24,
-    orientation: "pointy",
-    color: "#000000",
+    orientation: 'pointy',
+    color: '#000000',
     usePaletteColor: true,
     alpha: 1,
     lineWidth: 1,

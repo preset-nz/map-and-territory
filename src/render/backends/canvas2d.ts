@@ -1,13 +1,11 @@
-import { getLayerType } from "@/layers/registry";
-import type { RenderEnv } from "@/layers/types";
-import { composeEnv, getSceneAdapter } from "@/plugin/loader";
-import { computePaperRect } from "@/render/geometry";
-import type { RenderBackend, SceneFrame } from "@/render/types";
+import { getLayerType } from '@/layers/registry';
+import type { RenderEnv } from '@/layers/types';
+import { composeEnv, getSceneAdapter } from '@/plugin/loader';
+import { computePaperRect } from '@/render/geometry';
+import type { RenderBackend, SceneFrame } from '@/render/types';
 
 export class Canvas2DBackend implements RenderBackend {
-  private ctx:
-    | (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)
-    | null = null;
+  private ctx: (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) | null = null;
   private pixelRatio = 1;
   private canvasW = 0;
   private canvasH = 0;
@@ -18,29 +16,29 @@ export class Canvas2DBackend implements RenderBackend {
   init(canvas: HTMLCanvasElement, pixelRatio: number): void;
   init(canvas: OffscreenCanvas | HTMLCanvasElement, pixelRatio: number) {
     this.pixelRatio = Math.max(1, pixelRatio || 1);
-    if (typeof (canvas as HTMLCanvasElement).getContext === "function") {
+    if (typeof (canvas as HTMLCanvasElement).getContext === 'function') {
       this.domCanvas = canvas as HTMLCanvasElement;
-      this.ctx = this.domCanvas.getContext("2d");
+      this.ctx = this.domCanvas.getContext('2d');
     } else {
       this.domCanvas = null;
-      this.ctx = (canvas as OffscreenCanvas).getContext("2d");
+      this.ctx = (canvas as OffscreenCanvas).getContext('2d');
     }
 
     // Reset canvas context state to ensure clean slate
     if (this.ctx) {
       this.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform matrix
       this.ctx.globalAlpha = 1;
-      this.ctx.globalCompositeOperation = "source-over";
-      this.ctx.fillStyle = "#000000";
-      this.ctx.strokeStyle = "#000000";
+      this.ctx.globalCompositeOperation = 'source-over';
+      this.ctx.fillStyle = '#000000';
+      this.ctx.strokeStyle = '#000000';
       this.ctx.lineWidth = 1;
-      this.ctx.lineCap = "butt";
-      this.ctx.lineJoin = "miter";
+      this.ctx.lineCap = 'butt';
+      this.ctx.lineJoin = 'miter';
       this.ctx.miterLimit = 10;
       this.ctx.shadowOffsetX = 10;
       this.ctx.shadowOffsetY = 10;
       this.ctx.shadowBlur = 0;
-      this.ctx.shadowColor = "rgba(0, 0, 0, 0)";
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0)';
     }
   }
 
@@ -110,14 +108,14 @@ export class Canvas2DBackend implements RenderBackend {
       scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
     } catch (e) {
       // non-fatal
-      console.warn("[render] scene.preRender threw", e);
+      console.warn('[render] scene.preRender threw', e);
     }
 
     for (const l of frame.layers) {
       if (!l.visible) continue;
       const type = getLayerType(l.type);
       const draw = type?.adapter?.drawMain;
-      if (typeof draw === "function") {
+      if (typeof draw === 'function') {
         draw(ctx as CanvasRenderingContext2D, l.state as unknown, envLocal);
       }
     }
@@ -126,7 +124,7 @@ export class Canvas2DBackend implements RenderBackend {
     try {
       scene?.postRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
     } catch (e) {
-      console.warn("[render] scene.postRender threw", e);
+      console.warn('[render] scene.postRender threw', e);
     }
 
     ctx.restore();

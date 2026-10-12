@@ -1,15 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
-import { registerLayerType } from "@/layers/registry";
-import { useCampaignStore } from "@/stores/campaign";
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { FreeformType } from '@/layers/adapters/freeform-hex';
+import { registerLayerType } from '@/layers/registry';
+import { useCampaignStore } from '@/stores/campaign';
 
-describe("applyLayerState seam", () => {
+describe('applyLayerState seam', () => {
   beforeEach(() => {
     // Fresh campaign with one map
     const s = useCampaignStore.getState();
     s.setActive(null);
-    s.createEmpty({ name: "Test Campaign" });
-    s.addMap({ name: "Map 01" });
+    s.createEmpty({ name: 'Test Campaign' });
+    s.addMap({ name: 'Map 01' });
     // Ensure freeform layer type registered
     registerLayerType(FreeformType);
   });
@@ -18,17 +18,17 @@ describe("applyLayerState seam", () => {
     useCampaignStore.getState().setActive(null);
   });
 
-  it("updates layer state via a single committed apply", () => {
+  it('updates layer state via a single committed apply', () => {
     const s = useCampaignStore.getState();
-    const layerId = s.addLayer("freeform");
+    const layerId = s.addLayer('freeform');
     expect(layerId).toBeTruthy();
 
     useCampaignStore.getState().applyLayerState(layerId!, (draft) => {
-      draft["cells"] = {
-        ...(draft["cells"] as Record<string, unknown> | undefined),
-        ["0,0"]: { color: "#abcdef" },
+      draft['cells'] = {
+        ...(draft['cells'] as Record<string, unknown> | undefined),
+        ['0,0']: { color: '#abcdef' },
       };
-      draft["opacity"] = 0.5 as unknown as Record<string, unknown>;
+      draft['opacity'] = 0.5 as unknown as Record<string, unknown>;
     });
 
     const cur = useCampaignStore.getState().current!;
@@ -38,6 +38,6 @@ describe("applyLayerState seam", () => {
       state: Record<string, unknown>;
     };
     expect(layer.state.opacity).toBe(0.5);
-    expect((layer.state.cells as Record<string, unknown>)["0,0"]).toBeTruthy();
+    expect((layer.state.cells as Record<string, unknown>)['0,0']).toBeTruthy();
   });
 });

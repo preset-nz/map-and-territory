@@ -1,7 +1,7 @@
-import { createHexLayout, hexPath, hexTiles } from "@/layers/hex-utils";
-import type { LayerAdapter } from "@/layers/types";
-import { createPerlinNoise } from "@/lib/noise";
-import { DefaultPalette } from "@/palettes/defaults";
+import { createHexLayout, hexPath, hexTiles } from '@/layers/hex-utils';
+import type { LayerAdapter } from '@/layers/types';
+import { createPerlinNoise } from '@/lib/noise';
+import { DefaultPalette } from '@/palettes/defaults';
 // (no direct adapter drawing; rendering handled elsewhere)
 
 export interface HexNoiseState {
@@ -13,8 +13,8 @@ export interface HexNoiseState {
   gamma: number; // >0 contrast curve
   min: number; // 0..1 lower threshold (transparent below)
   max: number; // 0..1 upper threshold (transparent above)
-  mode?: "shape" | "paint";
-  terrain?: "water" | "plains" | "forest" | "hills" | "mountains";
+  mode?: 'shape' | 'paint';
+  terrain?: 'water' | 'plains' | 'forest' | 'hills' | 'mountains';
   // When painting, allow selecting a specific terrain entry from active setting
   terrainId?: string;
   // Cache resolved color for terrainId to avoid cross-thread API calls
@@ -22,12 +22,11 @@ export interface HexNoiseState {
 }
 
 export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
-  title: "Hex Noise",
+  title: 'Hex Noise',
   drawMain(ctx, state, env) {
     const gridSize = Math.max(4, env.grid?.size ?? 16);
-    const orientation: "pointy" | "flat" =
-      env.grid?.orientation === "flat" ? "flat" : "pointy";
-    const perlin = createPerlinNoise(state.seed ?? "seed");
+    const orientation: 'pointy' | 'flat' = env.grid?.orientation === 'flat' ? 'flat' : 'pointy';
+    const perlin = createPerlinNoise(state.seed ?? 'seed');
     const freq = Math.max(0, Number(state.frequency ?? 0.15));
     const ox = Number(state.offsetX ?? 0);
     const oy = Number(state.offsetY ?? 0);
@@ -48,15 +47,12 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
 
     for (const tile of hexTiles(tilingConfig)) {
       // Apply noise calculation using axial coordinates
-      let v = perlin.normalized2D(
-        tile.axial.q * freq + ox,
-        tile.axial.r * freq + oy,
-      );
+      let v = perlin.normalized2D(tile.axial.q * freq + ox, tile.axial.r * freq + oy);
       v = v ** gamma;
       if (v < clampMin || v > clampMax) continue;
 
-      const mode = (state.mode as "shape" | "paint" | undefined) ?? "shape";
-      if (mode === "shape") {
+      const mode = (state.mode as 'shape' | 'paint' | undefined) ?? 'shape';
+      if (mode === 'shape') {
         const g = Math.floor(v * 255 * intensity);
         hexPath(ctx as CanvasRenderingContext2D, tile.center, layout);
         ctx.fillStyle = `rgb(${g},${g},${g})`;
@@ -67,28 +63,22 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
       // Paint mode - determine terrain color
       let fill = state.paintColor;
       if (!fill) {
-        const terrain = (state.terrain as string | undefined) ?? "plains";
-        const key = (():
-          | "water"
-          | "plains"
-          | "forest"
-          | "hills"
-          | "mountains" => {
+        const terrain = (state.terrain as string | undefined) ?? 'plains';
+        const key = ((): 'water' | 'plains' | 'forest' | 'hills' | 'mountains' => {
           switch (terrain) {
-            case "water":
-            case "plains":
-            case "forest":
-            case "hills":
-            case "mountains":
+            case 'water':
+            case 'plains':
+            case 'forest':
+            case 'hills':
+            case 'mountains':
               return terrain;
             default:
-              return "plains";
+              return 'plains';
           }
         })();
         const fromEnv =
-          env.palette?.terrain?.[
-            key as "water" | "plains" | "forest" | "hills" | "mountains"
-          ]?.fill;
+          env.palette?.terrain?.[key as 'water' | 'plains' | 'forest' | 'hills' | 'mountains']
+            ?.fill;
         fill = fromEnv || DefaultPalette.terrain.plains.fill;
       }
 
@@ -99,7 +89,7 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
   },
   // Note: main renderers draw this layer explicitly; adapter kept for parity/future bridge
   getInvalidationKey(state) {
-    return `hexnoise:${state.mode ?? ""}:${state.terrain ?? ""}:${state.seed ?? ""}:${state.frequency ?? ""}:${state.offsetX ?? ""}:${state.offsetY ?? ""}:${state.intensity ?? ""}:${state.gamma ?? ""}:${state.min ?? ""}:${state.max ?? ""}`;
+    return `hexnoise:${state.mode ?? ''}:${state.terrain ?? ''}:${state.seed ?? ''}:${state.frequency ?? ''}:${state.offsetX ?? ''}:${state.offsetY ?? ''}:${state.intensity ?? ''}:${state.gamma ?? ''}:${state.min ?? ''}:${state.max ?? ''}`;
   },
   serialize(state) {
     // Do not persist derived/cache fields like paintColor
@@ -108,10 +98,9 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
     return rest;
   },
   deserialize(raw) {
-    const base =
-      typeof raw === "object" && raw ? (raw as Partial<HexNoiseState>) : {};
+    const base = typeof raw === 'object' && raw ? (raw as Partial<HexNoiseState>) : {};
     return {
-      seed: base.seed ?? "seed",
+      seed: base.seed ?? 'seed',
       frequency: base.frequency ?? 0.15,
       offsetX: base.offsetX ?? 0,
       offsetY: base.offsetY ?? 0,
@@ -119,8 +108,8 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
       gamma: base.gamma ?? 1,
       min: base.min ?? 0,
       max: base.max ?? 1,
-      mode: base.mode ?? "shape",
-      terrain: base.terrain ?? "plains",
+      mode: base.mode ?? 'shape',
+      terrain: base.terrain ?? 'plains',
       terrainId: base.terrainId,
       paintColor: undefined, // recomputed later from palette/terrainId
     };
@@ -128,10 +117,10 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
 };
 
 export const HexNoiseType = {
-  id: "hexnoise",
-  title: "Hex Noise",
+  id: 'hexnoise',
+  title: 'Hex Noise',
   defaultState: {
-    seed: "seed",
+    seed: 'seed',
     frequency: 0.15,
     offsetX: 0,
     offsetY: 0,
@@ -139,8 +128,8 @@ export const HexNoiseType = {
     gamma: 1,
     min: 0,
     max: 1,
-    mode: "shape",
-    terrain: "plains",
+    mode: 'shape',
+    terrain: 'plains',
     terrainId: undefined,
     paintColor: undefined,
   },

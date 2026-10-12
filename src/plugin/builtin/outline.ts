@@ -1,60 +1,57 @@
-import { OutlineType } from "@/layers/adapters/outline";
-import { registerLayerType } from "@/layers/registry";
-import type { RenderEnv } from "@/layers/types";
-import type { Layout } from "@/lib/hex";
-import { findNearestCorner, interpolateCorners } from "@/lib/outline/geometry";
-import type { OutlineCorner, OutlineState } from "@/lib/outline/types";
-import { cornersEqual } from "@/lib/outline/types";
+import { OutlineType } from '@/layers/adapters/outline';
+import { registerLayerType } from '@/layers/registry';
+import type { RenderEnv } from '@/layers/types';
+import type { Layout } from '@/lib/hex';
+import { findNearestCorner, interpolateCorners } from '@/lib/outline/geometry';
+import type { OutlineCorner, OutlineState } from '@/lib/outline/types';
+import { cornersEqual } from '@/lib/outline/types';
 import {
   getCurrentCampaign,
   getSelection,
   insertLayerBeforeTopAnchor,
   selectLayer,
   setActiveTool,
-} from "@/platform/plugin-runtime/state";
-import { registerToolCursor } from "@/plugin/loader";
-import type { PluginManifest, PluginModule, ToolHandler } from "@/plugin/types";
-import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
+} from '@/platform/plugin-runtime/state';
+import { registerToolCursor } from '@/plugin/loader';
+import type { PluginManifest, PluginModule, ToolHandler } from '@/plugin/types';
+import { registerPropertySchema, unregisterPropertySchema } from '@/properties/registry';
 
 export const outlineManifest: PluginManifest = {
-  id: "app.plugins.outline-layer",
-  name: "Hex Outlines",
-  version: "0.1.0",
-  apiVersion: "1.0",
+  id: 'app.plugins.outline-layer',
+  name: 'Hex Outlines',
+  version: '0.1.0',
+  apiVersion: '1.0',
   contributes: {
     commands: [
-      { id: "layer.outline.add", title: "Add Outline Layer" },
-      { id: "tool.outline.draw", title: "Outline Tool" },
+      { id: 'layer.outline.add', title: 'Add Outline Layer' },
+      { id: 'tool.outline.draw', title: 'Outline Tool' },
     ],
     toolbar: [
       {
-        group: "scene",
+        group: 'scene',
         items: [
           {
-            type: "button",
-            command: "layer.outline.add",
-            icon: "lucide:bezier-curve",
-            label: "Outlines",
+            type: 'button',
+            command: 'layer.outline.add',
+            icon: 'lucide:bezier-curve',
+            label: 'Outlines',
             order: 4,
-            enableWhen: ["hasActiveMap"],
-            disabledReason: "Select a map to add a layer",
+            enableWhen: ['hasActiveMap'],
+            disabledReason: 'Select a map to add a layer',
           },
         ],
       },
       {
-        group: "tools",
+        group: 'tools',
         items: [
           {
-            type: "button",
-            command: "tool.outline.draw",
-            icon: "lucide:scribble-loop",
-            label: "Outline",
+            type: 'button',
+            command: 'tool.outline.draw',
+            icon: 'lucide:scribble-loop',
+            label: 'Outline',
             order: 5,
-            enableWhen: ["activeLayerIs:outline", "gridVisible"],
-            disabledReason: "Select an Outline layer",
+            enableWhen: ['activeLayerIs:outline', 'gridVisible'],
+            disabledReason: 'Select an Outline layer',
           },
         ],
       },
@@ -66,23 +63,19 @@ const TOLERANCE_PX = 14;
 
 function buildLayout(env: RenderEnv): Layout {
   const size = Math.max(4, env.grid?.size ?? 16);
-  const orientation = env.grid?.orientation === "flat" ? "flat" : "pointy";
+  const orientation = env.grid?.orientation === 'flat' ? 'flat' : 'pointy';
   const origin = { x: env.size.w / 2, y: env.size.h / 2 };
   return { size, orientation, origin };
 }
 
 function createPathId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
   }
   return `outline-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function appendCorner(
-  path: OutlineState["paths"][number],
-  corner: OutlineCorner,
-  layout: Layout,
-) {
+function appendCorner(path: OutlineState['paths'][number], corner: OutlineCorner, layout: Layout) {
   const last = path.corners[path.corners.length - 1] ?? null;
   const steps = interpolateCorners(last, corner, layout);
   for (const step of steps) {
@@ -93,9 +86,9 @@ function appendCorner(
 }
 
 const outlineTool: ToolHandler = {
-  id: "outline",
+  id: 'outline',
   onPointerDown(pt, env, ctx) {
-    if (ctx.selection.kind !== "layer") return;
+    if (ctx.selection.kind !== 'layer') return;
     if (!env.grid) return;
     const layout = buildLayout(env);
     const corner = findNearestCorner(pt, layout, TOLERANCE_PX);
@@ -134,7 +127,7 @@ const outlineTool: ToolHandler = {
     });
   },
   onPointerMove(pt, env, ctx) {
-    if (ctx.selection.kind !== "layer") return;
+    if (ctx.selection.kind !== 'layer') return;
     if (!env.grid) return;
     const layerId = ctx.selection.id;
     if (!layerId) return;
@@ -151,11 +144,11 @@ const outlineTool: ToolHandler = {
     });
   },
   onKeyDown(key, ctx) {
-    if (ctx.selection.kind !== "layer") return;
+    if (ctx.selection.kind !== 'layer') return;
     const layerId = ctx.selection.id;
     if (!layerId) return;
 
-    if (key === "Escape") {
+    if (key === 'Escape') {
       ctx.applyLayerState(layerId, (draft: OutlineState) => {
         draft.activePathId = null;
         draft.hoverCorner = null;
@@ -163,7 +156,7 @@ const outlineTool: ToolHandler = {
       return;
     }
 
-    if (key === "Enter" || key === "NumpadEnter") {
+    if (key === 'Enter' || key === 'NumpadEnter') {
       ctx.applyLayerState(layerId, (draft: OutlineState) => {
         if (!draft.activePathId) return;
         const index = draft.paths.findIndex((p) => p.id === draft.activePathId);
@@ -182,7 +175,7 @@ const outlineTool: ToolHandler = {
       return;
     }
 
-    if (key === "Backspace" || key === "Delete") {
+    if (key === 'Backspace' || key === 'Delete') {
       ctx.applyLayerState(layerId, (draft: OutlineState) => {
         if (!draft.activePathId) return;
         const path = draft.paths.find((p) => p.id === draft.activePathId);
@@ -201,53 +194,53 @@ const outlineTool: ToolHandler = {
 export const outlineModule: PluginModule = {
   activate: () => {
     registerLayerType(OutlineType);
-    registerToolCursor("outline", "crosshair");
-    registerPropertySchema("layer:outline", {
+    registerToolCursor('outline', 'crosshair');
+    registerPropertySchema('layer:outline', {
       groups: [
         {
-          id: "outline",
-          title: "Outline",
+          id: 'outline',
+          title: 'Outline',
           rows: [
             {
-              kind: "slider",
-              id: "opacity",
-              label: "Opacity",
-              path: "opacity",
+              kind: 'slider',
+              id: 'opacity',
+              label: 'Opacity',
+              path: 'opacity',
               min: 0,
               max: 1,
               step: 0.05,
             },
             {
-              kind: "color",
-              id: "strokeColor",
-              label: "Stroke Color",
-              path: "strokeColor",
+              kind: 'color',
+              id: 'strokeColor',
+              label: 'Stroke Color',
+              path: 'strokeColor',
             },
             {
-              kind: "slider",
-              id: "strokeWidth",
-              label: "Stroke Width",
-              path: "strokeWidth",
+              kind: 'slider',
+              id: 'strokeWidth',
+              label: 'Stroke Width',
+              path: 'strokeWidth',
               min: 1,
               max: 12,
               step: 1,
             },
             {
-              kind: "select",
-              id: "strokePattern",
-              label: "Stroke Pattern",
-              path: "strokePattern",
+              kind: 'select',
+              id: 'strokePattern',
+              label: 'Stroke Pattern',
+              path: 'strokePattern',
               options: [
-                { value: "solid", label: "Solid" },
-                { value: "dashed", label: "Dashed" },
-                { value: "dotted", label: "Dotted" },
+                { value: 'solid', label: 'Solid' },
+                { value: 'dashed', label: 'Dashed' },
+                { value: 'dotted', label: 'Dotted' },
               ],
             },
             {
-              kind: "slider",
-              id: "roughness",
-              label: "Roughness",
-              path: "roughness",
+              kind: 'slider',
+              id: 'roughness',
+              label: 'Roughness',
+              path: 'roughness',
               min: 0,
               max: 1,
               step: 0.05,
@@ -258,22 +251,22 @@ export const outlineModule: PluginModule = {
     });
   },
   deactivate: () => {
-    unregisterPropertySchema("layer:outline");
+    unregisterPropertySchema('layer:outline');
   },
   commands: {
-    "layer.outline.add": () => {
+    'layer.outline.add': () => {
       const campaign = getCurrentCampaign();
       const activeMap = campaign?.activeMapId;
       if (!campaign || !activeMap) return;
-      const layerId = insertLayerBeforeTopAnchor("outline");
+      const layerId = insertLayerBeforeTopAnchor('outline');
       if (!layerId) return;
       selectLayer(layerId);
-      setActiveTool("outline");
+      setActiveTool('outline');
     },
-    "tool.outline.draw": () => {
+    'tool.outline.draw': () => {
       const selection = getSelection();
-      if (selection.kind === "layer") {
-        setActiveTool("outline");
+      if (selection.kind === 'layer') {
+        setActiveTool('outline');
       }
     },
   },

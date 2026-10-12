@@ -1,4 +1,4 @@
-import type { Axial } from "@/lib/hex";
+import type { Axial } from '@/lib/hex';
 
 export type OutlineCornerIndex = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -20,7 +20,7 @@ export interface OutlineState {
   strokeColor: string;
   strokeWidth: number;
   hoverCorner?: OutlineCorner | null;
-  strokePattern: "solid" | "dashed" | "dotted";
+  strokePattern: 'solid' | 'dashed' | 'dotted';
   roughness: number;
 }
 

@@ -1,18 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 import {
   createHexLayout,
   type HexTilePosition,
   type HexTilingConfig,
   hexTiles,
-} from "@/layers/hex-utils";
+} from '@/layers/hex-utils';
 
-describe("hex utilities consolidation", () => {
-  describe("hexTiles generator", () => {
-    describe("when using flat orientation", () => {
-      it("should generate hex positions with correct structure", () => {
+describe('hex utilities consolidation', () => {
+  describe('hexTiles generator', () => {
+    describe('when using flat orientation', () => {
+      it('should generate hex positions with correct structure', () => {
         const config: HexTilingConfig = {
           size: 10,
-          orientation: "flat",
+          orientation: 'flat',
           center: { x: 50, y: 50 },
           bounds: { w: 100, h: 100 },
           padding: 1,
@@ -22,9 +22,9 @@ describe("hex utilities consolidation", () => {
 
         expect(tiles.length).toBeGreaterThan(0);
         tiles.forEach((tile) => {
-          expect(tile).toHaveProperty("center");
-          expect(tile).toHaveProperty("axial");
-          expect(tile).toHaveProperty("gridCoords");
+          expect(tile).toHaveProperty('center');
+          expect(tile).toHaveProperty('axial');
+          expect(tile).toHaveProperty('gridCoords');
           expect(Number.isFinite(tile.center.x)).toBe(true);
           expect(Number.isFinite(tile.center.y)).toBe(true);
           expect(Number.isFinite(tile.axial.q)).toBe(true);
@@ -34,10 +34,10 @@ describe("hex utilities consolidation", () => {
         });
       });
 
-      it("should generate tiles within reasonable area", () => {
+      it('should generate tiles within reasonable area', () => {
         const config: HexTilingConfig = {
           size: 12,
-          orientation: "flat",
+          orientation: 'flat',
           center: { x: 0, y: 0 },
           bounds: { w: 60, h: 60 },
           padding: 1,
@@ -57,10 +57,10 @@ describe("hex utilities consolidation", () => {
         });
       });
 
-      it("should respect padding parameter", () => {
+      it('should respect padding parameter', () => {
         const baseConfig: HexTilingConfig = {
           size: 15,
-          orientation: "flat",
+          orientation: 'flat',
           center: { x: 0, y: 0 },
           bounds: { w: 60, h: 60 },
           padding: 0,
@@ -78,11 +78,11 @@ describe("hex utilities consolidation", () => {
       });
     });
 
-    describe("when using pointy orientation", () => {
-      it("should generate hex positions with correct structure", () => {
+    describe('when using pointy orientation', () => {
+      it('should generate hex positions with correct structure', () => {
         const config: HexTilingConfig = {
           size: 10,
-          orientation: "pointy",
+          orientation: 'pointy',
           center: { x: 50, y: 50 },
           bounds: { w: 100, h: 100 },
           padding: 1,
@@ -101,10 +101,10 @@ describe("hex utilities consolidation", () => {
         });
       });
 
-      it("should generate tiles within reasonable area", () => {
+      it('should generate tiles within reasonable area', () => {
         const config: HexTilingConfig = {
           size: 12,
-          orientation: "pointy",
+          orientation: 'pointy',
           center: { x: 0, y: 0 },
           bounds: { w: 60, h: 60 },
           padding: 1,
@@ -124,10 +124,10 @@ describe("hex utilities consolidation", () => {
         });
       });
 
-      it("should apply row offset correctly for pointy orientation", () => {
+      it('should apply row offset correctly for pointy orientation', () => {
         const config: HexTilingConfig = {
           size: 10,
-          orientation: "pointy",
+          orientation: 'pointy',
           center: { x: 0, y: 0 },
           bounds: { w: 60, h: 60 },
           padding: 1,
@@ -150,11 +150,11 @@ describe("hex utilities consolidation", () => {
       });
     });
 
-    describe("when using different configurations", () => {
-      it("should generate different tile counts for different sizes", () => {
+    describe('when using different configurations', () => {
+      it('should generate different tile counts for different sizes', () => {
         const smallConfig: HexTilingConfig = {
           size: 5,
-          orientation: "pointy",
+          orientation: 'pointy',
           center: { x: 0, y: 0 },
           bounds: { w: 50, h: 50 },
           padding: 1,
@@ -162,7 +162,7 @@ describe("hex utilities consolidation", () => {
 
         const largeConfig: HexTilingConfig = {
           size: 20,
-          orientation: "pointy",
+          orientation: 'pointy',
           center: { x: 0, y: 0 },
           bounds: { w: 50, h: 50 },
           padding: 1,
@@ -175,10 +175,10 @@ describe("hex utilities consolidation", () => {
         expect(smallTiles.length).toBeGreaterThan(largeTiles.length);
       });
 
-      it("should handle center offset correctly", () => {
+      it('should handle center offset correctly', () => {
         const centeredConfig: HexTilingConfig = {
           size: 10,
-          orientation: "flat",
+          orientation: 'flat',
           center: { x: 0, y: 0 },
           bounds: { w: 40, h: 40 },
           padding: 0,
@@ -204,11 +204,11 @@ describe("hex utilities consolidation", () => {
       });
     });
 
-    describe("when iterating lazily", () => {
-      it("should support early termination", () => {
+    describe('when iterating lazily', () => {
+      it('should support early termination', () => {
         const config: HexTilingConfig = {
           size: 8,
-          orientation: "pointy",
+          orientation: 'pointy',
           center: { x: 0, y: 0 },
           bounds: { w: 200, h: 200 }, // Large bounds
           padding: 2,
@@ -231,54 +231,52 @@ describe("hex utilities consolidation", () => {
     });
   });
 
-  describe("createHexLayout", () => {
-    describe("when creating layout objects", () => {
-      it("should create valid layout for pointy orientation", () => {
-        const layout = createHexLayout(20, "pointy");
+  describe('createHexLayout', () => {
+    describe('when creating layout objects', () => {
+      it('should create valid layout for pointy orientation', () => {
+        const layout = createHexLayout(20, 'pointy');
 
         expect(layout.size).toBe(20);
-        expect(layout.orientation).toBe("pointy");
-        expect(layout).toHaveProperty("size");
-        expect(layout).toHaveProperty("orientation");
+        expect(layout.orientation).toBe('pointy');
+        expect(layout).toHaveProperty('size');
+        expect(layout).toHaveProperty('orientation');
       });
 
-      it("should create valid layout for flat orientation", () => {
-        const layout = createHexLayout(15, "flat");
+      it('should create valid layout for flat orientation', () => {
+        const layout = createHexLayout(15, 'flat');
 
         expect(layout.size).toBe(15);
-        expect(layout.orientation).toBe("flat");
-        expect(layout).toHaveProperty("size");
-        expect(layout).toHaveProperty("orientation");
+        expect(layout.orientation).toBe('flat');
+        expect(layout).toHaveProperty('size');
+        expect(layout).toHaveProperty('orientation');
       });
 
-      it("should handle different size values", () => {
+      it('should handle different size values', () => {
         const sizes = [1, 10, 24, 50, 100];
 
         sizes.forEach((size) => {
-          const layout = createHexLayout(size, "pointy");
+          const layout = createHexLayout(size, 'pointy');
           expect(layout.size).toBe(size);
-          expect(layout.orientation).toBe("pointy");
+          expect(layout.orientation).toBe('pointy');
         });
       });
 
-      it("should create objects compatible with hexPath function", () => {
-        const layout = createHexLayout(16, "pointy");
+      it('should create objects compatible with hexPath function', () => {
+        const layout = createHexLayout(16, 'pointy');
 
         // Should have the correct shape for Pick<Layout, "size" | "orientation">
-        expect(typeof layout.size).toBe("number");
-        expect(typeof layout.orientation).toBe("string");
-        expect(
-          layout.orientation === "pointy" || layout.orientation === "flat",
-        ).toBe(true);
+        expect(typeof layout.size).toBe('number');
+        expect(typeof layout.orientation).toBe('string');
+        expect(layout.orientation === 'pointy' || layout.orientation === 'flat').toBe(true);
       });
     });
   });
 
-  describe("integration between utilities", () => {
-    describe("when using hexTiles with createHexLayout", () => {
-      it("should produce consistent results", () => {
+  describe('integration between utilities', () => {
+    describe('when using hexTiles with createHexLayout', () => {
+      it('should produce consistent results', () => {
         const size = 12;
-        const orientation = "pointy" as const;
+        const orientation = 'pointy' as const;
         const layout = createHexLayout(size, orientation);
 
         const config: HexTilingConfig = {
@@ -302,8 +300,8 @@ describe("hex utilities consolidation", () => {
         });
       });
 
-      it("should work with both orientations", () => {
-        const orientations: Array<"pointy" | "flat"> = ["pointy", "flat"];
+      it('should work with both orientations', () => {
+        const orientations: Array<'pointy' | 'flat'> = ['pointy', 'flat'];
 
         orientations.forEach((orientation) => {
           const size = 15;
@@ -331,11 +329,11 @@ describe("hex utilities consolidation", () => {
     });
   });
 
-  describe("compatibility with existing patterns", () => {
-    describe("when replicating hexgrid tiling logic", () => {
-      it("should match original flat orientation calculations", () => {
+  describe('compatibility with existing patterns', () => {
+    describe('when replicating hexgrid tiling logic', () => {
+      it('should match original flat orientation calculations', () => {
         const r = 16;
-        const orientation = "flat" as const;
+        const orientation = 'flat' as const;
         const w = 100;
         const h = 100;
         const sqrt3 = Math.sqrt(3);
@@ -364,9 +362,9 @@ describe("hex utilities consolidation", () => {
         expect(tiles.length).toBeLessThan(200); // Reasonable upper bound
       });
 
-      it("should match original pointy orientation calculations", () => {
+      it('should match original pointy orientation calculations', () => {
         const r = 16;
-        const orientation = "pointy" as const;
+        const orientation = 'pointy' as const;
         const w = 100;
         const h = 100;
         const sqrt3 = Math.sqrt(3);

@@ -1,8 +1,8 @@
-import type { Campaign } from "@/stores/campaign";
-import { useCampaignStore } from "@/stores/campaign";
-import { useLayoutStore } from "@/stores/layout";
-import type { Selection } from "@/stores/selection";
-import { useSelectionStore } from "@/stores/selection";
+import type { Campaign } from '@/stores/campaign';
+import { useCampaignStore } from '@/stores/campaign';
+import { useLayoutStore } from '@/stores/layout';
+import type { Selection } from '@/stores/selection';
+import { useSelectionStore } from '@/stores/selection';
 
 /**
  * Narrow host-side seam exposing only the operations plugins need.
@@ -20,13 +20,8 @@ export function getActiveMap() {
   return campaign.maps.find((map) => map.id === campaign.activeMapId) ?? null;
 }
 
-export function insertLayerBeforeTopAnchor(
-  layerType: string,
-  name?: string,
-): string | null {
-  return useCampaignStore
-    .getState()
-    .insertLayerBeforeTopAnchor(layerType, name);
+export function insertLayerBeforeTopAnchor(layerType: string, name?: string): string | null {
+  return useCampaignStore.getState().insertLayerBeforeTopAnchor(layerType, name);
 }
 
 export function insertLayerAbove(
@@ -34,15 +29,10 @@ export function insertLayerAbove(
   layerType: string,
   name?: string,
 ): string | null {
-  return useCampaignStore
-    .getState()
-    .insertLayerAbove(targetLayerId, layerType, name);
+  return useCampaignStore.getState().insertLayerAbove(targetLayerId, layerType, name);
 }
 
-export function updateLayerState(
-  layerId: string,
-  patch: Record<string, unknown>,
-): void {
+export function updateLayerState(layerId: string, patch: Record<string, unknown>): void {
   useCampaignStore.getState().updateLayerState(layerId, patch);
 }
 
@@ -86,10 +76,7 @@ export function selectMapInStores(mapId: string): void {
   useSelectionStore.getState().selectMap(mapId);
 }
 
-export function createEmptyCampaign(params?: {
-  name?: string;
-  description?: string;
-}) {
+export function createEmptyCampaign(params?: { name?: string; description?: string }) {
   return useCampaignStore.getState().createEmpty(params);
 }
 
@@ -106,14 +93,14 @@ export function isCampaignDirty(): boolean {
  */
 export function applyCellsDelta<TCell = unknown>(
   layerId: string,
-  delta: import("@/types/batch-operations").CellsDelta<TCell>,
-): import("@/types/batch-operations").BatchResult<void> {
+  delta: import('@/types/batch-operations').CellsDelta<TCell>,
+): import('@/types/batch-operations').BatchResult<void> {
   return useCampaignStore.getState().applyCellsDelta(layerId, delta);
 }
 
 export function applyLayerStateBatch<T = Record<string, unknown>>(
   layerId: string,
   updater: (draft: T) => void,
-): import("@/types/batch-operations").BatchResult<T> {
+): import('@/types/batch-operations').BatchResult<T> {
   return useCampaignStore.getState().applyLayerStateBatch(layerId, updater);
 }

@@ -1,12 +1,12 @@
-import { round } from "./coords";
-import type { Axial, Layout, Point } from "./types";
+import { round } from './coords';
+import type { Axial, Layout, Point } from './types';
 
 const SQRT3 = Math.sqrt(3);
 
 // Axial -> pixel center
 export function toPoint(h: Axial, layout: Layout): Point {
   const { size, origin, orientation } = layout;
-  if (orientation === "pointy") {
+  if (orientation === 'pointy') {
     const x = size * (SQRT3 * (h.q + h.r / 2));
     const y = size * (1.5 * h.r);
     return { x: origin.x + x, y: origin.y + y };
@@ -23,7 +23,7 @@ export function fromPoint(p: Point, layout: Layout): Axial {
   const { size, origin, orientation } = layout;
   const px = p.x - origin.x;
   const py = p.y - origin.y;
-  if (orientation === "pointy") {
+  if (orientation === 'pointy') {
     const q = ((SQRT3 / 3) * px - (1 / 3) * py) / size;
     const r = ((2 / 3) * py) / size;
     return round({ x: q, y: -q - r, z: r });
@@ -37,7 +37,7 @@ export function fromPoint(p: Point, layout: Layout): Axial {
 // Optional: polygon corners around center point (not required in MVP)
 export function corners(center: Point, layout: Layout): Point[] {
   const { size, orientation } = layout;
-  const start = orientation === "pointy" ? -Math.PI / 6 : 0;
+  const start = orientation === 'pointy' ? -Math.PI / 6 : 0;
   const pts: Point[] = [];
   for (let i = 0; i < 6; i++) {
     const angle = start + i * (Math.PI / 3);

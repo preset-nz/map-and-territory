@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { OutlineAdapter } from "@/layers/adapters/outline";
-import type { RenderEnv } from "@/layers/types";
-import type { OutlineState } from "@/lib/outline/types";
+import { describe, expect, it } from 'vitest';
+import { OutlineAdapter } from '@/layers/adapters/outline';
+import type { RenderEnv } from '@/layers/types';
+import type { OutlineState } from '@/lib/outline/types';
 
 class MockContext implements Partial<CanvasRenderingContext2D> {
   public moves: Array<[number, number]> = [];
@@ -11,10 +11,10 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
   public saveCount = 0;
   public restoreCount = 0;
   public globalAlpha = 1;
-  public strokeStyle: string | CanvasGradient | CanvasPattern = "#000";
+  public strokeStyle: string | CanvasGradient | CanvasPattern = '#000';
   public lineWidth = 1;
-  public lineJoin: CanvasLineJoin = "miter";
-  public lineCap: CanvasLineCap = "butt";
+  public lineJoin: CanvasLineJoin = 'miter';
+  public lineCap: CanvasLineCap = 'butt';
   public dash: number[] = [];
 
   beginPath() {
@@ -50,16 +50,16 @@ const env: RenderEnv = {
   size: { w: 400, h: 400 },
   paperRect: { x: 0, y: 0, w: 400, h: 400 },
   camera: { x: 0, y: 0, zoom: 1 },
-  grid: { size: 16, orientation: "pointy" },
+  grid: { size: 16, orientation: 'pointy' },
 };
 
-describe("OutlineAdapter", () => {
-  it("strokes paths for at least two corners", () => {
+describe('OutlineAdapter', () => {
+  it('strokes paths for at least two corners', () => {
     const ctx = new MockContext();
     const state: OutlineState = {
       paths: [
         {
-          id: "p1",
+          id: 'p1',
           closed: false,
           corners: [
             { hex: { q: 0, r: 0 }, corner: 0 },
@@ -70,25 +70,21 @@ describe("OutlineAdapter", () => {
       ],
       activePathId: null,
       opacity: 0.8,
-      strokeColor: "#112233",
+      strokeColor: '#112233',
       strokeWidth: 3,
-      strokePattern: "solid",
+      strokePattern: 'solid',
       roughness: 0,
       hoverCorner: null,
     };
 
-    OutlineAdapter.drawMain?.(
-      ctx as unknown as CanvasRenderingContext2D,
-      state,
-      env,
-    );
+    OutlineAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
 
     expect(ctx.saveCount).toBeGreaterThan(0);
     expect(ctx.beginCount).toBe(1);
     expect(ctx.moves.length).toBe(1);
     expect(ctx.lines.length).toBe(2);
     expect(ctx.strokeCount).toBe(1);
-    expect(ctx.strokeStyle).toBe("#112233");
+    expect(ctx.strokeStyle).toBe('#112233');
     expect(ctx.lineWidth).toBe(3);
     expect(ctx.globalAlpha).toBeCloseTo(0.8);
     expect(ctx.dash.length).toBe(0);

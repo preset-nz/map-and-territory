@@ -1,6 +1,6 @@
 // Hex library types and orientation/layout definitions
 
-export type Orientation = "pointy" | "flat";
+export type Orientation = 'pointy' | 'flat';
 
 export interface Layout {
   orientation: Orientation;

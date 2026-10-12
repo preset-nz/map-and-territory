@@ -1,15 +1,9 @@
 // Small math utilities for procedural generation
 
 // Map a value from [omin, omax] into [nmin, nmax].
-export function fit(
-  value: number,
-  omin: number,
-  omax: number,
-  nmin: number,
-  nmax: number,
-): number {
+export function fit(value: number, omin: number, omax: number, nmin: number, nmax: number): number {
   if (omax === omin) {
-    throw new Error("fit(): input range cannot be zero (omin === omax)");
+    throw new Error('fit(): input range cannot be zero (omin === omax)');
   }
   const t = (value - omin) / (omax - omin);
   return nmin + t * (nmax - nmin);

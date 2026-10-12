@@ -1,6 +1,6 @@
-import { makePaletteFromSetting } from "@/palettes/derive";
-import { TerrainSettings } from "@/palettes/settings";
-import type { MapPalette } from "@/palettes/types";
+import { makePaletteFromSetting } from '@/palettes/derive';
+import { TerrainSettings } from '@/palettes/settings';
+import type { MapPalette } from '@/palettes/types';
 
 function deepFreeze<T>(obj: T): T {
   Object.freeze(obj);
@@ -10,7 +10,7 @@ function deepFreeze<T>(obj: T): T {
     const value: any = (obj as any)[prop];
     if (
       value &&
-      (typeof value === "object" || typeof value === "function") &&
+      (typeof value === 'object' || typeof value === 'function') &&
       !Object.isFrozen(value)
     ) {
       deepFreeze(value);
@@ -47,13 +47,13 @@ function makePresetAccessors(name: keyof typeof Templates): MapPalette {
 }
 
 export const Presets = {
-  DoomForge: makePresetAccessors("DoomForge"),
-  SpaceOpera: makePresetAccessors("SpaceOpera"),
-  EventHorizon: makePresetAccessors("EventHorizon"),
-  GloomyGarden: makePresetAccessors("GloomyGarden"),
-  ExcessThrone: makePresetAccessors("ExcessThrone"),
-  DataNexus: makePresetAccessors("DataNexus"),
-  StreetLevel: makePresetAccessors("StreetLevel"),
-  BrittleEmpire: makePresetAccessors("BrittleEmpire"),
-  HostileWaters: makePresetAccessors("HostileWaters"),
+  DoomForge: makePresetAccessors('DoomForge'),
+  SpaceOpera: makePresetAccessors('SpaceOpera'),
+  EventHorizon: makePresetAccessors('EventHorizon'),
+  GloomyGarden: makePresetAccessors('GloomyGarden'),
+  ExcessThrone: makePresetAccessors('ExcessThrone'),
+  DataNexus: makePresetAccessors('DataNexus'),
+  StreetLevel: makePresetAccessors('StreetLevel'),
+  BrittleEmpire: makePresetAccessors('BrittleEmpire'),
+  HostileWaters: makePresetAccessors('HostileWaters'),
 } as const;

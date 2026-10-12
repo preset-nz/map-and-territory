@@ -1,18 +1,12 @@
-import {
-  campaignPluginManifest,
-  campaignPluginModule,
-} from "@/plugin/builtin/campaign";
-import { freeformManifest, freeformModule } from "@/plugin/builtin/freeform";
-import { hexNoiseManifest, hexNoiseModule } from "@/plugin/builtin/hex-noise";
-import {
-  hexgridPluginManifest,
-  hexgridPluginModule,
-} from "@/plugin/builtin/hexgrid";
-import { mapPluginManifest, mapPluginModule } from "@/plugin/builtin/map";
-import { outlineManifest, outlineModule } from "@/plugin/builtin/outline";
+import { campaignPluginManifest, campaignPluginModule } from '@/plugin/builtin/campaign';
+import { freeformManifest, freeformModule } from '@/plugin/builtin/freeform';
+import { hexNoiseManifest, hexNoiseModule } from '@/plugin/builtin/hex-noise';
+import { hexgridPluginManifest, hexgridPluginModule } from '@/plugin/builtin/hexgrid';
+import { mapPluginManifest, mapPluginModule } from '@/plugin/builtin/map';
+import { outlineManifest, outlineModule } from '@/plugin/builtin/outline';
 // Built-in plugins
-import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
-import { loadPluginsWithPriority } from "@/plugin/loader";
+import { paperPluginManifest, paperPluginModule } from '@/plugin/builtin/paper';
+import { loadPluginsWithPriority } from '@/plugin/loader';
 
 export async function bootstrapPlugins() {
   await loadPluginsWithPriority([

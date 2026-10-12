@@ -4,7 +4,7 @@
  * with the web interface in epic 14.
  */
 
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface MousePosition {
   x: number;
@@ -16,17 +16,12 @@ interface LayoutStore {
   activeTool: string;
   mousePosition: MousePosition;
   setActiveTool: (tool: string) => void;
-  setMousePosition: (
-    x: number,
-    y: number,
-    hex?: { q: number; r: number } | null,
-  ) => void;
+  setMousePosition: (x: number, y: number, hex?: { q: number; r: number } | null) => void;
 }
 
 export const useLayoutStore = create<LayoutStore>()((set) => ({
-  activeTool: "select",
+  activeTool: 'select',
   mousePosition: { x: 0, y: 0, hex: null },
   setActiveTool: (tool) => set({ activeTool: tool }),
-  setMousePosition: (x, y, hex) =>
-    set({ mousePosition: { x, y, hex: hex ?? null } }),
+  setMousePosition: (x, y, hex) => set({ mousePosition: { x, y, hex: hex ?? null } }),
 }));

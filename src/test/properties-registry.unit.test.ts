@@ -1,27 +1,27 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 import {
   getPropertySchema,
   type PropertySchema,
   registerPropertySchema,
   unregisterPropertySchema,
-} from "@/properties/registry";
+} from '@/properties/registry';
 
-describe("Property Registry — register/unregister", () => {
-  it("registers and retrieves a schema by scope", () => {
-    const scope = "test.scope";
+describe('Property Registry — register/unregister', () => {
+  it('registers and retrieves a schema by scope', () => {
+    const scope = 'test.scope';
     const schema: PropertySchema = {
-      groups: [{ id: "g", title: "G", rows: [] }],
+      groups: [{ id: 'g', title: 'G', rows: [] }],
     };
     registerPropertySchema(scope, schema);
     const got = getPropertySchema(scope);
     expect(got).toBeDefined();
-    expect(got?.groups[0].id).toBe("g");
+    expect(got?.groups[0].id).toBe('g');
   });
 
-  it("unregister removes schema and get returns undefined", () => {
-    const scope = "test.remove";
+  it('unregister removes schema and get returns undefined', () => {
+    const scope = 'test.remove';
     const schema: PropertySchema = {
-      groups: [{ id: "g", title: "G", rows: [] }],
+      groups: [{ id: 'g', title: 'G', rows: [] }],
     };
     registerPropertySchema(scope, schema);
     expect(getPropertySchema(scope)).toBeDefined();

@@ -5,14 +5,14 @@
  * Supports empty-only and same-value replacement modes with boundary detection.
  */
 
-import { AppAPI } from "@/appapi";
-import { axialKey } from "@/layers/hex-utils";
-import type { Axial } from "@/lib/hex";
+import { AppAPI } from '@/appapi';
+import { axialKey } from '@/layers/hex-utils';
+import type { Axial } from '@/lib/hex';
 
 /**
  * Fill mode configuration
  */
-export type FloodFillMode = "empty-only" | "same-value";
+export type FloodFillMode = 'empty-only' | 'same-value';
 
 /**
  * Paper bounds for boundary detection
@@ -74,9 +74,9 @@ export function floodFill(config: FloodFillConfig): FloodFillResult {
   // Determine what values should be filled
   const shouldFill = (value: string | undefined): boolean => {
     switch (mode) {
-      case "empty-only":
+      case 'empty-only':
         return value === undefined;
-      case "same-value":
+      case 'same-value':
         return value === originValue;
       default:
         return false;
@@ -116,7 +116,7 @@ export function floodFill(config: FloodFillConfig): FloodFillResult {
   // to prevent infinite expansion of empty regions
   const effectiveBounds =
     paperBounds ||
-    (mode === "empty-only"
+    (mode === 'empty-only'
       ? {
           minQ: origin.q - 50,
           maxQ: origin.q + 50,
@@ -169,8 +169,7 @@ export function floodFill(config: FloodFillConfig): FloodFillResult {
       cellsEvaluated++;
 
       // Check bounds
-      if (!isWithinBounds(neighbor) || !isWithinEffectiveBounds(neighbor))
-        continue;
+      if (!isWithinBounds(neighbor) || !isWithinEffectiveBounds(neighbor)) continue;
 
       // Get neighbor value and check if it should be filled
       const neighborValue = getCellValue(neighbor);
@@ -192,21 +191,21 @@ export function floodFill(config: FloodFillConfig): FloodFillResult {
  * Utility to create paper bounds from aspect ratio and size
  */
 export function createPaperBounds(
-  aspect: "square" | "4:3" | "16:10",
+  aspect: 'square' | '4:3' | '16:10',
   hexRadius: number = 50,
 ): PaperBounds {
   // Rough hex grid size calculations based on aspect ratio
   let width: number, height: number;
 
   switch (aspect) {
-    case "square":
+    case 'square':
       width = height = 2 * hexRadius;
       break;
-    case "4:3":
+    case '4:3':
       width = 2.4 * hexRadius;
       height = 1.8 * hexRadius;
       break;
-    case "16:10":
+    case '16:10':
       width = 3.2 * hexRadius;
       height = 2.0 * hexRadius;
       break;
@@ -227,59 +226,50 @@ export function createPaperBounds(
 /**
  * Type guard for FloodFillConfig validation
  */
-export function isValidFloodFillConfig(
-  config: unknown,
-): config is FloodFillConfig {
-  if (!config || typeof config !== "object" || Array.isArray(config)) {
+export function isValidFloodFillConfig(config: unknown): config is FloodFillConfig {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
     return false;
   }
 
   const c = config as Partial<FloodFillConfig>;
 
   // Check required origin
-  if (!c.origin || typeof c.origin !== "object" || Array.isArray(c.origin)) {
+  if (!c.origin || typeof c.origin !== 'object' || Array.isArray(c.origin)) {
     return false;
   }
 
   const origin = c.origin as Partial<Axial>;
-  if (typeof origin.q !== "number" || typeof origin.r !== "number") {
+  if (typeof origin.q !== 'number' || typeof origin.r !== 'number') {
     return false;
   }
 
   // Check required mode
-  if (c.mode !== "empty-only" && c.mode !== "same-value") {
+  if (c.mode !== 'empty-only' && c.mode !== 'same-value') {
     return false;
   }
 
   // Check required getCellValue function
-  if (typeof c.getCellValue !== "function") {
+  if (typeof c.getCellValue !== 'function') {
     return false;
   }
 
   // Check optional maxCells
-  if (
-    c.maxCells !== undefined &&
-    (typeof c.maxCells !== "number" || c.maxCells <= 0)
-  ) {
+  if (c.maxCells !== undefined && (typeof c.maxCells !== 'number' || c.maxCells <= 0)) {
     return false;
   }
 
   // Check optional paperBounds
   if (c.paperBounds !== undefined) {
-    if (
-      !c.paperBounds ||
-      typeof c.paperBounds !== "object" ||
-      Array.isArray(c.paperBounds)
-    ) {
+    if (!c.paperBounds || typeof c.paperBounds !== 'object' || Array.isArray(c.paperBounds)) {
       return false;
     }
 
     const bounds = c.paperBounds as Partial<PaperBounds>;
     if (
-      typeof bounds.minQ !== "number" ||
-      typeof bounds.maxQ !== "number" ||
-      typeof bounds.minR !== "number" ||
-      typeof bounds.maxR !== "number"
+      typeof bounds.minQ !== 'number' ||
+      typeof bounds.maxQ !== 'number' ||
+      typeof bounds.minR !== 'number' ||
+      typeof bounds.maxR !== 'number'
     ) {
       return false;
     }

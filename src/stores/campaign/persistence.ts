@@ -1,11 +1,10 @@
-import { getLayerType, registerLayerType } from "@/layers/registry";
-import type { LayerAdapter, LayerInstance, LayerType } from "@/layers/types";
-import type { MapPalette } from "@/palettes/types";
-import { useCampaignStore } from "@/stores/campaign";
+import { getLayerType, registerLayerType } from '@/layers/registry';
+import type { LayerAdapter, LayerInstance, LayerType } from '@/layers/types';
+import type { MapPalette } from '@/palettes/types';
+import { useCampaignStore } from '@/stores/campaign';
 
 // MIME for v1 exports
-export const CAMPAIGN_MIME_V1 =
-  "application/vnd.map-territory+json;version=1" as const;
+export const CAMPAIGN_MIME_V1 = 'application/vnd.map-territory+json;version=1' as const;
 
 // ————————————————————————————————————————————————————————————————————————
 // Persisted Types (v1)
@@ -33,7 +32,7 @@ export interface MapPersistV1 {
   name: string;
   description?: string;
   visible: boolean;
-  paper: { aspect: "square" | "4:3" | "16:10"; color: string };
+  paper: { aspect: 'square' | '4:3' | '16:10'; color: string };
   // Optional map-level overrides
   settingId?: string;
   palette?: MapPalette;
@@ -63,9 +62,9 @@ export interface LayerPersistV1<State = unknown> {
  * serializeCampaignV1 — Pure function: Campaign → file JSON (v1)
  */
 export function serializeCampaignV1(
-  campaign: ReturnType<typeof useCampaignStore.getState>["current"],
+  campaign: ReturnType<typeof useCampaignStore.getState>['current'],
 ): CampaignFileV1 {
-  if (!campaign) throw new Error("No campaign to serialize");
+  if (!campaign) throw new Error('No campaign to serialize');
   const maps: MapPersistV1[] = (campaign.maps ?? []).map((m) => ({
     id: m.id,
     name: m.name,
@@ -120,19 +119,17 @@ export function saveActiveCampaignV1(): CampaignFileV1 | null {
  * Minimal shape guard — defensive checks without bringing in a schema lib.
  */
 export function isCampaignFileV1(x: unknown): x is CampaignFileV1 {
-  if (!x || typeof x !== "object") return false;
+  if (!x || typeof x !== 'object') return false;
   const r = x as Record<string, unknown>;
-  return r.version === 1 && !!r.campaign && typeof r.campaign === "object";
+  return r.version === 1 && !!r.campaign && typeof r.campaign === 'object';
 }
 
 /**
  * deserializeCampaignV1 — Pure function: file JSON (v1) → Campaign domain object.
  * Note: does not call setActive; callers can push into the store.
  */
-export function deserializeCampaignV1(
-  file: unknown,
-): import("@/stores/campaign").Campaign {
-  if (!isCampaignFileV1(file)) throw new Error("Unsupported or invalid file");
+export function deserializeCampaignV1(file: unknown): import('@/stores/campaign').Campaign {
+  if (!isCampaignFileV1(file)) throw new Error('Unsupported or invalid file');
   const src = file.campaign;
   // Shallow copy while translating layers
   const maps = (src.maps ?? []).map((m) => ({
@@ -149,7 +146,7 @@ export function deserializeCampaignV1(
     id: src.id,
     version: 1,
     name: src.name,
-    description: src.description ?? "",
+    description: src.description ?? '',
     settingId: src.settingId,
     palette: src.palette,
     maps,
@@ -157,26 +154,24 @@ export function deserializeCampaignV1(
   };
 }
 
-const PAPER_ASPECTS = new Set(["square", "4:3", "16:10"]);
-const DEFAULT_PAPER = { aspect: "16:10", color: "#ffffff" } as const;
+const PAPER_ASPECTS = new Set(['square', '4:3', '16:10']);
+const DEFAULT_PAPER = { aspect: '16:10', color: '#ffffff' } as const;
 
 function derivePaperFromLayers(layers: LayerInstance[] | undefined): {
-  aspect: "square" | "4:3" | "16:10";
+  aspect: 'square' | '4:3' | '16:10';
   color: string;
 } {
-  const paperLayer = (layers ?? []).find((l) => l.type === "paper");
+  const paperLayer = (layers ?? []).find((l) => l.type === 'paper');
   if (!paperLayer) return { ...DEFAULT_PAPER };
   const state = paperLayer.state as Record<string, unknown> | undefined;
   const aspectRaw = state?.aspect;
   const aspect =
-    typeof aspectRaw === "string" && PAPER_ASPECTS.has(aspectRaw)
-      ? (aspectRaw as "square" | "4:3" | "16:10")
+    typeof aspectRaw === 'string' && PAPER_ASPECTS.has(aspectRaw)
+      ? (aspectRaw as 'square' | '4:3' | '16:10')
       : DEFAULT_PAPER.aspect;
   const colorRaw = state?.color;
   const color =
-    typeof colorRaw === "string" && colorRaw.trim().length > 0
-      ? colorRaw
-      : DEFAULT_PAPER.color;
+    typeof colorRaw === 'string' && colorRaw.trim().length > 0 ? colorRaw : DEFAULT_PAPER.color;
   return { aspect, color };
 }
 
@@ -215,7 +210,7 @@ function ensurePlaceholderLayerType(originalTypeId: string) {
       // minimal visual – optional
       ctx.save();
       ctx.globalAlpha = 0.25;
-      ctx.fillStyle = "#ff00ff";
+      ctx.fillStyle = '#ff00ff';
       ctx.fillRect(8, 8, 96, 24);
       ctx.restore();
     },

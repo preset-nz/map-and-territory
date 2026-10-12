@@ -1,33 +1,30 @@
-import { TerrainSettings } from "@/palettes/settings";
-import { getAppAPI } from "@/plugin/appapi";
-import type { PluginManifest, PluginModule } from "@/plugin/types";
-import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
+import { TerrainSettings } from '@/palettes/settings';
+import { getAppAPI } from '@/plugin/appapi';
+import type { PluginManifest, PluginModule } from '@/plugin/types';
+import { registerPropertySchema, unregisterPropertySchema } from '@/properties/registry';
 
 export const mapPluginManifest: PluginManifest = {
-  id: "app.plugins.map",
-  name: "Map Actions",
-  version: "0.1.0",
-  apiVersion: "1.0",
+  id: 'app.plugins.map',
+  name: 'Map Actions',
+  version: '0.1.0',
+  apiVersion: '1.0',
   contributes: {
     commands: [
-      { id: "map.new", title: "New Map", shortcut: "Mod+N" },
-      { id: "map.delete", title: "Delete Map" },
+      { id: 'map.new', title: 'New Map', shortcut: 'Mod+N' },
+      { id: 'map.delete', title: 'Delete Map' },
     ],
     toolbar: [
       {
-        group: "map",
+        group: 'map',
         items: [
           {
-            type: "button",
-            command: "map.new",
-            icon: "lucide:map",
-            label: "New Map",
+            type: 'button',
+            command: 'map.new',
+            icon: 'lucide:map',
+            label: 'New Map',
             order: 1,
-            enableWhen: ["hasCampaign"],
-            disabledReason: "Create a campaign first",
+            enableWhen: ['hasCampaign'],
+            disabledReason: 'Create a campaign first',
           },
         ],
       },
@@ -38,42 +35,42 @@ export const mapPluginManifest: PluginManifest = {
 export const mapPluginModule: PluginModule = {
   activate: () => {
     // Properties schema for Map selection
-    registerPropertySchema("map", {
+    registerPropertySchema('map', {
       groups: [
         {
-          id: "map",
-          title: "Map",
+          id: 'map',
+          title: 'Map',
           rows: [
-            { kind: "text", id: "name", label: "Map Title", path: "name" },
+            { kind: 'text', id: 'name', label: 'Map Title', path: 'name' },
             {
-              kind: "textarea",
-              id: "description",
-              label: "Map Description",
-              path: "description",
+              kind: 'textarea',
+              id: 'description',
+              label: 'Map Description',
+              path: 'description',
               rows: 4,
             },
           ],
         },
         {
-          id: "advanced",
-          title: "Advanced",
+          id: 'advanced',
+          title: 'Advanced',
           rows: [
             {
-              kind: "checkbox",
-              id: "overrideEnabled",
-              label: "Per‑map override",
-              path: "overrideEnabled",
+              kind: 'checkbox',
+              id: 'overrideEnabled',
+              label: 'Per‑map override',
+              path: 'overrideEnabled',
             },
             {
-              kind: "select",
-              id: "settingId",
-              label: "Map Setting (when override on)",
-              path: "settingId",
-              disabledWhen: { path: "overrideEnabled", equals: false },
+              kind: 'select',
+              id: 'settingId',
+              label: 'Map Setting (when override on)',
+              path: 'settingId',
+              disabledWhen: { path: 'overrideEnabled', equals: false },
               optionsProvider: () => {
                 const settings = TerrainSettings.getAllSettings();
                 return [
-                  { value: "", label: "— Select Setting —" },
+                  { value: '', label: '— Select Setting —' },
                   ...settings.map((setting) => ({
                     value: setting.id,
                     label: setting.name,
@@ -94,18 +91,18 @@ export const mapPluginModule: PluginModule = {
     });
   },
   deactivate: () => {
-    unregisterPropertySchema("map");
+    unregisterPropertySchema('map');
   },
   commands: {
-    "map.new": async () => {
+    'map.new': async () => {
       const app = getAppAPI();
       app.campaign.newMap();
     },
-    "map.delete": async (payload?: unknown) => {
+    'map.delete': async (payload?: unknown) => {
       const id = (payload as { id?: string } | undefined)?.id;
       if (!id) return;
-      if (typeof window !== "undefined") {
-        const ok = window.confirm("Delete this map? This cannot be undone.");
+      if (typeof window !== 'undefined') {
+        const ok = window.confirm('Delete this map? This cannot be undone.');
         if (!ok) return;
       }
       const app = getAppAPI();

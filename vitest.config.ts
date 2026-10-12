@@ -1,30 +1,30 @@
 /// <reference types="vitest" />
 
-import react from "@vitejs/plugin-react";
-import { resolve } from "path";
-import { defineConfig } from "vitest/config";
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: "jsdom",
-    setupFiles: ["./src/test/setup.ts"],
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
     // Only include our unit/integration tests under src/test/**/*.test.ts
-    include: ["src/test/**/*.test.ts"],
-    exclude: ["node_modules/**", "dist/**"],
+    include: ['src/test/**/*.test.ts'],
+    exclude: ['node_modules/**', 'dist/**'],
     coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["src/**/*.{ts,tsx}"],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        "node_modules/",
-        "src/test/",
-        "**/*.test.*",
-        "**/*.spec.*",
-        "**/*.stories.*",
-        "public/**",
-        "scripts/**",
+        'node_modules/',
+        'src/test/',
+        '**/*.test.*',
+        '**/*.spec.*',
+        '**/*.stories.*',
+        'public/**',
+        'scripts/**',
       ],
       thresholds: {
         global: {
@@ -35,7 +35,7 @@ export default defineConfig({
         },
       },
     },
-    pool: "threads",
+    pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: false,
@@ -44,7 +44,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
+      '@': resolve(__dirname, './src'),
     },
   },
 });

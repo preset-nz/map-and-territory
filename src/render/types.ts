@@ -7,7 +7,7 @@ export interface Camera {
 }
 
 export interface PaperSpec {
-  aspect: "square" | "4:3" | "16:10";
+  aspect: 'square' | '4:3' | '16:10';
   color: string;
 }
 
@@ -18,7 +18,7 @@ export interface SceneLayer<State = unknown> {
   state: State;
 }
 
-import type { MapPalette } from "@/palettes/types";
+import type { MapPalette } from '@/palettes/types';
 
 export interface SceneFrame {
   size: { w: number; h: number };
@@ -38,8 +38,8 @@ export interface RenderBackend {
 
 // Worker protocol
 export type RenderMessage =
-  | { type: "init"; canvas: OffscreenCanvas; pixelRatio: number }
-  | { type: "inited" }
-  | { type: "resize"; size: { w: number; h: number }; pixelRatio: number }
-  | { type: "render"; frame: SceneFrame }
-  | { type: "destroy" };
+  | { type: 'init'; canvas: OffscreenCanvas; pixelRatio: number }
+  | { type: 'inited' }
+  | { type: 'resize'; size: { w: number; h: number }; pixelRatio: number }
+  | { type: 'render'; frame: SceneFrame }
+  | { type: 'destroy' };

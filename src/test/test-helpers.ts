@@ -1,6 +1,6 @@
-import { HexgridType } from "@/layers/adapters/hexgrid";
-import { PaperType } from "@/layers/adapters/paper";
-import { registerLayerType } from "@/layers/registry";
+import { HexgridType } from '@/layers/adapters/hexgrid';
+import { PaperType } from '@/layers/adapters/paper';
+import { registerLayerType } from '@/layers/registry';
 
 /**
  * Register core layer types for testing

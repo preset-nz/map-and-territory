@@ -1,4 +1,4 @@
-export type NameType = "campaign" | "map" | "layer" | string;
+export type NameType = 'campaign' | 'map' | 'layer' | string;
 
 export interface GenerateNameOptions {
   type: NameType;
@@ -9,7 +9,7 @@ export interface GenerateNameOptions {
 }
 
 function normalizeList(list: string[]): string[] {
-  return list.map((n) => (n ?? "").trim()).filter(Boolean);
+  return list.map((n) => (n ?? '').trim()).filter(Boolean);
 }
 
 export function generateName(opts: GenerateNameOptions): string {
@@ -25,7 +25,7 @@ export function generateName(opts: GenerateNameOptions): string {
     return `${base} Copy ${i}`;
   }
   // New item numbering: "<base> 01", "<base> 02", ...
-  const clean = (opts.base || "Item").trim();
+  const clean = (opts.base || 'Item').trim();
   // Find trailing-number matches of the same base
   let max = 0;
   for (const name of existing) {
@@ -37,7 +37,7 @@ export function generateName(opts: GenerateNameOptions): string {
     }
   }
   const next = max + 1;
-  const padded = String(next).padStart(padTo, "0");
+  const padded = String(next).padStart(padTo, '0');
   return `${clean} ${padded}`;
 }
 

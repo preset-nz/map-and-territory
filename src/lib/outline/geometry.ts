@@ -1,8 +1,8 @@
-import type { Layout, Point } from "@/lib/hex";
-import { neighbors } from "@/lib/hex/coords";
-import { corners, fromPoint, toPoint } from "@/lib/hex/layout";
-import type { OutlineCorner, OutlineCornerIndex } from "@/lib/outline/types";
-import { cornersEqual } from "@/lib/outline/types";
+import type { Layout, Point } from '@/lib/hex';
+import { neighbors } from '@/lib/hex/coords';
+import { corners, fromPoint, toPoint } from '@/lib/hex/layout';
+import type { OutlineCorner, OutlineCornerIndex } from '@/lib/outline/types';
+import { cornersEqual } from '@/lib/outline/types';
 
 const DEFAULT_TOLERANCE = 14;
 
@@ -44,10 +44,7 @@ function cornerKey(corner: OutlineCorner): string {
   return `${corner.hex.q},${corner.hex.r},${corner.corner}`;
 }
 
-function samePointCorners(
-  corner: OutlineCorner,
-  layout: Layout,
-): OutlineCorner[] {
+function samePointCorners(corner: OutlineCorner, layout: Layout): OutlineCorner[] {
   const point = cornerPoint(corner, layout);
   const eps = layout.size * 0.001;
   const results: OutlineCorner[] = [];
@@ -65,10 +62,7 @@ function samePointCorners(
   return results;
 }
 
-function adjacentCorners(
-  corner: OutlineCorner,
-  layout: Layout,
-): OutlineCorner[] {
+function adjacentCorners(corner: OutlineCorner, layout: Layout): OutlineCorner[] {
   const neighborsList: OutlineCorner[] = [];
   neighborsList.push({
     hex: corner.hex,

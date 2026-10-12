@@ -1,45 +1,38 @@
-import { PaperType } from "@/layers/adapters/paper";
-import { registerLayerType } from "@/layers/registry";
-import type {
-  PluginManifest,
-  PluginModule,
-  SceneAdapter,
-} from "@/plugin/types";
-import {
-  registerPropertySchema,
-  unregisterPropertySchema,
-} from "@/properties/registry";
-import { computePaperRect } from "@/render/geometry";
+import { PaperType } from '@/layers/adapters/paper';
+import { registerLayerType } from '@/layers/registry';
+import type { PluginManifest, PluginModule, SceneAdapter } from '@/plugin/types';
+import { registerPropertySchema, unregisterPropertySchema } from '@/properties/registry';
+import { computePaperRect } from '@/render/geometry';
 
 export const paperPluginManifest: PluginManifest = {
-  id: "core.paper",
-  name: "Paper Layer",
-  version: "1.0.0",
-  apiVersion: "1.0",
+  id: 'core.paper',
+  name: 'Paper Layer',
+  version: '1.0.0',
+  apiVersion: '1.0',
   priority: 100,
 };
 
 export const paperPluginModule: PluginModule = {
   activate: async () => {
     registerLayerType(PaperType);
-    registerPropertySchema("layer:paper", {
+    registerPropertySchema('layer:paper', {
       groups: [
         {
-          id: "paper",
-          title: "Paper",
+          id: 'paper',
+          title: 'Paper',
           rows: [
             {
-              kind: "select",
-              id: "aspect",
-              label: "Aspect Ratio",
-              path: "aspect",
+              kind: 'select',
+              id: 'aspect',
+              label: 'Aspect Ratio',
+              path: 'aspect',
               options: [
-                { value: "square", label: "Square (1:1)" },
-                { value: "4:3", label: "4:3" },
-                { value: "16:10", label: "16:10" },
+                { value: 'square', label: 'Square (1:1)' },
+                { value: '4:3', label: '4:3' },
+                { value: '16:10', label: '16:10' },
               ],
             },
-            { kind: "color", id: "color", label: "Color", path: "color" },
+            { kind: 'color', id: 'color', label: 'Color', path: 'color' },
           ],
         },
       ],
@@ -47,7 +40,7 @@ export const paperPluginModule: PluginModule = {
   },
   deactivate: async () => {
     try {
-      unregisterPropertySchema("layer:paper");
+      unregisterPropertySchema('layer:paper');
     } catch {}
   },
   scene: {
@@ -58,7 +51,7 @@ export const paperPluginModule: PluginModule = {
       const dpr = frame.pixelRatio || 1;
       ctx.save();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.strokeStyle = "#000000";
+      ctx.strokeStyle = '#000000';
       ctx.lineWidth = 3 / dpr; // ~3px in CSS pixels
       ctx.strokeRect(
         env.paperRect.x + ctx.lineWidth / 2,

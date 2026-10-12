@@ -1,33 +1,30 @@
-import {
-  FreeformAdapter,
-  type FreeformState,
-} from "@/layers/adapters/freeform-hex";
+import { FreeformAdapter, type FreeformState } from '@/layers/adapters/freeform-hex';
 
-describe("Freeform texture render mode", () => {
-  it("includes render mode and texture id in invalidation key", () => {
+describe('Freeform texture render mode', () => {
+  it('includes render mode and texture id in invalidation key', () => {
     const baseState: FreeformState = {
       cells: {},
       opacity: 1,
       brushTerrainId: undefined,
       brushColor: undefined,
-      fillMode: "auto",
-      renderMode: "paint",
+      fillMode: 'auto',
+      renderMode: 'paint',
       textureFill: null,
       textureFillInvert: false,
       textureOffsetX: 0,
       textureOffsetY: 0,
       textureScale: 1,
       textureRotation: 0,
-      textureTiling: "stretch",
+      textureTiling: 'stretch',
     };
     const textureState: FreeformState = {
       ...baseState,
-      renderMode: "texture-fill",
+      renderMode: 'texture-fill',
       textureFill: {
-        id: "tx-1",
-        name: "texture.png",
-        mimeType: "image/png",
-        dataUrl: "data:image/png;base64,AAA",
+        id: 'tx-1',
+        name: 'texture.png',
+        mimeType: 'image/png',
+        dataUrl: 'data:image/png;base64,AAA',
         width: 256,
         height: 256,
       },
@@ -37,23 +34,23 @@ describe("Freeform texture render mode", () => {
     const textureKey = FreeformAdapter.getInvalidationKey?.(textureState);
 
     expect(paintKey).not.toEqual(textureKey);
-    expect(textureKey).toContain("texture-fill");
-    expect(textureKey).toContain("tx-1");
+    expect(textureKey).toContain('texture-fill');
+    expect(textureKey).toContain('tx-1');
   });
 
-  it("changes key when texture transform updates", () => {
+  it('changes key when texture transform updates', () => {
     const state: FreeformState = {
-      cells: { "0,0": {} },
+      cells: { '0,0': {} },
       opacity: 1,
       brushTerrainId: undefined,
       brushColor: undefined,
-      fillMode: "auto",
-      renderMode: "texture-fill",
+      fillMode: 'auto',
+      renderMode: 'texture-fill',
       textureFill: {
-        id: "tx-1",
-        name: "texture.png",
-        mimeType: "image/png",
-        dataUrl: "data:image/png;base64,AAA",
+        id: 'tx-1',
+        name: 'texture.png',
+        mimeType: 'image/png',
+        dataUrl: 'data:image/png;base64,AAA',
         width: 256,
         height: 256,
       },
@@ -62,7 +59,7 @@ describe("Freeform texture render mode", () => {
       textureOffsetY: 0,
       textureScale: 1,
       textureRotation: 0,
-      textureTiling: "stretch",
+      textureTiling: 'stretch',
     };
 
     const keyA = FreeformAdapter.getInvalidationKey?.(state);
@@ -71,25 +68,25 @@ describe("Freeform texture render mode", () => {
       textureOffsetX: 25,
       textureScale: 1.5,
       textureRotation: 45,
-      textureTiling: "repeat",
+      textureTiling: 'repeat',
     });
 
     expect(keyA).not.toEqual(keyB);
   });
 
-  it("changes key when overlay mode updates", () => {
+  it('changes key when overlay mode updates', () => {
     const state: FreeformState = {
-      cells: { "0,0": {} },
+      cells: { '0,0': {} },
       opacity: 1,
       brushTerrainId: undefined,
       brushColor: undefined,
-      fillMode: "auto",
-      renderMode: "texture-fill",
+      fillMode: 'auto',
+      renderMode: 'texture-fill',
       textureFill: {
-        id: "tx-1",
-        name: "texture.png",
-        mimeType: "image/png",
-        dataUrl: "data:image/png;base64,AAA",
+        id: 'tx-1',
+        name: 'texture.png',
+        mimeType: 'image/png',
+        dataUrl: 'data:image/png;base64,AAA',
         width: 256,
         height: 256,
       },
@@ -98,14 +95,14 @@ describe("Freeform texture render mode", () => {
       textureOffsetY: 0,
       textureScale: 1,
       textureRotation: 0,
-      textureTiling: "stretch",
-      textureOverlayMode: "normal",
+      textureTiling: 'stretch',
+      textureOverlayMode: 'normal',
     };
 
     const keyA = FreeformAdapter.getInvalidationKey?.(state);
     const keyB = FreeformAdapter.getInvalidationKey?.({
       ...state,
-      textureOverlayMode: "screen",
+      textureOverlayMode: 'screen',
     });
 
     expect(keyA).not.toEqual(keyB);

@@ -1,6 +1,6 @@
 export type LayerTypeId = string;
 
-import type { MapPalette } from "@/palettes/types";
+import type { MapPalette } from '@/palettes/types';
 
 export interface RenderEnv {
   zoom: number;
@@ -9,30 +9,18 @@ export interface RenderEnv {
   paperRect: { x: number; y: number; w: number; h: number };
   camera: { x: number; y: number; zoom: number };
   // Optional hints derived by render host (e.g., for layers that coordinate with grid)
-  grid?: { size: number; orientation: "pointy" | "flat" };
+  grid?: { size: number; orientation: 'pointy' | 'flat' };
   palette?: MapPalette;
 }
 
 export interface LayerAdapter<State = unknown> {
   title: string;
   // Draw into main viewport canvas
-  drawMain?: (
-    ctx: CanvasRenderingContext2D,
-    state: State,
-    env: RenderEnv,
-  ) => void;
+  drawMain?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
   // Optional scene/overview rendering
-  drawSceneView?: (
-    ctx: CanvasRenderingContext2D,
-    state: State,
-    env: RenderEnv,
-  ) => void;
+  drawSceneView?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
   // Optional hit testing for selection tools
-  hitTest?: (
-    pt: { x: number; y: number },
-    state: State,
-    env: RenderEnv,
-  ) => boolean;
+  hitTest?: (pt: { x: number; y: number }, state: State, env: RenderEnv) => boolean;
   // Invalidation key — used by host to detect visual-impacting changes
   // Required: adapters must return a stable string that changes only when visuals change.
   getInvalidationKey: (state: State) => string;

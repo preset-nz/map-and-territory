@@ -1,8 +1,8 @@
 // Seeded Perlin noise implementation (1D/2D/3D)
 // Deterministic for a given seed across platforms.
 
-import { fit01 } from "./math";
-import { createRNG, type Seed } from "./random";
+import { fit01 } from './math';
+import { createRNG, type Seed } from './random';
 
 export interface PerlinNoise {
   noise1D: (x: number) => number; // in [-1, 1]
@@ -27,14 +27,7 @@ function dot2(gx: number, gy: number, x: number, y: number) {
   return gx * x + gy * y;
 }
 
-function dot3(
-  gx: number,
-  gy: number,
-  gz: number,
-  x: number,
-  y: number,
-  z: number,
-) {
+function dot3(gx: number, gy: number, gz: number, x: number, y: number, z: number) {
   return gx * x + gy * y + gz * z;
 }
 

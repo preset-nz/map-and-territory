@@ -62,7 +62,7 @@ function sfc32(a: number, b: number, c: number, d: number) {
 }
 
 function normalizeSeed(seed: Seed): [number, number, number, number] {
-  const seedStr = typeof seed === "string" ? seed : String(seed >>> 0);
+  const seedStr = typeof seed === 'string' ? seed : String(seed >>> 0);
   const hash = xfnv1a(seedStr);
   const base = splitmix32(hash());
   return [base(), base(), base(), base()];
@@ -77,19 +77,19 @@ export function createRNG(seed: Seed): RNG {
   }
   function int(min: number, max: number): number {
     if (!Number.isFinite(min) || !Number.isFinite(max)) {
-      throw new Error("int(min,max): min and max must be finite numbers");
+      throw new Error('int(min,max): min and max must be finite numbers');
     }
     if (Math.floor(min) !== min || Math.floor(max) !== max) {
-      throw new Error("int(min,max): min and max must be integers");
+      throw new Error('int(min,max): min and max must be integers');
     }
     if (max < min) {
-      throw new Error("int(min,max): max must be >= min");
+      throw new Error('int(min,max): max must be >= min');
     }
     const span = max - min + 1;
     return min + Math.floor(rand() * span);
   }
   function bool(p = 0.5): boolean {
-    if (!(p >= 0 && p <= 1)) throw new Error("bool(p): p must be in [0,1]");
+    if (!(p >= 0 && p <= 1)) throw new Error('bool(p): p must be in [0,1]');
     return rand() < p;
   }
   function shuffle<T>(arr: T[]): T[] {

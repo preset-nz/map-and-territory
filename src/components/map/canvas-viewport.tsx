@@ -1,35 +1,27 @@
-"use client";
+'use client';
 
-import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import { axialKey } from "@/layers/hex-utils";
-import { AppAPI } from "@/appapi";
-import { getLayerType } from "@/layers/registry";
-import type { LayerAdapter } from "@/layers/types";
-import { debugEnabled } from "@/lib/debug";
-import type { Layout } from "@/lib/hex";
-import { findNearestCorner } from "@/lib/outline/geometry";
-import type { OutlineState } from "@/lib/outline/types";
-import { cornersEqual } from "@/lib/outline/types";
-import {
-  composeEnv,
-  getCursorForTool,
-  getSceneAdapter,
-  getTool,
-} from "@/plugin/loader";
-import type { ToolContext } from "@/plugin/types";
-import { computePaperRect, type PaperAspect } from "@/render/geometry";
+import { AppAPI } from '@/appapi';
+import { getLayerType } from '@/layers/registry';
+import type { LayerAdapter } from '@/layers/types';
+import { debugEnabled } from '@/lib/debug';
+import type { Layout } from '@/lib/hex';
+import { findNearestCorner } from '@/lib/outline/geometry';
+import type { OutlineState } from '@/lib/outline/types';
+import { cornersEqual } from '@/lib/outline/types';
+import { composeEnv, getCursorForTool, getSceneAdapter, getTool } from '@/plugin/loader';
+import type { ToolContext } from '@/plugin/types';
+import { computePaperRect, type PaperAspect } from '@/render/geometry';
 // import type { RenderEnv } from '@/layers/types';
-import RenderService from "@/render/service";
-import type { SceneFrame } from "@/render/types";
-import {
-  useCampaignStore as campaignStoreRaw,
-  useCampaignStore,
-} from "@/stores/campaign";
-import { useLayoutStore } from "@/stores/layout";
-import { useSelectionStore } from "@/stores/selection";
+import RenderService from '@/render/service';
+import type { SceneFrame } from '@/render/types';
+import { useCampaignStore as campaignStoreRaw, useCampaignStore } from '@/stores/campaign';
+import { useLayoutStore } from '@/stores/layout';
+import { useSelectionStore } from '@/stores/selection';
 // import { createPerlinNoise } from "@/lib/noise";
-import { resolvePalette } from "@/stores/selectors/palette";
+import { resolvePalette } from '@/stores/selectors/palette';
 
 export const CanvasViewport: React.FC = () => {
   const campaignSnapshot = useCampaignStore((s) => s.current);
@@ -37,15 +29,13 @@ export const CanvasViewport: React.FC = () => {
   const activeMapId = campaignSnapshot?.activeMapId ?? null;
   const activeMap = useMemo(() => {
     const maps = campaignSnapshot?.maps ?? [];
-    return activeMapId
-      ? (maps.find((m) => m.id === activeMapId) ?? null)
-      : null;
+    return activeMapId ? (maps.find((m) => m.id === activeMapId) ?? null) : null;
   }, [campaignSnapshot, activeMapId]);
   const hasActiveMap = Boolean(activeMap);
   const layers = useMemo(() => activeMap?.layers ?? [], [activeMap]);
   const paperLayer = useMemo(
     () =>
-      (layers.find((l) => l.type === "paper") ?? null) as {
+      (layers.find((l) => l.type === 'paper') ?? null) as {
         state?: { aspect?: PaperAspect; color?: string };
       } | null,
     [layers],
@@ -53,11 +43,11 @@ export const CanvasViewport: React.FC = () => {
   const aspect: PaperAspect =
     (paperLayer?.state?.aspect as PaperAspect | undefined) ??
     (activeMap?.paper?.aspect as PaperAspect | undefined) ??
-    "16:10";
+    '16:10';
   const paperColor =
     (paperLayer?.state?.color as string | undefined) ??
     (activeMap?.paper?.color as string | undefined) ??
-    "#ffffff";
+    '#ffffff';
   const palette = useMemo(
     () => resolvePalette(campaignSnapshot ?? null, activeMapId),
     [campaignSnapshot, activeMapId],
@@ -67,18 +57,18 @@ export const CanvasViewport: React.FC = () => {
       .map((l) => {
         const t = getLayerType(l.type);
         if (!t || !t.adapter) {
-          return `${l.type}:${l.visible ? "1" : "0"}:unknown`;
+          return `${l.type}:${l.visible ? '1' : '0'}:unknown`;
         }
         const getKey = (t.adapter as LayerAdapter<unknown>).getInvalidationKey;
-        if (typeof getKey !== "function") {
+        if (typeof getKey !== 'function') {
           throw new Error(
             `Layer adapter for type "${l.type}" is missing required getInvalidationKey`,
           );
         }
         const key = getKey(l.state as unknown);
-        return `${l.type}:${l.visible ? "1" : "0"}:${key}`;
+        return `${l.type}:${l.visible ? '1' : '0'}:${key}`;
       })
-      .join("|");
+      .join('|');
   }, [layers]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -98,7 +88,7 @@ export const CanvasViewport: React.FC = () => {
     __renderLog?: Array<Record<string, unknown>>;
   };
   const dbg =
-    typeof window !== "undefined"
+    typeof window !== 'undefined'
       ? (window as unknown as DebugWindow)
       : (undefined as unknown as DebugWindow);
 
@@ -111,9 +101,7 @@ export const CanvasViewport: React.FC = () => {
         const rect = e.contentRect;
         const nw = Math.floor(rect.width);
         const nh = Math.floor(rect.height);
-        setSize((prev) =>
-          prev.w === nw && prev.h === nh ? prev : { w: nw, h: nh },
-        );
+        setSize((prev) => (prev.w === nw && prev.h === nh ? prev : { w: nw, h: nh }));
       }
     });
     obs.observe(el);
@@ -132,10 +120,10 @@ export const CanvasViewport: React.FC = () => {
     // Force destroy any existing service first
     if (renderSvcRef.current) {
       try {
-        console.info("[CanvasViewport] destroying previous RenderService");
+        console.info('[CanvasViewport] destroying previous RenderService');
         dbg.__renderLog = [
           ...(dbg.__renderLog || []),
-          { t: Date.now(), where: "CanvasViewport", msg: "destroy-previous" },
+          { t: Date.now(), where: 'CanvasViewport', msg: 'destroy-previous' },
         ];
       } catch {}
       renderSvcRef.current.destroy();
@@ -145,26 +133,25 @@ export const CanvasViewport: React.FC = () => {
 
     // Mark attempt to initialize worker on the element for easier debugging
     try {
-      canvas.dataset.workerInit = "start";
+      canvas.dataset.workerInit = 'start';
     } catch {}
     const svc = new RenderService();
-    const dpr =
-      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     try {
-      console.info("[CanvasViewport] init RenderService", {
+      console.info('[CanvasViewport] init RenderService', {
         hasTCTOS:
-          typeof HTMLCanvasElement !== "undefined" &&
-          typeof (
-            HTMLCanvasElement.prototype as unknown as Record<string, unknown>
-          )["transferControlToOffscreen"] === "function",
+          typeof HTMLCanvasElement !== 'undefined' &&
+          typeof (HTMLCanvasElement.prototype as unknown as Record<string, unknown>)[
+            'transferControlToOffscreen'
+          ] === 'function',
         hasOffscreen:
-          typeof (window as typeof window & { OffscreenCanvas?: unknown })
-            .OffscreenCanvas !== "undefined",
+          typeof (window as typeof window & { OffscreenCanvas?: unknown }).OffscreenCanvas !==
+          'undefined',
         dpr,
       });
       dbg.__renderLog = [
         ...(dbg.__renderLog || []),
-        { t: Date.now(), where: "CanvasViewport", msg: "init", dpr },
+        { t: Date.now(), where: 'CanvasViewport', msg: 'init', dpr },
       ];
     } catch {}
     let ok = false;
@@ -175,20 +162,20 @@ export const CanvasViewport: React.FC = () => {
       const msg = e instanceof Error ? e.message : String(e);
       setWorkerError(msg);
       try {
-        canvas.dataset.workerInit = "error";
+        canvas.dataset.workerInit = 'error';
       } catch {}
-      console.error("[CanvasViewport] worker init threw:", e);
+      console.error('[CanvasViewport] worker init threw:', e);
       ok = false;
     }
     if (ok) {
       try {
-        canvas.dataset.workerInit = "ok";
+        canvas.dataset.workerInit = 'ok';
       } catch {}
       try {
-        console.info("[CanvasViewport] RenderService initialized with worker");
+        console.info('[CanvasViewport] RenderService initialized with worker');
         dbg.__renderLog = [
           ...(dbg.__renderLog || []),
-          { t: Date.now(), where: "CanvasViewport", msg: "worker-ok" },
+          { t: Date.now(), where: 'CanvasViewport', msg: 'worker-ok' },
         ];
       } catch {}
       renderSvcRef.current = svc;
@@ -196,10 +183,10 @@ export const CanvasViewport: React.FC = () => {
       setWorkerError(null);
       return () => {
         try {
-          console.info("[CanvasViewport] tearing down worker RenderService");
+          console.info('[CanvasViewport] tearing down worker RenderService');
           dbg.__renderLog = [
             ...(dbg.__renderLog || []),
-            { t: Date.now(), where: "CanvasViewport", msg: "worker-destroy" },
+            { t: Date.now(), where: 'CanvasViewport', msg: 'worker-destroy' },
           ];
         } catch {}
         svc.destroy();
@@ -207,12 +194,10 @@ export const CanvasViewport: React.FC = () => {
       };
     } else {
       try {
-        canvas.dataset.workerInit = "error";
+        canvas.dataset.workerInit = 'error';
       } catch {}
-      const status = dbg?.__renderWorkerStatus as
-        | { stage?: string; error?: string }
-        | undefined;
-      const msg = status?.error || status?.stage || "init failed";
+      const status = dbg?.__renderWorkerStatus as { stage?: string; error?: string } | undefined;
+      const msg = status?.error || status?.stage || 'init failed';
       setWorkerError(String(msg));
       renderSvcRef.current = null;
       setUseWorker(false);
@@ -230,8 +215,7 @@ export const CanvasViewport: React.FC = () => {
     const svc = renderSvcRef.current;
     const canvas = canvasRef.current;
     if (!svc || !canvas) return;
-    const dpr =
-      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     const cw = Math.max(1, size.w);
     const ch = Math.max(1, size.h);
     // Always set CSS presentation size.
@@ -259,16 +243,7 @@ export const CanvasViewport: React.FC = () => {
     // Schedule a follow-up render on the next animation frame to catch any
     // late resize/bitmap updates inside the worker (belt and suspenders).
     requestAnimationFrame(() => svc.render(frame));
-  }, [
-    useWorker,
-    aspect,
-    paperColor,
-    layersKey,
-    size.w,
-    size.h,
-    layers,
-    palette,
-  ]);
+  }, [useWorker, aspect, paperColor, layersKey, size.w, size.h, layers, palette]);
 
   // No fallback renderer: worker is required. WorkerSupportGate handles UX when unsupported.
 
@@ -284,7 +259,7 @@ export const CanvasViewport: React.FC = () => {
 
   const buildToolContext = useCallback(
     (scene: ReturnType<typeof getSceneAdapter> | null): ToolContext | null => {
-      if (selection.kind !== "layer") return null;
+      if (selection.kind !== 'layer') return null;
       return {
         app: AppAPI,
         updateLayerState,
@@ -294,8 +269,7 @@ export const CanvasViewport: React.FC = () => {
             const cur = campaignStoreRaw.getState().current;
             const activeMapId = cur?.activeMapId ?? null;
             const map = cur?.maps.find((m) => m.id === activeMapId);
-            const layerId =
-              id ?? (selection.kind === "layer" ? selection.id : undefined);
+            const layerId = id ?? (selection.kind === 'layer' ? selection.id : undefined);
             if (!map || !layerId) return null;
             const layer = (map.layers ?? []).find((l) => l.id === layerId);
             return (layer?.state as T) ?? null;
@@ -309,24 +283,15 @@ export const CanvasViewport: React.FC = () => {
         applyLayerStateBatch,
       };
     },
-    [
-      selection,
-      updateLayerState,
-      applyLayerState,
-      applyCellsDelta,
-      applyLayerStateBatch,
-    ],
+    [selection, updateLayerState, applyLayerState, applyCellsDelta, applyLayerStateBatch],
   );
 
-  const dispatchToolEvent = (
-    kind: "down" | "move" | "up",
-    e: React.PointerEvent,
-  ) => {
+  const dispatchToolEvent = (kind: 'down' | 'move' | 'up', e: React.PointerEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const handler = getTool(activeTool);
     if (!handler) return;
-    if (selection.kind !== "layer") return;
+    if (selection.kind !== 'layer') return;
     // Compute paper rect (mirror render math)
     const rect = canvas.getBoundingClientRect();
     const cw = rect.width;
@@ -350,8 +315,7 @@ export const CanvasViewport: React.FC = () => {
     if (px < 0 || py < 0 || px > paperRect.w || py > paperRect.h) return;
 
     // Build a minimal frame for env composition
-    const dpr =
-      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     const frame: SceneFrame = {
       size: { w: cw, h: ch },
       pixelRatio: dpr,
@@ -366,7 +330,7 @@ export const CanvasViewport: React.FC = () => {
       palette,
     };
     // Compose RenderEnv for tools using plugin providers; ensure precise typing.
-    const envBase: import("@/layers/types").RenderEnv = {
+    const envBase: import('@/layers/types').RenderEnv = {
       zoom: 1,
       pixelRatio: dpr,
       size: { w: paperRect.w, h: paperRect.h },
@@ -374,19 +338,19 @@ export const CanvasViewport: React.FC = () => {
       camera: frame.camera,
       palette: frame.palette,
     };
-    const envWithGrid: import("@/layers/types").RenderEnv = {
+    const envWithGrid: import('@/layers/types').RenderEnv = {
       ...envBase,
-      ...(composeEnv(frame) as Partial<import("@/layers/types").RenderEnv>),
+      ...(composeEnv(frame) as Partial<import('@/layers/types').RenderEnv>),
     };
     const ctx = buildToolContext(scene);
     if (!ctx) return;
     const pt = { x: px, y: py } as const;
     try {
-      if (kind === "down") handler.onPointerDown?.(pt, envWithGrid, ctx);
-      else if (kind === "move") handler.onPointerMove?.(pt, envWithGrid, ctx);
+      if (kind === 'down') handler.onPointerDown?.(pt, envWithGrid, ctx);
+      else if (kind === 'move') handler.onPointerMove?.(pt, envWithGrid, ctx);
       else handler.onPointerUp?.(pt, envWithGrid, ctx);
     } catch (err) {
-      console.warn("[CanvasViewport] tool handler threw", err);
+      console.warn('[CanvasViewport] tool handler threw', err);
     }
   };
   const onPointerMove: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
@@ -414,11 +378,11 @@ export const CanvasViewport: React.FC = () => {
     let hex: { q: number; r: number } | null = null;
     let gridLayout: Layout | null = null;
     if (px >= 0 && py >= 0 && px <= paperRect.w && py <= paperRect.h) {
-      const layer = layers.find((l) => l.type === "hexgrid" && l.visible);
+      const layer = layers.find((l) => l.type === 'hexgrid' && l.visible);
       if (layer) {
         const st = (layer.state ?? {}) as Record<string, unknown>;
         gridLayout = {
-          orientation: st.orientation === "flat" ? "flat" : "pointy",
+          orientation: st.orientation === 'flat' ? 'flat' : 'pointy',
           size: Math.max(4, Number(st.size ?? 16)),
           origin: { x: paperRect.w / 2, y: paperRect.h / 2 },
         };
@@ -428,14 +392,8 @@ export const CanvasViewport: React.FC = () => {
     setMousePosition(Math.round(mx), Math.round(my), hex);
 
     const selectionLayer =
-      selection.kind === "layer"
-        ? layers.find((l) => l.id === selection.id)
-        : null;
-    if (
-      selection.kind === "layer" &&
-      selectionLayer?.type === "outline" &&
-      gridLayout
-    ) {
+      selection.kind === 'layer' ? layers.find((l) => l.id === selection.id) : null;
+    if (selection.kind === 'layer' && selectionLayer?.type === 'outline' && gridLayout) {
       const nearest = findNearestCorner({ x: px, y: py }, gridLayout);
       if (nearest) {
         applyLayerState(selection.id, (draft: OutlineState) => {
@@ -450,27 +408,24 @@ export const CanvasViewport: React.FC = () => {
       }
     }
 
-    if (isPointerDown) dispatchToolEvent("move", e);
+    if (isPointerDown) dispatchToolEvent('move', e);
   };
 
   const onPointerDown: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
     setIsPointerDown(true);
-    dispatchToolEvent("down", e);
+    dispatchToolEvent('down', e);
   };
 
   const onPointerUp: React.PointerEventHandler<HTMLCanvasElement> = () => {
     setIsPointerDown(false);
     try {
       const fake = { clientX: 0, clientY: 0 } as unknown as React.PointerEvent;
-      dispatchToolEvent("up", fake);
+      dispatchToolEvent('up', fake);
     } catch {}
   };
 
-  const rendererTag = useMemo(
-    () => (useWorker ? "worker" : "error"),
-    [useWorker],
-  );
-  const showDebugOverlay = debugEnabled("renderer");
+  const rendererTag = useMemo(() => (useWorker ? 'worker' : 'error'), [useWorker]);
+  const showDebugOverlay = debugEnabled('renderer');
 
   useEffect(() => {
     const handleKeyDown = (ev: KeyboardEvent) => {
@@ -481,20 +436,15 @@ export const CanvasViewport: React.FC = () => {
       handler.onKeyDown(ev.key, ctx);
       ev.preventDefault();
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeTool, buildToolContext]);
 
   return (
     <div className="h-full w-full overflow-hidden">
-      <div
-        className="pt-4 px-6 h-full min-h-[60vh] relative"
-        ref={containerRef}
-      >
+      <div className="pt-4 px-6 h-full min-h-[60vh] relative" ref={containerRef}>
         {!hasActiveMap ? (
-          <div className="p-8 text-sm text-muted-foreground">
-            No active map.
-          </div>
+          <div className="p-8 text-sm text-muted-foreground">No active map.</div>
         ) : (
           <>
             {!useWorker ? (
@@ -504,7 +454,7 @@ export const CanvasViewport: React.FC = () => {
               </div>
             ) : null}
             <canvas
-              key={`${campaignId || "none"}:${activeMapId || "none"}`}
+              key={`${campaignId || 'none'}:${activeMapId || 'none'}`}
               ref={canvasRef}
               className="w-full h-full"
               id="map-canvas"
@@ -512,7 +462,7 @@ export const CanvasViewport: React.FC = () => {
               onPointerMove={onPointerMove}
               onPointerDown={onPointerDown}
               onPointerUp={onPointerUp}
-              style={{ cursor: getCursorForTool(activeTool) || "default" }}
+              style={{ cursor: getCursorForTool(activeTool) || 'default' }}
             />
             {showDebugOverlay ? (
               <div

@@ -1,6 +1,6 @@
-import { TerrainSettings } from "@/palettes/settings";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
+import { TerrainSettings } from '@/palettes/settings';
+import { useCampaignStore } from '@/stores/campaign';
+import { useSelectionStore } from '@/stores/selection';
 
 /**
  * Returns the resolved active setting id (map → campaign → default)
@@ -11,9 +11,9 @@ export function useActiveSettingId(): string {
   return useCampaignStore((s) => {
     const cur = s.current;
     // Resolve by explicit selection: when campaign is selected, ignore activeMapId
-    const activeMapId = selection.kind === "map" ? selection.id : null;
+    const activeMapId = selection.kind === 'map' ? selection.id : null;
     const map = cur?.maps.find((m) => m.id === activeMapId);
-    return map?.settingId || cur?.settingId || "doom-forge";
+    return map?.settingId || cur?.settingId || 'doom-forge';
   });
 }
 
@@ -22,8 +22,5 @@ export function useActiveSettingId(): string {
  */
 export function useActiveSetting() {
   const id = useActiveSettingId();
-  return (
-    TerrainSettings.getAllSettings().find((s) => s.id === id) ||
-    TerrainSettings.DOOM_FORGE
-  );
+  return TerrainSettings.getAllSettings().find((s) => s.id === id) || TerrainSettings.DOOM_FORGE;
 }

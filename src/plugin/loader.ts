@@ -1,5 +1,5 @@
-import { registerCommand, unregisterCommand } from "@/lib/commands";
-import { getAppAPI } from "@/plugin/appapi";
+import { registerCommand, unregisterCommand } from '@/lib/commands';
+import { getAppAPI } from '@/plugin/appapi';
 import type {
   CapabilityToken,
   CssCursor,
@@ -9,7 +9,7 @@ import type {
   PluginModule,
   SceneAdapter,
   ToolHandler,
-} from "./types";
+} from './types';
 
 type LoadedPlugin = {
   manifest: PluginManifest;
@@ -56,11 +56,11 @@ const envProviderList: EnvProvider[] = [];
 const coreGridEnvProvider: EnvProvider = {
   priority: -100,
   provide(frame) {
-    const hex = frame.layers.find((l) => l.type === "hexgrid");
+    const hex = frame.layers.find((l) => l.type === 'hexgrid');
     if (!hex || !hex.state) return {};
     const st = hex.state as Record<string, unknown>;
     const size = Math.max(4, Number(st.size ?? 16));
-    const orientation = st.orientation === "flat" ? "flat" : "pointy";
+    const orientation = st.orientation === 'flat' ? 'flat' : 'pointy';
     return { grid: { size, orientation } } as const;
   },
 };
@@ -69,17 +69,14 @@ envProviderList.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 const toolRegistry = new Map<string, ToolHandler>();
 
 function notifyToolbarUpdate() {
-  if (typeof globalThis === "undefined") return;
+  if (typeof globalThis === 'undefined') return;
   const target = globalThis as unknown as EventTarget & {
     CustomEvent?: typeof CustomEvent;
   };
   const CustomEventCtor = target.CustomEvent;
-  if (
-    typeof target.dispatchEvent === "function" &&
-    typeof CustomEventCtor === "function"
-  ) {
+  if (typeof target.dispatchEvent === 'function' && typeof CustomEventCtor === 'function') {
     try {
-      target.dispatchEvent(new CustomEventCtor("plugin:toolbar-updated"));
+      target.dispatchEvent(new CustomEventCtor('plugin:toolbar-updated'));
     } catch {
       // Non-DOM contexts (e.g. worker without CustomEvent) simply skip notifications.
     }
@@ -135,8 +132,8 @@ export function registerEnvProvider(provider: EnvProvider) {
   };
 }
 
-import type { RenderEnv } from "@/layers/types";
-import type { SceneFrame } from "@/render/types";
+import type { RenderEnv } from '@/layers/types';
+import type { SceneFrame } from '@/render/types';
 
 export function composeEnv(frame: SceneFrame): Partial<RenderEnv> {
   const out: Partial<RenderEnv> = {};
@@ -144,7 +141,7 @@ export function composeEnv(frame: SceneFrame): Partial<RenderEnv> {
     try {
       Object.assign(out, p.provide(frame) || {});
     } catch (e) {
-      console.warn("[plugin] EnvProvider threw:", e);
+      console.warn('[plugin] EnvProvider threw:', e);
     }
   }
   return out;
@@ -215,17 +212,14 @@ export async function loadPluginsWithPriority(
 
   // Fire a deferred update to ensure subscribers that mounted slightly later
   // still receive a change signal (avoids race on initial hydration).
-  if (typeof queueMicrotask === "function") {
+  if (typeof queueMicrotask === 'function') {
     queueMicrotask(() => notifyToolbarUpdate());
-  } else if (typeof setTimeout === "function") {
+  } else if (typeof setTimeout === 'function') {
     setTimeout(() => notifyToolbarUpdate(), 0);
   }
 }
 
-export async function loadPlugin(
-  manifest: PluginManifest,
-  module: PluginModule,
-) {
+export async function loadPlugin(manifest: PluginManifest, module: PluginModule) {
   if (plugins.has(manifest.id)) return; // already loaded
 
   const disposables: Array<() => void> = [];
@@ -246,12 +240,10 @@ export async function loadPlugin(
   const tbDefs = manifest.contributes?.toolbar ?? [];
   for (const group of tbDefs) {
     for (const item of group.items) {
-      if (item.type === "button") {
+      if (item.type === 'button') {
         const exists = toolbarContribs.some(
           (t) =>
-            t.pluginId === manifest.id &&
-            t.group === group.group &&
-            t.command === item.command,
+            t.pluginId === manifest.id && t.group === group.group && t.command === item.command,
         );
         if (!exists) {
           toolbarContribs.push({
@@ -284,8 +276,7 @@ export async function loadPlugin(
 
   // Register optional Render SPI contributions (no-op in M1)
   if (module.scene) registerSceneAdapter(module.scene);
-  if (module.envProviders)
-    for (const p of module.envProviders) registerEnvProvider(p);
+  if (module.envProviders) for (const p of module.envProviders) registerEnvProvider(p);
   if (module.tools) registerTools(module.tools);
 
   const priority = manifest.priority ?? 10;

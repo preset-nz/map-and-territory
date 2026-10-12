@@ -1,11 +1,11 @@
 export type CapabilityToken =
-  | "hasActiveMap"
-  | "hasActiveLayer"
-  | "hasCampaign"
-  | `selectionIs:${"campaign" | "map" | "layer"}`
+  | 'hasActiveMap'
+  | 'hasActiveLayer'
+  | 'hasCampaign'
+  | `selectionIs:${'campaign' | 'map' | 'layer'}`
   | `canAddLayer:${string}`
   | `activeLayerIs:${string}`
-  | "gridVisible";
+  | 'gridVisible';
 
 export interface PluginManifest {
   id: string;
@@ -23,7 +23,7 @@ export interface PluginManifest {
     toolbar?: Array<{
       group: string;
       items: Array<{
-        type: "button";
+        type: 'button';
         command: string;
         icon?: string;
         label?: string;
@@ -36,9 +36,9 @@ export interface PluginManifest {
   entry?: string;
 }
 
-import type { AppAPI as ActualAppAPI } from "@/appapi";
-import type { AppAPI } from "@/plugin/appapi";
-import type { BatchResult, CellsDelta } from "@/types/batch-operations";
+import type { AppAPI as ActualAppAPI } from '@/appapi';
+import type { AppAPI } from '@/plugin/appapi';
+import type { BatchResult, CellsDelta } from '@/types/batch-operations';
 
 export interface PluginContext {
   // Narrow API surface in MVP; extend later
@@ -61,27 +61,19 @@ export interface PluginModule {
 }
 
 // CSS cursor mapping for tools declared by plugins
-export type CssCursor = "default" | "crosshair" | "cell" | "pointer" | "move";
+export type CssCursor = 'default' | 'crosshair' | 'cell' | 'pointer' | 'move';
 
-import type { RenderEnv } from "@/layers/types";
+import type { RenderEnv } from '@/layers/types';
 // -------- Render SPI (M1 scaffolding) --------
-import type { SceneFrame } from "@/render/types";
+import type { SceneFrame } from '@/render/types';
 
 export interface SceneAdapter {
   computePaperRect?: (input: {
     canvasSize: { w: number; h: number };
-    paper: SceneFrame["paper"];
+    paper: SceneFrame['paper'];
   }) => { x: number; y: number; w: number; h: number };
-  preRender?: (
-    ctx: CanvasRenderingContext2D,
-    frame: SceneFrame,
-    env: RenderEnv,
-  ) => void;
-  postRender?: (
-    ctx: CanvasRenderingContext2D,
-    frame: SceneFrame,
-    env: RenderEnv,
-  ) => void;
+  preRender?: (ctx: CanvasRenderingContext2D, frame: SceneFrame, env: RenderEnv) => void;
+  postRender?: (ctx: CanvasRenderingContext2D, frame: SceneFrame, env: RenderEnv) => void;
 }
 
 export interface EnvProvider {
@@ -113,20 +105,8 @@ export interface ToolContext {
 
 export interface ToolHandler {
   id: string;
-  onPointerDown?: (
-    pt: { x: number; y: number },
-    env: RenderEnv,
-    ctx: ToolContext,
-  ) => void;
-  onPointerMove?: (
-    pt: { x: number; y: number },
-    env: RenderEnv,
-    ctx: ToolContext,
-  ) => void;
-  onPointerUp?: (
-    pt: { x: number; y: number },
-    env: RenderEnv,
-    ctx: ToolContext,
-  ) => void;
+  onPointerDown?: (pt: { x: number; y: number }, env: RenderEnv, ctx: ToolContext) => void;
+  onPointerMove?: (pt: { x: number; y: number }, env: RenderEnv, ctx: ToolContext) => void;
+  onPointerUp?: (pt: { x: number; y: number }, env: RenderEnv, ctx: ToolContext) => void;
   onKeyDown?: (key: string, ctx: ToolContext) => void;
 }

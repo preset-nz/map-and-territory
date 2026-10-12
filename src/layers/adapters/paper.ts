@@ -1,16 +1,16 @@
-import type { LayerAdapter } from "@/layers/types";
+import type { LayerAdapter } from '@/layers/types';
 
 export interface PaperState {
   color: string; // hex
-  aspect: "square" | "4:3" | "16:10";
+  aspect: 'square' | '4:3' | '16:10';
 }
 
 export const PaperAdapter: LayerAdapter<PaperState> = {
-  title: "Paper",
+  title: 'Paper',
   drawMain(ctx, state, env) {
     const { w, h } = env.size;
     ctx.save();
-    ctx.fillStyle = state.color || "#ffffff";
+    ctx.fillStyle = state.color || '#ffffff';
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
   },
@@ -20,9 +20,9 @@ export const PaperAdapter: LayerAdapter<PaperState> = {
 };
 
 export const PaperType = {
-  id: "paper",
-  title: "Paper",
-  defaultState: { color: "#ffffff", aspect: "16:10" },
+  id: 'paper',
+  title: 'Paper',
+  defaultState: { color: '#ffffff', aspect: '16:10' },
   adapter: PaperAdapter,
   policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
 } as const;

@@ -15,10 +15,7 @@ export function hasCommand(id: string) {
   return registry.has(id);
 }
 
-export async function executeCommand<T = unknown>(
-  id: string,
-  payload?: unknown,
-): Promise<T> {
+export async function executeCommand<T = unknown>(id: string, payload?: unknown): Promise<T> {
   const handler = registry.get(id);
   if (!handler) {
     throw new Error(`Command not found: ${id}`);

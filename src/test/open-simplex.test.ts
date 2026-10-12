@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { createOpenSimplexNoise } from "../lib/open-simplex";
+import { describe, expect, it } from 'vitest';
+import { createOpenSimplexNoise } from '../lib/open-simplex';
 
-describe("OpenSimplex-like noise (seeded)", () => {
-  it("is deterministic per seed (2D)", () => {
-    const a = createOpenSimplexNoise("seed-os");
-    const b = createOpenSimplexNoise("seed-os");
+describe('OpenSimplex-like noise (seeded)', () => {
+  it('is deterministic per seed (2D)', () => {
+    const a = createOpenSimplexNoise('seed-os');
+    const b = createOpenSimplexNoise('seed-os');
     const pts: [number, number][] = [
       [0, 0],
       [0.1, 0.2],
@@ -17,7 +17,7 @@ describe("OpenSimplex-like noise (seeded)", () => {
     expect(vb).toEqual(va);
   });
 
-  it("is deterministic per seed (3D)", () => {
+  it('is deterministic per seed (3D)', () => {
     const a = createOpenSimplexNoise(12345);
     const b = createOpenSimplexNoise(12345);
     const pts: [number, number, number][] = [
@@ -30,8 +30,8 @@ describe("OpenSimplex-like noise (seeded)", () => {
     expect(vb).toEqual(va);
   });
 
-  it("normalized outputs lie in [0,1]", () => {
-    const n = createOpenSimplexNoise("rng");
+  it('normalized outputs lie in [0,1]', () => {
+    const n = createOpenSimplexNoise('rng');
     const v2 = n.normalized2D(1.2, 3.4);
     const v3 = n.normalized3D(0.1, 0.2, 0.3);
     expect(v2).toBeGreaterThanOrEqual(0);
@@ -40,15 +40,13 @@ describe("OpenSimplex-like noise (seeded)", () => {
     expect(v3).toBeLessThanOrEqual(1);
   });
 
-  it("different seeds likely produce different fields", () => {
-    const a = createOpenSimplexNoise("A");
-    const b = createOpenSimplexNoise("B");
+  it('different seeds likely produce different fields', () => {
+    const a = createOpenSimplexNoise('A');
+    const b = createOpenSimplexNoise('B');
     let sa = 0,
       sb = 0;
-    for (let i = 0; i < 6; i++)
-      for (let j = 0; j < 6; j++) sa += a.noise2D(i * 0.2, j * 0.2);
-    for (let i = 0; i < 6; i++)
-      for (let j = 0; j < 6; j++) sb += b.noise2D(i * 0.2, j * 0.2);
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) sa += a.noise2D(i * 0.2, j * 0.2);
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) sb += b.noise2D(i * 0.2, j * 0.2);
     expect(Math.abs(sa - sb)).toBeGreaterThan(1e-6);
   });
 });

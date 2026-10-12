@@ -1,12 +1,12 @@
 export type FieldKind =
-  | "select"
-  | "color"
-  | "text"
-  | "textarea"
-  | "number"
-  | "slider"
-  | "checkbox"
-  | "file";
+  | 'select'
+  | 'color'
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'slider'
+  | 'checkbox'
+  | 'file';
 
 export interface BaseField {
   kind: FieldKind;
@@ -24,7 +24,7 @@ export interface SelectOption {
 }
 
 export interface SelectFieldDef extends BaseField {
-  kind: "select";
+  kind: 'select';
   options?: SelectOption[];
   // Dynamic options provider for host-app dependent lists (e.g., palette)
   // Note: the function receives the AppAPI via a very light indirection to avoid cycles.
@@ -33,32 +33,32 @@ export interface SelectFieldDef extends BaseField {
 }
 
 export interface ColorFieldDef extends BaseField {
-  kind: "color";
+  kind: 'color';
   presets?: string[];
 }
 export interface TextFieldDef extends BaseField {
-  kind: "text";
+  kind: 'text';
   placeholder?: string;
 }
 export interface TextareaFieldDef extends BaseField {
-  kind: "textarea";
+  kind: 'textarea';
   placeholder?: string;
   rows?: number;
 }
 export interface NumberFieldDef extends BaseField {
-  kind: "number";
+  kind: 'number';
   min?: number;
   max?: number;
   step?: number;
 }
 export interface SliderFieldDef extends BaseField {
-  kind: "slider";
+  kind: 'slider';
   min?: number;
   max?: number;
   step?: number;
 }
 export interface CheckboxFieldDef extends BaseField {
-  kind: "checkbox";
+  kind: 'checkbox';
 }
 
 export interface FileCascadeTarget {
@@ -67,7 +67,7 @@ export interface FileCascadeTarget {
 }
 
 export interface FileFieldDef extends BaseField {
-  kind: "file";
+  kind: 'file';
   accept?: string;
   helperText?: string;
   cascade?: FileCascadeTarget[];

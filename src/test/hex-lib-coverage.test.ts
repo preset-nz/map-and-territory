@@ -1,15 +1,15 @@
-import { describe, expect, it } from "vitest";
-import { corners, fromPoint, toPoint } from "@/lib/hex";
+import { describe, expect, it } from 'vitest';
+import { corners, fromPoint, toPoint } from '@/lib/hex';
 
-describe("hex lib coverage additions", () => {
-  it("round-trips with non-zero origin for both orientations", () => {
+describe('hex lib coverage additions', () => {
+  it('round-trips with non-zero origin for both orientations', () => {
     const pointy = {
-      orientation: "pointy" as const,
+      orientation: 'pointy' as const,
       size: 30,
       origin: { x: 100, y: 50 },
     };
     const flat = {
-      orientation: "flat" as const,
+      orientation: 'flat' as const,
       size: 30,
       origin: { x: -120, y: 75 },
     };
@@ -24,15 +24,15 @@ describe("hex lib coverage additions", () => {
     expect(back2).toEqual(h2);
   });
 
-  it("computes 6 corners around center for both orientations", () => {
+  it('computes 6 corners around center for both orientations', () => {
     const center = { x: 10, y: 20 };
     const pointy = {
-      orientation: "pointy" as const,
+      orientation: 'pointy' as const,
       size: 24,
       origin: { x: 0, y: 0 },
     };
     const flat = {
-      orientation: "flat" as const,
+      orientation: 'flat' as const,
       size: 24,
       origin: { x: 0, y: 0 },
     };

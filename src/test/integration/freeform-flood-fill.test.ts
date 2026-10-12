@@ -4,34 +4,34 @@
  * Tests the integration between flood fill algorithm and the freeform plugin tool system
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppAPI } from "@/appapi";
-import type { RenderEnv } from "@/layers/types";
-import { freeformModule } from "@/plugin/builtin/freeform";
-import type { ToolContext, ToolHandler } from "@/plugin/types";
-import type { BatchResult } from "@/types/batch-operations";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AppAPI } from '@/appapi';
+import type { RenderEnv } from '@/layers/types';
+import { freeformModule } from '@/plugin/builtin/freeform';
+import type { ToolContext, ToolHandler } from '@/plugin/types';
+import type { BatchResult } from '@/types/batch-operations';
 
-describe("Freeform flood fill tool integration", () => {
+describe('Freeform flood fill tool integration', () => {
   let toolHandler: ToolHandler | undefined;
   let mockContext: ToolContext;
 
   beforeEach(() => {
     // Find the flood fill tool handler
-    toolHandler = freeformModule.tools?.find((tool) => tool.id === "fill");
+    toolHandler = freeformModule.tools?.find((tool) => tool.id === 'fill');
 
     // Create mock ToolContext with batch API
     mockContext = {
       app: AppAPI,
-      selection: { kind: "layer", id: "test-layer" },
+      selection: { kind: 'layer', id: 'test-layer' },
       updateLayerState: vi.fn(),
       applyLayerState: vi.fn(),
       getActiveLayerState: vi.fn().mockReturnValue({
-        brushTerrainId: "grass",
-        brushColor: "#22c55e",
-        fillMode: "auto", // Default to auto mode
+        brushTerrainId: 'grass',
+        brushColor: '#22c55e',
+        fillMode: 'auto', // Default to auto mode
         cells: {
-          "1,0": { terrainId: "stone" }, // Adjacent to origin, different terrain
-          "2,0": { terrainId: "water" }, // Further away, different terrain
+          '1,0': { terrainId: 'stone' }, // Adjacent to origin, different terrain
+          '2,0': { terrainId: 'water' }, // Further away, different terrain
         },
       }),
       applyCellsDelta: vi.fn().mockReturnValue({
@@ -42,24 +42,24 @@ describe("Freeform flood fill tool integration", () => {
     };
   });
 
-  describe("when tool is registered", () => {
-    it("should have flood fill tool handler with correct ID", () => {
+  describe('when tool is registered', () => {
+    it('should have flood fill tool handler with correct ID', () => {
       expect(toolHandler).toBeDefined();
-      expect(toolHandler?.id).toBe("fill");
+      expect(toolHandler?.id).toBe('fill');
       expect(toolHandler?.onPointerDown).toBeDefined();
     });
   });
 
-  describe("when clicking on empty cell", () => {
-    it("should trigger flood fill with batch API", () => {
+  describe('when clicking on empty cell', () => {
+    it('should trigger flood fill with batch API', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
         grid: {
-          orientation: "pointy",
+          orientation: 'pointy',
           size: 16,
         },
         zoom: 1,
@@ -76,26 +76,26 @@ describe("Freeform flood fill tool integration", () => {
 
       // Verify batch API was called with flood fill results
       expect(mockContext.applyCellsDelta).toHaveBeenCalledWith(
-        "test-layer",
+        'test-layer',
         expect.objectContaining({
           set: expect.objectContaining({
-            "0,0": expect.objectContaining({
-              terrainId: "grass",
-              color: "#22c55e",
+            '0,0': expect.objectContaining({
+              terrainId: 'grass',
+              color: '#22c55e',
             }),
           }),
         }),
       );
     });
 
-    it("should not operate on non-layer selection", () => {
+    it('should not operate on non-layer selection', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -104,7 +104,7 @@ describe("Freeform flood fill tool integration", () => {
       };
 
       // Set non-layer selection
-      mockContext.selection = { kind: "map", id: "test-map" };
+      mockContext.selection = { kind: 'map', id: 'test-map' };
       const point = { x: 400, y: 300 };
 
       toolHandler.onPointerDown(point, mockEnv, mockContext);
@@ -113,9 +113,9 @@ describe("Freeform flood fill tool integration", () => {
       expect(mockContext.applyCellsDelta).not.toHaveBeenCalled();
     });
 
-    it("should not operate without grid environment", () => {
+    it('should not operate without grid environment', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       const mockEnv: RenderEnv = {
@@ -136,21 +136,21 @@ describe("Freeform flood fill tool integration", () => {
       expect(mockContext.applyCellsDelta).not.toHaveBeenCalled();
     });
 
-    it("should not operate without brush configuration", () => {
+    it('should not operate without brush configuration', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Mock layer state without brush configuration
       mockContext.getActiveLayerState = vi.fn().mockReturnValue({
-        fillMode: "auto",
+        fillMode: 'auto',
         cells: {},
         // No brushTerrainId or brushColor
       });
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -167,21 +167,21 @@ describe("Freeform flood fill tool integration", () => {
     });
   });
 
-  describe("when batch API fails", () => {
-    it("should handle batch operation failure gracefully", () => {
+  describe('when batch API fails', () => {
+    it('should handle batch operation failure gracefully', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Mock batch API failure
       mockContext.applyCellsDelta = vi.fn().mockReturnValue({
         success: false,
-        error: "Test error",
+        error: 'Test error',
       } as BatchResult<void>);
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -192,9 +192,7 @@ describe("Freeform flood fill tool integration", () => {
       const point = { x: 400, y: 300 };
 
       // Spy on console.error
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Should not throw error
       expect(() => {
@@ -202,17 +200,14 @@ describe("Freeform flood fill tool integration", () => {
       }).not.toThrow();
 
       // Should log error
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Flood fill: Batch operation failed:",
-        "Test error",
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Flood fill: Batch operation failed:', 'Test error');
 
       consoleSpy.mockRestore();
     });
 
-    it("should fall back to individual updates when batch API unavailable", () => {
+    it('should fall back to individual updates when batch API unavailable', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Remove batch API from context
@@ -220,7 +215,7 @@ describe("Freeform flood fill tool integration", () => {
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -240,26 +235,26 @@ describe("Freeform flood fill tool integration", () => {
     });
   });
 
-  describe("fill mode behaviors", () => {
-    it("should use same-value mode when clicking filled cell in auto mode", () => {
+  describe('fill mode behaviors', () => {
+    it('should use same-value mode when clicking filled cell in auto mode', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Create layer state with terrain at origin and auto mode
       mockContext.getActiveLayerState = vi.fn().mockReturnValue({
-        brushTerrainId: "grass",
-        brushColor: "#22c55e",
-        fillMode: "auto",
+        brushTerrainId: 'grass',
+        brushColor: '#22c55e',
+        fillMode: 'auto',
         cells: {
-          "0,0": { terrainId: "stone" }, // Origin has terrain
-          "1,0": { terrainId: "stone" }, // Adjacent cell with same terrain
+          '0,0': { terrainId: 'stone' }, // Origin has terrain
+          '1,0': { terrainId: 'stone' }, // Adjacent cell with same terrain
         },
       });
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -273,40 +268,40 @@ describe("Freeform flood fill tool integration", () => {
 
       // Should use same-value mode (replace stone with grass)
       expect(mockContext.applyCellsDelta).toHaveBeenCalledWith(
-        "test-layer",
+        'test-layer',
         expect.objectContaining({
           set: expect.objectContaining({
-            "0,0": expect.objectContaining({
-              terrainId: "grass",
-              color: "#22c55e",
+            '0,0': expect.objectContaining({
+              terrainId: 'grass',
+              color: '#22c55e',
             }),
-            "1,0": expect.objectContaining({
-              terrainId: "grass",
-              color: "#22c55e",
+            '1,0': expect.objectContaining({
+              terrainId: 'grass',
+              color: '#22c55e',
             }),
           }),
         }),
       );
     });
 
-    it("should use empty-only mode when clicking empty cell in auto mode", () => {
+    it('should use empty-only mode when clicking empty cell in auto mode', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Create layer state with empty origin and auto mode
       mockContext.getActiveLayerState = vi.fn().mockReturnValue({
-        brushTerrainId: "grass",
-        brushColor: "#22c55e",
-        fillMode: "auto",
+        brushTerrainId: 'grass',
+        brushColor: '#22c55e',
+        fillMode: 'auto',
         cells: {
-          "1,0": { terrainId: "stone" }, // Adjacent cell has terrain (should not be filled)
+          '1,0': { terrainId: 'stone' }, // Adjacent cell has terrain (should not be filled)
         },
       });
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -320,12 +315,12 @@ describe("Freeform flood fill tool integration", () => {
 
       // Should use empty-only mode (fill only empty cells)
       expect(mockContext.applyCellsDelta).toHaveBeenCalledWith(
-        "test-layer",
+        'test-layer',
         expect.objectContaining({
           set: expect.objectContaining({
-            "0,0": expect.objectContaining({
-              terrainId: "grass",
-              color: "#22c55e",
+            '0,0': expect.objectContaining({
+              terrainId: 'grass',
+              color: '#22c55e',
             }),
           }),
         }),
@@ -334,25 +329,25 @@ describe("Freeform flood fill tool integration", () => {
       // Verify that adjacent terrain cell was not included in the fill
       const callArgs = (mockContext.applyCellsDelta as any).mock.calls[0];
       const delta = callArgs[1];
-      expect(delta.set["1,0"]).toBeUndefined();
+      expect(delta.set['1,0']).toBeUndefined();
     });
 
-    it("should respect manual same-value mode setting", () => {
+    it('should respect manual same-value mode setting', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Force same-value mode even on empty origin
       mockContext.getActiveLayerState = vi.fn().mockReturnValue({
-        brushTerrainId: "grass",
-        brushColor: "#22c55e",
-        fillMode: "same-value",
+        brushTerrainId: 'grass',
+        brushColor: '#22c55e',
+        fillMode: 'same-value',
         cells: {}, // Empty grid
       });
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -368,24 +363,24 @@ describe("Freeform flood fill tool integration", () => {
       expect(mockContext.applyCellsDelta).toHaveBeenCalled();
     });
 
-    it("should respect manual empty-only mode setting", () => {
+    it('should respect manual empty-only mode setting', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Force empty-only mode even on filled origin
       mockContext.getActiveLayerState = vi.fn().mockReturnValue({
-        brushTerrainId: "grass",
-        brushColor: "#22c55e",
-        fillMode: "empty-only",
+        brushTerrainId: 'grass',
+        brushColor: '#22c55e',
+        fillMode: 'empty-only',
         cells: {
-          "0,0": { terrainId: "stone" }, // Origin has terrain
+          '0,0': { terrainId: 'stone' }, // Origin has terrain
         },
       });
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },
@@ -402,23 +397,23 @@ describe("Freeform flood fill tool integration", () => {
     });
   });
 
-  describe("performance constraints", () => {
-    it("should respect max cells limit", () => {
+  describe('performance constraints', () => {
+    it('should respect max cells limit', () => {
       if (!toolHandler?.onPointerDown) {
-        throw new Error("Tool handler not found or missing onPointerDown");
+        throw new Error('Tool handler not found or missing onPointerDown');
       }
 
       // Create layer state with large empty region that would exceed max cells
       mockContext.getActiveLayerState = vi.fn().mockReturnValue({
-        brushTerrainId: "grass",
-        brushColor: "#22c55e",
-        fillMode: "auto",
+        brushTerrainId: 'grass',
+        brushColor: '#22c55e',
+        fillMode: 'auto',
         cells: {}, // Empty grid should trigger large flood fill
       });
 
       const mockEnv: RenderEnv = {
         size: { w: 800, h: 600 },
-        grid: { orientation: "pointy", size: 16 },
+        grid: { orientation: 'pointy', size: 16 },
         zoom: 1,
         pixelRatio: 1,
         paperRect: { x: 0, y: 0, w: 800, h: 600 },

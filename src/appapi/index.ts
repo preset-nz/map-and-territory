@@ -1,17 +1,13 @@
 // Public AppAPI surface
 
-import { type BaseTerrainType, TerrainSettings } from "@/palettes/settings";
-import type { TerrainCategory } from "@/palettes/types";
-import { useCampaignStore } from "@/stores/campaign";
-import {
-  resolveGridLine,
-  resolvePalette,
-  resolveTerrainFill,
-} from "@/stores/selectors/palette";
+import { type BaseTerrainType, TerrainSettings } from '@/palettes/settings';
+import type { TerrainCategory } from '@/palettes/types';
+import { useCampaignStore } from '@/stores/campaign';
+import { resolveGridLine, resolvePalette, resolveTerrainFill } from '@/stores/selectors/palette';
 // Intent: provide a stable, minimal interface for app-level consumers
 // without leaking internal store or lib shapes.
 
-import type { Axial, Layout, Point } from "@/lib/hex";
+import type { Axial, Layout, Point } from '@/lib/hex';
 import {
   axialToCube,
   cubeToAxial,
@@ -24,7 +20,7 @@ import {
   ring,
   round,
   toPoint,
-} from "@/lib/hex";
+} from '@/lib/hex';
 
 export const AppAPI = {
   hex: {
@@ -48,7 +44,7 @@ export const AppAPI = {
       return resolvePalette(cur, active);
     },
     // Returns the terrain fill for a given key (supports 'desert' → plains presentation)
-    terrainFill(key: TerrainCategory | "desert") {
+    terrainFill(key: TerrainCategory | 'desert') {
       const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const palette = resolvePalette(cur, active);
@@ -59,10 +55,8 @@ export const AppAPI = {
       const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
-      const hexgrid = map?.layers?.find((l) => l.type === "hexgrid");
-      const hexState = hexgrid?.state as
-        | { color?: string; usePaletteColor?: boolean }
-        | undefined;
+      const hexgrid = map?.layers?.find((l) => l.type === 'hexgrid');
+      const hexState = hexgrid?.state as { color?: string; usePaletteColor?: boolean } | undefined;
       return resolveGridLine(
         cur,
         active,
@@ -79,7 +73,7 @@ export const AppAPI = {
       const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
-      const settingId = map?.settingId || cur?.settingId || "doom-forge";
+      const settingId = map?.settingId || cur?.settingId || 'doom-forge';
       const setting =
         TerrainSettings.getAllSettings().find((s) => s.id === settingId) ??
         TerrainSettings.DOOM_FORGE;
@@ -92,7 +86,7 @@ export const AppAPI = {
       const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
-      const settingId = map?.settingId || cur?.settingId || "doom-forge";
+      const settingId = map?.settingId || cur?.settingId || 'doom-forge';
       const setting =
         TerrainSettings.getAllSettings().find((s) => s.id === settingId) ??
         TerrainSettings.DOOM_FORGE;
@@ -100,14 +94,14 @@ export const AppAPI = {
       if (t) return t.color;
       // Fallback: use category fill via resolved palette
       const palette = resolvePalette(cur, active);
-      return resolveTerrainFill(palette, "plains");
+      return resolveTerrainFill(palette, 'plains');
     },
     // Returns active setting id (map → campaign → default)
     settingId() {
       const cur = useCampaignStore.getState().current;
       const active = cur?.activeMapId ?? null;
       const map = cur?.maps.find((m) => m.id === active);
-      return map?.settingId || cur?.settingId || "doom-forge";
+      return map?.settingId || cur?.settingId || 'doom-forge';
     },
   },
 } as const;

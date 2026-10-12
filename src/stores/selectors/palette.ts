@@ -1,28 +1,25 @@
-import { DefaultPalette } from "@/palettes/defaults";
-import { makePaletteFromSetting } from "@/palettes/derive";
-import { TerrainSettings } from "@/palettes/settings";
-import type { MapPalette, TerrainCategory } from "@/palettes/types";
-import type { Campaign } from "@/stores/campaign";
+import { DefaultPalette } from '@/palettes/defaults';
+import { makePaletteFromSetting } from '@/palettes/derive';
+import { TerrainSettings } from '@/palettes/settings';
+import type { MapPalette, TerrainCategory } from '@/palettes/types';
+import type { Campaign } from '@/stores/campaign';
 
 function coerceTerrainKey(key: string | undefined): TerrainCategory {
   switch (key) {
-    case "water":
-    case "plains":
-    case "forest":
-    case "hills":
-    case "mountains":
+    case 'water':
+    case 'plains':
+    case 'forest':
+    case 'hills':
+    case 'mountains':
       return key;
-    case "desert":
-      return "plains"; // desert presented via arid trait in settings
+    case 'desert':
+      return 'plains'; // desert presented via arid trait in settings
     default:
-      return "plains";
+      return 'plains';
   }
 }
 
-export function resolvePalette(
-  campaign: Campaign | null,
-  mapId: string | null,
-): MapPalette {
+export function resolvePalette(campaign: Campaign | null, mapId: string | null): MapPalette {
   if (!campaign) return DefaultPalette;
   const map = campaign.maps.find((m) => m.id === mapId);
   // Advanced overrides using direct palette objects (legacy/advanced) take precedence
@@ -30,10 +27,8 @@ export function resolvePalette(
   // If campaign has an explicit palette override, prefer it over default/setting
   if (campaign.palette) return campaign.palette as MapPalette;
   // Resolve by settingId chain: map → campaign → default
-  const settingId = map?.settingId || campaign.settingId || "doom-forge";
-  const setting = TerrainSettings.getAllSettings().find(
-    (s) => s.id === settingId,
-  );
+  const settingId = map?.settingId || campaign.settingId || 'doom-forge';
+  const setting = TerrainSettings.getAllSettings().find((s) => s.id === settingId);
   if (setting) return makePaletteFromSetting(setting);
   // Fallback: default
   return DefaultPalette;
@@ -54,9 +49,9 @@ export function resolveGridLine(
   hexgridState?: { color?: string; usePaletteColor: boolean },
 ): string {
   const usePalette = hexgridState?.usePaletteColor !== false;
-  if (!usePalette && typeof hexgridState?.color === "string") {
-    return hexgridState.color.length > 0 ? hexgridState.color : "#000000";
+  if (!usePalette && typeof hexgridState?.color === 'string') {
+    return hexgridState.color.length > 0 ? hexgridState.color : '#000000';
   }
   const p = resolvePalette(campaign, mapId);
-  return p.grid.line || "#000000";
+  return p.grid.line || '#000000';
 }

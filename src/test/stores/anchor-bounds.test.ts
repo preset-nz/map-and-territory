@@ -1,14 +1,14 @@
-import { describe, expect, it } from "vitest";
-import type { LayerInstance } from "@/layers/types";
+import { describe, expect, it } from 'vitest';
+import type { LayerInstance } from '@/layers/types';
 import {
   clampToAnchorRange,
   getAnchorBounds,
   HEXGRID_ANCHOR_TYPE,
   isAnchorLayer,
   PAPER_ANCHOR_TYPE,
-} from "@/stores/campaign/anchors";
+} from '@/stores/campaign/anchors';
 
-describe("anchor bounds utility", () => {
+describe('anchor bounds utility', () => {
   const make = (type: string, id: string): LayerInstance => ({
     id,
     type,
@@ -17,12 +17,12 @@ describe("anchor bounds utility", () => {
     state: {},
   });
 
-  it("derives min/max indices between anchors", () => {
+  it('derives min/max indices between anchors', () => {
     const layers = [
-      make(PAPER_ANCHOR_TYPE, "paper"),
-      make("terrain", "terrain"),
-      make("fog", "fog"),
-      make(HEXGRID_ANCHOR_TYPE, "grid"),
+      make(PAPER_ANCHOR_TYPE, 'paper'),
+      make('terrain', 'terrain'),
+      make('fog', 'fog'),
+      make(HEXGRID_ANCHOR_TYPE, 'grid'),
     ];
     const bounds = getAnchorBounds(layers);
     expect(bounds.bottom).toBe(0);
@@ -31,8 +31,8 @@ describe("anchor bounds utility", () => {
     expect(bounds.max).toBe(2);
   });
 
-  it("treats missing anchors as open ranges", () => {
-    const layers = [make("terrain", "terrain"), make("fog", "fog")];
+  it('treats missing anchors as open ranges', () => {
+    const layers = [make('terrain', 'terrain'), make('fog', 'fog')];
     const bounds = getAnchorBounds(layers);
     expect(bounds.bottom).toBe(-1);
     expect(bounds.top).toBe(2);
@@ -40,11 +40,11 @@ describe("anchor bounds utility", () => {
     expect(bounds.max).toBe(1);
   });
 
-  it("clamps indices to available range", () => {
+  it('clamps indices to available range', () => {
     const layers = [
-      make(PAPER_ANCHOR_TYPE, "paper"),
-      make("terrain", "terrain"),
-      make(HEXGRID_ANCHOR_TYPE, "grid"),
+      make(PAPER_ANCHOR_TYPE, 'paper'),
+      make('terrain', 'terrain'),
+      make(HEXGRID_ANCHOR_TYPE, 'grid'),
     ];
     const bounds = getAnchorBounds(layers);
     expect(clampToAnchorRange(-5, bounds, layers.length)).toBe(1);
@@ -52,10 +52,10 @@ describe("anchor bounds utility", () => {
     expect(clampToAnchorRange(1, bounds, layers.length)).toBe(1);
   });
 
-  it("identifies anchor layers", () => {
-    expect(isAnchorLayer(make(PAPER_ANCHOR_TYPE, "paper"))).toBe(true);
-    expect(isAnchorLayer(make(HEXGRID_ANCHOR_TYPE, "grid"))).toBe(true);
-    expect(isAnchorLayer(make("terrain", "terrain"))).toBe(false);
+  it('identifies anchor layers', () => {
+    expect(isAnchorLayer(make(PAPER_ANCHOR_TYPE, 'paper'))).toBe(true);
+    expect(isAnchorLayer(make(HEXGRID_ANCHOR_TYPE, 'grid'))).toBe(true);
+    expect(isAnchorLayer(make('terrain', 'terrain'))).toBe(false);
     expect(isAnchorLayer(undefined)).toBe(false);
   });
 });

@@ -1,14 +1,8 @@
-import { describe, expect, it } from "vitest";
-import {
-  FreeformAdapter,
-  type FreeformState,
-} from "@/layers/adapters/freeform-hex";
-import {
-  HexNoiseAdapter,
-  type HexNoiseState,
-} from "@/layers/adapters/hex-noise";
-import { HexgridAdapter, type HexgridState } from "@/layers/adapters/hexgrid";
-import type { RenderEnv } from "@/layers/types";
+import { describe, expect, it } from 'vitest';
+import { FreeformAdapter, type FreeformState } from '@/layers/adapters/freeform-hex';
+import { HexNoiseAdapter, type HexNoiseState } from '@/layers/adapters/hex-noise';
+import { HexgridAdapter, type HexgridState } from '@/layers/adapters/hexgrid';
+import type { RenderEnv } from '@/layers/types';
 
 type Pt = { x: number; y: number };
 
@@ -20,9 +14,9 @@ class Mock2DContext implements Partial<CanvasRenderingContext2D> {
   public globalAlpha = 1;
   public lineWidth = 1;
 
-  public strokeStyle: any = "#000";
+  public strokeStyle: any = '#000';
 
-  public fillStyle: any = "#000";
+  public fillStyle: any = '#000';
   save() {}
   restore() {}
   beginPath() {
@@ -54,7 +48,7 @@ class Mock2DContext implements Partial<CanvasRenderingContext2D> {
 function makeEnv(
   w: number,
   h: number,
-  grid: { size: number; orientation: "pointy" | "flat" },
+  grid: { size: number; orientation: 'pointy' | 'flat' },
 ): RenderEnv {
   return {
     zoom: 1,
@@ -98,29 +92,29 @@ function expectCenterHexPresent(
   paths: Pt[][],
   center: Pt,
   r: number,
-  orientation: "pointy" | "flat",
+  orientation: 'pointy' | 'flat',
 ) {
   const match = paths.find((poly) => {
     if (poly.length < 6) return false;
     const c = centroid(poly);
     return approx(c.x, center.x, 1e-3) && approx(c.y, center.y, 1e-3);
   });
-  expect(match, "expected a hex centered at canvas center").toBeTruthy();
+  expect(match, 'expected a hex centered at canvas center').toBeTruthy();
   if (!match) return;
   const bb = bbox(match);
   const sqrt3 = Math.sqrt(3);
-  const expectedW = orientation === "pointy" ? sqrt3 * r : 2 * r;
-  const expectedH = orientation === "pointy" ? 2 * r : sqrt3 * r;
+  const expectedW = orientation === 'pointy' ? sqrt3 * r : 2 * r;
+  const expectedH = orientation === 'pointy' ? 2 * r : sqrt3 * r;
   // Allow small tolerance due to float rounding in trig
   expect(Math.abs(bb.w - expectedW)).toBeLessThanOrEqual(0.01);
   expect(Math.abs(bb.h - expectedH)).toBeLessThanOrEqual(0.01);
 }
 
-describe("Alignment with master grid", () => {
+describe('Alignment with master grid', () => {
   const w = 240;
   const h = 200;
   const sizes = [12, 24] as const;
-  const orientations: Array<"pointy" | "flat"> = ["pointy", "flat"];
+  const orientations: Array<'pointy' | 'flat'> = ['pointy', 'flat'];
 
   for (const r of sizes) {
     for (const orientation of orientations) {
@@ -130,28 +124,19 @@ describe("Alignment with master grid", () => {
         const state: HexgridState = {
           size: r,
           orientation,
-          color: "#000",
+          color: '#000',
           alpha: 1,
           lineWidth: 1,
         };
-        HexgridAdapter.drawMain?.(
-          ctx as unknown as CanvasRenderingContext2D,
-          state,
-          env,
-        );
-        expectCenterHexPresent(
-          ctx.paths,
-          { x: w / 2, y: h / 2 },
-          r,
-          orientation,
-        );
+        HexgridAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
+        expectCenterHexPresent(ctx.paths, { x: w / 2, y: h / 2 }, r, orientation);
       });
 
       it(`HexNoiseAdapter tiles aligned to grid (r=${r}, ${orientation})`, () => {
         const ctx = new Mock2DContext();
         const env = makeEnv(w, h, { size: r, orientation });
         const state: HexNoiseState = {
-          seed: "seed",
+          seed: 'seed',
           frequency: 0.15,
           offsetX: 0,
           offsetY: 0,
@@ -159,47 +144,29 @@ describe("Alignment with master grid", () => {
           gamma: 1,
           min: 0,
           max: 1,
-          mode: "shape",
-          terrain: "plains",
+          mode: 'shape',
+          terrain: 'plains',
           terrainId: undefined,
           paintColor: undefined,
         };
-        HexNoiseAdapter.drawMain?.(
-          ctx as unknown as CanvasRenderingContext2D,
-          state,
-          env,
-        );
+        HexNoiseAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
         expect(ctx.filled.length).toBeGreaterThan(0);
-        expectCenterHexPresent(
-          ctx.paths,
-          { x: w / 2, y: h / 2 },
-          r,
-          orientation,
-        );
+        expectCenterHexPresent(ctx.paths, { x: w / 2, y: h / 2 }, r, orientation);
       });
 
       it(`FreeformAdapter centers axial (0,0) at grid origin (r=${r}, ${orientation})`, () => {
         const ctx = new Mock2DContext();
         const env = makeEnv(w, h, { size: r, orientation });
         const state: FreeformState = {
-          cells: { "0,0": { terrainId: "plains" } },
+          cells: { '0,0': { terrainId: 'plains' } },
           opacity: 1,
-          brushTerrainId: "plains",
+          brushTerrainId: 'plains',
           brushColor: undefined,
         };
-        FreeformAdapter.drawMain?.(
-          ctx as unknown as CanvasRenderingContext2D,
-          state,
-          env,
-        );
+        FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
         // Should have drawn exactly one filled hex
         expect(ctx.filled.length).toBe(1);
-        expectCenterHexPresent(
-          ctx.paths,
-          { x: w / 2, y: h / 2 },
-          r,
-          orientation,
-        );
+        expectCenterHexPresent(ctx.paths, { x: w / 2, y: h / 2 }, r, orientation);
       });
     }
   }

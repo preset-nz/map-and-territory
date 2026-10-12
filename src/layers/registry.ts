@@ -1,4 +1,4 @@
-import type { LayerPolicy, LayerType, LayerTypeId } from "./types";
+import type { LayerPolicy, LayerType, LayerTypeId } from './types';
 
 const layerTypes = new Map<LayerTypeId, LayerType<unknown>>();
 
@@ -10,9 +10,7 @@ export function unregisterLayerType(id: LayerTypeId) {
   layerTypes.delete(id);
 }
 
-export function getLayerType<T = unknown>(
-  id: LayerTypeId,
-): LayerType<T> | undefined {
+export function getLayerType<T = unknown>(id: LayerTypeId): LayerType<T> | undefined {
   return layerTypes.get(id) as LayerType<T> | undefined;
 }
 

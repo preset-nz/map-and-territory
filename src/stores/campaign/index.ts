@@ -1,5 +1,5 @@
-import { type Draft, enablePatches, produce } from "immer";
-import { create } from "zustand";
+import { type Draft, enablePatches, produce } from 'immer';
+import { create } from 'zustand';
 
 // Enable patches support for performance monitoring
 try {
@@ -8,19 +8,19 @@ try {
   // Patches already enabled or not available
 }
 
-import type { FreeformCell } from "@/layers/adapters/freeform-hex";
-import { getLayerPolicy, getLayerType } from "@/layers/registry";
-import type { LayerInstance } from "@/layers/types";
-import { debugEnabled } from "@/lib/debug";
-import type { MapPalette } from "@/palettes/types";
-import { generateName } from "@/stores/naming";
+import type { FreeformCell } from '@/layers/adapters/freeform-hex';
+import { getLayerPolicy, getLayerType } from '@/layers/registry';
+import type { LayerInstance } from '@/layers/types';
+import { debugEnabled } from '@/lib/debug';
+import type { MapPalette } from '@/palettes/types';
+import { generateName } from '@/stores/naming';
 import {
   clampToAnchorRange,
   getAnchorBounds,
   HEXGRID_ANCHOR_TYPE,
   isAnchorLayer,
   PAPER_ANCHOR_TYPE,
-} from "./anchors";
+} from './anchors';
 
 export interface Campaign {
   id: string;
@@ -35,7 +35,7 @@ export interface Campaign {
     name: string;
     description?: string;
     visible: boolean;
-    paper: { aspect: "square" | "4:3" | "16:10"; color: string };
+    paper: { aspect: 'square' | '4:3' | '16:10'; color: string };
     // Per-map setting override (T-012)
     settingId?: string;
     palette?: MapPalette; // optional per-map override
@@ -44,7 +44,7 @@ export interface Campaign {
   activeMapId: string | null;
 }
 
-type PaperAspect = "square" | "4:3" | "16:10";
+type PaperAspect = 'square' | '4:3' | '16:10';
 
 // Batch operation types
 export interface BatchLimits {
@@ -58,14 +58,10 @@ export type {
   BatchMetrics,
   BatchResult,
   CellsDelta,
-} from "@/types/batch-operations";
+} from '@/types/batch-operations';
 
 // Import types for local use
-import type {
-  BatchMetrics,
-  BatchResult,
-  CellsDelta,
-} from "@/types/batch-operations";
+import type { BatchMetrics, BatchResult, CellsDelta } from '@/types/batch-operations';
 
 const DEFAULT_BATCH_LIMITS: BatchLimits = {
   maxOperations: 10000,
@@ -80,15 +76,14 @@ function validateBatchOperation(
   delta: CellsDelta,
   limits: BatchLimits = DEFAULT_BATCH_LIMITS,
 ): { valid: boolean; error?: string; errorType?: string } {
-  const operationCount =
-    Object.keys(delta.set || {}).length + (delta.delete?.length || 0);
+  const operationCount = Object.keys(delta.set || {}).length + (delta.delete?.length || 0);
 
   // Check operation count limits
   if (operationCount > limits.maxOperations) {
     return {
       valid: false,
       error: `Batch operation exceeds maximum of ${limits.maxOperations} operations (${operationCount} requested)`,
-      errorType: "OPERATION_LIMIT_EXCEEDED",
+      errorType: 'OPERATION_LIMIT_EXCEEDED',
     };
   }
 
@@ -96,9 +91,8 @@ function validateBatchOperation(
   if (operationCount === 0) {
     return {
       valid: false,
-      error:
-        "Batch operation cannot be empty. Provide at least one 'set' or 'delete' operation",
-      errorType: "EMPTY_OPERATION",
+      error: "Batch operation cannot be empty. Provide at least one 'set' or 'delete' operation",
+      errorType: 'EMPTY_OPERATION',
     };
   }
 
@@ -108,21 +102,21 @@ function validateBatchOperation(
 
   // Check for invalid key types
   for (const key of setKeys) {
-    if (typeof key !== "string" || key.length === 0) {
+    if (typeof key !== 'string' || key.length === 0) {
       return {
         valid: false,
         error: `Invalid cell key: ${JSON.stringify(key)}. Cell keys must be non-empty strings`,
-        errorType: "INVALID_CELL_KEY_TYPE",
+        errorType: 'INVALID_CELL_KEY_TYPE',
       };
     }
   }
 
   for (const key of deleteKeys) {
-    if (typeof key !== "string" || key.length === 0) {
+    if (typeof key !== 'string' || key.length === 0) {
       return {
         valid: false,
         error: `Invalid cell key: ${JSON.stringify(key)}. Cell keys must be non-empty strings`,
-        errorType: "INVALID_CELL_KEY_TYPE",
+        errorType: 'INVALID_CELL_KEY_TYPE',
       };
     }
   }
@@ -135,12 +129,12 @@ function validateBatchOperation(
       return {
         valid: false,
         error: `Invalid cell key format: "${key}". Expected format: "q,r" where q and r are integers`,
-        errorType: "INVALID_CELL_KEY_FORMAT",
+        errorType: 'INVALID_CELL_KEY_FORMAT',
       };
     }
 
     // Check for extreme coordinate values that could cause memory issues
-    const [qStr, rStr] = key.split(",");
+    const [qStr, rStr] = key.split(',');
     const q = parseInt(qStr, 10);
     const r = parseInt(rStr, 10);
     const MAX_COORDINATE = 100000; // Prevent extremely large coordinates
@@ -149,7 +143,7 @@ function validateBatchOperation(
       return {
         valid: false,
         error: `Cell coordinate too large: "${key}". Coordinates must be within ±${MAX_COORDINATE}`,
-        errorType: "COORDINATE_OUT_OF_BOUNDS",
+        errorType: 'COORDINATE_OUT_OF_BOUNDS',
       };
     }
   }
@@ -161,8 +155,8 @@ function validateBatchOperation(
   if (duplicateKeys.length > 0) {
     return {
       valid: false,
-      error: `Conflicting operations: keys appear in both 'set' and 'delete': [${duplicateKeys.join(", ")}]`,
-      errorType: "CONFLICTING_OPERATIONS",
+      error: `Conflicting operations: keys appear in both 'set' and 'delete': [${duplicateKeys.join(', ')}]`,
+      errorType: 'CONFLICTING_OPERATIONS',
     };
   }
 
@@ -172,18 +166,18 @@ function validateBatchOperation(
     return {
       valid: false,
       error: `Estimated memory usage ${estimatedMemoryMB.toFixed(2)}MB exceeds limit of ${limits.maxMemoryMB}MB`,
-      errorType: "MEMORY_LIMIT_EXCEEDED",
+      errorType: 'MEMORY_LIMIT_EXCEEDED',
     };
   }
 
   // Validate cell data structure
   if (delta.set) {
     for (const [key, cell] of Object.entries(delta.set)) {
-      if (!cell || typeof cell !== "object" || Array.isArray(cell)) {
+      if (!cell || typeof cell !== 'object' || Array.isArray(cell)) {
         return {
           valid: false,
           error: `Invalid cell data for key "${key}": ${JSON.stringify(cell)}. Expected object`,
-          errorType: "INVALID_CELL_DATA",
+          errorType: 'INVALID_CELL_DATA',
         };
       }
     }
@@ -195,10 +189,8 @@ function validateBatchOperation(
 /**
  * Type guard for layer state validation
  */
-export function isValidLayerState<T = Record<string, unknown>>(
-  state: unknown,
-): state is T {
-  return state !== null && typeof state === "object" && !Array.isArray(state);
+export function isValidLayerState<T = Record<string, unknown>>(state: unknown): state is T {
+  return state !== null && typeof state === 'object' && !Array.isArray(state);
 }
 
 /**
@@ -207,10 +199,10 @@ export function isValidLayerState<T = Record<string, unknown>>(
 export function isValidFreeformCell(cell: unknown): cell is FreeformCell {
   return (
     cell !== null &&
-    typeof cell === "object" &&
+    typeof cell === 'object' &&
     !Array.isArray(cell) &&
-    "terrainId" in cell &&
-    typeof (cell as { terrainId: unknown }).terrainId === "string"
+    'terrainId' in cell &&
+    typeof (cell as { terrainId: unknown }).terrainId === 'string'
   );
 }
 
@@ -221,7 +213,7 @@ export function isValidCellsDelta<TCell = FreeformCell>(
   delta: unknown,
   cellValidator?: (cell: unknown) => cell is TCell,
 ): delta is CellsDelta<TCell> {
-  if (!delta || typeof delta !== "object" || Array.isArray(delta)) {
+  if (!delta || typeof delta !== 'object' || Array.isArray(delta)) {
     return false;
   }
 
@@ -229,14 +221,14 @@ export function isValidCellsDelta<TCell = FreeformCell>(
 
   // Check set operations
   if (d.set !== undefined) {
-    if (typeof d.set !== "object" || Array.isArray(d.set)) {
+    if (typeof d.set !== 'object' || Array.isArray(d.set)) {
       return false;
     }
 
     // Validate each cell if validator provided
     if (cellValidator) {
       for (const [key, cell] of Object.entries(d.set)) {
-        if (typeof key !== "string" || !cellValidator(cell)) {
+        if (typeof key !== 'string' || !cellValidator(cell)) {
           return false;
         }
       }
@@ -249,7 +241,7 @@ export function isValidCellsDelta<TCell = FreeformCell>(
       return false;
     }
     for (const key of d.delete) {
-      if (typeof key !== "string") {
+      if (typeof key !== 'string') {
         return false;
       }
     }
@@ -265,9 +257,7 @@ export function isValidCellsDelta<TCell = FreeformCell>(
 /**
  * Estimate memory usage for a batch operation in MB
  */
-function estimateBatchMemoryUsage<TCell = FreeformCell>(
-  delta: CellsDelta<TCell>,
-): number {
+function estimateBatchMemoryUsage<TCell = FreeformCell>(delta: CellsDelta<TCell>): number {
   let estimatedBytes = 0;
 
   // Estimate memory for set operations
@@ -302,12 +292,12 @@ function estimateBatchMemoryUsage<TCell = FreeformCell>(
 }
 
 const DEFAULT_PAPER_STATE: { aspect: PaperAspect; color: string } = {
-  aspect: "16:10",
-  color: "#ffffff",
+  aspect: '16:10',
+  color: '#ffffff',
 };
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  !!value && typeof value === "object" && !Array.isArray(value);
+  !!value && typeof value === 'object' && !Array.isArray(value);
 
 function sanitizePaperState(state: unknown) {
   const base = isPlainObject(state)
@@ -315,12 +305,12 @@ function sanitizePaperState(state: unknown) {
     : ({} as Record<string, unknown>);
   const aspectInput = base.aspect as PaperAspect | undefined;
   const aspect: PaperAspect =
-    aspectInput === "square" || aspectInput === "4:3" || aspectInput === "16:10"
+    aspectInput === 'square' || aspectInput === '4:3' || aspectInput === '16:10'
       ? aspectInput
       : DEFAULT_PAPER_STATE.aspect;
   const colorInput = base.color as string | undefined;
   const color =
-    typeof colorInput === "string" && colorInput.trim().length > 0
+    typeof colorInput === 'string' && colorInput.trim().length > 0
       ? colorInput
       : DEFAULT_PAPER_STATE.color;
   base.aspect = aspect;
@@ -347,16 +337,12 @@ interface CampaignStoreState {
   setMapDescription: (id: string, description: string) => void;
   deleteMap: (id: string) => void;
   setMapVisibility: (id: string, visible: boolean) => void;
-  setMapPaperAspect: (id: string, aspect: "square" | "4:3" | "16:10") => void;
+  setMapPaperAspect: (id: string, aspect: 'square' | '4:3' | '16:10') => void;
   setMapPaperColor: (id: string, color: string) => void;
   // Layer CRUD
   addLayer: (typeId: string, name?: string) => string | null;
   insertLayerBeforeTopAnchor: (typeId: string, name?: string) => string | null;
-  insertLayerAbove: (
-    targetId: string,
-    typeId: string,
-    name?: string,
-  ) => string | null;
+  insertLayerAbove: (targetId: string, typeId: string, name?: string) => string | null;
   removeLayer: (layerId: string) => void;
   duplicateLayer: (layerId: string) => string | null;
   moveLayer: (layerId: string, toIndex: number) => void;
@@ -380,22 +366,17 @@ interface CampaignStoreState {
     cellValidator?: (cell: unknown) => cell is TCell,
   ) => BatchResult<void>;
   // Internal helper exposed for tests
-  _normalizeAnchorsForMap: (
-    map: Campaign["maps"][number],
-  ) => Campaign["maps"][number];
-  _batchUpdateLayerState: <T>(
-    layerId: string,
-    updater: (draft: T) => void | T,
-  ) => BatchResult<T>;
+  _normalizeAnchorsForMap: (map: Campaign['maps'][number]) => Campaign['maps'][number];
+  _batchUpdateLayerState: <T>(layerId: string, updater: (draft: T) => void | T) => BatchResult<T>;
 }
 
 function uuid(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return (crypto as { randomUUID?: () => string }).randomUUID?.() ?? "";
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return (crypto as { randomUUID?: () => string }).randomUUID?.() ?? '';
   }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -404,13 +385,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
   current: null,
   dirty: false,
   // --- helpers (internal) ---
-  _normalizeAnchorsForMap(map: Campaign["maps"][number]) {
-    const layers: LayerInstance[] = Array.isArray(map.layers)
-      ? [...map.layers]
-      : [];
-    const existingPaperIdx = layers.findIndex(
-      (l) => l.type === PAPER_ANCHOR_TYPE,
-    );
+  _normalizeAnchorsForMap(map: Campaign['maps'][number]) {
+    const layers: LayerInstance[] = Array.isArray(map.layers) ? [...map.layers] : [];
+    const existingPaperIdx = layers.findIndex((l) => l.type === PAPER_ANCHOR_TYPE);
     const mapPaperDefaults = map.paper ?? DEFAULT_PAPER_STATE;
     const mapPaperRecord = {
       aspect: mapPaperDefaults.aspect,
@@ -425,7 +402,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       layers.unshift({
         id: uuid(),
         type: PAPER_ANCHOR_TYPE,
-        name: "Paper",
+        name: 'Paper',
         visible: true,
         state,
       });
@@ -446,8 +423,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         | Record<string, unknown>
         | undefined) ?? {
         size: 24,
-        orientation: "pointy",
-        color: "#000000",
+        orientation: 'pointy',
+        color: '#000000',
         usePaletteColor: true,
         alpha: 1,
         lineWidth: 1,
@@ -462,7 +439,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       layers.push({
         id: uuid(),
         type: HEXGRID_ANCHOR_TYPE,
-        name: "Hex Grid",
+        name: 'Hex Grid',
         visible: true,
         state: ensureHexgridState(undefined),
       });
@@ -483,8 +460,8 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const name =
       (params?.name && params.name.trim()) ||
       generateName({
-        type: "campaign",
-        base: "Campaign",
+        type: 'campaign',
+        base: 'Campaign',
         existing: [],
         padTo: 2,
       });
@@ -492,7 +469,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       id: uuid(),
       version: 1,
       name,
-      description: params?.description ?? "",
+      description: params?.description ?? '',
       maps: [],
       activeMapId: null,
     };
@@ -545,49 +522,42 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const name =
       (params?.name && params.name.trim()) ||
       generateName({
-        type: "map",
-        base: "Map",
+        type: 'map',
+        base: 'Map',
         existing: (get().current?.maps ?? []).map((m) => m.name),
         padTo: 2,
       });
-    const description = params?.description ?? "";
+    const description = params?.description ?? '';
     const next = cur;
     const id = uuid();
-    const paperDefaultsRecord = isPlainObject(
-      getLayerType(PAPER_ANCHOR_TYPE)?.defaultState,
-    )
-      ? (getLayerType(PAPER_ANCHOR_TYPE)?.defaultState as Record<
-          string,
-          unknown
-        >)
+    const paperDefaultsRecord = isPlainObject(getLayerType(PAPER_ANCHOR_TYPE)?.defaultState)
+      ? (getLayerType(PAPER_ANCHOR_TYPE)?.defaultState as Record<string, unknown>)
       : {};
     const basePaperState = {
       ...DEFAULT_PAPER_STATE,
       ...paperDefaultsRecord,
     };
-    const { state: paperState, canonical: canonicalPaper } =
-      sanitizePaperState(basePaperState);
+    const { state: paperState, canonical: canonicalPaper } = sanitizePaperState(basePaperState);
     const baseLayers: LayerInstance[] = [
       {
         id: uuid(),
         type: PAPER_ANCHOR_TYPE,
-        name: "Paper",
+        name: 'Paper',
         visible: true,
         state: paperState,
       },
       {
         id: uuid(),
         type: HEXGRID_ANCHOR_TYPE,
-        name: "Hex Grid",
+        name: 'Hex Grid',
         visible: true,
         state: (() => {
           const defaults = getLayerType(HEXGRID_ANCHOR_TYPE)?.defaultState;
-          if (isPlainObject(defaults))
-            return { ...(defaults as Record<string, unknown>) };
+          if (isPlainObject(defaults)) return { ...(defaults as Record<string, unknown>) };
           return {
             size: 24,
-            orientation: "pointy",
-            color: "#000000",
+            orientation: 'pointy',
+            color: '#000000',
             usePaletteColor: true,
             alpha: 1,
             lineWidth: 1,
@@ -642,8 +612,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const cur = get().current;
     if (!cur) return;
     const maps = cur.maps.filter((m) => m.id !== id);
-    const activeMapId =
-      cur.activeMapId === id ? (maps[0]?.id ?? null) : cur.activeMapId;
+    const activeMapId = cur.activeMapId === id ? (maps[0]?.id ?? null) : cur.activeMapId;
     set({ current: { ...cur, maps, activeMapId }, dirty: true });
   },
   setMapVisibility: (id, visible) => {
@@ -714,18 +683,16 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!def) return null;
     const max = def.policy?.maxInstances;
     const count = (map.layers ?? []).filter((l) => l.type === typeId).length;
-    if (typeof max === "number" && count >= max) return null;
+    if (typeof max === 'number' && count >= max) return null;
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
       name:
         (name && name.trim()) ||
         generateName({
-          type: "layer",
+          type: 'layer',
           base: def.title,
-          existing: (map.layers ?? [])
-            .filter((l) => l.type === typeId)
-            .map((l) => l.name ?? ""),
+          existing: (map.layers ?? []).filter((l) => l.type === typeId).map((l) => l.name ?? ''),
           padTo: 2,
         }),
       visible: true,
@@ -753,18 +720,16 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!def) return null;
     const max = def.policy?.maxInstances;
     const count = (map.layers ?? []).filter((l) => l.type === typeId).length;
-    if (typeof max === "number" && count >= max) return null;
+    if (typeof max === 'number' && count >= max) return null;
     const layer: LayerInstance = {
       id: uuid(),
       type: typeId,
       name:
         (name && name.trim()) ||
         generateName({
-          type: "layer",
+          type: 'layer',
           base: def.title,
-          existing: (map.layers ?? [])
-            .filter((l) => l.type === typeId)
-            .map((l) => l.name ?? ""),
+          existing: (map.layers ?? []).filter((l) => l.type === typeId).map((l) => l.name ?? ''),
           padTo: 2,
         }),
       visible: true,
@@ -792,7 +757,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!def) return null;
     const max = def.policy?.maxInstances;
     const count = (map.layers ?? []).filter((l) => l.type === typeId).length;
-    if (typeof max === "number" && count >= max) return null;
+    if (typeof max === 'number' && count >= max) return null;
     const layers = [...(map.layers ?? [])];
     const targetIdx = layers.findIndex((l) => l.id === targetId);
     if (targetIdx < 0) return null;
@@ -804,11 +769,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       name:
         (name && name.trim()) ||
         generateName({
-          type: "layer",
+          type: 'layer',
           base: def.title,
-          existing: (map.layers ?? [])
-            .filter((l) => l.type === typeId)
-            .map((l) => l.name ?? ""),
+          existing: (map.layers ?? []).filter((l) => l.type === typeId).map((l) => l.name ?? ''),
           padTo: 2,
         }),
       visible: true,
@@ -852,9 +815,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     const policy = getLayerPolicy(layer.type);
     if (policy.canDuplicate === false) return null;
     const copyName = generateName({
-      type: "layer",
-      base: layer.name ?? "Layer",
-      existing: (map.layers ?? []).map((l) => l.name ?? ""),
+      type: 'layer',
+      base: layer.name ?? 'Layer',
+      existing: (map.layers ?? []).map((l) => l.name ?? ''),
       duplicateOf: layer.name ?? undefined,
       padTo: 2,
     });
@@ -934,9 +897,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
           m === map
             ? {
                 ...m,
-                layers: (m.layers ?? []).map((l) =>
-                  l.id === layerId ? { ...l, name } : l,
-                ),
+                layers: (m.layers ?? []).map((l) => (l.id === layerId ? { ...l, name } : l)),
               }
             : m,
         ),
@@ -965,8 +926,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
                     ? { ...(l.state as Record<string, unknown>), ...patch }
                     : { ...patch };
                   if (l.type === PAPER_ANCHOR_TYPE) {
-                    const { state, canonical } =
-                      sanitizePaperState(mergedState);
+                    const { state, canonical } = sanitizePaperState(mergedState);
                     paperCanonical = canonical;
                     return { ...l, state } as typeof l;
                   }
@@ -1005,7 +965,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       updater(baseState as T);
     } catch (e) {
       // swallow updater errors to avoid corrupting state
-      console.warn("applyLayerState updater threw", e);
+      console.warn('applyLayerState updater threw', e);
       return;
     }
     let paperCanonical: { aspect: PaperAspect; color: string } | null = null;
@@ -1032,17 +992,14 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       dirty: true,
     });
   },
-  _batchUpdateLayerState: <T>(
-    layerId: string,
-    updater: (draft: T) => void | T,
-  ): BatchResult<T> => {
+  _batchUpdateLayerState: <T>(layerId: string, updater: (draft: T) => void | T): BatchResult<T> => {
     const cur = get().current;
     if (!cur) {
-      return { success: false, error: "No active campaign" };
+      return { success: false, error: 'No active campaign' };
     }
     const map = cur.maps.find((m) => m.id === cur.activeMapId);
     if (!map) {
-      return { success: false, error: "No active map" };
+      return { success: false, error: 'No active map' };
     }
     const layers = [...(map.layers ?? [])];
     const idx = layers.findIndex((l) => l.id === layerId);
@@ -1094,10 +1051,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
 
           // Check memory pressure during operation
           const currentMemory = getMemoryUsage();
-          if (
-            currentMemory &&
-            currentMemory > DEFAULT_BATCH_LIMITS.maxMemoryMB * 10
-          ) {
+          if (currentMemory && currentMemory > DEFAULT_BATCH_LIMITS.maxMemoryMB * 10) {
             // 10x safety factor
             throw new Error(
               `Memory pressure during operation: ${currentMemory.toFixed(2)}MB heap usage`,
@@ -1125,9 +1079,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
       // Calculate metrics
       const elapsed = performance.now() - startTime;
       const endMemory = getMemoryUsage();
-      const memoryDelta = endMemory
-        ? endMemory - (startMemory ?? 0)
-        : undefined;
+      const memoryDelta = endMemory ? endMemory - (startMemory ?? 0) : undefined;
 
       // Final timeout check (in case updater completed but took too long)
       if (elapsed > DEFAULT_BATCH_LIMITS.timeoutMs) {
@@ -1213,31 +1165,19 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     } catch (error) {
       const elapsed = performance.now() - startTime;
       const endMemory = getMemoryUsage();
-      const memoryDelta = endMemory
-        ? endMemory - (startMemory ?? 0)
-        : undefined;
+      const memoryDelta = endMemory ? endMemory - (startMemory ?? 0) : undefined;
 
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
 
       // Determine error type for better handling
-      let errorType = "UNKNOWN_ERROR";
-      if (
-        errorMessage.includes("timeout") ||
-        errorMessage.includes("aborted")
-      ) {
-        errorType = "TIMEOUT";
-      } else if (
-        errorMessage.includes("memory") ||
-        errorMessage.includes("Memory")
-      ) {
-        errorType = "MEMORY_PRESSURE";
+      let errorType = 'UNKNOWN_ERROR';
+      if (errorMessage.includes('timeout') || errorMessage.includes('aborted')) {
+        errorType = 'TIMEOUT';
+      } else if (errorMessage.includes('memory') || errorMessage.includes('Memory')) {
+        errorType = 'MEMORY_PRESSURE';
       }
 
-      console.warn(
-        `_batchUpdateLayerState failed [${errorType}]:`,
-        errorMessage,
-      );
+      console.warn(`_batchUpdateLayerState failed [${errorType}]:`, errorMessage);
       return {
         success: false,
         error: errorMessage,
@@ -1258,11 +1198,11 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (validator) {
       const cur = get().current;
       if (!cur) {
-        return { success: false, error: "No active campaign" };
+        return { success: false, error: 'No active campaign' };
       }
       const map = cur.maps.find((m) => m.id === cur.activeMapId);
       if (!map) {
-        return { success: false, error: "No active map" };
+        return { success: false, error: 'No active map' };
       }
       const layer = (map.layers ?? []).find((l) => l.id === layerId);
       if (!layer) {
@@ -1288,22 +1228,18 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
     if (!isValidCellsDelta(delta, cellValidator)) {
       return {
         success: false,
-        error:
-          "Invalid CellsDelta structure. Must contain valid 'set' and/or 'delete' operations",
+        error: "Invalid CellsDelta structure. Must contain valid 'set' and/or 'delete' operations",
       };
     }
 
     // Validate batch operation
-    const validation = validateBatchOperation(
-      delta as CellsDelta<FreeformCell>,
-    );
+    const validation = validateBatchOperation(delta as CellsDelta<FreeformCell>);
     if (!validation.valid) {
       return { success: false, error: validation.error };
     }
 
     // Calculate operation count for metrics
-    const operationCount =
-      Object.keys(delta.set || {}).length + (delta.delete?.length || 0);
+    const operationCount = Object.keys(delta.set || {}).length + (delta.delete?.length || 0);
 
     // Use _batchUpdateLayerState to apply cell delta with proper typing
     const result = get()._batchUpdateLayerState<{
@@ -1327,9 +1263,7 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
         if (cellValidator) {
           for (const [key, cell] of Object.entries(delta.set)) {
             if (!cellValidator(cell)) {
-              throw new Error(
-                `Invalid cell data for key "${key}": failed validation`,
-              );
+              throw new Error(`Invalid cell data for key "${key}": failed validation`);
             }
             draft.cells[key] = cell;
           }
@@ -1358,10 +1292,9 @@ export const useCampaignStore = create<CampaignStoreState>()((set, get) => ({
  * Get current memory usage in MB if available
  */
 function getMemoryUsage(): number | undefined {
-  if (typeof performance !== "undefined" && "memory" in performance) {
-    const memory = (performance as { memory?: { usedJSHeapSize?: number } })
-      .memory;
-    if (memory && typeof memory.usedJSHeapSize === "number") {
+  if (typeof performance !== 'undefined' && 'memory' in performance) {
+    const memory = (performance as { memory?: { usedJSHeapSize?: number } }).memory;
+    if (memory && typeof memory.usedJSHeapSize === 'number') {
       return memory.usedJSHeapSize / (1024 * 1024); // Convert bytes to MB
     }
   }
@@ -1382,8 +1315,7 @@ export function withBatchMetrics<T>(
     const result = operation();
     const elapsed = performance.now() - startTime;
     const endMemory = getMemoryUsage();
-    const memoryDelta =
-      endMemory && startMemory ? endMemory - startMemory : undefined;
+    const memoryDelta = endMemory && startMemory ? endMemory - startMemory : undefined;
 
     // Enhance metrics with wrapper measurements
     const enhancedMetrics: BatchMetrics = {
@@ -1404,8 +1336,7 @@ export function withBatchMetrics<T>(
   } catch (error) {
     const elapsed = performance.now() - startTime;
     const endMemory = getMemoryUsage();
-    const memoryDelta =
-      endMemory && startMemory ? endMemory - startMemory : undefined;
+    const memoryDelta = endMemory && startMemory ? endMemory - startMemory : undefined;
 
     const errorMessage = error instanceof Error ? error.message : String(error);
     return {

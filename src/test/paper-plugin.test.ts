@@ -1,54 +1,54 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { paperPluginManifest, paperPluginModule } from "@/plugin/builtin/paper";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { paperPluginManifest, paperPluginModule } from '@/plugin/builtin/paper';
 
-vi.mock("@/layers/registry", () => ({
+vi.mock('@/layers/registry', () => ({
   registerLayerType: vi.fn(),
 }));
 
-vi.mock("@/layers/adapters/paper", () => ({
+vi.mock('@/layers/adapters/paper', () => ({
   PaperType: {
-    id: "paper",
-    name: "Paper",
+    id: 'paper',
+    name: 'Paper',
     canDelete: false,
     canDuplicate: false,
     maxInstances: 1,
   },
 }));
 
-describe("Paper Plugin", () => {
+describe('Paper Plugin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("Paper Plugin Manifest", () => {
-    it("has correct plugin manifest properties", () => {
-      expect(paperPluginManifest.id).toBe("core.paper");
-      expect(paperPluginManifest.name).toBe("Paper Layer");
-      expect(paperPluginManifest.version).toBe("1.0.0");
+  describe('Paper Plugin Manifest', () => {
+    it('has correct plugin manifest properties', () => {
+      expect(paperPluginManifest.id).toBe('core.paper');
+      expect(paperPluginManifest.name).toBe('Paper Layer');
+      expect(paperPluginManifest.version).toBe('1.0.0');
       expect(paperPluginManifest.priority).toBe(100);
     });
 
-    it("has high priority for anchor layer status", () => {
+    it('has high priority for anchor layer status', () => {
       expect(paperPluginManifest.priority).toBe(100);
     });
 
-    it("has required manifest fields", () => {
-      expect(typeof paperPluginManifest.id).toBe("string");
-      expect(typeof paperPluginManifest.name).toBe("string");
-      expect(typeof paperPluginManifest.version).toBe("string");
-      expect(typeof paperPluginManifest.priority).toBe("number");
+    it('has required manifest fields', () => {
+      expect(typeof paperPluginManifest.id).toBe('string');
+      expect(typeof paperPluginManifest.name).toBe('string');
+      expect(typeof paperPluginManifest.version).toBe('string');
+      expect(typeof paperPluginManifest.priority).toBe('number');
     });
   });
 
-  describe("Paper Plugin Module", () => {
-    it("has activate function", () => {
+  describe('Paper Plugin Module', () => {
+    it('has activate function', () => {
       expect(paperPluginModule.activate).toBeDefined();
-      expect(typeof paperPluginModule.activate).toBe("function");
+      expect(typeof paperPluginModule.activate).toBe('function');
     });
 
-    it("registers paper layer type on activation", async () => {
-      const { registerLayerType } = await import("@/layers/registry");
-      const { PaperType } = await import("@/layers/adapters/paper");
+    it('registers paper layer type on activation', async () => {
+      const { registerLayerType } = await import('@/layers/registry');
+      const { PaperType } = await import('@/layers/adapters/paper');
 
       const mockCtx = {
         log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -60,19 +60,17 @@ describe("Paper Plugin", () => {
       expect(registerLayerType).toHaveBeenCalledWith(PaperType);
     });
 
-    it("does not throw error during activation", async () => {
+    it('does not throw error during activation', async () => {
       const mockCtx = {
         log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
         app: {},
       };
-      await expect(
-        paperPluginModule.activate?.(mockCtx),
-      ).resolves.not.toThrow();
+      await expect(paperPluginModule.activate?.(mockCtx)).resolves.not.toThrow();
     });
   });
 
-  describe("Paper Plugin Integration", () => {
-    it("provides expected plugin interface", () => {
+  describe('Paper Plugin Integration', () => {
+    it('provides expected plugin interface', () => {
       // Verify plugin exports match expected interface
       expect(paperPluginManifest).toBeDefined();
       expect(paperPluginModule).toBeDefined();
@@ -91,7 +89,7 @@ describe("Paper Plugin", () => {
       });
     });
 
-    it("maintains plugin consistency with other builtin plugins", () => {
+    it('maintains plugin consistency with other builtin plugins', () => {
       // Verify ID follows expected naming convention
       expect(paperPluginManifest.id).toMatch(/^core\./);
 
@@ -103,13 +101,13 @@ describe("Paper Plugin", () => {
     });
   });
 
-  describe("Error Handling", () => {
-    it("handles registration errors gracefully", async () => {
-      const { registerLayerType } = await import("@/layers/registry");
+  describe('Error Handling', () => {
+    it('handles registration errors gracefully', async () => {
+      const { registerLayerType } = await import('@/layers/registry');
 
       // Mock registerLayerType to throw error
       vi.mocked(registerLayerType).mockImplementationOnce(() => {
-        throw new Error("Registration failed");
+        throw new Error('Registration failed');
       });
 
       const mockCtx = {
@@ -118,19 +116,17 @@ describe("Paper Plugin", () => {
       };
 
       // Activation should throw (error will be handled by plugin loader)
-      await expect(paperPluginModule.activate?.(mockCtx)).rejects.toThrow(
-        "Registration failed",
-      );
+      await expect(paperPluginModule.activate?.(mockCtx)).rejects.toThrow('Registration failed');
     });
 
-    it("works with undefined activate function", () => {
+    it('works with undefined activate function', () => {
       const moduleWithoutActivate = {};
 
       // Should not throw when activate is undefined
       expect(() => {
         if (
-          "activate" in moduleWithoutActivate &&
-          typeof moduleWithoutActivate.activate === "function"
+          'activate' in moduleWithoutActivate &&
+          typeof moduleWithoutActivate.activate === 'function'
         ) {
           moduleWithoutActivate.activate();
         }

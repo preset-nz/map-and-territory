@@ -1,4 +1,4 @@
-import type { Axial, Cube } from "./types";
+import type { Axial, Cube } from './types';
 
 // Axial <-> Cube conversions
 export function axialToCube(a: Axial): Cube {
@@ -36,9 +36,7 @@ export function round(frac: Cube): Axial {
 export function distance(a: Axial, b: Axial): number {
   const ac = axialToCube(a);
   const bc = axialToCube(b);
-  return (
-    (Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y) + Math.abs(ac.z - bc.z)) / 2
-  );
+  return (Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y) + Math.abs(ac.z - bc.z)) / 2;
 }
 
 // Neighbor directions for axial coords (pointy and flat share these axial deltas)

@@ -1,5 +1,5 @@
-import { axialToCube, cubeToAxial, distance } from "./coords";
-import type { Axial } from "./types";
+import { axialToCube, cubeToAxial, distance } from './coords';
+import type { Axial } from './types';
 
 export function ring(center: Axial, radius: number): Axial[] {
   if (radius <= 0) return [];
@@ -30,11 +30,7 @@ export function ring(center: Axial, radius: number): Axial[] {
 export function range(center: Axial, radius: number): Axial[] {
   const results: Axial[] = [];
   for (let dq = -radius; dq <= radius; dq++) {
-    for (
-      let dr = Math.max(-radius, -dq - radius);
-      dr <= Math.min(radius, -dq + radius);
-      dr++
-    ) {
+    for (let dr = Math.max(-radius, -dq - radius); dr <= Math.min(radius, -dq + radius); dr++) {
       results.push({ q: center.q + dq, r: center.r + dr });
     }
   }

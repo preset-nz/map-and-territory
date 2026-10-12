@@ -1,4 +1,4 @@
-import type { LayerInstance } from "@/layers/types";
+import type { LayerInstance } from '@/layers/types';
 
 export interface AnchorBounds {
   bottom: number; // index of bottom anchor (paper) or -1 when absent
@@ -7,12 +7,10 @@ export interface AnchorBounds {
   max: number; // highest index a non-anchor layer may occupy
 }
 
-export const PAPER_ANCHOR_TYPE = "paper";
-export const HEXGRID_ANCHOR_TYPE = "hexgrid";
+export const PAPER_ANCHOR_TYPE = 'paper';
+export const HEXGRID_ANCHOR_TYPE = 'hexgrid';
 
-export function isAnchorLayer(
-  layer: LayerInstance | null | undefined,
-): boolean {
+export function isAnchorLayer(layer: LayerInstance | null | undefined): boolean {
   if (!layer) return false;
   return layer.type === PAPER_ANCHOR_TYPE || layer.type === HEXGRID_ANCHOR_TYPE;
 }
@@ -27,11 +25,7 @@ export function getAnchorBounds(layers: LayerInstance[]): AnchorBounds {
   return { bottom, top, min, max };
 }
 
-export function clampToAnchorRange(
-  index: number,
-  bounds: AnchorBounds,
-  total: number,
-): number {
+export function clampToAnchorRange(index: number, bounds: AnchorBounds, total: number): number {
   const clampedMin = Math.max(0, bounds.min);
   const clampedMax = Math.max(clampedMin, Math.min(bounds.max, total - 1));
   return Math.max(clampedMin, Math.min(index, clampedMax));

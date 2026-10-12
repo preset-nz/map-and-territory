@@ -1,14 +1,14 @@
 /// <reference lib="webworker" />
 
-import { FreeformType } from "@/layers/adapters/freeform-hex";
-import { HexNoiseType } from "@/layers/adapters/hex-noise";
-import { HexgridType } from "@/layers/adapters/hexgrid";
-import { OutlineType } from "@/layers/adapters/outline";
-import { PaperType } from "@/layers/adapters/paper";
-import { registerLayerType } from "@/layers/registry";
-import bootstrapPlugins from "@/plugin/bootstrap";
-import { Canvas2DBackend } from "@/render/backends/canvas2d";
-import type { RenderMessage, SceneFrame } from "@/render/types";
+import { FreeformType } from '@/layers/adapters/freeform-hex';
+import { HexNoiseType } from '@/layers/adapters/hex-noise';
+import { HexgridType } from '@/layers/adapters/hexgrid';
+import { OutlineType } from '@/layers/adapters/outline';
+import { PaperType } from '@/layers/adapters/paper';
+import { registerLayerType } from '@/layers/registry';
+import bootstrapPlugins from '@/plugin/bootstrap';
+import { Canvas2DBackend } from '@/render/backends/canvas2d';
+import type { RenderMessage, SceneFrame } from '@/render/types';
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
@@ -23,17 +23,17 @@ workerGlobal.__freeformTextureReady = () => {
   try {
     backend.render(lastFrame);
   } catch (error) {
-    console.warn("[worker] re-render after texture ready failed", error);
+    console.warn('[worker] re-render after texture ready failed', error);
   }
 };
 
-async function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
+async function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
   // Load plugins inside the worker to register layer adapters and render SPI.
   // Rendering will gracefully skip unknown layers if bootstrapping fails.
   try {
     await bootstrapPlugins();
   } catch (e) {
-    console.error("[worker] plugin bootstrap failed:", e);
+    console.error('[worker] plugin bootstrap failed:', e);
     // Continue; renderer will simply skip unknown layers
   }
   // Always ensure core layer types are registered in the worker even if plugins failed
@@ -58,34 +58,25 @@ async function handleInit(msg: Extract<RenderMessage, { type: "init" }>) {
   backend.init(msg.canvas, msg.pixelRatio);
   // Acknowledge initialization to the main thread
   (self as unknown as { postMessage: (m: RenderMessage) => void }).postMessage({
-    type: "inited",
+    type: 'inited',
   });
 }
 
-function handleResize(msg: Extract<RenderMessage, { type: "resize" }>) {
+function handleResize(msg: Extract<RenderMessage, { type: 'resize' }>) {
   if (canvasRef) {
     // Resize bitmap to device pixels
-    canvasRef.width = Math.max(
-      1,
-      Math.floor(msg.size.w * (msg.pixelRatio || 1)),
-    );
-    canvasRef.height = Math.max(
-      1,
-      Math.floor(msg.size.h * (msg.pixelRatio || 1)),
-    );
+    canvasRef.width = Math.max(1, Math.floor(msg.size.w * (msg.pixelRatio || 1)));
+    canvasRef.height = Math.max(1, Math.floor(msg.size.h * (msg.pixelRatio || 1)));
   }
   backend?.resize(msg.size, msg.pixelRatio);
 }
 
-function handleRender(msg: Extract<RenderMessage, { type: "render" }>) {
+function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
   // Defensive: ensure the bitmap matches incoming frame size × dpr
   const dpr = msg.frame.pixelRatio || 1;
   const targetW = Math.max(1, Math.floor(msg.frame.size.w * dpr));
   const targetH = Math.max(1, Math.floor(msg.frame.size.h * dpr));
-  if (
-    canvasRef &&
-    (canvasRef.width !== targetW || canvasRef.height !== targetH)
-  ) {
+  if (canvasRef && (canvasRef.width !== targetW || canvasRef.height !== targetH)) {
     canvasRef.width = targetW;
     canvasRef.height = targetH;
     backend?.resize(msg.frame.size, dpr);
@@ -105,16 +96,16 @@ function handleDestroy() {
 self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
   const msg = ev.data;
   switch (msg.type) {
-    case "init":
+    case 'init':
       await handleInit(msg);
       break;
-    case "resize":
+    case 'resize':
       handleResize(msg);
       break;
-    case "render":
+    case 'render':
       handleRender(msg);
       break;
-    case "destroy":
+    case 'destroy':
       handleDestroy();
       break;
   }

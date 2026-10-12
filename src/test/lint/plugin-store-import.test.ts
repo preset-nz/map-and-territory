@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * Plugins must not import store modules directly; they go through
@@ -16,10 +16,10 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-describe("plugin store import boundary", () => {
-  it("no file under src/plugin imports @/stores", () => {
-    const offenders = walk(join(process.cwd(), "src/plugin")).filter((f) =>
-      /from\s+["']@\/stores(\/|["'])/.test(readFileSync(f, "utf8")),
+describe('plugin store import boundary', () => {
+  it('no file under src/plugin imports @/stores', () => {
+    const offenders = walk(join(process.cwd(), 'src/plugin')).filter((f) =>
+      /from\s+["']@\/stores(\/|["'])/.test(readFileSync(f, 'utf8')),
     );
     expect(offenders).toEqual([]);
   });

@@ -1,5 +1,5 @@
-import type { CapabilityToken } from "@/plugin/types";
-import { getCurrentCampaign, getSelection } from "./state";
+import type { CapabilityToken } from '@/plugin/types';
+import { getCurrentCampaign, getSelection } from './state';
 
 export type CapabilityResult = { enabled: boolean; reason?: string };
 
@@ -19,51 +19,39 @@ function evaluateToken(token: CapabilityToken): CapabilityResult {
   const selection = getSelection();
 
   switch (true) {
-    case token === "hasActiveMap": {
+    case token === 'hasActiveMap': {
       const has = !!campaign?.activeMapId;
-      return has
-        ? { enabled: true }
-        : { enabled: false, reason: "Requires an active map" };
+      return has ? { enabled: true } : { enabled: false, reason: 'Requires an active map' };
     }
-    case token === "gridVisible": {
-      const activeMap = campaign?.maps.find(
-        (map) => map.id === campaign.activeMapId,
-      );
-      const grid = activeMap?.layers?.find((layer) => layer.type === "hexgrid");
+    case token === 'gridVisible': {
+      const activeMap = campaign?.maps.find((map) => map.id === campaign.activeMapId);
+      const grid = activeMap?.layers?.find((layer) => layer.type === 'hexgrid');
       return grid?.visible !== false
         ? { enabled: true }
-        : { enabled: false, reason: "Grid must be visible" };
+        : { enabled: false, reason: 'Grid must be visible' };
     }
-    case token === "hasCampaign": {
+    case token === 'hasCampaign': {
       const has = !!campaign;
-      return has
-        ? { enabled: true }
-        : { enabled: false, reason: "Requires a campaign" };
+      return has ? { enabled: true } : { enabled: false, reason: 'Requires a campaign' };
     }
-    case token === "hasActiveLayer": {
-      return selection.kind === "layer"
+    case token === 'hasActiveLayer': {
+      return selection.kind === 'layer'
         ? { enabled: true }
-        : { enabled: false, reason: "Requires a selected layer" };
+        : { enabled: false, reason: 'Requires a selected layer' };
     }
-    case token.startsWith("selectionIs:"): {
-      const target = token.split(":", 2)[1] as
-        | "campaign"
-        | "map"
-        | "layer"
-        | undefined;
+    case token.startsWith('selectionIs:'): {
+      const target = token.split(':', 2)[1] as 'campaign' | 'map' | 'layer' | undefined;
       return selection.kind === target
         ? { enabled: true }
         : { enabled: false, reason: `Requires ${target} selection` };
     }
-    case token.startsWith("activeLayerIs:"): {
-      const typeId = token.split(":", 2)[1] as string | undefined;
+    case token.startsWith('activeLayerIs:'): {
+      const typeId = token.split(':', 2)[1] as string | undefined;
       if (!typeId) return { enabled: true };
-      if (selection.kind !== "layer" || !campaign) {
+      if (selection.kind !== 'layer' || !campaign) {
         return { enabled: false, reason: `Select a ${typeId} layer` };
       }
-      const activeMap = campaign.maps.find(
-        (map) => map.id === campaign.activeMapId,
-      );
+      const activeMap = campaign.maps.find((map) => map.id === campaign.activeMapId);
       const layer = activeMap?.layers?.find((l) => l.id === selection.id);
       return layer?.type === typeId
         ? { enabled: true }

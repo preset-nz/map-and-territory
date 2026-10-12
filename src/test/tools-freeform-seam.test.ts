@@ -1,13 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AppAPI } from "@/appapi";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
-import { registerLayerType } from "@/layers/registry";
-import { freeformModule } from "@/plugin/builtin/freeform";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { AppAPI } from '@/appapi';
+import { FreeformType } from '@/layers/adapters/freeform-hex';
+import { registerLayerType } from '@/layers/registry';
+import { freeformModule } from '@/plugin/builtin/freeform';
+import { useCampaignStore } from '@/stores/campaign';
+import { useSelectionStore } from '@/stores/selection';
 
-const paintTool = freeformModule.tools!.find((t) => t.id === "paint")!;
-const eraseTool = freeformModule.tools!.find((t) => t.id === "erase")!;
+const paintTool = freeformModule.tools!.find((t) => t.id === 'paint')!;
+const eraseTool = freeformModule.tools!.find((t) => t.id === 'erase')!;
 
 function getCtx(layerId: string) {
   return {
@@ -22,7 +22,7 @@ function getCtx(layerId: string) {
       const layer = map?.layers?.find((l) => l.id === lid);
       return (layer?.state as T) ?? null;
     },
-    selection: { kind: "layer", id: layerId },
+    selection: { kind: 'layer', id: layerId },
   } as const;
 }
 
@@ -32,16 +32,16 @@ const env = {
   size: { w: 100, h: 100 },
   paperRect: { x: 0, y: 0, w: 100, h: 100 },
   camera: { x: 0, y: 0, zoom: 1 },
-  grid: { size: 16, orientation: "pointy" as const },
+  grid: { size: 16, orientation: 'pointy' as const },
   palette: undefined,
 };
 
-describe("Freeform tools use ToolContext seams", () => {
+describe('Freeform tools use ToolContext seams', () => {
   beforeEach(() => {
     const s = useCampaignStore.getState();
     s.setActive(null);
-    s.createEmpty({ name: "Seam Campaign" });
-    s.addMap({ name: "Map 01" });
+    s.createEmpty({ name: 'Seam Campaign' });
+    s.addMap({ name: 'Map 01' });
     registerLayerType(FreeformType);
   });
   afterEach(() => {
@@ -49,12 +49,12 @@ describe("Freeform tools use ToolContext seams", () => {
     useSelectionStore.getState().clear();
   });
 
-  it("paint tool writes via applyLayerState; erase removes cell", () => {
+  it('paint tool writes via applyLayerState; erase removes cell', () => {
     const store = useCampaignStore.getState();
-    const layerId = store.addLayer("freeform")!;
+    const layerId = store.addLayer('freeform')!;
     useSelectionStore.getState().selectLayer(layerId);
     // Configure brush color on layer state
-    store.updateLayerState(layerId, { brushColor: "#112233" });
+    store.updateLayerState(layerId, { brushColor: '#112233' });
 
     const ctx = getCtx(layerId);
     // Center point maps to {0,0} for origin at center
@@ -65,8 +65,8 @@ describe("Freeform tools use ToolContext seams", () => {
     const layer = (map.layers ?? []).find((l) => l.id === layerId)! as {
       state: Record<string, any>;
     };
-    expect(layer.state.cells["0,0"]).toBeTruthy();
-    expect(layer.state.cells["0,0"].color).toBe("#112233");
+    expect(layer.state.cells['0,0']).toBeTruthy();
+    expect(layer.state.cells['0,0'].color).toBe('#112233');
 
     // Now erase
     eraseTool.onPointerDown?.({ x: 50, y: 50 }, env as any, ctx as any);
@@ -75,6 +75,6 @@ describe("Freeform tools use ToolContext seams", () => {
     const layer2 = (map2.layers ?? []).find((l) => l.id === layerId)! as {
       state: Record<string, any>;
     };
-    expect(layer2.state.cells["0,0"]).toBeUndefined();
+    expect(layer2.state.cells['0,0']).toBeUndefined();
   });
 });

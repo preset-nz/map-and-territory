@@ -1,4 +1,4 @@
-export type PaperAspect = "square" | "4:3" | "16:10";
+export type PaperAspect = 'square' | '4:3' | '16:10';
 
 export interface PaperRect {
   x: number;
@@ -22,11 +22,11 @@ export function resolveAspectRatio(aspect: PaperAspect): {
   ah: number;
 } {
   switch (aspect) {
-    case "square":
+    case 'square':
       return { aw: 1, ah: 1 };
-    case "4:3":
+    case '4:3':
       return { aw: 4, ah: 3 };
-    case "16:10":
+    case '16:10':
     default:
       return { aw: 16, ah: 10 };
   }
@@ -36,11 +36,7 @@ export function resolveAspectRatio(aspect: PaperAspect): {
  * Computes the drawable paper rectangle, preserving aspect ratio with consistent padding.
  * Defaults align with legacy CanvasViewport/paper plugin logic to avoid visual churn.
  */
-export function computePaperRect({
-  canvasSize,
-  paper,
-  padding,
-}: ComputePaperRectInput): PaperRect {
+export function computePaperRect({ canvasSize, paper, padding }: ComputePaperRectInput): PaperRect {
   const canvasW = Math.max(0, canvasSize.w);
   const canvasH = Math.max(0, canvasSize.h);
 

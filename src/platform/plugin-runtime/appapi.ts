@@ -1,6 +1,6 @@
-import type { Campaign } from "@/stores/campaign";
-import { useCampaignStore } from "@/stores/campaign";
-import { useSelectionStore } from "@/stores/selection";
+import type { Campaign } from '@/stores/campaign';
+import { useCampaignStore } from '@/stores/campaign';
+import { useSelectionStore } from '@/stores/selection';
 
 export interface CampaignAPI {
   newCampaign: (params?: { name?: string; description?: string }) => Campaign;
@@ -24,7 +24,7 @@ export function getAppAPI(): AppAPI {
       newCampaign: (params) => {
         const campaign = useCampaignStore.getState().createEmpty({
           name: params?.name,
-          description: params?.description ?? "",
+          description: params?.description ?? '',
         });
         useSelectionStore.getState().selectCampaign();
         return campaign;
@@ -32,7 +32,7 @@ export function getAppAPI(): AppAPI {
       newMap: (params) => {
         const id = useCampaignStore.getState().addMap({
           name: params?.name,
-          description: params?.description ?? "",
+          description: params?.description ?? '',
         });
         if (id) {
           useCampaignStore.getState().selectMap(id);

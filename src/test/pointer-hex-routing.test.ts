@@ -1,10 +1,10 @@
-import { fireEvent, render } from "@testing-library/react";
-import React from "react";
-import { beforeAll, describe, expect, it } from "vitest";
-import CanvasViewport from "@/components/map/canvas-viewport";
-import { useCampaignStore } from "@/stores/campaign";
-import { useLayoutStore } from "@/stores/layout";
-import { registerCoreLayerTypes } from "@/test/test-helpers";
+import { fireEvent, render } from '@testing-library/react';
+import React from 'react';
+import { beforeAll, describe, expect, it } from 'vitest';
+import CanvasViewport from '@/components/map/canvas-viewport';
+import { useCampaignStore } from '@/stores/campaign';
+import { useLayoutStore } from '@/stores/layout';
+import { registerCoreLayerTypes } from '@/test/test-helpers';
 
 // Minimal canvas 2D context mock so fallback renderer can initialize
 beforeAll(() => {
@@ -46,35 +46,35 @@ beforeAll(() => {
   }
 });
 
-function seedProject(orientation: "pointy" | "flat", visible = true) {
+function seedProject(orientation: 'pointy' | 'flat', visible = true) {
   const project = {
-    id: "p1",
+    id: 'p1',
     version: 1,
-    name: "Test",
+    name: 'Test',
     maps: [
       {
-        id: "m1",
-        name: "Map",
-        description: "",
+        id: 'm1',
+        name: 'Map',
+        description: '',
         visible: true,
-        paper: { aspect: "16:10" as const, color: "#ffffff" },
+        paper: { aspect: '16:10' as const, color: '#ffffff' },
         layers: [
           {
-            id: "paper",
-            type: "paper",
-            name: "Paper",
+            id: 'paper',
+            type: 'paper',
+            name: 'Paper',
             visible: true,
-            state: { color: "#ffffff", aspect: "16:10" as const },
+            state: { color: '#ffffff', aspect: '16:10' as const },
           },
           {
-            id: "grid",
-            type: "hexgrid",
-            name: "Hex Grid",
+            id: 'grid',
+            type: 'hexgrid',
+            name: 'Hex Grid',
             visible,
             state: {
               size: 24,
               orientation,
-              color: "#000000",
+              color: '#000000',
               alpha: 1,
               lineWidth: 1,
             },
@@ -82,7 +82,7 @@ function seedProject(orientation: "pointy" | "flat", visible = true) {
         ],
       },
     ],
-    activeMapId: "m1",
+    activeMapId: 'm1',
   } as const;
   useCampaignStore.getState().setActive(project as unknown as typeof project);
 }
@@ -120,11 +120,11 @@ function paperCenter(cw = 800, ch = 600) {
   return { x: paperX + paperW / 2, y: paperY + paperH / 2 };
 }
 
-describe("pointer → hex routing via AppAPI.hex", () => {
-  it("updates store with {0,0} at paper center (pointy)", async () => {
-    seedProject("pointy", true);
+describe('pointer → hex routing via AppAPI.hex', () => {
+  it('updates store with {0,0} at paper center (pointy)', async () => {
+    seedProject('pointy', true);
     const { container } = render(React.createElement(CanvasViewport));
-    const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = container.querySelector('canvas') as HTMLCanvasElement;
     expect(canvas).toBeTruthy();
     mockCanvasRect(canvas, 800, 600);
     const c = paperCenter(800, 600);
@@ -136,10 +136,10 @@ describe("pointer → hex routing via AppAPI.hex", () => {
     expect(hex).toEqual({ q: 0, r: 0 });
   });
 
-  it("updates store with {0,0} at paper center (flat)", async () => {
-    seedProject("flat", true);
+  it('updates store with {0,0} at paper center (flat)', async () => {
+    seedProject('flat', true);
     const { container } = render(React.createElement(CanvasViewport));
-    const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = container.querySelector('canvas') as HTMLCanvasElement;
     expect(canvas).toBeTruthy();
     mockCanvasRect(canvas, 800, 600);
     const c = paperCenter(800, 600);
@@ -151,10 +151,10 @@ describe("pointer → hex routing via AppAPI.hex", () => {
     expect(hex).toEqual({ q: 0, r: 0 });
   });
 
-  it("sets hex to null when hexgrid is not visible", async () => {
-    seedProject("pointy", false);
+  it('sets hex to null when hexgrid is not visible', async () => {
+    seedProject('pointy', false);
     const { container } = render(React.createElement(CanvasViewport));
-    const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = container.querySelector('canvas') as HTMLCanvasElement;
     expect(canvas).toBeTruthy();
     mockCanvasRect(canvas, 800, 600);
     const c = paperCenter(800, 600);

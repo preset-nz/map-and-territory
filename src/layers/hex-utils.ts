@@ -1,5 +1,5 @@
-import { corners, toPoint } from "@/lib/hex/layout";
-import type { Axial, Layout, Point } from "@/lib/hex/types";
+import { corners, toPoint } from '@/lib/hex/layout';
+import type { Axial, Layout, Point } from '@/lib/hex/types';
 
 // Stable axial key for sparse maps
 export function axialKey(q: number, r: number): string {
@@ -11,7 +11,7 @@ export function axialKeyFrom(a: Axial): string {
 }
 
 export function parseAxialKey(key: string): Axial {
-  const [qs, rs] = key.split(",");
+  const [qs, rs] = key.split(',');
   const q = Number(qs);
   const r = Number(rs);
   if (!Number.isFinite(q) || !Number.isFinite(r)) {
@@ -29,7 +29,7 @@ export function centerFor(ax: Axial, layout: Layout): Point {
 export function hexPath(
   ctx: CanvasRenderingContext2D,
   center: Point,
-  layout: Pick<Layout, "size" | "orientation">,
+  layout: Pick<Layout, 'size' | 'orientation'>,
 ) {
   const pts = corners(center, { ...layout, origin: { x: 0, y: 0 } });
   ctx.beginPath();
@@ -44,7 +44,7 @@ export function hexPath(
 // Configuration for hex tiling generation
 export interface HexTilingConfig {
   size: number;
-  orientation: "pointy" | "flat";
+  orientation: 'pointy' | 'flat';
   center: Point;
   bounds: { w: number; h: number };
   padding?: number; // extra hexes beyond bounds
@@ -63,7 +63,7 @@ export function* hexTiles(config: HexTilingConfig): Generator<HexTilePosition> {
   const r = size;
   const sqrt3 = Math.sqrt(3);
 
-  if (orientation === "flat") {
+  if (orientation === 'flat') {
     const colStep = 1.5 * r;
     const rowStep = sqrt3 * r;
     const cols = Math.ceil(bounds.w / colStep) + padding;
@@ -118,7 +118,7 @@ export function* hexTiles(config: HexTilingConfig): Generator<HexTilePosition> {
 // Shared layout creation helper
 export function createHexLayout(
   size: number,
-  orientation: "pointy" | "flat",
-): Pick<Layout, "size" | "orientation"> {
+  orientation: 'pointy' | 'flat',
+): Pick<Layout, 'size' | 'orientation'> {
   return { size, orientation };
 }

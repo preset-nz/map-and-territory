@@ -1,16 +1,16 @@
-import { fireEvent, render } from "@testing-library/react";
-import React from "react";
-import { beforeEach, describe, expect, it } from "vitest";
-import CanvasViewport from "@/components/map/canvas-viewport";
-import { FreeformType } from "@/layers/adapters/freeform-hex";
-import { registerLayerType } from "@/layers/registry";
-import type { LayerType } from "@/layers/types";
-import { useCampaignStore } from "@/stores/campaign";
-import { useLayoutStore } from "@/stores/layout";
-import { useSelectionStore } from "@/stores/selection";
+import { fireEvent, render } from '@testing-library/react';
+import React from 'react';
+import { beforeEach, describe, expect, it } from 'vitest';
+import CanvasViewport from '@/components/map/canvas-viewport';
+import { FreeformType } from '@/layers/adapters/freeform-hex';
+import { registerLayerType } from '@/layers/registry';
+import type { LayerType } from '@/layers/types';
+import { useCampaignStore } from '@/stores/campaign';
+import { useLayoutStore } from '@/stores/layout';
+import { useSelectionStore } from '@/stores/selection';
 
 function mockCanvasRect(canvas: HTMLCanvasElement, w = 800, h = 600) {
-  Object.defineProperty(canvas, "getBoundingClientRect", {
+  Object.defineProperty(canvas, 'getBoundingClientRect', {
     value: () => ({
       left: 0,
       top: 0,
@@ -43,31 +43,29 @@ function paperCenter(cw = 800, ch = 600) {
   return { x: paperX + paperW / 2, y: paperY + paperH / 2 };
 }
 
-describe("Freeform paint/erase integration", () => {
+describe('Freeform paint/erase integration', () => {
   beforeEach(() => {
     useCampaignStore.setState({ current: null });
-    useSelectionStore.setState({ selection: { kind: "none" } });
-    useLayoutStore.getState().setActiveTool("select");
+    useSelectionStore.setState({ selection: { kind: 'none' } });
+    useLayoutStore.getState().setActiveTool('select');
     registerLayerType(FreeformType as unknown as LayerType);
   });
 
-  it("paints and erases a hex cell", async () => {
+  it('paints and erases a hex cell', async () => {
     // Campaign with map and grid
-    useCampaignStore.getState().createEmpty({ name: "Test" });
-    const mapId = useCampaignStore.getState().addMap({ name: "Map" })!;
+    useCampaignStore.getState().createEmpty({ name: 'Test' });
+    const mapId = useCampaignStore.getState().addMap({ name: 'Map' })!;
     useCampaignStore.getState().selectMap(mapId);
     // Add freeform layer and select it
-    const id = useCampaignStore
-      .getState()
-      .insertLayerBeforeTopAnchor("freeform")!;
+    const id = useCampaignStore.getState().insertLayerBeforeTopAnchor('freeform')!;
     useSelectionStore.getState().selectLayer(id);
     // Seed brush
-    useCampaignStore.getState().updateLayerState(id, { brushColor: "#ff0000" });
+    useCampaignStore.getState().updateLayerState(id, { brushColor: '#ff0000' });
     // Activate paint tool
-    useLayoutStore.getState().setActiveTool("paint");
+    useLayoutStore.getState().setActiveTool('paint');
 
     const { container } = render(<CanvasViewport />);
-    const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = container.querySelector('canvas') as HTMLCanvasElement;
     expect(canvas).toBeTruthy();
     mockCanvasRect(canvas);
     const c = paperCenter();
@@ -77,18 +75,16 @@ describe("Freeform paint/erase integration", () => {
 
     const cur = useCampaignStore.getState().current!;
     const layer = cur.maps[0].layers!.find((l) => l.id === id)!;
-    const cells =
-      (layer.state as { cells?: Record<string, unknown> }).cells ?? {};
+    const cells = (layer.state as { cells?: Record<string, unknown> }).cells ?? {};
     expect(Object.keys(cells).length).toBeGreaterThan(0);
 
     // Erase at same spot
-    useLayoutStore.getState().setActiveTool("erase");
+    useLayoutStore.getState().setActiveTool('erase');
     fireEvent.pointerDown(canvas, { clientX: c.x, clientY: c.y });
     fireEvent.pointerUp(canvas);
     const cur2 = useCampaignStore.getState().current!;
     const layer2 = cur2.maps[0].layers!.find((l) => l.id === id)!;
-    const cells2 =
-      (layer2.state as { cells?: Record<string, unknown> }).cells ?? {};
+    const cells2 = (layer2.state as { cells?: Record<string, unknown> }).cells ?? {};
     expect(Object.keys(cells2).length).toBe(0);
   });
 });
