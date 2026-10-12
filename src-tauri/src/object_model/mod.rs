@@ -7,7 +7,11 @@
 
 mod commands;
 mod kinds;
+mod palette;
+mod settings_2025;
 
+#[cfg(test)]
+mod palette_tests;
 #[cfg(test)]
 mod tests;
 
@@ -33,10 +37,12 @@ impl ObjectModel for MapAndTerritory {
     /// (rhizome refuses `add` under `/`, so they can't live on a category).
     fn seed(tx: &mut Edit<'_>, _: &()) -> rhizome_core::Result<()> {
         let campaign = tx.add("/campaign", "campaign", "campaign")?;
-        tx.set_value(campaign, "name", Value::Text("Untitled Campaign".into()))
+        tx.set_value(campaign, "name", Value::Text("Untitled Campaign".into()))?;
+        palette::seed(tx, campaign)
     }
 
     fn commands(c: &mut Commands<Self>) {
         commands::declare(c);
+        palette::declare(c);
     }
 }

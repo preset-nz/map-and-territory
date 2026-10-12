@@ -114,7 +114,7 @@ pub fn declare(k: &mut Kinds) {
     .not_duplicable()
     .pinned_last(LAYERS);
 
-    // The preset catalogue and `palette.use` are story 2.
+    // The built-in catalogue is the nine 2025 settings; `palette.use` points followers at themes.
     k.kind(
         NodeType::new("palette")
             .in_categories(&["themes"])
@@ -126,7 +126,9 @@ pub fn declare(k: &mut Kinds) {
             .colour("accent", BLACK)
             .colour("background", WHITE)
             .shaped("terrains", Shape::list(terrain())),
-    );
+    )
+    .presets(super::palette::PaletteAggregate)
+    .catalogue(super::palette::catalogue());
 }
 
 /// The common layer blend modes (design: Values, "every layer kind except `paper`").
