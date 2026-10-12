@@ -6,14 +6,20 @@ import { smokeFrame } from './smoke-frame';
 /** Mounts a canvas, hands it to the render worker and draws the smoke frame at the window's size. */
 export function CanvasHost() {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current;
-    const canvas = canvasRef.current;
-    if (!wrap || !canvas) return;
+    if (!wrap) return;
+    // A canvas transfers to a worker once. StrictMode runs this effect twice in
+    // development, so each run makes its own canvas rather than reusing a JSX one.
+    const canvas = document.createElement('canvas');
+    canvas.className = 'absolute inset-0 h-full w-full';
+    wrap.appendChild(canvas);
     const svc = new RenderService();
-    if (!svc.init(canvas, window.devicePixelRatio || 1)) return;
+    if (!svc.init(canvas, window.devicePixelRatio || 1)) {
+      canvas.remove();
+      return;
+    }
 
     const draw = () => {
       const size = { w: wrap.clientWidth, h: wrap.clientHeight };
@@ -28,12 +34,9 @@ export function CanvasHost() {
     return () => {
       observer.disconnect();
       svc.destroy();
+      canvas.remove();
     };
   }, []);
 
-  return (
-    <div ref={wrapRef} className="relative h-full w-full overflow-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-    </div>
-  );
+  return <div ref={wrapRef} className="relative h-full w-full overflow-hidden" />;
 }
