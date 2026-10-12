@@ -1,4 +1,4 @@
-import { Icons, SidePanel, StatusBar, StatusSpacer } from '@preset.nz/ux-kit';
+import { Icons, SidePanel, StatusBar } from '@preset.nz/ux-kit';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 const PANEL_KEY = 'map-and-territory.scene-panel';
@@ -70,10 +70,7 @@ export function AppFrame({ panel, panelShortcut, scene, toolbar, canvas, status 
           <main className="relative min-h-0 flex-1">{canvas}</main>
         </div>
       </div>
-      <StatusBar>
-        {status}
-        <StatusSpacer />
-      </StatusBar>
+      <StatusBar>{status}</StatusBar>
     </div>
   );
 }

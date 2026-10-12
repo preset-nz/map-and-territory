@@ -9,6 +9,7 @@ import { useSceneBindings } from './app/scene/commands';
 import { useMapIds } from './app/scene/maps';
 import { ScenePanel } from './app/scene/scene-panel';
 import { selection, useActiveMapId } from './app/selection';
+import { StatusContent } from './app/status';
 import { LAYER_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
 import { BrushPicker } from './app/tools/brush-picker';
 import { useToolPointer } from './app/tools/pointer-tools';
@@ -68,6 +69,7 @@ export default function App() {
         </CommandToolbar>
       }
       canvas={<CanvasHost onPointer={onPointer} />}
+      status={<StatusContent />}
     />
   );
 }

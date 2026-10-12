@@ -225,3 +225,14 @@ export function mapPalette(
   }
   return DefaultPalette;
 }
+
+/** The name of the theme a map draws with, by the same cascade; null for the code fallback. */
+export function mapPaletteName(rows: RowSource, mapId: string | null): string | null {
+  const map = mapId ? rows.node(mapId) : undefined;
+  for (const follower of [map, rows.nodeAt(CAMPAIGN_PATH)]) {
+    const id = follower?.refs?.palette?.node;
+    const theme = id ? rows.node(id) : undefined;
+    if (theme) return typeof theme.values?.name === 'string' ? theme.values.name : null;
+  }
+  return null;
+}
