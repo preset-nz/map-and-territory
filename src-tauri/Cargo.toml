@@ -32,3 +32,10 @@ serde_json = "1"
 [dev-dependencies]
 # A mock app, so the host's emitted events can be heard in tests.
 tauri = { version = "2", features = ["test"] }
+
+# rhizome by path until the next publish (Family requirements: path dependencies). 0.1.5 brings
+# the shared-node edits (rhizome d55ec54) and Node::value_ref that keep a paint frame under 1 ms.
+[patch.crates-io]
+rhizome-core = { path = "../../../packages/rhizome/crates/rhizome-core" }
+rhizome-pom = { path = "../../../packages/rhizome/crates/rhizome-pom" }
+rhizome-pom-tauri = { path = "../../../packages/rhizome/crates/rhizome-pom-tauri" }

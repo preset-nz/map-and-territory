@@ -52,7 +52,9 @@ pub fn check_chunk(n: &Node<'_>) -> Result<(), String> {
         Some((q, r)) if chunk_name(q, r) == name => {}
         _ => return Err(format!("`{name}` isn't a chunk name like 0_0 or -1_3")),
     }
-    match n.value("voxels") {
+    // Borrowed, not `value()`: that clones the list, and this check runs for every chunk on
+    // every edit.
+    match n.value_ref("voxels") {
         Some(Value::Shaped(Json::Array(a))) if a.len() == CHUNK_CELLS => Ok(()),
         _ => Err(format!("a chunk holds exactly {CHUNK_CELLS} voxels")),
     }

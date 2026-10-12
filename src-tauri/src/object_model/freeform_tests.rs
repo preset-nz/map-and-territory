@@ -412,7 +412,7 @@ fn one_stroke_frame_on_the_heavy_fixture() {
     h.end(token).unwrap();
     ms.sort_by(f64::total_cmp);
     println!(
-        "freeform.paint, 30 cells, 4 maps x ~20k hexes: median {:.3} ms, min {:.3}, max {:.3}",
+        "freeform.paint, 30 cells, {maps} maps x {side}x{side} hexes: median {:.3} ms, min {:.3}, max {:.3}",
         ms[ms.len() / 2],
         ms[0],
         ms[ms.len() - 1]
