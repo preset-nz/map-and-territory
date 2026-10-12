@@ -1,3 +1,6 @@
+# The family's shared check: toolchains from this repo, then `just check`.
+# guidance projects/workflows; the workflow lives in preset-nz/workflows.
+# `tauri: true` comes with the shell (epic 14).
 name: CI
 
 on:
@@ -12,20 +15,4 @@ permissions:
 
 jobs:
   check:
-    name: just check
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - uses: extractions/setup-just@v3
-      # `just check` ends with `just licences`; install-only (no args).
-      - uses: preset-nz/compliance@v0.1.1
-      - run: pnpm install --frozen-lockfile
-      - run: just check
+    uses: preset-nz/workflows/.github/workflows/check.yml@v1
