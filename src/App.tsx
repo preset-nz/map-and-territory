@@ -1,3 +1,4 @@
+import { CommandToolbar } from '@preset.nz/app-kit';
 import { useCommands } from '@preset.nz/app-kit/core';
 import { useMirror } from '@preset.nz/pom';
 import { useEffect, useMemo, useRef } from 'react';
@@ -8,6 +9,7 @@ import { useSceneBindings } from './app/scene/commands';
 import { useMapIds } from './app/scene/maps';
 import { ScenePanel } from './app/scene/scene-panel';
 import { selection } from './app/selection';
+import { LAYER_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
 
 /** A map that has just been added becomes the selection, as in 2025. */
 function useSelectNewMaps() {
@@ -26,14 +28,19 @@ export default function App() {
   // The command table arrives from Rust; app-kit forwards the ones Rust doesn't handle here.
   // It also follows the history and routes Cmd+Z inside text fields.
   const scene = useSceneBindings();
+  const toolBindings = useToolBindings();
   const bindings = useMemo(
     () => ({
       ...scene,
+      ...Object.fromEntries(
+        Object.entries(LAYER_ICONS).map(([id, icon]) => [id, { ...scene[id], icon }]),
+      ),
+      ...toolBindings,
       'view.toggle-left-panel': { pressed: panel.open, run: panel.toggle },
     }),
-    [scene, panel.open, panel.toggle],
+    [scene, toolBindings, panel.open, panel.toggle],
   );
-  const { shortcut } = useCommands(bindings);
+  const { commands, run, shortcut } = useCommands(bindings);
 
   // Connect, listen, then read the document. Starting twice is a no-op.
   const mirror = useMirror();
@@ -47,6 +54,7 @@ export default function App() {
       panel={panel}
       panelShortcut={shortcut('view.toggle-left-panel')}
       scene={<ScenePanel />}
+      toolbar={<CommandToolbar commands={commands} layout={TOOLBAR} run={run} />}
       canvas={<CanvasHost />}
     />
   );

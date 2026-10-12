@@ -42,12 +42,14 @@ interface AppFrameProps {
   /** The panel toggle's shortcut, from the command table. */
   panelShortcut?: string;
   scene: ReactNode;
+  /** Along the top of the canvas area. */
+  toolbar?: ReactNode;
   canvas: ReactNode;
   status?: ReactNode;
 }
 
 /** Scene panel on the left, the canvas, a status bar along the bottom (epic 16, story 1). */
-export function AppFrame({ panel, panelShortcut, scene, canvas, status }: AppFrameProps) {
+export function AppFrame({ panel, panelShortcut, scene, toolbar, canvas, status }: AppFrameProps) {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <div className="flex min-h-0 flex-1">
@@ -63,7 +65,10 @@ export function AppFrame({ panel, panelShortcut, scene, canvas, status }: AppFra
         >
           {scene}
         </SidePanel>
-        <main className="relative min-w-0 flex-1">{canvas}</main>
+        <div className="flex min-w-0 flex-1 flex-col">
+          {toolbar}
+          <main className="relative min-h-0 flex-1">{canvas}</main>
+        </div>
       </div>
       <StatusBar>
         {status}
