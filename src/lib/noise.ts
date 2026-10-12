@@ -1,7 +1,7 @@
 // Seeded Perlin noise implementation (1D/2D/3D)
 // Deterministic for a given seed across platforms.
 
-import { fit01 } from './math';
+import { fit, lerp } from '@preset.nz/math';
 import { createRNG, type Seed } from './random';
 
 export interface PerlinNoise {
@@ -17,10 +17,6 @@ export interface PerlinNoise {
 function fade(t: number) {
   // 6t^5 - 15t^4 + 10t^3
   return t * t * t * (t * (t * 6 - 15) + 10);
-}
-
-function lerp(a: number, b: number, t: number) {
-  return a + t * (b - a);
 }
 
 function dot2(gx: number, gy: number, x: number, y: number) {
@@ -175,13 +171,13 @@ export function createPerlinNoise(seed: Seed): PerlinNoise {
   }
 
   function normalized1D(x: number): number {
-    return fit01(noise1D(x));
+    return fit(noise1D(x), -1, 1, 0, 1);
   }
   function normalized2D(x: number, y: number): number {
-    return fit01(noise2D(x, y));
+    return fit(noise2D(x, y), -1, 1, 0, 1);
   }
   function normalized3D(x: number, y: number, z: number): number {
-    return fit01(noise3D(x, y, z));
+    return fit(noise3D(x, y, z), -1, 1, 0, 1);
   }
 
   return {

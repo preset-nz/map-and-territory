@@ -1,6 +1,5 @@
 // Barrel exports for public lib API
 
-export { clamp, fit, fit01, lerp } from './math';
 export type { PerlinNoise } from './noise';
 
 export { createPerlinNoise } from './noise';

@@ -2,7 +2,7 @@
 // NOTE: This is a classic Simplex noise implementation (Gustavson) used as an interim
 // while we evaluate OpenSimplex2S. It is seeded and deterministic via our RNG.
 
-import { fit01 } from './math';
+import { fit } from '@preset.nz/math';
 import { createRNG, type Seed } from './random';
 
 export interface OpenSimplexNoise {
@@ -228,8 +228,8 @@ export function createOpenSimplexNoise(seed: Seed): OpenSimplexNoise {
     return 32 * (n0 + n1 + n2 + n3);
   }
 
-  const normalized2D = (x: number, y: number) => fit01(noise2D(x, y));
-  const normalized3D = (x: number, y: number, z: number) => fit01(noise3D(x, y, z));
+  const normalized2D = (x: number, y: number) => fit(noise2D(x, y), -1, 1, 0, 1);
+  const normalized3D = (x: number, y: number, z: number) => fit(noise3D(x, y, z), -1, 1, 0, 1);
 
   return { noise2D, noise3D, normalized2D, normalized3D };
 }
