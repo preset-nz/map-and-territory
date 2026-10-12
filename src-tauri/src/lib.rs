@@ -4,6 +4,9 @@
 
 mod history;
 mod menu;
+// The document tree. Not wired into the builder yet (story 3 adds the host).
+#[allow(dead_code)]
+mod object_model;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

@@ -20,3 +20,10 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 # The family's menu bar, Undo titles and relaunch restore.
 preset-app-kit = "0.1.2"
+# The document tree, its kinds and commands: rhizome and POM from crates.io. The
+# object model has no Tauri in it; the Tauri half (rhizome-pom-tauri) comes with the
+# document host.
+rhizome-core = "0.1.4"
+rhizome-pom = "0.1.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

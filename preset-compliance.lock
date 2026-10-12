@@ -11,11 +11,11 @@ sha256 = "a5e3104b790898a0a2567233d45c1941eb9930eaf01b37a87ba85899f0c70404"
 [[inputs]]
 path = "src-tauri/Cargo.lock"
 ecosystem = "cargo"
-sha256 = "0f0712bab928dc0894db00e796c33d20ceb11222f9557d8acce31d238c8c5f5e"
+sha256 = "917846f3ad5d343b90dc7ce11f2988c44af147d2d96a0a9339d0aaa3fe8be619"
 
 [[inputs]]
 path = "src-tauri/Cargo.toml"
-sha256 = "2de6ef9d2b42c966104b8ac716142224e1bb5aea75275dd9d7b80d293e5f1eb5"
+sha256 = "caf2047bedf76ea1f4e2c03499fc6ae3766c3365915234040bd56433933e85bf"
 
 [[packages]]
 ecosystem = "cargo"
@@ -1827,6 +1827,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "ppv-lite86"
+version = "0.2.21"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "precomputed-hash"
 version = "0.1.1"
 source = "registry"
@@ -1923,6 +1931,30 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "rand"
+version = "0.9.5"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "rand_chacha"
+version = "0.9.0"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "rand_core"
+version = "0.9.5"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "raw-window-handle"
 version = "0.6.2"
 source = "registry"
@@ -1997,6 +2029,22 @@ scope = "shipped"
 ecosystem = "cargo"
 name = "rfd"
 version = "0.16.0"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "rhizome-core"
+version = "0.1.4"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "rhizome-pom"
+version = "0.1.4"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -2755,6 +2803,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "ulid"
+version = "1.2.1"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "unicode-ident"
 version = "1.0.27"
 source = "registry"
@@ -3359,6 +3415,22 @@ name = "yoke-derive"
 version = "0.8.4"
 source = "registry"
 declared = "Unicode-3.0"
+scope = "build"
+
+[[packages]]
+ecosystem = "cargo"
+name = "zerocopy"
+version = "0.8.62"
+source = "registry"
+declared = "BSD-2-Clause OR Apache-2.0 OR MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "zerocopy-derive"
+version = "0.8.62"
+source = "registry"
+declared = "BSD-2-Clause OR Apache-2.0 OR MIT"
 scope = "build"
 
 [[packages]]
