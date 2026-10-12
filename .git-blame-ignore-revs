@@ -1,0 +1,5 @@
+# Formatting-only commits; git blame skips them
+# (git config blame.ignoreRevsFile .git-blame-ignore-revs).
+
+# style: single quotes at width 100 (epic 14, story 3)
+d9435c733e1b44a24033f329d0debc695065f616
