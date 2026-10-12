@@ -10,6 +10,8 @@ import { useMapIds } from './app/scene/maps';
 import { ScenePanel } from './app/scene/scene-panel';
 import { selection } from './app/selection';
 import { LAYER_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
+import { BrushPicker } from './app/tools/brush-picker';
+import { useToolPointer } from './app/tools/pointer-tools';
 
 /** A map that has just been added becomes the selection, as in 2025. */
 function useSelectNewMaps() {
@@ -29,6 +31,7 @@ export default function App() {
   // It also follows the history and routes Cmd+Z inside text fields.
   const scene = useSceneBindings();
   const toolBindings = useToolBindings();
+  const onPointer = useToolPointer();
   const bindings = useMemo(
     () => ({
       ...scene,
@@ -54,8 +57,12 @@ export default function App() {
       panel={panel}
       panelShortcut={shortcut('view.toggle-left-panel')}
       scene={<ScenePanel />}
-      toolbar={<CommandToolbar commands={commands} layout={TOOLBAR} run={run} />}
-      canvas={<CanvasHost />}
+      toolbar={
+        <CommandToolbar commands={commands} layout={TOOLBAR} run={run}>
+          <BrushPicker />
+        </CommandToolbar>
+      }
+      canvas={<CanvasHost onPointer={onPointer} />}
     />
   );
 }

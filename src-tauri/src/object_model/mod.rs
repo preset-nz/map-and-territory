@@ -6,10 +6,13 @@
 //! sidecar, and nothing in Rust draws.
 
 mod commands;
+mod freeform;
 mod kinds;
 mod palette;
 mod settings_2025;
 
+#[cfg(test)]
+mod freeform_tests;
 #[cfg(test)]
 mod layer_tests;
 #[cfg(test)]

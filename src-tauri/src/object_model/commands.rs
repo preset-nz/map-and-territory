@@ -264,6 +264,7 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
     declare_move(c, "edit.move-to-front", "Bring to Front", Move::Front);
     declare_move(c, "edit.move-to-back", "Send to Back", Move::Back);
 
+    super::freeform::declare(c);
     declare_rename(c);
     declare_set_visible(c);
 }

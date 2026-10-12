@@ -92,6 +92,21 @@ fn path() -> Shape {
     ])
 }
 
+/// A chunk's `voxels`: 256 slots, each empty (null) or `{terrainId, color?}`. A new chunk is all
+/// empty.
+fn chunk_voxels() -> ValueSpec {
+    let voxel = Shape::record([
+        ("terrainId", Shape::Text),
+        ("color", Shape::optional(Shape::Colour)),
+    ]);
+    let mut spec = ValueSpec::shaped("voxels", Shape::list(Shape::optional(voxel)));
+    spec.default = rhizome_core::Value::Shaped(serde_json::Value::Array(vec![
+        serde_json::Value::Null;
+        super::freeform::CHUNK_CELLS
+    ]));
+    spec
+}
+
 /// The 2025 `TerrainType`, as a record.
 fn terrain() -> Shape {
     Shape::record([
@@ -201,6 +216,16 @@ pub fn declare(k: &mut Kinds) {
             .choice("strokePattern", &["solid", "dashed", "dotted"], "solid")
             .float("roughness", 0.0..=1.0, 0.0),
     );
+
+    // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
+    // `<cq>_<cr>` (floor of q and r over 16); `voxels` is 256 optional records, row-major.
+    k.kind(
+        NodeType::new("chunk")
+            .in_categories(&["maps"])
+            .value(chunk_voxels())
+            .check(super::freeform::check_chunk),
+    )
+    .not_duplicable();
 
     // The built-in catalogue is the nine 2025 settings; `palette.use` points followers at themes.
     k.kind(

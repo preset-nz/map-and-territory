@@ -4,11 +4,17 @@
 import { DefaultPalette } from '@/palettes/defaults';
 import type { MapPalette, TerrainCategory } from '@/palettes/types';
 import type { PaperSpec, SceneFrame, SceneLayer } from '@/render/types';
+import { cssColour } from './colour';
+import { decodeChunk, type Voxel } from './voxels';
+
+export { cssColour };
 
 /** The part of a `@preset.nz/pom` row the frame reads. A pom `Row` fits it as it is. */
 export interface FrameRow {
   id: string;
   type: string;
+  /** The node's path; its last segment names a chunk. */
+  path?: string;
   values?: Record<string, unknown>;
   refs?: Record<string, { file?: string; node?: string }>;
   orders?: Record<string, string[]>;
@@ -40,19 +46,6 @@ export function colourKeys(schema: FrameSchema | null | undefined): Map<string, 
     if (keys.length) out.set(t.name, new Set(keys));
   }
   return out;
-}
-
-const hex2 = (x: number) =>
-  Math.round(Math.min(1, Math.max(0, x)) * 255)
-    .toString(16)
-    .padStart(2, '0');
-
-/** A rhizome colour (`[r, g, b, a]`, 0 to 1) as CSS: `#rrggbb`, or `#rrggbbaa` when translucent. */
-export function cssColour(value: unknown): string | undefined {
-  if (!Array.isArray(value) || value.length !== 4) return undefined;
-  const [r, g, b, a] = value as number[];
-  const rgb = `#${hex2(r)}${hex2(g)}${hex2(b)}`;
-  return a >= 1 ? rgb : `${rgb}${hex2(a)}`;
 }
 
 /** The first map in `maps` order, the active map until something chooses another. */
@@ -100,6 +93,38 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   const colours = colourKeys(schema);
   const states = new WeakMap<FrameRow, Record<string, unknown>>();
   const palettes = new WeakMap<FrameRow, MapPalette>();
+  const chunkCells = new WeakMap<FrameRow, Record<string, Voxel>>();
+  // a freeform layer's state, kept while neither its row nor any of its chunk rows changed
+  const freeform = new WeakMap<FrameRow, { chunks: FrameRow[]; state: Record<string, unknown> }>();
+
+  const cellsOfChunk = (row: FrameRow): Record<string, Voxel> => {
+    const known = chunkCells.get(row);
+    if (known) return known;
+    const name = row.path?.split('/').pop() ?? '';
+    const cells = decodeChunk(name, row.values?.voxels);
+    chunkCells.set(row, cells);
+    return cells;
+  };
+
+  /** A freeform layer's adapter state: its values plus `cells` gathered from its chunks. */
+  const freeformState = (rows: RowSource, row: FrameRow): Record<string, unknown> => {
+    const chunks = (row.orders?.chunks ?? [])
+      .map((id) => rows.node(id))
+      .filter((c): c is FrameRow => c !== undefined);
+    const known = freeform.get(row);
+    if (
+      known &&
+      known.chunks.length === chunks.length &&
+      known.chunks.every((c, i) => c === chunks[i])
+    ) {
+      return known.state;
+    }
+    const cells: Record<string, Voxel> = {};
+    for (const c of chunks) Object.assign(cells, cellsOfChunk(c));
+    const state = { ...stateOf(row), cells };
+    freeform.set(row, { chunks, state });
+    return state;
+  };
 
   const stateOf = (row: FrameRow): Record<string, unknown> => {
     const known = states.get(row);
@@ -142,7 +167,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       for (const id of map.orders?.layers ?? []) {
         const row = rows.node(id);
         if (!row) continue;
-        const state = stateOf(row);
+        const state = row.type === 'freeform' ? freeformState(rows, row) : stateOf(row);
         if (row.type === 'paper') {
           paper = {
             aspect: (state.aspect as PaperSpec['aspect']) ?? DEFAULT_PAPER.aspect,
@@ -184,4 +209,19 @@ function paletteFromRow(row: FrameRow, keys: Set<string> | undefined): MapPalett
   }
   const line = keys?.has('gridLine') ? cssColour(v.gridLine) : undefined;
   return { terrain, grid: { line: line ?? DefaultPalette.grid.line } };
+}
+
+/** A map's palette by the cascade (map, then campaign, then the fallback), unmemoised: for UI. */
+export function mapPalette(
+  rows: RowSource,
+  mapId: string | null,
+  schema: FrameSchema | null | undefined,
+): MapPalette {
+  const map = mapId ? rows.node(mapId) : undefined;
+  for (const follower of [map, rows.nodeAt(CAMPAIGN_PATH)]) {
+    const id = follower?.refs?.palette?.node;
+    const theme = id ? rows.node(id) : undefined;
+    if (theme) return paletteFromRow(theme, colourKeys(schema).get(theme.type));
+  }
+  return DefaultPalette;
 }
