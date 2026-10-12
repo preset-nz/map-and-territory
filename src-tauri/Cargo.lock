@@ -1732,6 +1732,7 @@ dependencies = [
  "preset-app-kit",
  "rhizome-core",
  "rhizome-pom",
+ "rhizome-pom-tauri",
  "serde",
  "serde_json",
  "tauri",
@@ -2596,6 +2597,17 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "rhizome-pom-tauri"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d052df56e80e014cc8948dc557b8b99dae0f55945ead2da42a310e2bb0ff0574"
+dependencies = [
+ "rhizome-pom",
+ "serde_json",
+ "tauri",
 ]
 
 [[package]]

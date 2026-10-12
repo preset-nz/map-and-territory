@@ -11,11 +11,11 @@ sha256 = "1b80c0d37402062f34c2644ca06a953181f63456f2215be8f8946cbb5138198c"
 [[inputs]]
 path = "src-tauri/Cargo.lock"
 ecosystem = "cargo"
-sha256 = "917846f3ad5d343b90dc7ce11f2988c44af147d2d96a0a9339d0aaa3fe8be619"
+sha256 = "10cf3f010a24c2dd5c6878b1b5e99f9b895aaa4c5738c24fcd93ca9b09ae69b2"
 
 [[inputs]]
 path = "src-tauri/Cargo.toml"
-sha256 = "caf2047bedf76ea1f4e2c03499fc6ae3766c3365915234040bd56433933e85bf"
+sha256 = "bebfd66cc6a306a175978e8700f2f14d66953dfdcb6d145d7cce0fb9692dbb1f"
 
 [[packages]]
 ecosystem = "cargo"
@@ -2044,6 +2044,14 @@ scope = "shipped"
 [[packages]]
 ecosystem = "cargo"
 name = "rhizome-pom"
+version = "0.1.4"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "rhizome-pom-tauri"
 version = "0.1.4"
 source = "registry"
 declared = "MIT"

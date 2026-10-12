@@ -1,21 +1,28 @@
-//! The shell: the native menu and window restore, from the family's kits. The
-//! app has no documents yet, so app-kit runs over a history stub. Settings is
-//! off until there is a real preference.
+//! The shell: the native menu, window restore and the document, from the family's kits. The
+//! document is rhizome's, held by `document::DocumentHost`, which app-kit runs File and
+//! Undo/Redo against and the webview mirrors through `rhizome-pom-tauri`'s `pom_*` commands.
+//! Settings is off until there is a real preference.
 
-mod history;
+mod document;
 mod menu;
-// The document tree. Not wired into the builder yet (story 3 adds the host).
-#[allow(dead_code)]
 mod object_model;
+
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         // The window comes back where it was, at the size it was.
         .plugin(preset_app_kit::window_state())
-        .manage(history::NoHistory)
+        // The close guard: an unsaved document asks before the window goes (app-kit's).
         .on_window_event(preset_app_kit::on_window_event)
         .setup(|app| {
+            // The host exists from launch; so does its document, Untitled. app-kit finds the
+            // host with `app.state`, so it is managed before the menu is installed.
+            let (document, transport) = document::DocumentHost::launch()?;
+            document.refresh_on_change(app.handle().clone());
+            app.manage(document);
+            app.manage(transport);
             // The product name from tauri.conf.json, never a literal.
             let name = app
                 .config()
@@ -29,8 +36,21 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            rhizome_pom_tauri::commands::pom_status,
+            rhizome_pom_tauri::commands::pom_view,
+            rhizome_pom_tauri::commands::pom_commands,
+            rhizome_pom_tauri::commands::pom_run,
+            rhizome_pom_tauri::commands::pom_begin,
+            rhizome_pom_tauri::commands::pom_end,
+            rhizome_pom_tauri::commands::pom_cancel,
+            rhizome_pom_tauri::commands::pom_connect,
+            // Not `pom_new`, `pom_open` or `pom_save_as`: app-kit replaces and saves the
+            // document, so a replacement made any other way would skip its title, recents
+            // and close guard.
             preset_app_kit::app_kit_commands,
             preset_app_kit::app_kit_menu_state,
+            preset_app_kit::app_kit_document,
+            preset_app_kit::app_kit_document_note,
             preset_app_kit::app_kit_history,
             preset_app_kit::app_kit_undo,
             preset_app_kit::app_kit_redo,
@@ -39,6 +59,12 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|app, event| {
-            preset_app_kit::on_run_event(app, &event);
+            // Finder opens and the quit guard are app-kit's. Not `Ready`: published app-kit
+            // 0.1.2 reopens the last document there, and a launch starts Untitled
+            // (native-apps.md, 2026-10-10). Drop this filter with app-kit's next release
+            // (commit 325b8a8).
+            if !matches!(event, tauri::RunEvent::Ready) {
+                preset_app_kit::on_run_event(app, &event);
+            }
         });
 }

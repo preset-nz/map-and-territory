@@ -31,6 +31,19 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": ["campaign"],
+        "name": "Map & Territory Campaign",
+        "role": "Editor",
+        "rank": "Owner",
+        "contentTypes": ["nz.preset.map-and-territory.campaign"],
+        "exportedType": {
+          "identifier": "nz.preset.map-and-territory.campaign",
+          "conformsTo": ["public.data", "public.content"]
+        }
+      }
     ]
   }
 }

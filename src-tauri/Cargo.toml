@@ -21,9 +21,14 @@ tauri = { version = "2", features = [] }
 # The family's menu bar, Undo titles and relaunch restore.
 preset-app-kit = "0.1.2"
 # The document tree, its kinds and commands: rhizome and POM from crates.io. The
-# object model has no Tauri in it; the Tauri half (rhizome-pom-tauri) comes with the
-# document host.
+# object model has no Tauri in it; the Tauri half (rhizome-pom-tauri) is the document
+# host's transport.
 rhizome-core = "0.1.4"
 rhizome-pom = "0.1.4"
+rhizome-pom-tauri = "0.1.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+[dev-dependencies]
+# A mock app, so the host's emitted events can be heard in tests.
+tauri = { version = "2", features = ["test"] }

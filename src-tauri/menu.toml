@@ -1,16 +1,16 @@
 # Which of app-kit's built-in menu items this app shows (guidance
-# projects/app-kit/design/menu-config.md). The template has no documents, so
-# the document slots are off. With Close off, Window > Close Window takes
-# Cmd+W. Turn them on, and move to `install::<Document>`, when the app opens
-# files.
+# projects/app-kit/design/menu-config.md). Map & Territory is a document app: File's New,
+# Open…, Open Recent, Close, Save, Save As… and Revert to Saved… are on, app-kit's, against
+# the document host. With Close on, Window has no Close Window on Cmd+W (File's Close has it).
+# Settings… stays off until there is a real preference.
 [file]
-new = false
-open = false
-open_recent = false
-close = false
-save = false
-save_as = false
-revert = false
+new = true
+open = true
+open_recent = true
+close = true
+save = true
+save_as = true
+revert = true
 
 [app]
 settings = false
