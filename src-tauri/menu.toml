@@ -1,0 +1,16 @@
+# Which of app-kit's built-in menu items this app shows (guidance
+# projects/app-kit/design/menu-config.md). The template has no documents, so
+# the document slots are off. With Close off, Window > Close Window takes
+# Cmd+W. Turn them on, and move to `install::<Document>`, when the app opens
+# files.
+[file]
+new = false
+open = false
+open_recent = false
+close = false
+save = false
+save_as = false
+revert = false
+
+[app]
+settings = false

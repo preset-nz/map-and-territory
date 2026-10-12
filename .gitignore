@@ -14,6 +14,8 @@ node_modules/
 .pnp.*
 
 # Build output
+/src-tauri/target
+/src-tauri/gen/schemas
 out/
 build/
 dist/

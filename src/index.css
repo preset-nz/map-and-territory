@@ -1,0 +1,9 @@
+@import "tailwindcss";
+/* @preset.nz packages ship unbuilt source into node_modules, which Tailwind
+   never scans on its own. Without these lines their classes are missing from
+   the build. */
+@source "../node_modules/@preset.nz/ux-kit/src";
+@source "../node_modules/@preset.nz/facets/src";
+/* The family's look: tokens, palettes and fonts. `index.html` sets
+   `class="dark"` on <html>. */
+@import "@preset.nz/ux-kit/index.css";

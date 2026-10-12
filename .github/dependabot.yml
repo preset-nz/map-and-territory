@@ -4,8 +4,7 @@
 # preset-compliance.lock stale and `just licences` red: `just deps` in
 # ~/rhizomatic-preset/devsecops-base rescans and pushes the lock on each open
 # Dependabot PR. Our own packages skip the 7-day cooldown.
-# Guidance: design/family-alignment.md, row 7a. Cargo joins with the
-# Tauri shell (epic 14).
+# Guidance: design/family-alignment.md, row 7a.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -24,6 +23,26 @@ updates:
         patterns: ["@preset.nz/*"]
       tauri:
         patterns: ["@tauri-apps/*"]
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: cargo
+    directory: "/src-tauri"
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+      exclude: ["preset-*", "rhizome-*"]
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      preset:
+        patterns: ["preset-*", "rhizome-*"]
+      tauri:
+        patterns: ["tauri", "tauri-*"]
       minor-and-patch:
         patterns: ["*"]
         update-types: [minor, patch]

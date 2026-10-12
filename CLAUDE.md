@@ -1,6 +1,8 @@
 # Map & Territory — Claude instructions
 
-Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looking maps. Part of the preset.nz desktop family with Oblique, Strata, Fault and Shard. Adopted 2026-09-17; being rebuilt as a native Tauri 2 app from the family template (`create-preset-app`), with its object model on POM in Rust. Next.js was removed 2026-10-12; the 2025 app is the tag `v2025-next`, and `src/` is port material until the shell lands (roadmap epics 13 to 16).
+Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looking maps. Part of the preset.nz desktop family with Oblique, Strata, Fault and Shard. Adopted 2026-09-17; being rebuilt as a native Tauri 2 app from the family template (`create-preset-app`), with its object model on POM in Rust. The 2025 app is the tag `v2025-next`.
+
+**Stack:** Tauri 2, React 19, TypeScript, Vite 7, Tailwind v4, on `@preset.nz/ux-kit` (look) and `@preset.nz/app-kit` (menu, Undo, window restore). The shell came from the template in epic 14; `src/render/`, `src/layers/`, `src/plugin/`, `src/stores/` and the rest of `src/` are 2025 port material that epics 15 and 16 move onto POM and ux-kit.
 
 ## Where the truth lives
 
@@ -14,7 +16,7 @@ Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looki
 
 ## Workflow
 
-Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. `just check` is the gate; `just run` and `just build` have nothing to run until epic 14.
+Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. `just check` is the gate: tsc, Biome, `vite build`, Vitest, cargo fmt, clippy, cargo test, licences. `just run` opens the app in its Tauri window; `just build` makes the release bundle.
 
 ## Hard rules
 
@@ -24,7 +26,7 @@ Family rules (one story per commit, `just check`, subagents don't commit) are in
 - **Plugins declare contributions; the host wires them.** A plugin never reaches into a registry or store. First-party only; capability tokens are authoring discipline, not security.
 - **Layer state is serialisable JSON.** No handles, canvases or functions in the campaign store. Derived fields are dropped by the adapter's `serialize`.
 - **Rust does files and OS, TypeScript does everything else.** The renderer never imports Tauri APIs.
-- **Native menu owns commands** once the Tauri shell lands. Held-gesture keys (Space to pan while painting, Shift to constrain) are the only keydown handlers, and they are listed here so the exception does not spread.
+- **Native menu owns commands.** They live in `src-tauri/src/menu.rs` (and the built-in items in `src-tauri/menu.toml`); the webview binds them by id. Settings is off until there is a real preference. Held-gesture keys (Space to pan while painting, Shift to constrain) are the only keydown handlers, and they are listed here so the exception does not spread.
 
 ## Naming
 

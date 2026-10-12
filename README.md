@@ -20,7 +20,7 @@ Project context, decisions and roadmap live in the guidance repo: `~/rhizomatic-
 
 ## Current Scope
 
-Between apps. The 2025 editor ran on Next.js in a browser; Next.js was removed on 2026-10-12, and that app is kept at the tag `v2025-next`. `src/` still holds its renderer, layer adapters, plugins and palettes as material to port into a new Tauri shell built from the family template. Until that shell lands there is nothing to run, only `just check`. See the guidance repo's `features/roadmap.md`.
+A native Tauri window with the family menu bar and window restore, built from the family template. The 2025 editor ran on Next.js in a browser and is kept at the tag `v2025-next`; `src/` still holds its renderer, layer adapters, plugins and palettes as material being ported into the new shell. See the guidance repo's `features/roadmap.md`.
 
 ## Tech Stack
 
@@ -30,11 +30,12 @@ See the guidance repo's `tech-stack.md` for the target stack.
 
 Prerequisites
 
-- Node 20+ recommended; pnpm installed.
+- Node 20+, pnpm and a Rust toolchain (`rust-toolchain.toml` pins it). `just prep` lists what's installed.
 
 ```bash
 just install
-just check
+just run     # the app in its Tauri window
+just check   # the full gate
 ```
 
 ## Tooling
@@ -43,12 +44,13 @@ just check
 
 ```bash
 just install   # pnpm install + lefthook hooks
-just run       # the app (none until the Tauri shell)
-just check     # tsc, Biome, Vitest, licences — the gate for pre-push and CI
+just run       # the app in its Tauri window
+just check     # tsc, Biome, vite build, Vitest, cargo fmt/clippy/test, licences — the gate for pre-push and CI
+just build     # the release bundle
 just fmt       # Biome writes fixes in place
 ```
 
-Hooks are lefthook (`lefthook.yml`): Biome on staged files at pre-commit, `just check` at pre-push. Never use `--no-verify`; if a hook is wrong, fix the hook.
+Hooks are lefthook (`lefthook.yml`): Biome and rustfmt on staged files at pre-commit, `just check` at pre-push. Never use `--no-verify`; if a hook is wrong, fix the hook.
 
 ## Testing
 
@@ -59,7 +61,8 @@ All contributions should keep the test suite green.
 
 ## Project Structure
 
-- `src/`: the 2025 editor's code, being ported.
+- `src-tauri/`: the Rust shell: menu (`src/menu.rs`, `menu.toml`), window restore, history stub.
+- `src/`: the webview. `App.tsx` and `components/ui/` come from the template; the rest is the 2025 editor's code, being ported.
 
 ## Credits
 

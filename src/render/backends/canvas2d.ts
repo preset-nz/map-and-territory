@@ -7,8 +7,6 @@ import type { RenderBackend, SceneFrame } from '@/render/types';
 export class Canvas2DBackend implements RenderBackend {
   private ctx: (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) | null = null;
   private pixelRatio = 1;
-  private canvasW = 0;
-  private canvasH = 0;
   private domCanvas: HTMLCanvasElement | null = null;
 
   // Overloads to satisfy RenderBackend and also support main-thread HTMLCanvasElement
@@ -50,8 +48,6 @@ export class Canvas2DBackend implements RenderBackend {
       this.domCanvas.width = Math.max(1, Math.floor(size.w * dpr));
       this.domCanvas.height = Math.max(1, Math.floor(size.h * dpr));
     }
-    this.canvasW = size.w;
-    this.canvasH = size.h;
   }
 
   // (Removed old pattern cache and helpers; adapters render directly)

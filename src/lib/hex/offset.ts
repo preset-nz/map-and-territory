@@ -3,7 +3,7 @@ import type { Axial, Orientation } from './types';
 // Offset conversions depend on variant; orientation matters for row vs column offset
 export function axialToOffset(
   a: Axial,
-  orientation: Orientation,
+  _orientation: Orientation,
   variant: 'odd-r' | 'even-r' | 'odd-q' | 'even-q',
 ): { col: number; row: number } {
   if (variant.endsWith('-r')) {
@@ -22,7 +22,7 @@ export function axialToOffset(
 
 export function offsetToAxial(
   o: { col: number; row: number },
-  orientation: Orientation,
+  _orientation: Orientation,
   variant: 'odd-r' | 'even-r' | 'odd-q' | 'even-q',
 ): Axial {
   if (variant.endsWith('-r')) {
