@@ -1,6 +1,6 @@
 import { CommandToolbar } from '@preset.nz/app-kit';
 import { useCommands } from '@preset.nz/app-kit/core';
-import { useMirror } from '@preset.nz/pom';
+import { useChildren, useMirror } from '@preset.nz/pom';
 import { useEffect, useMemo, useRef } from 'react';
 import { CanvasHost } from './app/canvas-host';
 import { AppFrame, useScenePanel } from './app/frame';
@@ -8,20 +8,25 @@ import { addedMap } from './app/scene/active-map';
 import { useSceneBindings } from './app/scene/commands';
 import { useMapIds } from './app/scene/maps';
 import { ScenePanel } from './app/scene/scene-panel';
-import { selection } from './app/selection';
+import { selection, useActiveMapId } from './app/selection';
 import { LAYER_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
 import { BrushPicker } from './app/tools/brush-picker';
 import { useToolPointer } from './app/tools/pointer-tools';
 
-/** A map that has just been added becomes the selection, as in 2025. */
-function useSelectNewMaps() {
-  const maps = useMapIds();
+/** Selects whatever has just been added to `ids` (one more, and new), through `select`. */
+function useSelectAdded(ids: readonly string[], select: (id: string) => void) {
   const before = useRef<readonly string[] | null>(null);
   useEffect(() => {
-    const added = before.current === null ? null : addedMap(before.current, maps);
-    before.current = maps;
-    if (added) selection.selectMap(added);
-  }, [maps]);
+    const added = before.current === null ? null : addedMap(before.current, ids);
+    before.current = ids;
+    if (added) select(added);
+  }, [ids, select]);
+}
+
+/** A map or layer that has just been added becomes the selection, as in 2025. */
+function useSelectNewMapsAndLayers() {
+  useSelectAdded(useMapIds(), selection.selectMap);
+  useSelectAdded(useChildren(useActiveMapId(), 'layers'), selection.selectLayer);
 }
 
 export default function App() {
@@ -50,7 +55,7 @@ export default function App() {
   useEffect(() => {
     mirror.start().catch((error) => console.error('[document] could not connect', error));
   }, [mirror]);
-  useSelectNewMaps();
+  useSelectNewMapsAndLayers();
 
   return (
     <AppFrame
