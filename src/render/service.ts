@@ -2,187 +2,58 @@ import type { RenderMessage, SceneFrame } from '@/render/types';
 
 export class RenderService {
   private worker: Worker | null = null;
-  private canvas: HTMLCanvasElement | null = null;
-  private offscreen: OffscreenCanvas | null = null;
   private ready = false;
   private queue: Array<RenderMessage> = [];
-  private dbg =
-    typeof window !== 'undefined'
-      ? (window as unknown as Window & {
-          __renderWorkerStatus?: Record<string, unknown>;
-          __renderLog?: Array<Record<string, unknown>>;
-        })
-      : (undefined as unknown as Window & {
-          __renderWorkerStatus?: Record<string, unknown>;
-          __renderLog?: Array<Record<string, unknown>>;
-        });
 
   init(canvas: HTMLCanvasElement, pixelRatio: number): boolean {
-    this.canvas = canvas;
-    let offscreen: OffscreenCanvas | null = null;
     const fail = (stage: string, e?: unknown) => {
-      try {
-        this.canvas?.setAttribute('data-worker-stage', stage);
-        if (e)
-          this.canvas?.setAttribute(
-            'data-worker-error',
-            String(e instanceof Error ? e.message : e),
-          );
-      } catch {}
-      if (typeof window !== 'undefined') {
-        console.error('[RenderService] Worker init failed at', stage, e);
-        this.dbg.__renderWorkerStatus = {
-          stage,
-          error: e ? String(e instanceof Error ? e.message : e) : undefined,
-          t: Date.now(),
-        };
-      }
+      console.error('[RenderService] Worker init failed at', stage, e);
       return false;
     };
+    let offscreen: OffscreenCanvas | null = null;
     try {
-      if (typeof window !== 'undefined') {
-        console.info('[RenderService] attempting transferControlToOffscreen');
-        this.dbg.__renderWorkerStatus = {
-          stage: 'before-transfer',
-          t: Date.now(),
-        };
-      }
-      try {
-        this.canvas?.setAttribute('data-worker-stage', 'before-transfer');
-      } catch {}
       offscreen = canvas.transferControlToOffscreen?.() as OffscreenCanvas | null;
-      if (typeof window !== 'undefined') {
-        this.dbg.__renderWorkerStatus = {
-          stage: 'after-transfer',
-          ok: !!offscreen,
-          t: Date.now(),
-        };
-      }
-      try {
-        this.canvas?.setAttribute(
-          'data-worker-stage',
-          offscreen ? 'after-transfer-ok' : 'after-transfer-null',
-        );
-      } catch {}
     } catch (e) {
-      // Do not swallow; mark and signal failure up to caller
       return fail('transfer-error', e);
     }
     if (!offscreen) return fail('offscreen-null');
-    this.offscreen = offscreen as OffscreenCanvas;
     try {
-      if (typeof window !== 'undefined') {
-        this.dbg.__renderWorkerStatus = {
-          stage: 'creating-worker',
-          t: Date.now(),
-        };
-      }
-      try {
-        this.canvas?.setAttribute('data-worker-stage', 'creating-worker');
-      } catch {}
-      try {
-        const url = new URL('./worker.ts', import.meta.url);
-        // In dev/test, bust module cache to ensure latest worker code (avoids stale chunks during HMR)
-        if (
-          typeof process !== 'undefined' &&
-          process.env &&
-          process.env.NODE_ENV !== 'production'
-        ) {
-          url.searchParams.set('t', String(Date.now()));
-        }
-        this.worker = new Worker(url, {
-          type: 'module',
-        });
-      } catch (e) {
-        return fail('create-worker-error', e);
-      }
-      this.ready = false;
-      this.worker.onmessage = (ev: MessageEvent<RenderMessage>) => {
-        if (ev.data?.type === 'inited') {
-          this.ready = true;
-          // flush queued messages in order
-          for (const msg of this.queue) this.worker?.postMessage(msg);
-          this.queue = [];
-          if (typeof window !== 'undefined') {
-            this.dbg.__renderWorkerStatus = {
-              stage: 'inited',
-              ok: true,
-              t: Date.now(),
-            };
-          }
-          try {
-            this.canvas?.setAttribute('data-worker-stage', 'inited');
-          } catch {}
-        }
-      };
-      const initMsg: RenderMessage = {
-        type: 'init',
-        canvas: this.offscreen,
-        pixelRatio,
-      };
-      if (typeof window !== 'undefined') {
-        this.dbg.__renderWorkerStatus = {
-          stage: 'posting-init',
-          t: Date.now(),
-        };
-      }
-      try {
-        this.canvas?.setAttribute('data-worker-stage', 'posting-init');
-      } catch {}
-      try {
-        this.worker.postMessage(initMsg, [this.offscreen]);
-      } catch (e) {
-        return fail('postMessage-error', e);
-      }
-      if (typeof window !== 'undefined') {
-        this.dbg.__renderWorkerStatus = {
-          stage: 'posted-init',
-          ok: true,
-          t: Date.now(),
-        };
-      }
-      try {
-        this.canvas?.setAttribute('data-worker-stage', 'posted-init');
-      } catch {}
-      return true;
+      // One expression, so Vite bundles the worker into the release build.
+      this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     } catch (e) {
-      this.worker?.terminate();
-      this.worker = null;
-      this.offscreen = null;
-      return fail('worker-error', e);
+      return fail('create-worker-error', e);
     }
+    this.ready = false;
+    this.worker.onmessage = (ev: MessageEvent<RenderMessage>) => {
+      if (ev.data?.type === 'inited') {
+        this.ready = true;
+        // flush queued messages in order
+        for (const msg of this.queue) this.worker?.postMessage(msg);
+        this.queue = [];
+      }
+    };
+    this.worker.onerror = (ev) => console.error('[RenderService] worker error', ev.message);
+    const initMsg: RenderMessage = { type: 'init', canvas: offscreen, pixelRatio };
+    try {
+      this.worker.postMessage(initMsg, [offscreen]);
+    } catch (e) {
+      this.worker.terminate();
+      this.worker = null;
+      return fail('postMessage-error', e);
+    }
+    return true;
   }
 
   resize(size: { w: number; h: number }, pixelRatio: number) {
-    if (!this.worker) return;
-    const msg: RenderMessage = { type: 'resize', size, pixelRatio };
-    if (this.ready) this.worker.postMessage(msg);
-    else this.queue.push(msg);
+    this.post({ type: 'resize', size, pixelRatio });
   }
 
   render(frame: SceneFrame) {
+    this.post({ type: 'render', frame });
+  }
+
+  private post(msg: RenderMessage) {
     if (!this.worker) return;
-    if (typeof window !== 'undefined') {
-      try {
-        const dbgWindow = this.dbg as Window & {
-          __renderLog?: Array<Record<string, unknown>>;
-        };
-        const log = Array.isArray(dbgWindow.__renderLog) ? dbgWindow.__renderLog : [];
-        dbgWindow.__renderLog = [
-          ...log,
-          {
-            t: Date.now(),
-            where: 'RenderService',
-            msg: 'render',
-            layers: frame.layers.length,
-            size: frame.size,
-          },
-        ];
-      } catch {
-        /* noop */
-      }
-    }
-    const msg: RenderMessage = { type: 'render', frame };
     if (this.ready) this.worker.postMessage(msg);
     else this.queue.push(msg);
   }
@@ -191,8 +62,6 @@ export class RenderService {
     this.worker?.postMessage({ type: 'destroy' });
     this.worker?.terminate();
     this.worker = null;
-    this.offscreen = null;
-    this.canvas = null;
     this.ready = false;
     this.queue = [];
   }

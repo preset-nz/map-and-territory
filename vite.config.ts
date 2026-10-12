@@ -24,6 +24,9 @@ export default defineConfig({
     ],
   },
 
+  // The render worker code-splits (plugin bootstrap), which needs ES output.
+  worker: { format: 'es' },
+
   // Keep Vite from obscuring Rust errors; Tauri expects a fixed port.
   clearScreen: false,
   server: {
