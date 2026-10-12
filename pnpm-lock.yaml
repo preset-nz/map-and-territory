@@ -17,6 +17,9 @@ importers:
       '@preset.nz/math':
         specifier: ^0.1.0
         version: 0.1.0
+      '@preset.nz/pom':
+        specifier: link:../../packages/rhizome
+        version: link:../../packages/rhizome
       '@preset.nz/ux-kit':
         specifier: ^0.1.0
         version: 0.1.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

@@ -21,6 +21,7 @@ export default defineConfig({
       '@preset.nz/ux-kit',
       '@preset.nz/app-kit',
       '@preset.nz/facets',
+      '@preset.nz/pom',
     ],
   },
 

@@ -60,9 +60,28 @@ module.exports = {
       from: { path: '^src/(layers|render|lib|plugin)/' },
       to: { path: '@tauri-apps/' },
     },
+    {
+      name: 'renderer-never-reads-the-document',
+      severity: 'error',
+      comment:
+        'The renderer gets a SceneFrame and nothing else: layers, render, lib and plugins import ' +
+        'neither @preset.nz/pom nor the app module that builds frames from it (object-model doc).',
+      from: { path: '^src/(layers|render|lib|plugin)/' },
+      to: { path: ['@preset\\.nz/pom', 'packages/rhizome/', '^src/app/'] },
+    },
+    {
+      name: 'documents-only-through-pom',
+      severity: 'error',
+      comment:
+        "@preset.nz/pom's transport is the webview's one channel to the document host; nothing " +
+        'in src/ calls @tauri-apps/api itself.',
+      from: { path: '^src/' },
+      to: { path: '@tauri-apps/api' },
+    },
   ],
   options: {
-    doNotFollow: { path: ['node_modules'] },
+    // A package taken by path resolves outside node_modules; it is checked in its own repo.
+    doNotFollow: { path: ['node_modules', '^\\.\\./\\.\\./packages/'] },
     exclude: { path: '^src/test/' },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.json' },

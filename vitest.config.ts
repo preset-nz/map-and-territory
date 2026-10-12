@@ -43,6 +43,8 @@ export default defineConfig({
     },
   },
   resolve: {
+    // @preset.nz/pom is linked by path and has its own dev copy of React; tests use the app's.
+    dedupe: ['react', 'react-dom', '@tauri-apps/api'],
     alias: {
       '@': resolve(__dirname, './src'),
     },

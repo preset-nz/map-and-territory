@@ -17,6 +17,7 @@
     "@preset.nz/app-kit": "^0.1.2",
     "@preset.nz/facets": "^0.2.0",
     "@preset.nz/math": "^0.1.0",
+    "@preset.nz/pom": "link:../../packages/rhizome",
     "@preset.nz/ux-kit": "^0.1.0",
     "@tauri-apps/api": "^2.12.1",
     "clsx": "^2.1.1",

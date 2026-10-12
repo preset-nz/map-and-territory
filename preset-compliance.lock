@@ -6,7 +6,7 @@ version = 1
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "a5e3104b790898a0a2567233d45c1941eb9930eaf01b37a87ba85899f0c70404"
+sha256 = "1b80c0d37402062f34c2644ca06a953181f63456f2215be8f8946cbb5138198c"
 
 [[inputs]]
 path = "src-tauri/Cargo.lock"
