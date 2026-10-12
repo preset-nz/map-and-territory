@@ -11,6 +11,8 @@ mod palette;
 mod settings_2025;
 
 #[cfg(test)]
+mod layer_tests;
+#[cfg(test)]
 mod palette_tests;
 #[cfg(test)]
 mod tests;

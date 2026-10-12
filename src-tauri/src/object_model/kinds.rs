@@ -36,6 +36,62 @@ pub const TRAITS: &[&str] = &[
 const WHITE: [f64; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f64; 4] = [0.0, 0.0, 0.0, 1.0];
 
+/// A layer kind: its type id and the base of its auto names ("Hex Noise 01").
+pub struct LayerKind {
+    pub id: &'static str,
+    pub base: &'static str,
+}
+
+pub const HEX_NOISE: LayerKind = LayerKind {
+    id: "hex-noise",
+    base: "Hex Noise",
+};
+pub const FREEFORM: LayerKind = LayerKind {
+    id: "freeform",
+    base: "Freeform",
+};
+pub const OUTLINE: LayerKind = LayerKind {
+    id: "outline",
+    base: "Outline",
+};
+/// Every layer kind between the anchors.
+pub const LAYER_KINDS: [&LayerKind; 3] = [&HEX_NOISE, &FREEFORM, &OUTLINE];
+
+fn rgb(r: u8, g: u8, b: u8) -> [f64; 4] {
+    [
+        f64::from(r) / 255.0,
+        f64::from(g) / 255.0,
+        f64::from(b) / 255.0,
+        1.0,
+    ]
+}
+
+/// The values every layer kind starts with. In `maps` with the anchors, so a map can hold them.
+fn layer(id: &str, name: &str) -> NodeType {
+    NodeType::new(id)
+        .in_categories(&["maps"])
+        .text("name", name)
+        .bool("visible", true)
+        .float("opacity", 0.0..=1.0, 1.0)
+        .choice("blend", BLEND, "normal")
+}
+
+/// One outline path: corners as `{q, r, corner}` and whether it closes.
+fn path() -> Shape {
+    Shape::record([
+        (
+            "corners",
+            Shape::list(Shape::record([
+                ("q", Shape::Int),
+                ("r", Shape::Int),
+                // a hex corner index, 0 to 5
+                ("corner", Shape::Int),
+            ])),
+        ),
+        ("closed", Shape::Bool),
+    ])
+}
+
 /// The 2025 `TerrainType`, as a record.
 fn terrain() -> Shape {
     Shape::record([
@@ -113,6 +169,38 @@ pub fn declare(k: &mut Kinds) {
     .not_deletable()
     .not_duplicable()
     .pinned_last(LAYERS);
+
+    // The layer family between the anchors: each kind its own schema, all starting with the
+    // same common values. Texture values on `freeform` wait for epic 16 story 9, and its
+    // chunks for story 5.
+    k.kind(
+        layer(HEX_NOISE.id, HEX_NOISE.base)
+            .text("seed", "seed")
+            .float("frequency", 0.01..=5.0, 0.15)
+            .float("offsetX", -1000.0..=1000.0, 0.0)
+            .float("offsetY", -1000.0..=1000.0, 0.0)
+            .float("intensity", 0.0..=1.0, 1.0)
+            .float("gamma", 0.1..=5.0, 1.0)
+            .float("min", 0.0..=1.0, 0.0)
+            .float("max", 0.0..=1.0, 1.0)
+            .choice("mode", &["shape", "paint"], "shape")
+            .choice("terrain", BASE_TYPES, "plains")
+            .text("terrainId", ""),
+    );
+    k.kind(layer(FREEFORM.id, FREEFORM.base).choice(
+        "renderMode",
+        &["paint", "texture-fill"],
+        "paint",
+    ));
+    k.kind(
+        layer(OUTLINE.id, OUTLINE.base)
+            .shaped("paths", Shape::list(path()))
+            // the 2025 default stroke, #f8f5e5
+            .colour("strokeColor", rgb(0xf8, 0xf5, 0xe5))
+            .value(ValueSpec::float("strokeWidth", 1.0..=12.0, 4.0))
+            .choice("strokePattern", &["solid", "dashed", "dotted"], "solid")
+            .float("roughness", 0.0..=1.0, 0.0),
+    );
 
     // The built-in catalogue is the nine 2025 settings; `palette.use` points followers at themes.
     k.kind(

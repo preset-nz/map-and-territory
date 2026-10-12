@@ -7,7 +7,7 @@
 //! accelerator: Cmd+N is New (the campaign). Layer is the second collection and arrives with
 //! epic 16.
 
-use preset_app_kit::{AppKit, Command};
+use preset_app_kit::{shortcut, AppKit, Command, MenuName};
 use tauri::{AppHandle, Manager, Runtime};
 
 use crate::document::DocumentHost;
@@ -18,9 +18,55 @@ pub const MENU_CONFIG: &str = include_str!("../menu.toml");
 /// Menu > Map > New Map.
 pub const NEW_MAP: &str = "map-new";
 
-/// The app's own commands, in menu order.
+/// Commands the webview runs: they need its selection, so Rust forwards them untouched
+/// (`on_command` returns false for them).
+#[cfg(test)]
+const WEBVIEW: [&str; 10] = [
+    "layer.add-hex-noise",
+    "layer.add-freeform",
+    "layer.add-outline",
+    "edit.move-earlier",
+    "edit.move-later",
+    "edit.move-to-front",
+    "edit.move-to-back",
+    "view.toggle-left-panel",
+    "edit.duplicate",
+    "edit.delete",
+];
+
+/// The app's own commands, in menu order. Domain menus sit after View in the order they are
+/// first declared: Map, then Layer.
 pub fn commands() -> Vec<Command> {
-    vec![Command::item(NEW_MAP, "New Map").domain("Map").section(0)]
+    let layer = |id, label, section| Command::item(id, label).domain("Layer").section(section);
+    vec![
+        // View > Show Left Panel: the family's bracket pattern (menu standard decision 14).
+        // app-kit 0.1.2 has no built-in panel toggle; the tick is the webview's to report.
+        Command::toggle("view.toggle-left-panel", "Show Left Panel")
+            .accelerator("CmdOrCtrl+[")
+            .menu(MenuName::View)
+            .section(0),
+        // Edit, after Undo and Redo and before Cut, Copy and Paste. POM's built-ins run with
+        // the selection as `{at}`; the webview relabels them ("Delete Layer").
+        Command::item("edit.duplicate", "Duplicate")
+            .accelerator("CmdOrCtrl+D")
+            .menu(MenuName::Edit)
+            .section(1),
+        // Cmd+Backspace, as Finder: a bare Backspace accelerator is taken by the menu before a
+        // focused text field sees it, so renaming couldn't delete a character.
+        Command::item("edit.delete", "Delete")
+            .accelerator("CmdOrCtrl+Backspace")
+            .menu(MenuName::Edit)
+            .section(1),
+        Command::item(NEW_MAP, "New Map").domain("Map").section(0),
+        layer("layer.add-hex-noise", "Add Hex Noise Layer", 0),
+        layer("layer.add-freeform", "Add Freeform Layer", 0),
+        layer("layer.add-outline", "Add Outline Layer", 0),
+        // Bring Forward is up the stack (menu standard: Opt+Up). Ids are POM's move ids.
+        layer("edit.move-earlier", "Bring Forward", 1).accelerator(shortcut::MOVE_EARLIER),
+        layer("edit.move-later", "Send Backward", 1).accelerator(shortcut::MOVE_LATER),
+        layer("edit.move-to-front", "Bring to Front", 2).accelerator("Alt+Shift+Up"),
+        layer("edit.move-to-back", "Send to Back", 2).accelerator("Alt+Shift+Down"),
+    ]
 }
 
 /// Handles the commands that run natively. `true` when the id was handled; app-kit forwards
@@ -64,12 +110,43 @@ mod tests {
     #[test]
     fn new_map_is_in_the_map_menu_with_no_accelerator() {
         let table = commands();
-        let ids: Vec<&str> = table.iter().map(|c| c.id()).collect();
-        assert_eq!(ids, [NEW_MAP]);
+        let new_map = table.iter().find(|c| c.id() == NEW_MAP).unwrap();
         // Command's fields are app-kit's; its Debug shows the domain, label and chord
-        let shown = format!("{:?}", table[0]);
+        let shown = format!("{new_map:?}");
         assert!(shown.contains("\"Map\""), "{shown}");
         assert!(shown.contains("\"New Map\""), "{shown}");
         assert!(shown.contains("accelerator: None"), "{shown}");
+    }
+
+    #[test]
+    fn webview_commands_are_in_the_table_and_not_handled_natively() {
+        let table = commands();
+        for id in WEBVIEW {
+            assert!(table.iter().any(|c| c.id() == id), "{id} is in the table");
+        }
+        // the table has only New Map besides them
+        assert_eq!(table.len(), WEBVIEW.len() + 1);
+    }
+
+    #[test]
+    fn ids_and_chords_are_unique() {
+        let table = commands();
+        let mut ids: Vec<&str> = table.iter().map(|c| c.id()).collect();
+        ids.sort();
+        ids.dedup();
+        assert_eq!(ids.len(), table.len());
+        let mut chords: Vec<String> = table
+            .iter()
+            .filter_map(|c| {
+                let shown = format!("{c:?}");
+                let at = shown.find("accelerator: Some(\"")?;
+                let rest = &shown[at + 19..];
+                Some(rest[..rest.find('"')?].to_string())
+            })
+            .collect();
+        assert_eq!(chords.len(), 7);
+        chords.sort();
+        chords.dedup();
+        assert_eq!(chords.len(), 7);
     }
 }
