@@ -21,7 +21,7 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 10] = [
+const WEBVIEW: [&str; 15] = [
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
@@ -32,12 +32,23 @@ const WEBVIEW: [&str; 10] = [
     "view.toggle-left-panel",
     "edit.duplicate",
     "edit.delete",
+    "tool.paint",
+    "tool.erase",
+    "tool.fill",
+    "tool.select",
+    "tool.outline",
 ];
 
 /// The app's own commands, in menu order. Domain menus sit after View in the order they are
 /// first declared: Map, then Layer.
 pub fn commands() -> Vec<Command> {
     let layer = |id, label, section| Command::item(id, label).domain("Layer").section(section);
+    let tool = |id, label, key| {
+        Command::toggle(id, label)
+            .domain("Tool")
+            .section(0)
+            .accelerator(key)
+    };
     vec![
         // View > Show Left Panel: the family's bracket pattern (menu standard decision 14).
         // app-kit 0.1.2 has no built-in panel toggle; the tick is the webview's to report.
@@ -66,6 +77,14 @@ pub fn commands() -> Vec<Command> {
         layer("edit.move-later", "Send Backward", 1).accelerator(shortcut::MOVE_LATER),
         layer("edit.move-to-front", "Bring to Front", 2).accelerator("Alt+Shift+Up"),
         layer("edit.move-to-back", "Send to Back", 2).accelerator("Alt+Shift+Down"),
+        // The Tool menu, after Layer: one radio-like group, bare digits (menu standard). The
+        // webview sets `pressed` on the active one and drops the digits while a text field has
+        // focus, so the key reaches the field.
+        tool("tool.paint", "Paint", "1"),
+        tool("tool.erase", "Erase", "2"),
+        tool("tool.fill", "Fill", "3"),
+        tool("tool.select", "Select", "4"),
+        tool("tool.outline", "Outline", "5"),
     ]
 }
 
@@ -144,9 +163,9 @@ mod tests {
                 Some(rest[..rest.find('"')?].to_string())
             })
             .collect();
-        assert_eq!(chords.len(), 7);
+        assert_eq!(chords.len(), 12);
         chords.sort();
         chords.dedup();
-        assert_eq!(chords.len(), 7);
+        assert_eq!(chords.len(), 12);
     }
 }
