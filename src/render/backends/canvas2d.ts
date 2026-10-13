@@ -3,6 +3,7 @@ import type { RenderEnv } from '@/layers/types';
 import { composeEnv, getSceneAdapter } from '@/plugin/loader';
 import { layerComposite } from '@/render/composite';
 import { computePaperRect } from '@/render/geometry';
+import { PrefixPlanner } from '@/render/prefixCache';
 import type { RenderBackend, SceneFrame } from '@/render/types';
 
 export class Canvas2DBackend implements RenderBackend {
@@ -11,6 +12,11 @@ export class Canvas2DBackend implements RenderBackend {
   private domCanvas: HTMLCanvasElement | null = null;
   // where a layer with opacity or a blend mode is drawn before it is composited
   private scratch: OffscreenCanvas | null = null;
+  // the composite of the layers below the one being edited, so a stroke redraws only from there up
+  private prefix: OffscreenCanvas | null = null;
+  private planner = new PrefixPlanner();
+  /** Off for the reference render that checks the cache. */
+  useCache = true;
 
   // Overloads to satisfy RenderBackend and also support main-thread HTMLCanvasElement
   init(canvas: OffscreenCanvas, pixelRatio: number): void;
@@ -53,7 +59,10 @@ export class Canvas2DBackend implements RenderBackend {
     }
   }
 
-  // (Removed old pattern cache and helpers; adapters render directly)
+  /** Forget the cached prefix: something a layer draws changed without its state changing. */
+  dropCache() {
+    this.planner.drop();
+  }
 
   render(frame: SceneFrame) {
     const ctx = this.ctx;
@@ -102,15 +111,28 @@ export class Canvas2DBackend implements RenderBackend {
       ...(composeEnv(frame) as Partial<RenderEnv>),
     };
 
-    // Allow scene preRender hook (e.g., background effects). Keep pure; no transforms beyond clip/translate above.
-    try {
-      scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
-    } catch (e) {
-      // non-fatal
-      console.warn('[render] scene.preRender threw', e);
+    const plan = this.useCache
+      ? this.planner.plan(frame)
+      : ({ reuse: 0, snapshotAt: null } as const);
+    if (plan.reuse > 0 && this.prefix) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // the paper clip stays in force
+      ctx.drawImage(this.prefix, 0, 0);
+      ctx.restore();
+    } else {
+      // Allow scene preRender hook (e.g., background effects). Keep pure; no transforms beyond clip/translate above.
+      try {
+        scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
+      } catch (e) {
+        // non-fatal
+        console.warn('[render] scene.preRender threw', e);
+      }
     }
 
-    for (const l of frame.layers) {
+    const first = this.prefix ? plan.reuse : 0;
+    for (let index = first; index < frame.layers.length; index++) {
+      const l = frame.layers[index];
+      if (index === plan.snapshotAt) this.snapshot(ctx, cw, ch, dpr);
       if (!l.visible) continue;
       const type = getLayerType(l.type);
       const draw = type?.adapter?.drawMain;
@@ -153,7 +175,29 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.restore();
   }
 
+  private snapshot(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    cw: number,
+    ch: number,
+    dpr: number,
+  ) {
+    const w = Math.max(1, Math.floor(cw * dpr));
+    const h = Math.max(1, Math.floor(ch * dpr));
+    if (!this.prefix) this.prefix = new OffscreenCanvas(w, h);
+    if (this.prefix.width !== w || this.prefix.height !== h) {
+      this.prefix.width = w;
+      this.prefix.height = h;
+    }
+    const pctx = this.prefix.getContext('2d');
+    if (!pctx) return;
+    pctx.setTransform(1, 0, 0, 1, 0, 0);
+    pctx.clearRect(0, 0, w, h);
+    pctx.drawImage(ctx.canvas as CanvasImageSource, 0, 0);
+    this.planner.snapshotTaken();
+  }
+
   destroy() {
+    this.prefix = null;
     this.ctx = null;
     this.scratch = null;
   }

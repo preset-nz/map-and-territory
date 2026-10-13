@@ -26,6 +26,7 @@ const workerGlobal = globalThis as unknown as {
 workerGlobal.__freeformTextureReady = () => {
   if (!backend || !lastFrame) return;
   try {
+    backend.dropCache(); // the layer's pixels changed, its state did not
     backend.render(lastFrame);
   } catch (error) {
     console.warn('[worker] re-render after texture ready failed', error);
@@ -76,6 +77,38 @@ function handleResize(msg: Extract<RenderMessage, { type: 'resize' }>) {
   backend?.resize(msg.size, msg.pixelRatio);
 }
 
+// Build with VITE_RENDER_PARITY=1: every frame is also drawn with no cache, on a canvas of its
+// own, and compared byte for byte with the cached one.
+const PARITY = import.meta.env.VITE_RENDER_PARITY === '1';
+let reference: Canvas2DBackend | null = null;
+let referenceCanvas: OffscreenCanvas | null = null;
+
+function checkParity(frame: SceneFrame) {
+  if (!canvasRef) return;
+  const w = canvasRef.width;
+  const h = canvasRef.height;
+  if (!reference || !referenceCanvas) {
+    referenceCanvas = new OffscreenCanvas(w, h);
+    reference = new Canvas2DBackend();
+    reference.useCache = false;
+    reference.init(referenceCanvas, frame.pixelRatio);
+  }
+  if (referenceCanvas.width !== w || referenceCanvas.height !== h) {
+    referenceCanvas.width = w;
+    referenceCanvas.height = h;
+  }
+  reference.render(frame);
+  const a = canvasRef.getContext('2d')?.getImageData(0, 0, w, h).data;
+  const b = referenceCanvas.getContext('2d')?.getImageData(0, 0, w, h).data;
+  if (!a || !b) return;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      console.error('[render] prefix cache differs from a full render at byte', i);
+      return;
+    }
+  }
+}
+
 function drawPending() {
   scheduled = false;
   const frame = pending;
@@ -92,6 +125,7 @@ function drawPending() {
   }
   backend?.render(frame);
   lastFrame = frame;
+  if (PARITY) checkParity(frame);
 }
 
 function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
