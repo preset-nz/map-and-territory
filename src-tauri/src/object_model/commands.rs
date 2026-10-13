@@ -265,6 +265,7 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
     declare_move(c, "edit.move-to-back", "Send to Back", Move::Back);
 
     super::freeform::declare(c);
+    super::texture::declare(c);
     super::outline::declare(c);
     declare_rename(c);
     declare_set_visible(c);

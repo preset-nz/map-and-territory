@@ -186,8 +186,7 @@ pub fn declare(k: &mut Kinds) {
     .pinned_last(LAYERS);
 
     // The layer family between the anchors: each kind its own schema, all starting with the
-    // same common values. Texture values on `freeform` wait for epic 16 story 9, and its
-    // chunks for story 5.
+    // same common values. Its chunks are `chunk` nodes below.
     k.kind(
         layer(HEX_NOISE.id, HEX_NOISE.base)
             .text("seed", "seed")
@@ -202,11 +201,24 @@ pub fn declare(k: &mut Kinds) {
             .choice("terrain", BASE_TYPES, "plains")
             .text("terrainId", ""),
     );
-    k.kind(layer(FREEFORM.id, FREEFORM.base).choice(
-        "renderMode",
-        &["paint", "texture-fill"],
-        "paint",
-    ));
+    // The texture is a file reference kept as written (family requirement "No embedded
+    // assets"); the rest are the 2025 texture-fill settings.
+    k.kind(
+        layer(FREEFORM.id, FREEFORM.base)
+            .choice("renderMode", &["paint", "texture-fill"], "paint")
+            .reference("texture")
+            .bool("textureFillInvert", false)
+            .float("textureOffsetX", -1000.0..=1000.0, 0.0)
+            .float("textureOffsetY", -1000.0..=1000.0, 0.0)
+            .float("textureScale", 0.05..=8.0, 1.0)
+            .float("textureRotation", -180.0..=180.0, 0.0)
+            .choice("textureTiling", &["stretch", "fit", "repeat"], "stretch")
+            .choice(
+                "textureOverlayMode",
+                &["normal", "overlay", "screen", "multiply"],
+                "normal",
+            ),
+    );
     k.kind(
         layer(OUTLINE.id, OUTLINE.base)
             .shaped("paths", Shape::list(path()))

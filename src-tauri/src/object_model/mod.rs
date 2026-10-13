@@ -11,6 +11,7 @@ mod kinds;
 mod outline;
 mod palette;
 mod settings_2025;
+mod texture;
 
 #[cfg(test)]
 mod freeform_tests;
@@ -22,6 +23,8 @@ mod outline_tests;
 mod palette_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod texture_tests;
 
 use rhizome_core::{Edit, Value};
 use rhizome_pom::{Commands, Kinds, ObjectModel};
