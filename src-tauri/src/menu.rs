@@ -21,7 +21,7 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 16] = [
+const WEBVIEW: [&str; 19] = [
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
@@ -31,6 +31,9 @@ const WEBVIEW: [&str; 16] = [
     "edit.move-to-back",
     "view.toggle-left-panel",
     "view.toggle-right-panel",
+    "view.zoom-in",
+    "view.zoom-out",
+    "view.fit",
     "edit.duplicate",
     "edit.delete",
     "tool.paint",
@@ -62,6 +65,19 @@ pub fn commands() -> Vec<Command> {
             .accelerator("CmdOrCtrl+]")
             .menu(MenuName::View)
             .section(0),
+        // View > Zoom (menu standard decision 4). The camera is view state in the webview.
+        Command::item("view.zoom-in", "Zoom In")
+            .accelerator(shortcut::ZOOM_IN)
+            .menu(MenuName::View)
+            .section(1),
+        Command::item("view.zoom-out", "Zoom Out")
+            .accelerator(shortcut::ZOOM_OUT)
+            .menu(MenuName::View)
+            .section(1),
+        Command::item("view.fit", "Fit in Window")
+            .accelerator("CmdOrCtrl+0")
+            .menu(MenuName::View)
+            .section(2),
         // Edit, after Undo and Redo and before Cut, Copy and Paste. POM's built-ins run with
         // the selection as `{at}`; the webview relabels them ("Delete Layer").
         Command::item("edit.duplicate", "Duplicate")
@@ -169,9 +185,9 @@ mod tests {
                 Some(rest[..rest.find('"')?].to_string())
             })
             .collect();
-        assert_eq!(chords.len(), 13);
+        assert_eq!(chords.len(), 16);
         chords.sort();
         chords.dedup();
-        assert_eq!(chords.len(), 13);
+        assert_eq!(chords.len(), 16);
     }
 }

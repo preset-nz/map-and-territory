@@ -23,10 +23,12 @@ function freeformTarget(mirror: ReturnType<typeof useMirror>): string | null {
 
 /** The fill region from a hex: same-terrain neighbours, never off the paper, at most 5000. */
 export function fillRegion(
-  frame: SceneFrame,
+  zoomed: SceneFrame,
   layerId: string,
   from: { q: number; r: number },
 ): { q: number; r: number }[] {
+  // the paper is judged whole, whatever the view shows
+  const frame = { ...zoomed, camera: { x: 0, y: 0, zoom: 1 } };
   const layer = frame.layers.find((l) => l.id === layerId);
   const cells = ((layer?.state as { cells?: Record<string, { terrainId?: string }> })?.cells ??
     {}) as Record<string, { terrainId?: string }>;

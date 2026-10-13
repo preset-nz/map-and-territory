@@ -1,12 +1,13 @@
 // Pointer to hex, through the same paper rect the renderer clips to and the hexgrid's size and
-// orientation, with axial (0, 0) at the paper's centre. The camera is identity until epic 04.
+// orientation, with axial (0, 0) at the paper's centre. The camera (epic 04) is undone first.
 import { fromPoint } from '@/lib/hex/layout';
 import type { Orientation } from '@/lib/hex/types';
 import { computePaperRect, type PaperAspect } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
+import { toPaper } from '../view/camera';
 
 export interface PointerHit {
-  /** In paper pixels, origin at the paper's top-left. */
+  /** In paper space (the paper's pixels at zoom 1), origin at the paper's top-left. */
   point: { x: number; y: number };
   hex: { q: number; r: number } | null;
 }
@@ -28,8 +29,9 @@ export function hitTest(frame: SceneFrame, x: number, y: number): PointerHit | n
     canvasSize: frame.size,
     paper: { aspect: frame.paper.aspect as PaperAspect },
   });
-  const point = { x: x - paper.x, y: y - paper.y };
-  if (point.x < 0 || point.y < 0 || point.x > paper.w || point.y > paper.h) return null;
+  const view = { x: x - paper.x, y: y - paper.y };
+  if (view.x < 0 || view.y < 0 || view.x > paper.w || view.y > paper.h) return null;
+  const point = toPaper(frame.camera, view);
   const grid = gridOf(frame);
   const axial = grid
     ? fromPoint(point, { ...grid, origin: { x: paper.w / 2, y: paper.h / 2 } })

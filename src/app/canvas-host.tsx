@@ -1,5 +1,6 @@
 import { useMirror } from '@preset.nz/pom';
 import { useEffect, useRef } from 'react';
+import { computePaperRect, type PaperAspect } from '@/render/geometry';
 import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
 import { createFrameBuilder, type FrameBuilder } from './scene/frame';
@@ -7,6 +8,7 @@ import { hitTest, type PointerHit } from './scene/pointer';
 import { activeMapId, selection } from './selection';
 import { outlineDraft } from './tools/outline';
 import { pointerHex } from './tools/tools';
+import { camera } from './view/camera';
 
 export type PointerKind = 'down' | 'move' | 'up' | 'cancel';
 
@@ -67,7 +69,14 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         size,
         dpr,
         outlineDraft.get(),
+        camera.get(),
       );
+      // the camera is clamped to the paper, which moves with the canvas and the aspect
+      const paper = computePaperRect({
+        canvasSize: size,
+        paper: { aspect: lastFrame.paper.aspect as PaperAspect },
+      });
+      camera.setPaper({ w: paper.w, h: paper.h });
       svc.render(lastFrame);
     };
     const observer = new ResizeObserver(draw);
@@ -75,16 +84,67 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     const unsubscribe = mirror.subscribe(draw);
     const unselect = selection.subscribe(draw);
     const undraft = outlineDraft.subscribe(draw);
+    const uncamera = camera.subscribe(draw);
     draw();
+
+    // Space held pans by dragging: the one held-gesture key (CLAUDE.md), so a stroke can pan
+    let spaceHeld = false;
+    let panFrom: { x: number; y: number } | null = null;
+    const typing = (t: EventTarget | null) =>
+      t instanceof HTMLElement &&
+      (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    const onKey = (down: boolean) => (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || typing(e.target)) return;
+      spaceHeld = down;
+      wrap.style.cursor = down ? 'grab' : '';
+      if (!down) panFrom = null;
+    };
+    const keydown = onKey(true);
+    const keyup = onKey(false);
+    window.addEventListener('keydown', keydown);
+    window.addEventListener('keyup', keyup);
 
     const pointer = (kind: PointerKind) => (e: PointerEvent) => {
       if (!lastFrame) return;
       const box = wrap.getBoundingClientRect();
-      const hit = hitTest(lastFrame, e.clientX - box.left, e.clientY - box.top);
+      const x = e.clientX - box.left;
+      const y = e.clientY - box.top;
+      if (kind === 'down' && spaceHeld) {
+        panFrom = { x, y };
+        wrap.setPointerCapture(e.pointerId);
+        return;
+      }
+      if (panFrom) {
+        if (kind === 'move') {
+          camera.pan(panFrom.x - x, panFrom.y - y);
+          panFrom = { x, y };
+        } else if (kind === 'up' || kind === 'cancel') panFrom = null;
+        return;
+      }
+      const hit = hitTest(lastFrame, x, y);
       pointerHex.set(hit?.hex ?? null);
       if (kind === 'down') wrap.setPointerCapture(e.pointerId);
       pointerRef.current?.(kind, hit, lastFrame, e);
     };
+    // Scroll pans; pinch or Cmd+scroll zooms about the cursor
+    const wheel = (e: WheelEvent) => {
+      if (!lastFrame) return;
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) {
+        const box = wrap.getBoundingClientRect();
+        const paper = computePaperRect({
+          canvasSize: lastFrame.size,
+          paper: { aspect: lastFrame.paper.aspect as PaperAspect },
+        });
+        camera.zoomAt(Math.exp(-e.deltaY * 0.01), {
+          x: e.clientX - box.left - paper.x,
+          y: e.clientY - box.top - paper.y,
+        });
+      } else {
+        camera.pan(e.deltaX, e.deltaY);
+      }
+    };
+    wrap.addEventListener('wheel', wheel, { passive: false });
     const handlers: [string, (e: PointerEvent) => void][] = [
       ['pointerdown', pointer('down')],
       ['pointermove', pointer('move')],
@@ -99,9 +159,13 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     return () => {
       for (const [type, f] of handlers) wrap.removeEventListener(type, f as EventListener);
       wrap.removeEventListener('pointerleave', leave);
+      wrap.removeEventListener('wheel', wheel);
+      window.removeEventListener('keydown', keydown);
+      window.removeEventListener('keyup', keyup);
       unsubscribe();
       unselect();
       undraft();
+      uncamera();
       observer.disconnect();
       svc.destroy();
       canvas.remove();

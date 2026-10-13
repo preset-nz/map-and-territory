@@ -4,6 +4,7 @@
 import { DefaultPalette } from '@/palettes/defaults';
 import type { MapPalette, TerrainCategory } from '@/palettes/types';
 import type { PaperSpec, SceneFrame, SceneLayer } from '@/render/types';
+import type { Camera } from '../view/camera';
 import { cssColour } from './colour';
 import { decodeChunk, type Voxel } from './voxels';
 
@@ -89,6 +90,7 @@ export interface FrameBuilder {
     size: { w: number; h: number },
     pixelRatio: number,
     preview?: OutlinePreview,
+    camera?: Camera,
   ): SceneFrame;
 }
 
@@ -181,10 +183,10 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   };
 
   return {
-    build(rows, mapId, size, pixelRatio, preview) {
+    build(rows, mapId, size, pixelRatio, preview, camera = IDENTITY_CAMERA) {
       const map = mapId ? rows.node(mapId) : undefined;
       if (!map) {
-        return { size, pixelRatio, paper: DEFAULT_PAPER, camera: IDENTITY_CAMERA, layers: [] };
+        return { size, pixelRatio, paper: DEFAULT_PAPER, camera, layers: [] };
       }
       let paper = DEFAULT_PAPER;
       const layers: SceneLayer[] = [];
@@ -214,7 +216,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         size,
         pixelRatio,
         paper,
-        camera: IDENTITY_CAMERA,
+        camera,
         layers,
         palette: resolvePalette(rows, map),
       };

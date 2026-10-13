@@ -14,6 +14,7 @@ import { StatusContent } from './app/status';
 import { LAYER_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
 import { BrushPicker } from './app/tools/brush-picker';
 import { useToolPointer } from './app/tools/pointer-tools';
+import { camera, ZOOM_STEP } from './app/view/camera';
 
 /** Selects whatever has just been added to `ids` (one more, and new), through `select`. */
 function useSelectAdded(ids: readonly string[], select: (id: string) => void) {
@@ -48,6 +49,9 @@ export default function App() {
       ),
       ...toolBindings,
       'view.toggle-left-panel': { pressed: panel.open, run: panel.toggle },
+      'view.zoom-in': { run: () => camera.zoomCentre(ZOOM_STEP) },
+      'view.zoom-out': { run: () => camera.zoomCentre(1 / ZOOM_STEP) },
+      'view.fit': { run: camera.fit },
       'view.toggle-right-panel': { pressed: inspectorPanel.open, run: inspectorPanel.toggle },
     }),
     [scene, toolBindings, panel.open, panel.toggle, inspectorPanel.open, inspectorPanel.toggle],
