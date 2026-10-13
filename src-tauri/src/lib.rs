@@ -9,6 +9,15 @@ mod object_model;
 
 use tauri::Manager;
 
+/// A freeform layer's texture file, as raw bytes (no JSON round trip).
+#[tauri::command]
+fn texture_bytes(
+    document: tauri::State<'_, document::DocumentHost>,
+    file: String,
+) -> Result<tauri::ipc::Response, String> {
+    document.texture_bytes(&file).map(tauri::ipc::Response::new)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -44,6 +53,7 @@ pub fn run() {
             rhizome_pom_tauri::commands::pom_end,
             rhizome_pom_tauri::commands::pom_cancel,
             rhizome_pom_tauri::commands::pom_connect,
+            texture_bytes,
             // Not `pom_new`, `pom_open` or `pom_save_as`: app-kit replaces and saves the
             // document, so a replacement made any other way would skip its title, recents
             // and close guard.

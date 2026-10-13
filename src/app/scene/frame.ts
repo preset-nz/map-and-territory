@@ -146,7 +146,9 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     }
     const cells: Record<string, Voxel> = {};
     for (const c of chunks) Object.assign(cells, cellsOfChunk(c));
-    const state = { ...stateOf(row), cells };
+    // the image's path as written: a reference's file, never bytes
+    const texture = row.refs?.texture?.file;
+    const state = { ...stateOf(row), cells, ...(texture ? { texture } : {}) };
     freeform.set(row, { chunks, state });
     return state;
   };

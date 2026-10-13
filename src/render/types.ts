@@ -60,4 +60,5 @@ export type RenderMessage =
   | { type: 'inited' }
   | { type: 'resize'; size: { w: number; h: number }; pixelRatio: number }
   | { type: 'render'; frame: WireFrame }
+  | { type: 'texture'; id: string; bitmap: ImageBitmap }
   | { type: 'destroy' };

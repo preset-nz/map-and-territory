@@ -4,7 +4,7 @@ import type { RenderMessage, SceneFrame } from '@/render/types';
 export class RenderService {
   private worker: Worker | null = null;
   private ready = false;
-  private queue: Array<RenderMessage> = [];
+  private queue: Array<{ msg: RenderMessage; transfer: Transferable[] }> = [];
   private encoder: DeltaEncoder = createDeltaEncoder();
 
   init(canvas: HTMLCanvasElement, pixelRatio: number): boolean {
@@ -30,7 +30,7 @@ export class RenderService {
       if (ev.data?.type === 'inited') {
         this.ready = true;
         // flush queued messages in order
-        for (const msg of this.queue) this.worker?.postMessage(msg);
+        for (const { msg, transfer } of this.queue) this.worker?.postMessage(msg, transfer);
         this.queue = [];
       }
     };
@@ -55,10 +55,15 @@ export class RenderService {
     if (wire) this.post({ type: 'render', frame: wire });
   }
 
-  private post(msg: RenderMessage) {
+  /** Hands a decoded image to the worker; the bitmap is transferred, not copied. */
+  texture(id: string, bitmap: ImageBitmap) {
+    this.post({ type: 'texture', id, bitmap }, [bitmap]);
+  }
+
+  private post(msg: RenderMessage, transfer: Transferable[] = []) {
     if (!this.worker) return;
-    if (this.ready) this.worker.postMessage(msg);
-    else this.queue.push(msg);
+    if (this.ready) this.worker.postMessage(msg, transfer);
+    else this.queue.push({ msg, transfer });
   }
 
   destroy() {

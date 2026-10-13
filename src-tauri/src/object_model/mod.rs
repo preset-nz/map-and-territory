@@ -11,7 +11,7 @@ mod kinds;
 mod outline;
 mod palette;
 mod settings_2025;
-mod texture;
+pub mod texture;
 
 #[cfg(test)]
 mod freeform_tests;

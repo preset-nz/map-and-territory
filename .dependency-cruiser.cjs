@@ -74,8 +74,9 @@ module.exports = {
       severity: 'error',
       comment:
         "@preset.nz/pom's transport is the webview's one channel to the document host; nothing " +
-        'in src/ calls @tauri-apps/api itself.',
-      from: { path: '^src/' },
+        'in src/ calls @tauri-apps/api itself. One exception, 2026-10-14 (epic 18): ' +
+        'src/app/scene/textures.ts reads a texture file as raw bytes, which POM commands (JSON) cannot carry.',
+      from: { path: '^src/', pathNot: '^src/app/scene/textures\\.ts$' },
       to: { path: '@tauri-apps/api' },
     },
   ],

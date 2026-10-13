@@ -29,7 +29,10 @@ export interface FreeformState {
   brushColor?: string; // if set, overrides terrain color when painting new cells
   fillMode?: 'auto' | 'same-value' | 'empty-only';
   renderMode?: FreeformRenderMode;
+  /** The 2025 embedded texture; goes with the 2025 plugin runtime (epic 16 story 10). */
   textureFill?: TextureFillSettings | null;
+  /** The image's path as written (epic 18); the bitmap arrives through `env.textures`. */
+  texture?: string;
   textureFillInvert?: boolean;
   textureOffsetX?: number;
   textureOffsetY?: number;
@@ -148,9 +151,13 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
       const settings = state.textureFill;
       const cells = Object.entries(state.cells || {});
       const invert = Boolean(state.textureFillInvert);
-      if (!settings) return;
+      if (!settings && !state.texture) return;
       if (!invert && cells.length === 0) return;
-      const bitmap = ensureTextureBitmap(settings);
+      const bitmap = state.texture
+        ? (env.textures?.get(state.texture) ?? null)
+        : settings
+          ? ensureTextureBitmap(settings)
+          : null;
       if (!bitmap) return;
       const width = env.size?.w ?? bitmap.width;
       const height = env.size?.h ?? bitmap.height;
@@ -252,7 +259,7 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     // lightweight key: count + opacity + last key for cheap change detection
     const lastKey = Object.keys(state.cells || {}).slice(-1)[0] || '-';
     const mode = state.renderMode ?? 'paint';
-    const textureId = state.textureFill?.id ?? '-';
+    const textureId = state.texture ?? state.textureFill?.id ?? '-';
     const invert = state.textureFillInvert ? 1 : 0;
     const offsetX = Number(state.textureOffsetX ?? 0).toFixed(2);
     const offsetY = Number(state.textureOffsetY ?? 0).toFixed(2);
@@ -275,6 +282,7 @@ export const FreeformType = {
     fillMode: 'auto',
     renderMode: 'paint',
     textureFill: null,
+    texture: undefined,
     textureFillInvert: false,
     textureOffsetX: 0,
     textureOffsetY: 0,

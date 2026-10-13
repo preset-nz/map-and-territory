@@ -104,6 +104,18 @@ impl DocumentHost {
         });
     }
 
+    /// The bytes of the image a freeform layer's `texture` names, for the webview to decode.
+    /// The path is as written: a relative one resolves against the campaign file. The same
+    /// checks as `freeform.set-texture` run again, because the file may have changed since.
+    pub fn texture_bytes(&self, file: &str) -> Result<Vec<u8>, String> {
+        let path = self
+            .pom
+            .read(|d| crate::object_model::texture::resolve(d.path(), file))
+            .ok_or_else(|| "save the campaign first, or use the image's full path".to_string())?;
+        crate::object_model::texture::check_file(&path)?;
+        std::fs::read(&path).map_err(|e| format!("can't read {}: {e}", path.display()))
+    }
+
     /// Runs `edit.undo` or `edit.redo` through the host, so the commit reaches the webview's
     /// mirror. Nothing to step is not an error.
     fn step<R: Runtime>(&self, app: &AppHandle<R>, undo: bool) -> Result<(), String> {

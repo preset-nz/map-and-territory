@@ -11,6 +11,8 @@ export interface RenderEnv {
   // Optional hints derived by render host (e.g., for layers that coordinate with grid)
   grid?: { size: number; orientation: 'pointy' | 'flat' };
   palette?: MapPalette;
+  /** Decoded images by the path a layer refers to; the host loads them (epic 18). */
+  textures?: ReadonlyMap<string, ImageBitmap>;
 }
 
 export interface LayerAdapter<State = unknown> {

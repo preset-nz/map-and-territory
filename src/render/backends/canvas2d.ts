@@ -17,6 +17,8 @@ export class Canvas2DBackend implements RenderBackend {
   private planner = new PrefixPlanner();
   /** Off for the reference render that checks the cache. */
   useCache = true;
+  // decoded images layers refer to, the most recently set last
+  private textures = new Map<string, ImageBitmap>();
 
   // Overloads to satisfy RenderBackend and also support main-thread HTMLCanvasElement
   init(canvas: OffscreenCanvas, pixelRatio: number): void;
@@ -57,6 +59,19 @@ export class Canvas2DBackend implements RenderBackend {
       this.domCanvas.width = Math.max(1, Math.floor(size.w * dpr));
       this.domCanvas.height = Math.max(1, Math.floor(size.h * dpr));
     }
+  }
+
+  /** A decoded image for layers that refer to `id`. Keeps the newest eight. */
+  setTexture(id: string, bitmap: ImageBitmap) {
+    this.textures.get(id)?.close?.();
+    this.textures.delete(id);
+    this.textures.set(id, bitmap);
+    while (this.textures.size > 8) {
+      const oldest = this.textures.keys().next().value as string;
+      this.textures.get(oldest)?.close?.();
+      this.textures.delete(oldest);
+    }
+    this.planner.drop(); // a layer's pixels changed, its state did not
   }
 
   /** Forget the cached prefix: something a layer draws changed without its state changing. */
@@ -105,6 +120,7 @@ export class Canvas2DBackend implements RenderBackend {
       paperRect,
       camera: frame.camera,
       palette: frame.palette,
+      textures: this.textures,
     };
     const envLocal: RenderEnv = {
       ...envBase,

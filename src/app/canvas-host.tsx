@@ -5,6 +5,7 @@ import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
 import { createFrameBuilder, type FrameBuilder } from './scene/frame';
 import { hitTest, type PointerHit } from './scene/pointer';
+import { tauriTextureLoader } from './scene/textures';
 import { activeMapId, selection } from './selection';
 import { outlineDraft } from './tools/outline';
 import { pointerHex } from './tools/tools';
@@ -46,6 +47,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     }
 
     // The builder's memo is per schema: a new document brings a new one.
+    const textures = tauriTextureLoader((path, bitmap) => svc.texture(path, bitmap));
     let schema = mirror.schema;
     let builder: FrameBuilder = createFrameBuilder(schema);
     let lastSize = { w: 0, h: 0, dpr: 0 };
@@ -77,6 +79,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         paper: { aspect: lastFrame.paper.aspect as PaperAspect },
       });
       camera.setPaper({ w: paper.w, h: paper.h });
+      textures.want(lastFrame);
       svc.render(lastFrame);
     };
     const observer = new ResizeObserver(draw);

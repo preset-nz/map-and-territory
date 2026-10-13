@@ -137,6 +137,18 @@ function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
   }
 }
 
+function handleTexture(msg: Extract<RenderMessage, { type: 'texture' }>) {
+  backend?.setTexture(msg.id, msg.bitmap);
+  // draw again with what is already known; the layer's state did not change
+  if (lastFrame) {
+    pending = pending ?? lastFrame;
+    if (!scheduled) {
+      scheduled = true;
+      setTimeout(drawPending, 0);
+    }
+  }
+}
+
 function handleDestroy() {
   backend?.destroy();
   backend = null;
@@ -157,6 +169,9 @@ self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
       break;
     case 'render':
       handleRender(msg);
+      break;
+    case 'texture':
+      handleTexture(msg);
       break;
     case 'destroy':
       handleDestroy();
