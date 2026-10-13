@@ -2310,9 +2310,9 @@ checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
 name = "preset-app-kit"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5304a39f7000c4e2a59be42c919e81a704264754ac26301797982720c6ac8efa"
+checksum = "75324311a43f269ae13722e133d6f91243b13f8aa5518fb6bcdbd8d5ae197ab6"
 dependencies = [
  "serde",
  "serde_json",
@@ -2577,7 +2577,9 @@ dependencies = [
 
 [[package]]
 name = "rhizome-core"
-version = "0.1.4"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9270992ec5527404939a3e57dccc1534b428064d00a979aa2ae8397139f7393"
 dependencies = [
  "serde",
  "serde_json",
@@ -2587,7 +2589,9 @@ dependencies = [
 
 [[package]]
 name = "rhizome-pom"
-version = "0.1.4"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71d20a9330f41b76bec7456101ceacba9f5c290cb977b40f2663a8ac9239356f"
 dependencies = [
  "rhizome-core",
  "serde",
@@ -2597,7 +2601,9 @@ dependencies = [
 
 [[package]]
 name = "rhizome-pom-tauri"
-version = "0.1.4"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a20789017e3adf6fc529af57be826848586931de0f9772315e938195cc4c32c"
 dependencies = [
  "rhizome-pom",
  "serde_json",

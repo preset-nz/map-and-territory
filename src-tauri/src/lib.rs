@@ -58,13 +58,5 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app, event| {
-            // Finder opens and the quit guard are app-kit's. Not `Ready`: published app-kit
-            // 0.1.2 reopens the last document there, and a launch starts Untitled
-            // (native-apps.md, 2026-10-10). Drop this filter with app-kit's next release
-            // (commit 325b8a8).
-            if !matches!(event, tauri::RunEvent::Ready) {
-                preset_app_kit::on_run_event(app, &event);
-            }
-        });
+        .run(|app, event| preset_app_kit::on_run_event(app, &event));
 }
