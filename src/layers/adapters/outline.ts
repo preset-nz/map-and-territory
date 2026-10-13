@@ -70,7 +70,6 @@ export const OutlineAdapter: LayerAdapter<OutlineState> = {
     if (!state.paths.length) return;
     const layout = buildLayout(env);
     ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, Number(state.opacity ?? 1)));
     ctx.strokeStyle = state.strokeColor || '#ffffff';
     ctx.lineWidth = Math.max(0.5, Number(state.strokeWidth ?? 4));
     ctx.lineJoin = 'round';

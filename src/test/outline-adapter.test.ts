@@ -86,7 +86,7 @@ describe('OutlineAdapter', () => {
     expect(ctx.strokeCount).toBe(1);
     expect(ctx.strokeStyle).toBe('#112233');
     expect(ctx.lineWidth).toBe(3);
-    expect(ctx.globalAlpha).toBeCloseTo(0.8);
+    expect(ctx.globalAlpha).toBe(1); // opacity is the host's (render/composite.ts)
     expect(ctx.dash.length).toBe(0);
   });
 });

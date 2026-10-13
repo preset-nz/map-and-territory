@@ -1,6 +1,7 @@
 import { getLayerType } from '@/layers/registry';
 import type { RenderEnv } from '@/layers/types';
 import { composeEnv, getSceneAdapter } from '@/plugin/loader';
+import { layerComposite } from '@/render/composite';
 import { computePaperRect } from '@/render/geometry';
 import type { RenderBackend, SceneFrame } from '@/render/types';
 
@@ -8,6 +9,8 @@ export class Canvas2DBackend implements RenderBackend {
   private ctx: (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) | null = null;
   private pixelRatio = 1;
   private domCanvas: HTMLCanvasElement | null = null;
+  // where a layer with opacity or a blend mode is drawn before it is composited
+  private scratch: OffscreenCanvas | null = null;
 
   // Overloads to satisfy RenderBackend and also support main-thread HTMLCanvasElement
   init(canvas: OffscreenCanvas, pixelRatio: number): void;
@@ -111,9 +114,33 @@ export class Canvas2DBackend implements RenderBackend {
       if (!l.visible) continue;
       const type = getLayerType(l.type);
       const draw = type?.adapter?.drawMain;
-      if (typeof draw === 'function') {
+      if (typeof draw !== 'function') continue;
+      const comp = layerComposite(l.state);
+      if (!comp) {
         draw(ctx as CanvasRenderingContext2D, l.state as unknown, envLocal);
+        continue;
       }
+      // Opacity and blend belong to the layer, not to each shape in it: draw it whole into
+      // the scratch buffer, then composite that once.
+      const w = Math.max(1, Math.floor(cw * dpr));
+      const h = Math.max(1, Math.floor(ch * dpr));
+      if (!this.scratch) this.scratch = new OffscreenCanvas(w, h);
+      if (this.scratch.width !== w || this.scratch.height !== h) {
+        this.scratch.width = w;
+        this.scratch.height = h;
+      }
+      const sctx = this.scratch.getContext('2d');
+      if (!sctx) continue;
+      sctx.setTransform(1, 0, 0, 1, 0, 0);
+      sctx.clearRect(0, 0, w, h);
+      sctx.setTransform(ctx.getTransform());
+      draw(sctx as unknown as CanvasRenderingContext2D, l.state as unknown, envLocal);
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // the paper clip stays in force
+      ctx.globalAlpha = comp.opacity;
+      ctx.globalCompositeOperation = comp.operation;
+      ctx.drawImage(this.scratch, 0, 0);
+      ctx.restore();
     }
 
     // Scene postRender can draw chrome like paper outline
@@ -128,5 +155,6 @@ export class Canvas2DBackend implements RenderBackend {
 
   destroy() {
     this.ctx = null;
+    this.scratch = null;
   }
 }

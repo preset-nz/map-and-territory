@@ -143,7 +143,6 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     const orientation = env.grid?.orientation === 'flat' ? 'flat' : 'pointy';
     const origin = { x: env.size.w / 2, y: env.size.h / 2 } as const;
     const layout = { size, orientation, origin } as const;
-    const a = Math.max(0, Math.min(1, Number(state.opacity ?? 1)));
 
     if ((state.renderMode ?? 'paint') === 'texture-fill') {
       const settings = state.textureFill;
@@ -168,7 +167,6 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
           ? state.textureTiling
           : 'stretch';
       ctx.save();
-      ctx.globalAlpha = a;
       const overlayMode = state.textureOverlayMode ?? 'normal';
       const compositeOperation = overlayMode === 'normal' ? 'source-over' : overlayMode;
       ctx.beginPath();
@@ -239,7 +237,6 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     }
 
     ctx.save();
-    ctx.globalAlpha = a;
     for (const [key, cell] of Object.entries(state.cells || {})) {
       const axial = parseAxialKey(key);
       // Convert axial to pixel center using shared helper (matches grid)
