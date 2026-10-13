@@ -1,14 +1,15 @@
 // What the active tool does with a pointer on the paper. Paint, erase and fill work on the
 // selected freeform layer; the other tools arrive with their layers.
 import { useMirror } from '@preset.nz/pom';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { floodFill } from '@/lib/flood-fill';
 import type { SceneFrame } from '@/render/types';
 import type { OnPointer } from '../canvas-host';
 import { useChannel } from '../document';
-import { hitTest } from '../scene/pointer';
+import { gridOf, hitTest, type PointerHit } from '../scene/pointer';
 import { selection } from '../selection';
 import { brush } from './brush';
+import { click, cornerAt, openPath, outlineDraft, type StoredPath } from './outline';
 import { createStroke, type Stroke } from './stroke';
 import { tools } from './tools';
 
@@ -46,7 +47,6 @@ export function fillRegion(
 
 import { toPoint } from '@/lib/hex/layout';
 import { computePaperRect, type PaperAspect } from '@/render/geometry';
-import { gridOf } from '../scene/pointer';
 
 /** A hex centre in canvas pixels, or null with no grid. */
 function hexCentre(frame: SceneFrame, q: number, r: number): { x: number; y: number } | null {
@@ -64,10 +64,58 @@ function hexCentre(frame: SceneFrame, q: number, r: number): { x: number; y: num
     : { x, y };
 }
 
+/** The selected layer's id and path, when it is an outline layer. */
+function outlineTarget(mirror: ReturnType<typeof useMirror>) {
+  const s = selection.get();
+  if (s.kind !== 'layer') return null;
+  const row = mirror.node(s.id);
+  return row?.type === 'outline' ? { id: s.id, at: row.path, paths: row.values?.paths } : null;
+}
+
+/** An outline tool event: hover shows the corner a click would take; a click extends the path. */
+function outlineEvent(
+  kind: 'down' | 'move',
+  hit: PointerHit | null,
+  frame: SceneFrame,
+  target: NonNullable<ReturnType<typeof outlineTarget>>,
+  run: (paths: StoredPath[]) => void,
+) {
+  const grid = gridOf(frame);
+  const corner = hit && grid ? cornerAt(hit.point, layoutOf(frame, grid)) : null;
+  if (kind === 'move') {
+    outlineDraft.hover(target.id, corner);
+    return;
+  }
+  if (!corner || !grid) return;
+  const paths = (Array.isArray(target.paths) ? target.paths : []) as unknown as StoredPath[];
+  const draft = outlineDraft.get();
+  const step = click(paths, openPath(paths, draft, target.id), corner, layoutOf(frame, grid));
+  if (!step) return;
+  outlineDraft.set({ layerId: target.id, active: step.active, hover: null });
+  if (step.paths !== paths) run(step.paths);
+}
+
+function layoutOf(frame: SceneFrame, grid: NonNullable<ReturnType<typeof gridOf>>) {
+  const paper = computePaperRect({
+    canvasSize: frame.size,
+    paper: { aspect: frame.paper.aspect as PaperAspect },
+  });
+  return { ...grid, origin: { x: paper.w / 2, y: paper.h / 2 } };
+}
+
 export function useToolPointer(): OnPointer {
   const mirror = useMirror();
   const channel = useChannel();
   const stroke = useRef<Stroke | null>(null);
+
+  // leaving the outline tool drops its preview
+  useEffect(
+    () =>
+      tools.subscribe(() => {
+        if (tools.get() !== 'outline') outlineDraft.reset();
+      }),
+    [],
+  );
 
   return useCallback<OnPointer>(
     (kind, hit, frame, e) => {
@@ -75,6 +123,17 @@ export function useToolPointer(): OnPointer {
       if (kind === 'up' || kind === 'cancel') {
         stroke.current?.end();
         stroke.current = null;
+        return;
+      }
+      if (tool === 'outline') {
+        const target = outlineTarget(mirror);
+        if (!target || (kind !== 'down' && kind !== 'move')) return;
+        if (kind === 'down' && e.button !== 0) return;
+        outlineEvent(kind, hit, frame, target, (paths) =>
+          channel
+            .run('outline.draw', { at: target.at, paths })
+            .catch((err) => console.error('[outline]', err)),
+        );
         return;
       }
       if (tool !== 'paint' && tool !== 'erase' && tool !== 'fill') return;

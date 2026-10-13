@@ -5,6 +5,7 @@ import type { SceneFrame } from '@/render/types';
 import { createFrameBuilder, type FrameBuilder } from './scene/frame';
 import { hitTest, type PointerHit } from './scene/pointer';
 import { activeMapId, selection } from './selection';
+import { outlineDraft } from './tools/outline';
 import { pointerHex } from './tools/tools';
 
 export type PointerKind = 'down' | 'move' | 'up' | 'cancel';
@@ -60,13 +61,20 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         schema = mirror.schema;
         builder = createFrameBuilder(schema);
       }
-      lastFrame = builder.build(mirror, activeMapId(selection.get(), mirror), size, dpr);
+      lastFrame = builder.build(
+        mirror,
+        activeMapId(selection.get(), mirror),
+        size,
+        dpr,
+        outlineDraft.get(),
+      );
       svc.render(lastFrame);
     };
     const observer = new ResizeObserver(draw);
     observer.observe(wrap);
     const unsubscribe = mirror.subscribe(draw);
     const unselect = selection.subscribe(draw);
+    const undraft = outlineDraft.subscribe(draw);
     draw();
 
     const pointer = (kind: PointerKind) => (e: PointerEvent) => {
@@ -93,6 +101,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       wrap.removeEventListener('pointerleave', leave);
       unsubscribe();
       unselect();
+      undraft();
       observer.disconnect();
       svc.destroy();
       canvas.remove();

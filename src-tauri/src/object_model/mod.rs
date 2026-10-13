@@ -8,6 +8,7 @@
 mod commands;
 mod freeform;
 mod kinds;
+mod outline;
 mod palette;
 mod settings_2025;
 
@@ -15,6 +16,8 @@ mod settings_2025;
 mod freeform_tests;
 #[cfg(test)]
 mod layer_tests;
+#[cfg(test)]
+mod outline_tests;
 #[cfg(test)]
 mod palette_tests;
 #[cfg(test)]

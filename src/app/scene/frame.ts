@@ -75,13 +75,36 @@ export function mapToFollow(
   return id !== null && id !== activeMapId ? id : null;
 }
 
+/** The outline tool's preview: which path is open and the corner near the pointer. */
+export interface OutlinePreview {
+  layerId: string | null;
+  active: boolean;
+  hover: { hex: { q: number; r: number }; corner: number } | null;
+}
+
 export interface FrameBuilder {
   build(
     rows: RowSource,
     mapId: string | null,
     size: { w: number; h: number },
     pixelRatio: number,
+    preview?: OutlinePreview,
   ): SceneFrame;
+}
+
+interface StoredPath {
+  corners: { q: number; r: number; corner: number }[];
+  closed: boolean;
+}
+
+/** An outline layer's `paths` as the adapter reads them: nested hexes, a path id. */
+function adapterPaths(value: unknown) {
+  const paths = Array.isArray(value) ? (value as StoredPath[]) : [];
+  return paths.map((p, i) => ({
+    id: `path-${i}`,
+    closed: p.closed,
+    corners: p.corners.map((c) => ({ hex: { q: c.q, r: c.r }, corner: c.corner })),
+  }));
 }
 
 /**
@@ -134,6 +157,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     for (const [k, v] of Object.entries(row.values ?? {})) {
       state[k] = keys?.has(k) ? cssColour(v) : v;
     }
+    if (row.type === 'outline') state.paths = adapterPaths(row.values?.paths);
     states.set(row, state);
     return state;
   };
@@ -157,7 +181,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   };
 
   return {
-    build(rows, mapId, size, pixelRatio) {
+    build(rows, mapId, size, pixelRatio, preview) {
       const map = mapId ? rows.node(mapId) : undefined;
       if (!map) {
         return { size, pixelRatio, paper: DEFAULT_PAPER, camera: IDENTITY_CAMERA, layers: [] };
@@ -167,7 +191,17 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       for (const id of map.orders?.layers ?? []) {
         const row = rows.node(id);
         if (!row) continue;
-        const state = row.type === 'freeform' ? freeformState(rows, row) : stateOf(row);
+        let state = row.type === 'freeform' ? freeformState(rows, row) : stateOf(row);
+        if (row.type === 'outline' && preview?.layerId === id) {
+          // tool state rides on a copy, so the row's memoised state stays clean
+          const paths = state.paths as { id: string; closed: boolean }[];
+          const open = preview.active ? paths[paths.length - 1] : undefined;
+          state = {
+            ...state,
+            activePathId: open && !open.closed ? open.id : null,
+            hoverCorner: preview.hover,
+          };
+        }
         if (row.type === 'paper') {
           paper = {
             aspect: (state.aspect as PaperSpec['aspect']) ?? DEFAULT_PAPER.aspect,
