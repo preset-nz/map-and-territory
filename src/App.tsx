@@ -3,7 +3,8 @@ import { useCommands } from '@preset.nz/app-kit/core';
 import { useChildren, useMirror } from '@preset.nz/pom';
 import { useEffect, useMemo, useRef } from 'react';
 import { CanvasHost } from './app/canvas-host';
-import { AppFrame, useScenePanel } from './app/frame';
+import { AppFrame, useInspectorPanel, useScenePanel } from './app/frame';
+import { Inspector } from './app/inspector/inspector';
 import { addedMap } from './app/scene/active-map';
 import { useSceneBindings } from './app/scene/commands';
 import { useMapIds } from './app/scene/maps';
@@ -32,6 +33,7 @@ function useSelectNewMapsAndLayers() {
 
 export default function App() {
   const panel = useScenePanel();
+  const inspectorPanel = useInspectorPanel();
 
   // The command table arrives from Rust; app-kit forwards the ones Rust doesn't handle here.
   // It also follows the history and routes Cmd+Z inside text fields.
@@ -46,8 +48,9 @@ export default function App() {
       ),
       ...toolBindings,
       'view.toggle-left-panel': { pressed: panel.open, run: panel.toggle },
+      'view.toggle-right-panel': { pressed: inspectorPanel.open, run: inspectorPanel.toggle },
     }),
-    [scene, toolBindings, panel.open, panel.toggle],
+    [scene, toolBindings, panel.open, panel.toggle, inspectorPanel.open, inspectorPanel.toggle],
   );
   const { commands, run, shortcut } = useCommands(bindings);
 
@@ -62,6 +65,9 @@ export default function App() {
     <AppFrame
       panel={panel}
       panelShortcut={shortcut('view.toggle-left-panel')}
+      inspectorPanel={inspectorPanel}
+      inspectorShortcut={shortcut('view.toggle-right-panel')}
+      inspector={<Inspector />}
       scene={<ScenePanel />}
       toolbar={
         <CommandToolbar commands={commands} layout={TOOLBAR} run={run}>

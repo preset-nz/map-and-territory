@@ -21,7 +21,7 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 15] = [
+const WEBVIEW: [&str; 16] = [
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
@@ -30,6 +30,7 @@ const WEBVIEW: [&str; 15] = [
     "edit.move-to-front",
     "edit.move-to-back",
     "view.toggle-left-panel",
+    "view.toggle-right-panel",
     "edit.duplicate",
     "edit.delete",
     "tool.paint",
@@ -54,6 +55,11 @@ pub fn commands() -> Vec<Command> {
         // app-kit 0.1.2 has no built-in panel toggle; the tick is the webview's to report.
         Command::toggle("view.toggle-left-panel", "Show Left Panel")
             .accelerator("CmdOrCtrl+[")
+            .menu(MenuName::View)
+            .section(0),
+        // View > Show Right Panel, the inspector (menu standard decision 14).
+        Command::toggle("view.toggle-right-panel", "Show Right Panel")
+            .accelerator("CmdOrCtrl+]")
             .menu(MenuName::View)
             .section(0),
         // Edit, after Undo and Redo and before Cut, Copy and Paste. POM's built-ins run with
@@ -163,9 +169,9 @@ mod tests {
                 Some(rest[..rest.find('"')?].to_string())
             })
             .collect();
-        assert_eq!(chords.len(), 12);
+        assert_eq!(chords.len(), 13);
         chords.sort();
         chords.dedup();
-        assert_eq!(chords.len(), 12);
+        assert_eq!(chords.len(), 13);
     }
 }

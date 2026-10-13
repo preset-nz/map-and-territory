@@ -1,13 +1,12 @@
 import { Icons, SidePanel, StatusBar } from '@preset.nz/ux-kit';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
-const PANEL_KEY = 'map-and-territory.scene-panel';
 const DEFAULT_PANEL = { open: true, width: 260 };
 
 /** The scene panel's open state and width, per viewer. Storage can be missing; that's fine. */
-function readPanel(): { open: boolean; width: number } {
+function readPanel(key: string): { open: boolean; width: number } {
   try {
-    const raw = localStorage.getItem(PANEL_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return DEFAULT_PANEL;
     const v = JSON.parse(raw) as Partial<typeof DEFAULT_PANEL>;
     return {
@@ -19,15 +18,17 @@ function readPanel(): { open: boolean; width: number } {
   }
 }
 
-export function useScenePanel() {
-  const [panel, setPanel] = useState(readPanel);
+/** A side panel's open state and width, kept under `name` per viewer. */
+export function useSidePanel(name: string) {
+  const key = `map-and-territory.${name}`;
+  const [panel, setPanel] = useState(() => readPanel(key));
   useEffect(() => {
     try {
-      localStorage.setItem(PANEL_KEY, JSON.stringify(panel));
+      localStorage.setItem(key, JSON.stringify(panel));
     } catch {
       // per-viewer convenience only
     }
-  }, [panel]);
+  }, [key, panel]);
   const setOpen = useCallback((open: boolean) => setPanel((p) => ({ ...p, open })), []);
   const setWidth = useCallback((width: number) => setPanel((p) => ({ ...p, width })), []);
   const toggle = useCallback(() => setPanel((p) => ({ ...p, open: !p.open })), []);
@@ -37,8 +38,17 @@ export function useScenePanel() {
   );
 }
 
+export const useScenePanel = () => useSidePanel('scene-panel');
+export const useInspectorPanel = () => useSidePanel('inspector-panel');
+
+type Panel = ReturnType<typeof useSidePanel>;
+
 interface AppFrameProps {
-  panel: ReturnType<typeof useScenePanel>;
+  panel: Panel;
+  inspectorPanel: Panel;
+  /** The inspector toggle's shortcut, from the command table. */
+  inspectorShortcut?: string;
+  inspector: ReactNode;
   /** The panel toggle's shortcut, from the command table. */
   panelShortcut?: string;
   scene: ReactNode;
@@ -48,8 +58,18 @@ interface AppFrameProps {
   status?: ReactNode;
 }
 
-/** Scene panel on the left, the canvas, a status bar along the bottom (epic 16, story 1). */
-export function AppFrame({ panel, panelShortcut, scene, toolbar, canvas, status }: AppFrameProps) {
+/** Scene panel on the left, the canvas, the inspector on the right, a status bar along the bottom (epic 16, story 1). */
+export function AppFrame({
+  panel,
+  panelShortcut,
+  inspectorPanel,
+  inspectorShortcut,
+  inspector,
+  scene,
+  toolbar,
+  canvas,
+  status,
+}: AppFrameProps) {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <div className="flex min-h-0 flex-1">
@@ -69,6 +89,18 @@ export function AppFrame({ panel, panelShortcut, scene, toolbar, canvas, status 
           {toolbar}
           <main className="relative min-h-0 flex-1">{canvas}</main>
         </div>
+        <SidePanel
+          side="right"
+          title="Inspector"
+          icon={<Icons.SlidersHorizontal />}
+          shortcut={inspectorShortcut}
+          open={inspectorPanel.open}
+          onOpenChange={inspectorPanel.setOpen}
+          width={inspectorPanel.width}
+          onWidthChange={inspectorPanel.setWidth}
+        >
+          {inspector}
+        </SidePanel>
       </div>
       <StatusBar>{status}</StatusBar>
     </div>
