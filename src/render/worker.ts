@@ -8,11 +8,16 @@ import { PaperType } from '@/layers/adapters/paper';
 import { registerLayerType } from '@/layers/registry';
 import bootstrapPlugins from '@/plugin/bootstrap';
 import { Canvas2DBackend } from '@/render/backends/canvas2d';
+import { createDeltaDecoder } from '@/render/delta';
 import type { RenderMessage, SceneFrame } from '@/render/types';
 
 let backend: Canvas2DBackend | null = null;
 let canvasRef: OffscreenCanvas | null = null;
 let lastFrame: SceneFrame | null = null;
+const decoder = createDeltaDecoder();
+// the newest frame not yet drawn: a burst of pointer moves draws once
+let pending: SceneFrame | null = null;
+let scheduled = false;
 
 const workerGlobal = globalThis as unknown as {
   __freeformTextureReady?: () => void;
@@ -71,18 +76,31 @@ function handleResize(msg: Extract<RenderMessage, { type: 'resize' }>) {
   backend?.resize(msg.size, msg.pixelRatio);
 }
 
-function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
+function drawPending() {
+  scheduled = false;
+  const frame = pending;
+  pending = null;
+  if (!frame) return;
   // Defensive: ensure the bitmap matches incoming frame size × dpr
-  const dpr = msg.frame.pixelRatio || 1;
-  const targetW = Math.max(1, Math.floor(msg.frame.size.w * dpr));
-  const targetH = Math.max(1, Math.floor(msg.frame.size.h * dpr));
+  const dpr = frame.pixelRatio || 1;
+  const targetW = Math.max(1, Math.floor(frame.size.w * dpr));
+  const targetH = Math.max(1, Math.floor(frame.size.h * dpr));
   if (canvasRef && (canvasRef.width !== targetW || canvasRef.height !== targetH)) {
     canvasRef.width = targetW;
     canvasRef.height = targetH;
-    backend?.resize(msg.frame.size, dpr);
+    backend?.resize(frame.size, dpr);
   }
-  backend?.render(msg.frame);
-  lastFrame = msg.frame;
+  backend?.render(frame);
+  lastFrame = frame;
+}
+
+function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
+  // Fold the delta into the mirror now, so none is lost; draw only the newest frame.
+  pending = decoder.decode(msg.frame);
+  if (!scheduled) {
+    scheduled = true;
+    setTimeout(drawPending, 0);
+  }
 }
 
 function handleDestroy() {
@@ -90,6 +108,7 @@ function handleDestroy() {
   backend = null;
   canvasRef = null;
   lastFrame = null;
+  pending = null;
   workerGlobal.__freeformTextureReady = undefined;
 }
 

@@ -1,9 +1,11 @@
+import { createDeltaEncoder, type DeltaEncoder } from '@/render/delta';
 import type { RenderMessage, SceneFrame } from '@/render/types';
 
 export class RenderService {
   private worker: Worker | null = null;
   private ready = false;
   private queue: Array<RenderMessage> = [];
+  private encoder: DeltaEncoder = createDeltaEncoder();
 
   init(canvas: HTMLCanvasElement, pixelRatio: number): boolean {
     const fail = (stage: string, e?: unknown) => {
@@ -49,7 +51,8 @@ export class RenderService {
   }
 
   render(frame: SceneFrame) {
-    this.post({ type: 'render', frame });
+    const wire = this.encoder.encode(frame);
+    if (wire) this.post({ type: 'render', frame: wire });
   }
 
   private post(msg: RenderMessage) {
@@ -64,6 +67,7 @@ export class RenderService {
     this.worker = null;
     this.ready = false;
     this.queue = [];
+    this.encoder = createDeltaEncoder();
   }
 }
 
