@@ -7,7 +7,7 @@ Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looki
 ## Where the truth lives
 
 - **Design & plans:** `~/rhizomatic-preset/guidance/projects/map-and-territory/` — NOT in this repo.
-  - `README.md` — locked decisions. Read it before implementing anything; do not re-litigate locked decisions in code.
+  - `README.md` — locked decisions. Read it before implementing anything. They are leans, not law (`~/.claude/CLAUDE.md`, "Locked decisions are leans, not law"): follow them, and when the code or a newer decision argues against one, say so with the reason and ask Georg rather than working around it.
   - `design/architecture.md` — domain, render pipeline, `.campaign` file, plugin stance, native mechanics.
   - `features/roadmap.md` and `features/NN-*/README.md` — epics and stories. Work is story-driven: implement exactly one story's scope against its acceptance criteria.
   - `archive/2025-codex-guidance/` — the original guidance tree, deprecated. History only.
