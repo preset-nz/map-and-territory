@@ -6,7 +6,7 @@ version = 1
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "777e4d70f1a0d6111e2d50ad324e027c0606f08c471dfc6c6949d3e5bcd1dd1d"
+sha256 = "8978a16804ef2059da49384127e56d5bda5d9e621416ce949ae39ba565e924f2"
 
 [[inputs]]
 path = "src-tauri/Cargo.lock"
@@ -6211,14 +6211,6 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "immer"
-version = "10.1.3"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "indent-string"
 version = "4.0.0"
 source = "registry"
@@ -8367,12 +8359,4 @@ name = "zod-to-json-schema"
 version = "3.25.2"
 source = "registry"
 declared = "ISC"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "zustand"
-version = "5.0.8"
-source = "registry"
-declared = "MIT"
 scope = "shipped"

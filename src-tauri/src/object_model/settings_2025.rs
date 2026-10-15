@@ -1,6 +1,6 @@
 //! The nine 2025 terrain settings (`src/palettes/settings.ts`) as data. Colours stay hex here
-//! and are converted to rhizome RGBA once, in `palette::rgba`. The `catalogue_matches_2025` test
-//! reads the TypeScript source and fails on any disagreement.
+//! and are converted to rhizome RGBA once, in `palette::rgba`. Checked against the 2025 TypeScript
+//! source until epic 16 story 10 deleted it (2026-10-15); this is now the only copy.
 
 pub struct Terrain {
     pub id: &'static str,

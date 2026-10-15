@@ -1,8 +1,8 @@
 import { getLayerType } from '@/layers/registry';
 import type { RenderEnv } from '@/layers/types';
-import { composeEnv, getSceneAdapter } from '@/plugin/loader';
 import { layerComposite } from '@/render/composite';
 import { computePaperRect } from '@/render/geometry';
+import { gridEnv } from '@/render/grid-env';
 import { PrefixPlanner } from '@/render/prefixCache';
 import type { RenderBackend, SceneFrame } from '@/render/types';
 
@@ -90,17 +90,7 @@ export class Canvas2DBackend implements RenderBackend {
     // Now draw in CSS pixels by applying dpr transform
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // Compute paperRect via SceneAdapter (plugin). Fallback to default math.
-    const scene = getSceneAdapter();
-    const paperRect =
-      scene?.computePaperRect?.({
-        canvasSize: { w: cw, h: ch },
-        paper: frame.paper,
-      }) ??
-      computePaperRect({
-        canvasSize: { w: cw, h: ch },
-        paper: frame.paper,
-      });
+    const paperRect = computePaperRect({ canvasSize: { w: cw, h: ch }, paper: frame.paper });
 
     // Clip to paper
     ctx.save();
@@ -113,7 +103,7 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.translate(-(frame.camera.x || 0), -(frame.camera.y || 0));
 
     // Build env and delegate drawing to adapters in array order (bottom -> top)
-    const envBase: RenderEnv = {
+    const envLocal: RenderEnv = {
       zoom: frame.camera.zoom || 1,
       pixelRatio: dpr,
       size: { w: paperRect.w, h: paperRect.h },
@@ -121,10 +111,7 @@ export class Canvas2DBackend implements RenderBackend {
       camera: frame.camera,
       palette: frame.palette,
       textures: this.textures,
-    };
-    const envLocal: RenderEnv = {
-      ...envBase,
-      ...(composeEnv(frame) as Partial<RenderEnv>),
+      grid: gridEnv(frame),
     };
 
     const plan = this.useCache
@@ -135,14 +122,6 @@ export class Canvas2DBackend implements RenderBackend {
       ctx.setTransform(1, 0, 0, 1, 0, 0); // the paper clip stays in force
       ctx.drawImage(this.prefix, 0, 0);
       ctx.restore();
-    } else {
-      // Allow scene preRender hook (e.g., background effects). Keep pure; no transforms beyond clip/translate above.
-      try {
-        scene?.preRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
-      } catch (e) {
-        // non-fatal
-        console.warn('[render] scene.preRender threw', e);
-      }
     }
 
     const first = this.prefix ? plan.reuse : 0;
@@ -181,12 +160,18 @@ export class Canvas2DBackend implements RenderBackend {
       ctx.restore();
     }
 
-    // Scene postRender can draw chrome like paper outline
-    try {
-      scene?.postRender?.(ctx as CanvasRenderingContext2D, frame, envLocal);
-    } catch (e) {
-      console.warn('[render] scene.postRender threw', e);
-    }
+    // the paper's edge is the host's chrome, drawn over every layer
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3 / dpr; // ~3px in CSS pixels
+    ctx.strokeRect(
+      paperRect.x + ctx.lineWidth / 2,
+      paperRect.y + ctx.lineWidth / 2,
+      paperRect.w - ctx.lineWidth,
+      paperRect.h - ctx.lineWidth,
+    );
+    ctx.restore();
 
     ctx.restore();
   }

@@ -2,7 +2,7 @@
 
 Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looking maps. Part of the preset.nz desktop family with Oblique, Strata, Fault and Shard. Adopted 2026-09-17; being rebuilt as a native Tauri 2 app from the family template (`create-preset-app`), with its object model on POM in Rust. The 2025 app is the tag `v2025-next`.
 
-**Stack:** Tauri 2, React 19, TypeScript, Vite 7, Tailwind v4, on `@preset.nz/ux-kit` (look), `@preset.nz/app-kit` (menu, Undo, files, window restore) and rhizome/POM (the document; `@preset.nz/pom` by path until it is published). The shell came from the template in epic 14; `src/render/`, `src/layers/`, `src/plugin/`, `src/stores/` and the rest of `src/` are 2025 port material that epics 15 and 16 move onto POM and ux-kit.
+**Stack:** Tauri 2, React 19, TypeScript, Vite 7, Tailwind v4, on `@preset.nz/ux-kit` (look), `@preset.nz/app-kit` (menu, Undo, files, window restore) and rhizome/POM (the document, `@preset.nz/pom`). The shell came from the template in epic 14; the app is `src/app/`. `src/render/` and `src/layers/` are the 2025 worker renderer and layer adapters, kept and fed from the document. The 2025 Zustand stores and plugin runtime were deleted in epic 16 story 10 (tag `v2025-next` has them).
 
 ## Where the truth lives
 
@@ -23,7 +23,7 @@ Family rules (one story per commit, `just check`, subagents don't commit) are in
 - **Array order is z-order.** `paper` is index 0, `hexgrid` is last. Never special-case draw order in a backend.
 - **Adapters draw, the host clips and transforms.** No screen-space maths inside a layer adapter. Every visual adapter implements `getInvalidationKey`; no state-diffing fallback.
 - **No consumer reads store shape directly.** Plugins go through the host API; components go through selector hooks.
-- **Plugins declare contributions; the host wires them.** A plugin never reaches into a registry or store. First-party only; capability tokens are authoring discipline, not security.
+- **Plugins declare contributions; the host wires them.** A plugin never reaches into a registry or store. First-party only; capability tokens are authoring discipline, not security. Until epic 04 brings the host API back, the only contribution is a layer kind's drawing adapter, wired in `src/layers/builtin.ts`.
 - **Layer state is serialisable JSON.** No handles, canvases or functions in the campaign store. Derived fields are dropped by the adapter's `serialize`.
 - **Rust owns the document; TypeScript draws and edits through commands.** The campaign is a rhizome tree on POM in `src-tauri/src/object_model/` (kinds, policy, checks, commands) behind `src-tauri/src/document.rs`. The webview reads it only through `@preset.nz/pom`'s mirror and changes it only by running commands. The renderer never imports Tauri APIs or the package; it gets a `SceneFrame` from `src/app/scene/frame.ts`.
 - **Native menu owns commands.** They live in `src-tauri/src/menu.rs` (and the built-in items in `src-tauri/menu.toml`); the webview binds them by id. Settings is off until there is a real preference. Held-gesture keys (Space to pan while painting, Shift to constrain) are the only keydown handlers, and they are listed here so the exception does not spread.

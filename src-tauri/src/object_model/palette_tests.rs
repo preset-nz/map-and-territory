@@ -4,7 +4,7 @@ use rhizome_core::{IdSource, NodeId, Ref, Value};
 use rhizome_pom::{Document, MemoryStore, Outcome, PresetRef};
 use serde_json::{json, Value as Json};
 
-use super::palette::{catalogue, rgba, PaletteState};
+use super::palette::rgba;
 use super::MapAndTerritory;
 
 type Doc = Document<MapAndTerritory>;
@@ -225,115 +225,4 @@ fn the_catalogue_lists_the_nine_built_ins_with_swatches() {
     let presets = d.preset_names(id).unwrap();
     assert_eq!(presets.len(), 9);
     assert_eq!(presets[0], PresetRef::Catalogue("Doom Forge".into()));
-}
-
-// ---- colour parity with the 2025 source ----
-
-const TS: &str = include_str!("../../../src/palettes/settings.ts");
-
-fn quoted(line: &str, key: &str) -> Option<String> {
-    let rest = line.trim().strip_prefix(key)?.strip_prefix(": '")?;
-    Some(rest[..rest.find('\'')?].to_string())
-}
-
-fn hex(h: &str) -> [f64; 4] {
-    let n = |i: usize| f64::from(u8::from_str_radix(&h[i..i + 2], 16).unwrap()) / 255.0;
-    [n(1), n(3), n(5), 1.0]
-}
-
-/// The 2025 settings read straight from `settings.ts`, line by line.
-fn parse_2025() -> Vec<PaletteState> {
-    use super::palette::TerrainState;
-    let mut out: Vec<PaletteState> = Vec::new();
-    let (mut in_palette, mut in_terrains) = (false, false);
-    let mut terrain: Option<TerrainState> = None;
-    for line in TS.lines() {
-        let l = line.trim();
-        if l.starts_with("static readonly") && l.contains("TerrainSetting =") {
-            out.push(PaletteState {
-                name: String::new(),
-                description: String::new(),
-                grid_line: [0.0; 4],
-                primary: [0.0; 4],
-                secondary: [0.0; 4],
-                accent: [0.0; 4],
-                background: [0.0; 4],
-                terrains: vec![],
-            });
-            (in_palette, in_terrains) = (false, false);
-            continue;
-        }
-        let Some(cur) = out.last_mut() else { continue };
-        if l.starts_with("palette: {") {
-            in_palette = true;
-        } else if l.starts_with("terrains: [") {
-            (in_palette, in_terrains) = (false, true);
-        } else if in_terrains {
-            if l.starts_with("id:") {
-                terrain = Some(TerrainState {
-                    id: quoted(l, "id").unwrap(),
-                    base_type: String::new(),
-                    traits: vec![],
-                    name: String::new(),
-                    colour: [0.0; 4],
-                    description: None,
-                });
-            } else if let Some(t) = terrain.as_mut() {
-                if let Some(b) = l.strip_prefix("baseType: BaseTerrainType.") {
-                    t.base_type = b.trim_end_matches(',').to_lowercase();
-                } else if let Some(tr) = l.strip_prefix("traits: [") {
-                    t.traits = tr
-                        .trim_end_matches("],")
-                        .split(',')
-                        .map(|x| x.trim().trim_start_matches("TerrainTrait.").to_lowercase())
-                        .collect();
-                } else if let Some(n) = quoted(l, "themedName") {
-                    t.name = n;
-                } else if let Some(c) = quoted(l, "color") {
-                    t.colour = hex(&c);
-                } else if let Some(x) = quoted(l, "description") {
-                    t.description = Some(x);
-                } else if l == "}," {
-                    cur.terrains.push(terrain.take().unwrap());
-                }
-            }
-        } else if in_palette {
-            if let Some(v) = quoted(l, "name") {
-                cur.name = v;
-            } else if let Some(v) = quoted(l, "description") {
-                cur.description = v;
-            } else if let Some(v) = quoted(l, "gridLine") {
-                cur.grid_line = hex(&v);
-            } else if let Some(v) = quoted(l, "primary") {
-                cur.primary = hex(&v);
-            } else if let Some(v) = quoted(l, "secondary") {
-                cur.secondary = hex(&v);
-            } else if let Some(v) = quoted(l, "accent") {
-                cur.accent = hex(&v);
-            } else if let Some(v) = quoted(l, "background") {
-                cur.background = hex(&v);
-            }
-        }
-    }
-    out
-}
-
-#[test]
-fn catalogue_matches_2025() {
-    let ts = parse_2025();
-    let rust = catalogue();
-    assert_eq!(ts.len(), 9, "settings.ts has nine settings");
-    assert_eq!(rust.len(), ts.len());
-    for ((name, mine), theirs) in rust.iter().zip(&ts) {
-        assert_eq!(*name, theirs.name);
-        assert_eq!(
-            mine.terrains.len(),
-            theirs.terrains.len(),
-            "{name}: terrain count"
-        );
-        // whole-state equality covers every colour, trait, name and description
-        assert_eq!(mine, theirs, "{name}");
-    }
-    let terrains: usize = ts.iter().map(|s| s.terrains.len()).sum();
-    assert_eq!(terrains, 50, "the parser saw every terrain");
 }

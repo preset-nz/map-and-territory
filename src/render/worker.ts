@@ -1,12 +1,6 @@
 /// <reference lib="webworker" />
 
-import { FreeformType } from '@/layers/adapters/freeform-hex';
-import { HexNoiseType } from '@/layers/adapters/hex-noise';
-import { HexgridType } from '@/layers/adapters/hexgrid';
-import { OutlineType } from '@/layers/adapters/outline';
-import { PaperType } from '@/layers/adapters/paper';
-import { registerLayerType } from '@/layers/registry';
-import bootstrapPlugins from '@/plugin/bootstrap';
+import { registerBuiltinLayers } from '@/layers/builtin';
 import { Canvas2DBackend } from '@/render/backends/canvas2d';
 import { createDeltaDecoder } from '@/render/delta';
 import type { RenderMessage, SceneFrame } from '@/render/types';
@@ -19,39 +13,8 @@ const decoder = createDeltaDecoder();
 let pending: SceneFrame | null = null;
 let scheduled = false;
 
-const workerGlobal = globalThis as unknown as {
-  __freeformTextureReady?: () => void;
-};
-
-workerGlobal.__freeformTextureReady = () => {
-  if (!backend || !lastFrame) return;
-  try {
-    backend.dropCache(); // the layer's pixels changed, its state did not
-    backend.render(lastFrame);
-  } catch (error) {
-    console.warn('[worker] re-render after texture ready failed', error);
-  }
-};
-
-async function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
-  // Load plugins inside the worker to register layer adapters and render SPI.
-  // Rendering will gracefully skip unknown layers if bootstrapping fails.
-  try {
-    await bootstrapPlugins();
-  } catch (e) {
-    console.error('[worker] plugin bootstrap failed:', e);
-    // Continue; renderer will simply skip unknown layers
-  }
-  // Always ensure core layer types are registered in the worker even if plugins failed
-  try {
-    registerLayerType(PaperType);
-    registerLayerType(HexgridType);
-    registerLayerType(HexNoiseType);
-    registerLayerType(FreeformType);
-    registerLayerType(OutlineType);
-  } catch {
-    // non-fatal, ignore duplicate registration errors
-  }
+function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
+  registerBuiltinLayers();
   backend = new Canvas2DBackend();
   canvasRef = msg.canvas;
 
@@ -155,14 +118,13 @@ function handleDestroy() {
   canvasRef = null;
   lastFrame = null;
   pending = null;
-  workerGlobal.__freeformTextureReady = undefined;
 }
 
-self.onmessage = async (ev: MessageEvent<RenderMessage>) => {
+self.onmessage = (ev: MessageEvent<RenderMessage>) => {
   const msg = ev.data;
   switch (msg.type) {
     case 'init':
-      await handleInit(msg);
+      handleInit(msg);
       break;
     case 'resize':
       handleResize(msg);

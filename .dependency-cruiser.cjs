@@ -36,15 +36,6 @@ module.exports = {
       to: { path: '^src/(stores|components)/' },
     },
     {
-      name: 'plugins-use-the-host-api',
-      severity: 'error',
-      comment:
-        'Plugins go through ToolContext and the AppAPI seam; importing src/stores reintroduces ' +
-        'the coupling the plugin model exists to avoid (CLAUDE.md hard rules).',
-      from: { path: '^src/plugin/' },
-      to: { path: '^src/stores/' },
-    },
-    {
       name: 'ui-stays-dumb',
       severity: 'error',
       comment:
@@ -56,17 +47,17 @@ module.exports = {
     {
       name: 'renderer-never-imports-tauri',
       severity: 'error',
-      comment: 'Rust does files and OS; the renderer, layers, helpers and plugins never touch Tauri.',
-      from: { path: '^src/(layers|render|lib|plugin)/' },
+      comment: 'Rust does files and OS; the renderer, layers and helpers never touch Tauri.',
+      from: { path: '^src/(layers|render|lib)/' },
       to: { path: '@tauri-apps/' },
     },
     {
       name: 'renderer-never-reads-the-document',
       severity: 'error',
       comment:
-        'The renderer gets a SceneFrame and nothing else: layers, render, lib and plugins import ' +
+        'The renderer gets a SceneFrame and nothing else: layers, render and lib import ' +
         'neither @preset.nz/pom nor the app module that builds frames from it (object-model doc).',
-      from: { path: '^src/(layers|render|lib|plugin)/' },
+      from: { path: '^src/(layers|render|lib)/' },
       to: { path: ['@preset\\.nz/pom', 'packages/rhizome/', '^src/app/'] },
     },
     {

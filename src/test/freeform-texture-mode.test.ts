@@ -9,7 +9,6 @@ describe('Freeform texture render mode', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'paint',
-      textureFill: null,
       textureFillInvert: false,
       textureOffsetX: 0,
       textureOffsetY: 0,
@@ -20,14 +19,7 @@ describe('Freeform texture render mode', () => {
     const textureState: FreeformState = {
       ...baseState,
       renderMode: 'texture-fill',
-      textureFill: {
-        id: 'tx-1',
-        name: 'texture.png',
-        mimeType: 'image/png',
-        dataUrl: 'data:image/png;base64,AAA',
-        width: 256,
-        height: 256,
-      },
+      texture: 'tx-1',
     };
 
     const paintKey = FreeformAdapter.getInvalidationKey?.(baseState);
@@ -46,14 +38,7 @@ describe('Freeform texture render mode', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: {
-        id: 'tx-1',
-        name: 'texture.png',
-        mimeType: 'image/png',
-        dataUrl: 'data:image/png;base64,AAA',
-        width: 256,
-        height: 256,
-      },
+      texture: 'tx-1',
       textureFillInvert: false,
       textureOffsetX: 0,
       textureOffsetY: 0,
@@ -82,14 +67,7 @@ describe('Freeform texture render mode', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: {
-        id: 'tx-1',
-        name: 'texture.png',
-        mimeType: 'image/png',
-        dataUrl: 'data:image/png;base64,AAA',
-        width: 256,
-        height: 256,
-      },
+      texture: 'tx-1',
       textureFillInvert: false,
       textureOffsetX: 0,
       textureOffsetY: 0,

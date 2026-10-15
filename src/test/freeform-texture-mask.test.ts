@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { FreeformAdapter, type FreeformState } from '@/layers/adapters/freeform-hex';
 import type { RenderEnv } from '@/layers/types';
 
@@ -88,7 +88,7 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
   }
 }
 
-const env: RenderEnv = {
+const baseEnv: RenderEnv = {
   zoom: 1,
   pixelRatio: 1,
   size: { w: 200, h: 200 },
@@ -97,38 +97,9 @@ const env: RenderEnv = {
   grid: { size: 10, orientation: 'pointy' },
 };
 
-const baseTexture = {
-  id: 'texture-1',
-  name: 'texture.png',
-  mimeType: 'image/png',
-  dataUrl: 'data:image/png;base64,AAA',
-  width: 128,
-  height: 128,
-};
+const fakeBitmap = { width: 128, height: 128 } as unknown as ImageBitmap;
 
-const fakeBitmap = { width: 128, height: 128 } as unknown as CanvasImageSource;
-
-const originalFetch = globalThis.fetch;
-const originalCreateImageBitmap = globalThis.createImageBitmap;
-const originalTextureReady = (globalThis as Record<string, unknown>)['__freeformTextureReady'];
-
-let fetchMock: ReturnType<typeof vi.fn>;
-let createImageBitmapMock: ReturnType<typeof vi.fn>;
-
-beforeEach(() => {
-  fetchMock = vi.fn().mockResolvedValue(new Response(new Blob()));
-  globalThis.fetch = fetchMock;
-
-  createImageBitmapMock = vi.fn(async () => fakeBitmap as ImageBitmap);
-  (globalThis as Record<string, unknown>).createImageBitmap = createImageBitmapMock;
-
-  (globalThis as Record<string, unknown>).__freeformTextureReady = vi.fn();
-});
-
-afterEach(() => {
-  fetchMock.mockClear();
-  createImageBitmapMock.mockClear();
-});
+const env: RenderEnv = { ...baseEnv, textures: new Map([['texture-1', fakeBitmap]]) };
 
 describe('Freeform texture masking', () => {
   it('skips drawing when no cells and not inverted', () => {
@@ -140,14 +111,14 @@ describe('Freeform texture masking', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: baseTexture,
+      texture: 'texture-1',
       textureFillInvert: false,
     };
     FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
     expect(ctx.drawImageCalls.length).toBe(0);
   });
 
-  it('clips to painted cells when not inverted', async () => {
+  it('clips to painted cells when not inverted', () => {
     const ctx = new MockContext();
     const state: FreeformState = {
       cells: { '0,0': {}, '0,1': {} },
@@ -156,13 +127,9 @@ describe('Freeform texture masking', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: baseTexture,
+      texture: 'texture-1',
       textureFillInvert: false,
     };
-
-    FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
 
@@ -171,7 +138,7 @@ describe('Freeform texture masking', () => {
     expect(ctx.rectCalls.length).toBe(0);
   });
 
-  it('draws full rect when inverted', async () => {
+  it('draws full rect when inverted', () => {
     const ctx = new MockContext();
     const state: FreeformState = {
       cells: {},
@@ -180,13 +147,9 @@ describe('Freeform texture masking', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: baseTexture,
+      texture: 'texture-1',
       textureFillInvert: true,
     };
-
-    FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
 
@@ -195,7 +158,7 @@ describe('Freeform texture masking', () => {
     expect(ctx.drawImageCalls[0]).toEqual([-100, -100, 200, 200]);
   });
 
-  it('uses pattern fill when tiling set to repeat', async () => {
+  it('uses pattern fill when tiling set to repeat', () => {
     const ctx = new MockContext();
     const state: FreeformState = {
       cells: { '0,0': {} },
@@ -204,14 +167,10 @@ describe('Freeform texture masking', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: baseTexture,
+      texture: 'texture-1',
       textureFillInvert: false,
       textureTiling: 'repeat',
     };
-
-    FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
 
@@ -219,7 +178,7 @@ describe('Freeform texture masking', () => {
     expect(ctx.fillRectCalls.length).toBeGreaterThan(0);
   });
 
-  it('applies selected overlay mode when rendering texture', async () => {
+  it('applies selected overlay mode when rendering texture', () => {
     const ctx = new MockContext();
     const state: FreeformState = {
       cells: { '0,0': { color: '#112233' } },
@@ -228,30 +187,14 @@ describe('Freeform texture masking', () => {
       brushColor: undefined,
       fillMode: 'auto',
       renderMode: 'texture-fill',
-      textureFill: baseTexture,
+      texture: 'texture-1',
       textureFillInvert: false,
       textureOverlayMode: 'multiply',
     };
 
     FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    FreeformAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
-
     expect(ctx.globalCompositeOperation).toBe('multiply');
     expect(ctx.fillCalls).toContain('#112233');
   });
-});
-
-afterAll(() => {
-  if (originalFetch) globalThis.fetch = originalFetch;
-  else delete (globalThis as Record<string, unknown>).fetch;
-
-  if (originalCreateImageBitmap) globalThis.createImageBitmap = originalCreateImageBitmap;
-  else delete (globalThis as Record<string, unknown>).createImageBitmap;
-
-  if (originalTextureReady !== undefined)
-    (globalThis as Record<string, unknown>).__freeformTextureReady = originalTextureReady;
-  else delete (globalThis as Record<string, unknown>).__freeformTextureReady;
 });

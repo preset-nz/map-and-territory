@@ -8,15 +8,6 @@ type FreeformRenderMode = 'paint' | 'texture-fill';
 type TextureTilingMode = 'stretch' | 'fit' | 'repeat';
 type TextureOverlayMode = 'normal' | 'overlay' | 'screen' | 'multiply';
 
-export interface TextureFillSettings {
-  id: string;
-  name: string;
-  mimeType: string;
-  dataUrl: string;
-  width: number;
-  height: number;
-}
-
 export interface FreeformCell {
   terrainId?: string;
   color?: string; // explicit override
@@ -29,8 +20,6 @@ export interface FreeformState {
   brushColor?: string; // if set, overrides terrain color when painting new cells
   fillMode?: 'auto' | 'same-value' | 'empty-only';
   renderMode?: FreeformRenderMode;
-  /** The 2025 embedded texture; goes with the 2025 plugin runtime (epic 16 story 10). */
-  textureFill?: TextureFillSettings | null;
   /** The image's path as written (epic 18); the bitmap arrives through `env.textures`. */
   texture?: string;
   textureFillInvert?: boolean;
@@ -40,42 +29,6 @@ export interface FreeformState {
   textureRotation?: number; // degrees
   textureTiling?: TextureTilingMode;
   textureOverlayMode?: TextureOverlayMode;
-}
-
-const textureBitmapCache = new Map<string, ImageBitmap>();
-const pendingTextureBitmaps = new Map<string, Promise<ImageBitmap>>();
-const MAX_TEXTURE_CACHE = 4;
-
-function disposeBitmap(bitmap: ImageBitmap) {
-  if (typeof bitmap.close === 'function') {
-    try {
-      bitmap.close();
-    } catch {
-      // ignore disposal errors
-    }
-  }
-}
-
-function evictOldestIfNeeded() {
-  while (textureBitmapCache.size > MAX_TEXTURE_CACHE) {
-    const oldest = textureBitmapCache.keys().next();
-    if (oldest.done) break;
-    const id = oldest.value;
-    const bmp = textureBitmapCache.get(id);
-    if (bmp) disposeBitmap(bmp);
-    textureBitmapCache.delete(id);
-  }
-}
-
-function notifyTextureReady() {
-  const target = globalThis as {
-    __freeformTextureReady?: () => void;
-  };
-  try {
-    target.__freeformTextureReady?.();
-  } catch (error) {
-    console.warn('[freeform] texture ready notification failed', error);
-  }
 }
 
 interface PathSink {
@@ -102,38 +55,6 @@ function traceHexPath(
   target.closePath();
 }
 
-function ensureTextureBitmap(settings: TextureFillSettings): ImageBitmap | null {
-  const cached = textureBitmapCache.get(settings.id);
-  if (cached) {
-    // touch for simple LRU behaviour
-    textureBitmapCache.delete(settings.id);
-    textureBitmapCache.set(settings.id, cached);
-    return cached;
-  }
-  if (pendingTextureBitmaps.has(settings.id)) return null;
-  if (typeof createImageBitmap !== 'function') return null;
-  if (typeof fetch !== 'function') return null;
-
-  const promise = (async () => {
-    const response = await fetch(settings.dataUrl);
-    const blob = await response.blob();
-    return await createImageBitmap(blob);
-  })();
-  pendingTextureBitmaps.set(settings.id, promise);
-  promise
-    .then((bitmap) => {
-      pendingTextureBitmaps.delete(settings.id);
-      textureBitmapCache.set(settings.id, bitmap);
-      evictOldestIfNeeded();
-      notifyTextureReady();
-    })
-    .catch((error) => {
-      pendingTextureBitmaps.delete(settings.id);
-      console.warn('[freeform] failed to load texture asset', error);
-    });
-  return null;
-}
-
 function colorForCell(palette: MapPalette | undefined, cell: FreeformCell): string {
   if (cell.color) return cell.color;
   return resolveTerrainFill(palette, cell.terrainId);
@@ -148,16 +69,11 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     const layout = { size, orientation, origin } as const;
 
     if ((state.renderMode ?? 'paint') === 'texture-fill') {
-      const settings = state.textureFill;
       const cells = Object.entries(state.cells || {});
       const invert = Boolean(state.textureFillInvert);
-      if (!settings && !state.texture) return;
+      if (!state.texture) return;
       if (!invert && cells.length === 0) return;
-      const bitmap = state.texture
-        ? (env.textures?.get(state.texture) ?? null)
-        : settings
-          ? ensureTextureBitmap(settings)
-          : null;
+      const bitmap = env.textures?.get(state.texture) ?? null;
       if (!bitmap) return;
       const width = env.size?.w ?? bitmap.width;
       const height = env.size?.h ?? bitmap.height;
@@ -259,7 +175,7 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     // lightweight key: count + opacity + last key for cheap change detection
     const lastKey = Object.keys(state.cells || {}).slice(-1)[0] || '-';
     const mode = state.renderMode ?? 'paint';
-    const textureId = state.texture ?? state.textureFill?.id ?? '-';
+    const textureId = state.texture ?? '-';
     const invert = state.textureFillInvert ? 1 : 0;
     const offsetX = Number(state.textureOffsetX ?? 0).toFixed(2);
     const offsetY = Number(state.textureOffsetY ?? 0).toFixed(2);
@@ -281,7 +197,6 @@ export const FreeformType = {
     brushColor: undefined,
     fillMode: 'auto',
     renderMode: 'paint',
-    textureFill: null,
     texture: undefined,
     textureFillInvert: false,
     textureOffsetX: 0,
@@ -294,5 +209,3 @@ export const FreeformType = {
   adapter: FreeformAdapter,
   policy: { canDelete: true, canDuplicate: true },
 } as const;
-
-// Properties schema is registered by the freeform plugin during activation.
