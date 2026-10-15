@@ -117,7 +117,7 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
 };
 
 export const HexNoiseType = {
-  id: 'hexnoise',
+  id: 'hex-noise',
   title: 'Hex Noise',
   defaultState: {
     seed: 'seed',
