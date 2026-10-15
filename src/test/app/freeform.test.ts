@@ -1,6 +1,7 @@
 import { createFrameBuilder, type FrameRow, type RowSource } from '@/app/scene/frame';
-import { chunkName, chunkOf, decodeChunk } from '@/app/scene/voxels';
+import { chunkName, chunkOf, decodeChunk, decodeSlots } from '@/app/scene/voxels';
 import { createStroke } from '@/app/tools/stroke';
+import fixtures from '../../../src-tauri/src/object_model/voxels_fixtures.json';
 
 describe('the voxel grid', () => {
   it('locates a hex by floor division, negatives included', () => {
@@ -11,21 +12,40 @@ describe('the voxel grid', () => {
   });
 
   it('decodes a chunk into cells, keeping colour overrides', () => {
-    const voxels = Array<unknown>(256).fill(null);
-    voxels[0] = { terrainId: 'forest' };
-    voxels[17] = { terrainId: 'water', color: [1, 0, 0, 1] };
+    const voxels = {
+      palette: [{ terrainId: 'forest' }, { terrainId: 'water', color: [1, 0, 0, 1] }],
+      cells: '1 0*16 2 0*238',
+    };
     expect(decodeChunk('-1_2', voxels)).toEqual({
       '-16,32': { terrainId: 'forest' },
       '-15,33': { terrainId: 'water', color: '#ff0000' },
     });
     expect(decodeChunk('nope', voxels)).toEqual({});
   });
+
+  it('decodes the shared fixtures to the grids Rust encodes them from', () => {
+    for (const { name, grid, encoded } of fixtures) {
+      const slots = decodeSlots(encoded);
+      expect(slots, name).not.toBeNull();
+      const want = Array<unknown>(256).fill(null);
+      for (const [slot, voxel] of Object.entries(grid)) want[Number(slot)] = voxel;
+      expect(slots, name).toEqual(want);
+    }
+  });
+
+  it('reads nothing from a malformed value', () => {
+    const palette = [{ terrainId: 'a' }];
+    expect(decodeChunk('0_0', { palette, cells: '1 0*254' })).toEqual({});
+    expect(decodeChunk('0_0', { palette, cells: '2 0*255' })).toEqual({});
+    expect(decodeChunk('0_0', { palette, cells: 'x 0*255' })).toEqual({});
+    expect(decodeChunk('0_0', Array(256).fill(null))).toEqual({});
+    expect(decodeChunk('0_0', undefined)).toEqual({});
+  });
 });
 
 describe('a freeform layer in the frame', () => {
   const chunk = (id: string, name: string, terrainId: string): FrameRow => {
-    const voxels = Array<unknown>(256).fill(null);
-    voxels[0] = { terrainId };
+    const voxels = { palette: [{ terrainId }], cells: '1 0*255' };
     return { id, type: 'chunk', path: `/maps/map/freeform/${name}`, values: { voxels } };
   };
   const rows = (extra: Record<string, FrameRow>): RowSource => {

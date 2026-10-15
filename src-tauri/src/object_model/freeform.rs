@@ -13,6 +13,7 @@ use rhizome_pom::{payload, Commands, Document, Error, Outcome};
 use serde::Deserialize;
 use serde_json::{json, Value as Json};
 
+use super::voxels::{self, Grid};
 use super::MapAndTerritory;
 
 type Doc = Document<MapAndTerritory>;
@@ -42,7 +43,8 @@ fn parse_name(name: &str) -> Option<(i64, i64)> {
     Some((a.parse().ok()?, b.parse().ok()?))
 }
 
-/// The `chunk` kind's check: under a freeform layer, named for a block, 256 slots.
+/// The `chunk` kind's check: under a freeform layer, named for a block, voxels well formed
+/// and canonical (one pass over the string, no grid built).
 pub fn check_chunk(n: &Node<'_>) -> Result<(), String> {
     if n.parent().is_none_or(|p| p.type_name() != "freeform") {
         return Err("a chunk belongs to a freeform layer".into());
@@ -55,7 +57,8 @@ pub fn check_chunk(n: &Node<'_>) -> Result<(), String> {
     // Borrowed, not `value()`: that clones the list, and this check runs for every chunk on
     // every edit.
     match n.value_ref("voxels") {
-        Some(Value::Shaped(Json::Array(a))) if a.len() == CHUNK_CELLS => Ok(()),
+        Some(Value::Shaped(v)) => voxels::validate(v)
+            .map_err(|e| format!("a chunk holds exactly {CHUNK_CELLS} voxels: {e}")),
         _ => Err(format!("a chunk holds exactly {CHUNK_CELLS} voxels")),
     }
 }
@@ -86,10 +89,12 @@ fn is_freeform(d: &Doc, at: &str) -> bool {
     d.tree().at(at).is_some_and(|n| n.type_name() == "freeform")
 }
 
-fn voxels_of(chunk: &Node<'_>) -> Vec<Json> {
-    match chunk.value("voxels") {
-        Some(Value::Shaped(Json::Array(a))) => a,
-        _ => vec![Json::Null; CHUNK_CELLS],
+/// The chunk's grid. A stored value that fails to decode can't get past the chunk check, so
+/// the fallback is only for a chunk that has no value yet.
+fn voxels_of(chunk: &Node<'_>) -> Grid {
+    match chunk.value_ref("voxels") {
+        Some(Value::Shaped(v)) => voxels::decode(v).unwrap_or_else(|_| voxels::empty_grid()),
+        _ => voxels::empty_grid(),
     }
 }
 
@@ -110,22 +115,23 @@ fn paint(tx: &mut Edit<'_>, layer: NodeId, cells: &[PaintCell]) -> rhizome_core:
             let v = voxels_of(&n);
             (n.id(), v)
         });
-        let (id, mut voxels, is_new) = match existing {
+        let (id, mut grid, is_new) = match existing {
             Some((id, v)) => (id, v, false),
             None => {
                 let id = tx.add(layer, "chunk", &name)?;
                 // the webview mirror has no parent-to-children lookup, so the layer lists its
                 // chunks in a stored order
                 tx.append_to_order(layer, CHUNKS, id)?;
-                (id, vec![Json::Null; CHUNK_CELLS], true)
+                (id, voxels::empty_grid(), true)
             }
         };
-        let before = voxels.clone();
+        let before = grid.clone();
         for (slot, voxel) in sets {
-            voxels[slot] = voxel;
+            grid[slot] = Some(voxel);
         }
-        if is_new || voxels != before {
-            tx.set_value(id, "voxels", Value::Shaped(Json::Array(voxels)))?;
+        // the encoding is canonical, so equal grids are equal values
+        if is_new || grid != before {
+            tx.set_value(id, "voxels", Value::Shaped(voxels::encode(&grid)))?;
         }
     }
     Ok(())
@@ -140,20 +146,20 @@ fn erase(tx: &mut Edit<'_>, layer: NodeId, cells: &[[i64; 2]]) -> rhizome_core::
     }
     for ((cq, cr), slots) in by_chunk {
         let name = chunk_name(cq, cr);
-        let Some((id, mut voxels)) = tx.at(layer).and_then(|l| l.child(&name)).map(|n| {
+        let Some((id, mut grid)) = tx.at(layer).and_then(|l| l.child(&name)).map(|n| {
             let v = voxels_of(&n);
             (n.id(), v)
         }) else {
             continue;
         };
-        let before = voxels.clone();
+        let before = grid.clone();
         for slot in slots {
-            voxels[slot] = Json::Null;
+            grid[slot] = None;
         }
-        if voxels.iter().all(Json::is_null) {
+        if grid.iter().all(Option::is_none) {
             tx.remove(id)?;
-        } else if voxels != before {
-            tx.set_value(id, "voxels", Value::Shaped(Json::Array(voxels)))?;
+        } else if grid != before {
+            tx.set_value(id, "voxels", Value::Shaped(voxels::encode(&grid)))?;
         }
     }
     Ok(())

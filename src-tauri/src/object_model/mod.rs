@@ -12,6 +12,7 @@ mod outline;
 mod palette;
 mod settings_2025;
 pub mod texture;
+mod voxels;
 
 #[cfg(test)]
 mod freeform_tests;

@@ -1,0 +1,1013 @@
+[
+  {
+    "name": "empty",
+    "grid": {},
+    "encoded": {
+      "palette": [],
+      "cells": "0*256"
+    }
+  },
+  {
+    "name": "full of one voxel",
+    "grid": {
+      "0": {
+        "terrainId": "water"
+      },
+      "1": {
+        "terrainId": "water"
+      },
+      "2": {
+        "terrainId": "water"
+      },
+      "3": {
+        "terrainId": "water"
+      },
+      "4": {
+        "terrainId": "water"
+      },
+      "5": {
+        "terrainId": "water"
+      },
+      "6": {
+        "terrainId": "water"
+      },
+      "7": {
+        "terrainId": "water"
+      },
+      "8": {
+        "terrainId": "water"
+      },
+      "9": {
+        "terrainId": "water"
+      },
+      "10": {
+        "terrainId": "water"
+      },
+      "11": {
+        "terrainId": "water"
+      },
+      "12": {
+        "terrainId": "water"
+      },
+      "13": {
+        "terrainId": "water"
+      },
+      "14": {
+        "terrainId": "water"
+      },
+      "15": {
+        "terrainId": "water"
+      },
+      "16": {
+        "terrainId": "water"
+      },
+      "17": {
+        "terrainId": "water"
+      },
+      "18": {
+        "terrainId": "water"
+      },
+      "19": {
+        "terrainId": "water"
+      },
+      "20": {
+        "terrainId": "water"
+      },
+      "21": {
+        "terrainId": "water"
+      },
+      "22": {
+        "terrainId": "water"
+      },
+      "23": {
+        "terrainId": "water"
+      },
+      "24": {
+        "terrainId": "water"
+      },
+      "25": {
+        "terrainId": "water"
+      },
+      "26": {
+        "terrainId": "water"
+      },
+      "27": {
+        "terrainId": "water"
+      },
+      "28": {
+        "terrainId": "water"
+      },
+      "29": {
+        "terrainId": "water"
+      },
+      "30": {
+        "terrainId": "water"
+      },
+      "31": {
+        "terrainId": "water"
+      },
+      "32": {
+        "terrainId": "water"
+      },
+      "33": {
+        "terrainId": "water"
+      },
+      "34": {
+        "terrainId": "water"
+      },
+      "35": {
+        "terrainId": "water"
+      },
+      "36": {
+        "terrainId": "water"
+      },
+      "37": {
+        "terrainId": "water"
+      },
+      "38": {
+        "terrainId": "water"
+      },
+      "39": {
+        "terrainId": "water"
+      },
+      "40": {
+        "terrainId": "water"
+      },
+      "41": {
+        "terrainId": "water"
+      },
+      "42": {
+        "terrainId": "water"
+      },
+      "43": {
+        "terrainId": "water"
+      },
+      "44": {
+        "terrainId": "water"
+      },
+      "45": {
+        "terrainId": "water"
+      },
+      "46": {
+        "terrainId": "water"
+      },
+      "47": {
+        "terrainId": "water"
+      },
+      "48": {
+        "terrainId": "water"
+      },
+      "49": {
+        "terrainId": "water"
+      },
+      "50": {
+        "terrainId": "water"
+      },
+      "51": {
+        "terrainId": "water"
+      },
+      "52": {
+        "terrainId": "water"
+      },
+      "53": {
+        "terrainId": "water"
+      },
+      "54": {
+        "terrainId": "water"
+      },
+      "55": {
+        "terrainId": "water"
+      },
+      "56": {
+        "terrainId": "water"
+      },
+      "57": {
+        "terrainId": "water"
+      },
+      "58": {
+        "terrainId": "water"
+      },
+      "59": {
+        "terrainId": "water"
+      },
+      "60": {
+        "terrainId": "water"
+      },
+      "61": {
+        "terrainId": "water"
+      },
+      "62": {
+        "terrainId": "water"
+      },
+      "63": {
+        "terrainId": "water"
+      },
+      "64": {
+        "terrainId": "water"
+      },
+      "65": {
+        "terrainId": "water"
+      },
+      "66": {
+        "terrainId": "water"
+      },
+      "67": {
+        "terrainId": "water"
+      },
+      "68": {
+        "terrainId": "water"
+      },
+      "69": {
+        "terrainId": "water"
+      },
+      "70": {
+        "terrainId": "water"
+      },
+      "71": {
+        "terrainId": "water"
+      },
+      "72": {
+        "terrainId": "water"
+      },
+      "73": {
+        "terrainId": "water"
+      },
+      "74": {
+        "terrainId": "water"
+      },
+      "75": {
+        "terrainId": "water"
+      },
+      "76": {
+        "terrainId": "water"
+      },
+      "77": {
+        "terrainId": "water"
+      },
+      "78": {
+        "terrainId": "water"
+      },
+      "79": {
+        "terrainId": "water"
+      },
+      "80": {
+        "terrainId": "water"
+      },
+      "81": {
+        "terrainId": "water"
+      },
+      "82": {
+        "terrainId": "water"
+      },
+      "83": {
+        "terrainId": "water"
+      },
+      "84": {
+        "terrainId": "water"
+      },
+      "85": {
+        "terrainId": "water"
+      },
+      "86": {
+        "terrainId": "water"
+      },
+      "87": {
+        "terrainId": "water"
+      },
+      "88": {
+        "terrainId": "water"
+      },
+      "89": {
+        "terrainId": "water"
+      },
+      "90": {
+        "terrainId": "water"
+      },
+      "91": {
+        "terrainId": "water"
+      },
+      "92": {
+        "terrainId": "water"
+      },
+      "93": {
+        "terrainId": "water"
+      },
+      "94": {
+        "terrainId": "water"
+      },
+      "95": {
+        "terrainId": "water"
+      },
+      "96": {
+        "terrainId": "water"
+      },
+      "97": {
+        "terrainId": "water"
+      },
+      "98": {
+        "terrainId": "water"
+      },
+      "99": {
+        "terrainId": "water"
+      },
+      "100": {
+        "terrainId": "water"
+      },
+      "101": {
+        "terrainId": "water"
+      },
+      "102": {
+        "terrainId": "water"
+      },
+      "103": {
+        "terrainId": "water"
+      },
+      "104": {
+        "terrainId": "water"
+      },
+      "105": {
+        "terrainId": "water"
+      },
+      "106": {
+        "terrainId": "water"
+      },
+      "107": {
+        "terrainId": "water"
+      },
+      "108": {
+        "terrainId": "water"
+      },
+      "109": {
+        "terrainId": "water"
+      },
+      "110": {
+        "terrainId": "water"
+      },
+      "111": {
+        "terrainId": "water"
+      },
+      "112": {
+        "terrainId": "water"
+      },
+      "113": {
+        "terrainId": "water"
+      },
+      "114": {
+        "terrainId": "water"
+      },
+      "115": {
+        "terrainId": "water"
+      },
+      "116": {
+        "terrainId": "water"
+      },
+      "117": {
+        "terrainId": "water"
+      },
+      "118": {
+        "terrainId": "water"
+      },
+      "119": {
+        "terrainId": "water"
+      },
+      "120": {
+        "terrainId": "water"
+      },
+      "121": {
+        "terrainId": "water"
+      },
+      "122": {
+        "terrainId": "water"
+      },
+      "123": {
+        "terrainId": "water"
+      },
+      "124": {
+        "terrainId": "water"
+      },
+      "125": {
+        "terrainId": "water"
+      },
+      "126": {
+        "terrainId": "water"
+      },
+      "127": {
+        "terrainId": "water"
+      },
+      "128": {
+        "terrainId": "water"
+      },
+      "129": {
+        "terrainId": "water"
+      },
+      "130": {
+        "terrainId": "water"
+      },
+      "131": {
+        "terrainId": "water"
+      },
+      "132": {
+        "terrainId": "water"
+      },
+      "133": {
+        "terrainId": "water"
+      },
+      "134": {
+        "terrainId": "water"
+      },
+      "135": {
+        "terrainId": "water"
+      },
+      "136": {
+        "terrainId": "water"
+      },
+      "137": {
+        "terrainId": "water"
+      },
+      "138": {
+        "terrainId": "water"
+      },
+      "139": {
+        "terrainId": "water"
+      },
+      "140": {
+        "terrainId": "water"
+      },
+      "141": {
+        "terrainId": "water"
+      },
+      "142": {
+        "terrainId": "water"
+      },
+      "143": {
+        "terrainId": "water"
+      },
+      "144": {
+        "terrainId": "water"
+      },
+      "145": {
+        "terrainId": "water"
+      },
+      "146": {
+        "terrainId": "water"
+      },
+      "147": {
+        "terrainId": "water"
+      },
+      "148": {
+        "terrainId": "water"
+      },
+      "149": {
+        "terrainId": "water"
+      },
+      "150": {
+        "terrainId": "water"
+      },
+      "151": {
+        "terrainId": "water"
+      },
+      "152": {
+        "terrainId": "water"
+      },
+      "153": {
+        "terrainId": "water"
+      },
+      "154": {
+        "terrainId": "water"
+      },
+      "155": {
+        "terrainId": "water"
+      },
+      "156": {
+        "terrainId": "water"
+      },
+      "157": {
+        "terrainId": "water"
+      },
+      "158": {
+        "terrainId": "water"
+      },
+      "159": {
+        "terrainId": "water"
+      },
+      "160": {
+        "terrainId": "water"
+      },
+      "161": {
+        "terrainId": "water"
+      },
+      "162": {
+        "terrainId": "water"
+      },
+      "163": {
+        "terrainId": "water"
+      },
+      "164": {
+        "terrainId": "water"
+      },
+      "165": {
+        "terrainId": "water"
+      },
+      "166": {
+        "terrainId": "water"
+      },
+      "167": {
+        "terrainId": "water"
+      },
+      "168": {
+        "terrainId": "water"
+      },
+      "169": {
+        "terrainId": "water"
+      },
+      "170": {
+        "terrainId": "water"
+      },
+      "171": {
+        "terrainId": "water"
+      },
+      "172": {
+        "terrainId": "water"
+      },
+      "173": {
+        "terrainId": "water"
+      },
+      "174": {
+        "terrainId": "water"
+      },
+      "175": {
+        "terrainId": "water"
+      },
+      "176": {
+        "terrainId": "water"
+      },
+      "177": {
+        "terrainId": "water"
+      },
+      "178": {
+        "terrainId": "water"
+      },
+      "179": {
+        "terrainId": "water"
+      },
+      "180": {
+        "terrainId": "water"
+      },
+      "181": {
+        "terrainId": "water"
+      },
+      "182": {
+        "terrainId": "water"
+      },
+      "183": {
+        "terrainId": "water"
+      },
+      "184": {
+        "terrainId": "water"
+      },
+      "185": {
+        "terrainId": "water"
+      },
+      "186": {
+        "terrainId": "water"
+      },
+      "187": {
+        "terrainId": "water"
+      },
+      "188": {
+        "terrainId": "water"
+      },
+      "189": {
+        "terrainId": "water"
+      },
+      "190": {
+        "terrainId": "water"
+      },
+      "191": {
+        "terrainId": "water"
+      },
+      "192": {
+        "terrainId": "water"
+      },
+      "193": {
+        "terrainId": "water"
+      },
+      "194": {
+        "terrainId": "water"
+      },
+      "195": {
+        "terrainId": "water"
+      },
+      "196": {
+        "terrainId": "water"
+      },
+      "197": {
+        "terrainId": "water"
+      },
+      "198": {
+        "terrainId": "water"
+      },
+      "199": {
+        "terrainId": "water"
+      },
+      "200": {
+        "terrainId": "water"
+      },
+      "201": {
+        "terrainId": "water"
+      },
+      "202": {
+        "terrainId": "water"
+      },
+      "203": {
+        "terrainId": "water"
+      },
+      "204": {
+        "terrainId": "water"
+      },
+      "205": {
+        "terrainId": "water"
+      },
+      "206": {
+        "terrainId": "water"
+      },
+      "207": {
+        "terrainId": "water"
+      },
+      "208": {
+        "terrainId": "water"
+      },
+      "209": {
+        "terrainId": "water"
+      },
+      "210": {
+        "terrainId": "water"
+      },
+      "211": {
+        "terrainId": "water"
+      },
+      "212": {
+        "terrainId": "water"
+      },
+      "213": {
+        "terrainId": "water"
+      },
+      "214": {
+        "terrainId": "water"
+      },
+      "215": {
+        "terrainId": "water"
+      },
+      "216": {
+        "terrainId": "water"
+      },
+      "217": {
+        "terrainId": "water"
+      },
+      "218": {
+        "terrainId": "water"
+      },
+      "219": {
+        "terrainId": "water"
+      },
+      "220": {
+        "terrainId": "water"
+      },
+      "221": {
+        "terrainId": "water"
+      },
+      "222": {
+        "terrainId": "water"
+      },
+      "223": {
+        "terrainId": "water"
+      },
+      "224": {
+        "terrainId": "water"
+      },
+      "225": {
+        "terrainId": "water"
+      },
+      "226": {
+        "terrainId": "water"
+      },
+      "227": {
+        "terrainId": "water"
+      },
+      "228": {
+        "terrainId": "water"
+      },
+      "229": {
+        "terrainId": "water"
+      },
+      "230": {
+        "terrainId": "water"
+      },
+      "231": {
+        "terrainId": "water"
+      },
+      "232": {
+        "terrainId": "water"
+      },
+      "233": {
+        "terrainId": "water"
+      },
+      "234": {
+        "terrainId": "water"
+      },
+      "235": {
+        "terrainId": "water"
+      },
+      "236": {
+        "terrainId": "water"
+      },
+      "237": {
+        "terrainId": "water"
+      },
+      "238": {
+        "terrainId": "water"
+      },
+      "239": {
+        "terrainId": "water"
+      },
+      "240": {
+        "terrainId": "water"
+      },
+      "241": {
+        "terrainId": "water"
+      },
+      "242": {
+        "terrainId": "water"
+      },
+      "243": {
+        "terrainId": "water"
+      },
+      "244": {
+        "terrainId": "water"
+      },
+      "245": {
+        "terrainId": "water"
+      },
+      "246": {
+        "terrainId": "water"
+      },
+      "247": {
+        "terrainId": "water"
+      },
+      "248": {
+        "terrainId": "water"
+      },
+      "249": {
+        "terrainId": "water"
+      },
+      "250": {
+        "terrainId": "water"
+      },
+      "251": {
+        "terrainId": "water"
+      },
+      "252": {
+        "terrainId": "water"
+      },
+      "253": {
+        "terrainId": "water"
+      },
+      "254": {
+        "terrainId": "water"
+      },
+      "255": {
+        "terrainId": "water"
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "water"
+        }
+      ],
+      "cells": "1*256"
+    }
+  },
+  {
+    "name": "one voxel at slot 0",
+    "grid": {
+      "0": {
+        "terrainId": "water"
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "water"
+        }
+      ],
+      "cells": "1 0*255"
+    }
+  },
+  {
+    "name": "one voxel at the last slot",
+    "grid": {
+      "255": {
+        "terrainId": "water"
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "water"
+        }
+      ],
+      "cells": "0*255 1"
+    }
+  },
+  {
+    "name": "two voxels, a single and runs",
+    "grid": {
+      "0": {
+        "terrainId": "water"
+      },
+      "3": {
+        "terrainId": "grass",
+        "color": [0.2, 0.6, 0.2, 1]
+      },
+      "4": {
+        "terrainId": "grass",
+        "color": [0.2, 0.6, 0.2, 1]
+      },
+      "5": {
+        "terrainId": "grass",
+        "color": [0.2, 0.6, 0.2, 1]
+      },
+      "20": {
+        "terrainId": "water"
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "water"
+        },
+        {
+          "terrainId": "grass",
+          "color": [0.2, 0.6, 0.2, 1]
+        }
+      ],
+      "cells": "1 0*2 2*3 0*14 1 0*235"
+    }
+  },
+  {
+    "name": "palette in order of first use",
+    "grid": {
+      "0": {
+        "terrainId": "grass",
+        "color": [0.2, 0.6, 0.2, 1]
+      },
+      "1": {
+        "terrainId": "water"
+      },
+      "2": {
+        "terrainId": "grass",
+        "color": [0.2, 0.6, 0.2, 1]
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "grass",
+          "color": [0.2, 0.6, 0.2, 1]
+        },
+        {
+          "terrainId": "water"
+        }
+      ],
+      "cells": "1 2 1 0*253"
+    }
+  },
+  {
+    "name": "a colour override is its own entry",
+    "grid": {
+      "0": {
+        "terrainId": "water"
+      },
+      "1": {
+        "terrainId": "water",
+        "color": [1, 0, 0, 1]
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "water"
+        },
+        {
+          "terrainId": "water",
+          "color": [1, 0, 0, 1]
+        }
+      ],
+      "cells": "1 2 0*254"
+    }
+  },
+  {
+    "name": "a run across rows",
+    "grid": {
+      "10": {
+        "terrainId": "water"
+      },
+      "11": {
+        "terrainId": "water"
+      },
+      "12": {
+        "terrainId": "water"
+      },
+      "13": {
+        "terrainId": "water"
+      },
+      "14": {
+        "terrainId": "water"
+      },
+      "15": {
+        "terrainId": "water"
+      },
+      "16": {
+        "terrainId": "water"
+      },
+      "17": {
+        "terrainId": "water"
+      },
+      "18": {
+        "terrainId": "water"
+      },
+      "19": {
+        "terrainId": "water"
+      },
+      "20": {
+        "terrainId": "water"
+      },
+      "21": {
+        "terrainId": "water"
+      },
+      "22": {
+        "terrainId": "water"
+      },
+      "23": {
+        "terrainId": "water"
+      },
+      "24": {
+        "terrainId": "water"
+      },
+      "25": {
+        "terrainId": "water"
+      },
+      "26": {
+        "terrainId": "water"
+      },
+      "27": {
+        "terrainId": "water"
+      },
+      "28": {
+        "terrainId": "water"
+      },
+      "29": {
+        "terrainId": "water"
+      },
+      "30": {
+        "terrainId": "water"
+      },
+      "31": {
+        "terrainId": "water"
+      },
+      "32": {
+        "terrainId": "water"
+      },
+      "33": {
+        "terrainId": "water"
+      },
+      "34": {
+        "terrainId": "water"
+      },
+      "35": {
+        "terrainId": "water"
+      },
+      "36": {
+        "terrainId": "water"
+      },
+      "37": {
+        "terrainId": "water"
+      },
+      "38": {
+        "terrainId": "water"
+      },
+      "39": {
+        "terrainId": "water"
+      }
+    },
+    "encoded": {
+      "palette": [
+        {
+          "terrainId": "water"
+        }
+      ],
+      "cells": "0*10 1*30 0*216"
+    }
+  }
+]

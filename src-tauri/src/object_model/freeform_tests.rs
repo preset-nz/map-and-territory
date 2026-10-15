@@ -8,6 +8,7 @@ use rhizome_pom::{Document, Host, MemoryStore, Outcome, Pom};
 use serde_json::{json, Value as Json};
 
 use super::freeform::{locate, CHUNK_CELLS};
+use super::voxels::{decode, encode};
 use super::MapAndTerritory;
 
 type Doc = Document<MapAndTerritory>;
@@ -60,12 +61,22 @@ fn chunks(d: &Doc) -> Vec<String> {
     v
 }
 
-fn voxels(d: &Doc, chunk: &str) -> Vec<Json> {
+/// The chunk's stored value, as the document holds it.
+fn raw(d: &Doc, chunk: &str) -> Json {
     let at = format!("{LAYER}/{chunk}");
     match d.tree().at(at.as_str()).unwrap().value("voxels") {
-        Some(Value::Shaped(Json::Array(a))) => a,
+        Some(Value::Shaped(v)) => v,
         other => panic!("{at}: {other:?}"),
     }
+}
+
+/// The chunk's 256 slots decoded: `null` for empty, else the voxel.
+fn voxels(d: &Doc, chunk: &str) -> Vec<Json> {
+    decode(&raw(d, chunk))
+        .unwrap()
+        .into_iter()
+        .map(|v| v.unwrap_or(Json::Null))
+        .collect()
 }
 
 fn painted(d: &Doc, chunk: &str) -> usize {
@@ -166,6 +177,74 @@ fn erase_clears_voxels_and_removes_an_emptied_chunk() {
 }
 
 #[test]
+fn the_stored_value_is_the_canonical_encoding() {
+    let mut d = doc();
+    paint(
+        &mut d,
+        vec![cell(0, 0, "a"), cell(1, 0, "a"), cell(3, 0, "b")],
+    )
+    .unwrap();
+    assert_eq!(
+        raw(&d, "0_0"),
+        json!({ "palette": [{ "terrainId": "a" }, { "terrainId": "b" }], "cells": "1*2 0 2 0*252" })
+    );
+    // painting over keeps it canonical: b replaced by a merges the runs and drops b
+    paint(&mut d, vec![cell(2, 0, "a"), cell(3, 0, "a")]).unwrap();
+    assert_eq!(
+        raw(&d, "0_0"),
+        json!({ "palette": [{ "terrainId": "a" }], "cells": "1*4 0*252" })
+    );
+}
+
+#[test]
+fn erasing_part_of_a_chunk_prunes_the_palette() {
+    let mut d = doc();
+    paint(
+        &mut d,
+        vec![cell(0, 0, "a"), cell(1, 0, "b"), cell(2, 0, "c")],
+    )
+    .unwrap();
+    erase(&mut d, vec![[0, 0]]).unwrap();
+    assert_eq!(
+        raw(&d, "0_0"),
+        json!({ "palette": [{ "terrainId": "b" }, { "terrainId": "c" }], "cells": "0 1 2 0*253" })
+    );
+    // the last two go: the chunk goes with them
+    erase(&mut d, vec![[1, 0], [2, 0]]).unwrap();
+    assert!(chunks(&d).is_empty());
+}
+
+#[test]
+fn painting_what_is_already_there_leaves_the_chunk_alone() {
+    let mut d = doc();
+    paint(&mut d, vec![cell(0, 0, "a")]).unwrap();
+    assert!(matches!(
+        paint(&mut d, vec![cell(0, 0, "a")]).unwrap(),
+        Outcome::Nothing
+    ));
+}
+
+#[test]
+fn fill_across_chunks_writes_each_chunk_canonically() {
+    let mut d = doc();
+    let cells: Vec<Json> = (14..18)
+        .flat_map(|r| (14..18).map(move |q| cell(q, r, "grass")))
+        .collect();
+    run(
+        &mut d,
+        "freeform.fill",
+        json!({ "at": LAYER, "cells": cells }),
+    )
+    .unwrap();
+    assert_eq!(chunks(&d), ["0_0", "0_1", "1_0", "1_1"]);
+    for c in chunks(&d) {
+        assert_eq!(painted(&d, &c), 4, "{c}");
+        let g = decode(&raw(&d, &c)).unwrap();
+        assert_eq!(encode(&g), raw(&d, &c));
+    }
+}
+
+#[test]
 fn erasing_an_unpainted_hex_changes_nothing() {
     let mut d = doc();
     paint(&mut d, vec![cell(0, 0, "a")]).unwrap();
@@ -237,12 +316,24 @@ fn chunks_cannot_be_made_by_hand_wrongly() {
     assert!(d
         .edit("x", |tx| tx.add(LAYER, "chunk", "01_0").map(|_| ()))
         .is_err());
-    // the wrong number of slots
-    let short = d.edit("x", |tx| {
-        let c = tx.add(LAYER, "chunk", "0_0")?;
-        tx.set_value(c, "voxels", Value::Shaped(json!([null, null])))
-    });
-    assert!(short.is_err());
+    // the wrong number of slots, an old-format list, a non-canonical encoding
+    for bad in [
+        json!({ "palette": [], "cells": "0*255" }),
+        json!([null, null]),
+        json!({ "palette": [{ "terrainId": "a" }], "cells": "1 1 0*254" }),
+        json!({ "palette": [{ "terrainId": "a" }], "cells": "0*256" }),
+    ] {
+        let r = d.edit("x", |tx| {
+            let c = tx.add(LAYER, "chunk", "0_0")?;
+            tx.set_value(c, "voxels", Value::Shaped(bad.clone()))
+        });
+        assert!(r.is_err(), "{bad}");
+    }
+    // a bare new chunk takes the default, all empty
+    d.edit("x", |tx| tx.add(LAYER, "chunk", "0_0").map(|_| ()))
+        .unwrap();
+    assert_eq!(raw(&d, "0_0"), json!({ "palette": [], "cells": "0*256" }));
+    d.undo().unwrap();
     // a well-formed one is fine, and a chunk has no duplicate of its own
     paint(&mut d, vec![cell(0, 0, "a")]).unwrap();
     assert!(run(
@@ -288,10 +379,10 @@ fn duplicating_a_layer_carries_its_chunks() {
         .unwrap()
         .value("voxels")
     {
-        Some(Value::Shaped(Json::Array(a))) => a,
+        Some(Value::Shaped(v)) => decode(&v).unwrap(),
         other => panic!("{other:?}"),
     };
-    assert_eq!(v[0], json!({ "terrainId": "a" }));
+    assert_eq!(v[0], Some(json!({ "terrainId": "a" })));
     // painting the copy leaves the original alone
     run(
         &mut d,
@@ -520,4 +611,91 @@ fn a_duplicate_keeps_its_own_chunks_order() {
     assert_eq!(order(&d, copy).len(), 4);
     assert_eq!(order(&d, LAYER).len(), 3);
     assert_in_step(&d, copy);
+}
+
+// ---- the saved file, for measuring: `OUT=<path> cargo test -- --ignored saved_file` ----
+
+/// Saves `d` to an in-memory file and writes its text to the path in env var `var`.
+fn write_saved(mut d: Doc, store: &MemoryStore, var: &str) {
+    let Ok(out) = std::env::var(var) else {
+        panic!("set {var} to the path to write");
+    };
+    d.save_as("/measure.campaign").unwrap();
+    let text = store.get("/measure.campaign").unwrap();
+    std::fs::write(&out, &text).unwrap();
+    println!("{var}: {} bytes -> {out}", text.len());
+}
+
+fn doc_in(store: &MemoryStore) -> Doc {
+    Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap()
+}
+
+#[test]
+#[ignore = "writes the saved small campaign to $OUT"]
+fn saved_file_small_campaign() {
+    let store = MemoryStore::default();
+    let mut d = doc_in(&store);
+    run(
+        &mut d,
+        "node.add",
+        json!({ "parent": "/maps", "type": "map" }),
+    )
+    .unwrap();
+    run(
+        &mut d,
+        "node.add",
+        json!({ "parent": MAP, "type": "freeform" }),
+    )
+    .unwrap();
+    let mut cells = Vec::new();
+    // a six-hex river running diagonally
+    for i in 0..6 {
+        cells.push(cell(2 + i, 1 + i, "water"));
+    }
+    // a 4 x 3 block of grass
+    for r in 8..11 {
+        for q in 3..7 {
+            cells.push(cell(q, r, "grass"));
+        }
+    }
+    // one forest hex with a colour override
+    cells.push(json!({ "q": 10, "r": 4, "terrainId": "forest", "color": [0.1, 0.4, 0.15, 1.0] }));
+    paint(&mut d, cells).unwrap();
+    write_saved(d, &store, "OUT");
+}
+
+#[test]
+#[ignore = "writes the saved heavy campaign (4 maps x 142x142) to $OUT_HEAVY"]
+fn saved_file_heavy_fixture() {
+    let store = MemoryStore::default();
+    let mut d = doc_in(&store);
+    for m in 0..4 {
+        run(
+            &mut d,
+            "node.add",
+            json!({ "parent": "/maps", "type": "map" }),
+        )
+        .unwrap();
+        let map = if m == 0 {
+            "/maps/map".to_string()
+        } else {
+            format!("/maps/map-{}", m + 1)
+        };
+        run(
+            &mut d,
+            "node.add",
+            json!({ "parent": map, "type": "freeform" }),
+        )
+        .unwrap();
+        let cells: Vec<Json> = (0..142)
+            .flat_map(|r| (0..142).map(move |q| cell(q, r, "bone-fields")))
+            .collect();
+        run(
+            &mut d,
+            "freeform.paint",
+            json!({ "at": format!("{map}/freeform"), "cells": cells }),
+        )
+        .unwrap();
+    }
+    write_saved(d, &store, "OUT_HEAVY");
 }

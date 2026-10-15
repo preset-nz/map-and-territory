@@ -92,18 +92,19 @@ fn path() -> Shape {
     ])
 }
 
-/// A chunk's `voxels`: 256 slots, each empty (null) or `{terrainId, color?}`. A new chunk is all
-/// empty.
+/// A chunk's `voxels`: a palette of whole voxels (`{terrainId, color?}`) and a run-length string
+/// over the 256 slots (see `voxels.rs`; the chunk check enforces the canonical encoding). A new
+/// chunk is all empty.
 fn chunk_voxels() -> ValueSpec {
     let voxel = Shape::record([
         ("terrainId", Shape::Text),
         ("color", Shape::optional(Shape::Colour)),
     ]);
-    let mut spec = ValueSpec::shaped("voxels", Shape::list(Shape::optional(voxel)));
-    spec.default = rhizome_core::Value::Shaped(serde_json::Value::Array(vec![
-        serde_json::Value::Null;
-        super::freeform::CHUNK_CELLS
-    ]));
+    let mut spec = ValueSpec::shaped(
+        "voxels",
+        Shape::record([("palette", Shape::list(voxel)), ("cells", Shape::Text)]),
+    );
+    spec.default = rhizome_core::Value::Shaped(super::voxels::empty());
     spec
 }
 
@@ -230,7 +231,7 @@ pub fn declare(k: &mut Kinds) {
     );
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
-    // `<cq>_<cr>` (floor of q and r over 16); `voxels` is 256 optional records, row-major.
+    // `<cq>_<cr>` (floor of q and r over 16); `voxels` is a palette and run-length cells, row-major.
     k.kind(
         NodeType::new("chunk")
             .in_categories(&["maps"])
