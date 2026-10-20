@@ -18,7 +18,7 @@
     "@preset.nz/facets": "^0.2.0",
     "@preset.nz/math": "^0.1.0",
     "@preset.nz/pom": "^0.1.5",
-    "@preset.nz/ux-kit": "^0.1.0",
+    "@preset.nz/ux-kit": "^0.1.1",
     "@tauri-apps/api": "^2.12.1",
     "clsx": "^2.1.1",
     "react": "^19.2.7",
