@@ -16,7 +16,7 @@ Hexmap editor for tabletop RPGs: professional editing tools, gritty analog-looki
 
 ## Workflow
 
-Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. `just check` is the gate: tsc, Biome, `vite build`, Vitest, cargo fmt, clippy, cargo test, licences. `just run` opens the app in its Tauri window; `just build` makes the release bundle.
+Family rules (one story per commit, `just check`, subagents don't commit) are in `../CLAUDE.md`. `just check` is the gate: tsc, Biome, `vite build`, Vitest, cargo fmt, clippy, cargo test, licences. `just run` opens the app in its Tauri window; `just build` makes the release bundle. `just smoke` runs the window tests in `tests/window/` on app-smoke (`tools/app-smoke`) against a debug bundle; quit `just run` first.
 
 ## Hard rules
 
