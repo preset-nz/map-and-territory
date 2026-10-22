@@ -1,0 +1,20 @@
+# `just docs`: the node pages in docs/nodes/. Its own crate, outside the workspace and the
+# src-tauri package, so the app builds and tests without preset-docs (family requirement
+# "preset-docs comes from crates.io and stays out of the app's build graph", 2026-10-20).
+# Nothing in the app names this crate.
+[package]
+name = "map-and-territory-docs"
+version = "0.0.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[dependencies]
+# The registry, without a window: the Tauri-free model crate.
+map-and-territory-model = { path = "../../crates/map-and-territory-model" }
+rhizome-core = "0.1.7"
+rhizome-pom = "0.1.7"
+preset-docs = { version = "0.1", features = ["rhizome"] }
+
+# Not a member of the root workspace.
+[workspace]

@@ -70,10 +70,19 @@ fn rgb(r: u8, g: u8, b: u8) -> [f64; 4] {
 fn layer(id: &str, name: &str) -> NodeType {
     NodeType::new(id)
         .in_categories(&["maps"])
+        .group("layer")
         .text("name", name)
+        .described("Name", "What the layer is called in the layer list.")
         .bool("visible", true)
+        .described("Visible", "Whether the layer is drawn.")
         .float("opacity", 0.0..=1.0, 1.0)
+        .described(
+            "Opacity",
+            "How much of the layer shows through; 0 hides it, 1 draws it in full.",
+        )
         .choice("blend", BLEND, "normal")
+        .described("Blend", "How the layer mixes with the layers beneath it.")
+        .choice_labels(BLEND_LABELS)
 }
 
 /// One outline path: corners as `{q, r, corner}` and whether it closes.
@@ -127,10 +136,23 @@ pub fn declare(k: &mut Kinds) {
 
     k.kind(
         NodeType::new("campaign")
+            .label("Campaign")
+            .summary("The whole document: its maps, its palettes and the notes that go with them.")
+            .group("document")
+            .category("document")
             .in_categories(&["campaign"])
             .text("name", "")
+            .described("Name", "What you call the campaign.")
             .text("description", "")
-            .reference("palette"),
+            .described(
+                "Description",
+                "Notes about the campaign, such as its setting or premise.",
+            )
+            .reference("palette")
+            .described(
+                "Palette",
+                "The palette the campaign's maps use unless a map picks its own.",
+            ),
     )
     .max_per_parent(1)
     .not_deletable()
@@ -139,11 +161,25 @@ pub fn declare(k: &mut Kinds) {
     // paper and hexgrid sit under a map, so they share its category
     k.kind(
         NodeType::new("map")
+            .label("Map")
+            .summary("One hexmap in the campaign: a paper, a hex grid and the layers between them.")
+            .group("document")
+            .category("document")
             .in_categories(&["maps"])
             .text("name", "")
+            .described("Name", "What you call the map.")
             .text("description", "")
+            .described(
+                "Description",
+                "Notes about this map, such as the region it covers.",
+            )
             .bool("visible", true)
+            .described("Visible", "Whether the map is shown.")
             .reference("palette")
+            .described(
+                "Palette",
+                "The palette this map uses; without one it follows the campaign's.",
+            )
             .check(|map| {
                 let count = |t: &str| map.children().filter(|c| c.type_name() == t).count();
                 match (count("paper"), count("hexgrid")) {
@@ -156,9 +192,16 @@ pub fn declare(k: &mut Kinds) {
     // Always drawn, so no `visible`, `opacity` or `blend`.
     k.kind(
         NodeType::new("paper")
+            .label("Paper")
+            .summary("The sheet the map is drawn on: a flat colour at the bottom of every map.")
+            .group("layer")
+            .category("background")
             .in_categories(&["maps"])
             .choice("aspect", ASPECTS, "16:10")
-            .colour("color", WHITE),
+            .described("Aspect", "The shape of the sheet, as width to height.")
+            .choice_labels(&[("square", "Square"), ("4:3", "4:3"), ("16:10", "16:10")])
+            .colour("color", WHITE)
+            .described("Colour", "The colour of the paper."),
     )
     .max_per_parent(1)
     .not_deletable()
@@ -169,17 +212,61 @@ pub fn declare(k: &mut Kinds) {
     // but a typed value may go past it.
     k.kind(
         NodeType::new("hexgrid")
+            .label("Hex Grid")
+            .summary(
+                "The hex grid drawn over the map, and the grid every other layer is laid out on.",
+            )
+            .group("layer")
+            .category("grid")
             .in_categories(&["maps"])
             .text("name", "Hex Grid")
+            .described("Name", "What the layer is called in the layer list.")
             .bool("visible", true)
+            .described("Visible", "Whether the grid lines are drawn.")
             .float("opacity", 0.0..=1.0, 1.0)
+            .described(
+                "Opacity",
+                "How much of the grid shows through; 0 hides it, 1 draws it in full.",
+            )
             .choice("blend", BLEND, "normal")
-            .value(ValueSpec::float("size", 8.0..=120.0, 24.0).soft_max())
+            .described("Blend", "How the grid mixes with the layers beneath it.")
+            .choice_labels(BLEND_LABELS)
+            .value(
+                ValueSpec::float("size", 8.0..=120.0, 24.0)
+                    .soft_max()
+                    .described(
+                        "Hex size",
+                        "The radius of one hex, from its centre to a corner.",
+                    )
+                    .unit("px"),
+            )
             .choice("orientation", ORIENTATIONS, "pointy")
+            .described(
+                "Orientation",
+                "Which way the hexes sit: a corner up, or a flat edge up.",
+            )
+            .choice_labels(&[("pointy", "Pointy-top"), ("flat", "Flat-top")])
             .colour("color", BLACK)
+            .described(
+                "Line colour",
+                "The colour of the grid lines when the palette's isn't used.",
+            )
             .bool("usePaletteColor", true)
+            .described(
+                "Palette colour",
+                "Draw the lines in the palette's grid line colour instead of the colour above.",
+            )
             .float("alpha", 0.0..=1.0, 1.0)
-            .value(ValueSpec::float("lineWidth", 1.0..=8.0, 1.0).soft_max()),
+            .described(
+                "Line strength",
+                "How solid the grid lines are, on top of the layer's opacity.",
+            )
+            .value(
+                ValueSpec::float("lineWidth", 1.0..=8.0, 1.0)
+                    .soft_max()
+                    .described("Line width", "How thick the grid lines are.")
+                    .unit("px"),
+            ),
     )
     .max_per_parent(1)
     .not_deletable()
@@ -190,52 +277,123 @@ pub fn declare(k: &mut Kinds) {
     // same common values. Its chunks are `chunk` nodes below.
     k.kind(
         layer(HEX_NOISE.id, HEX_NOISE.base)
+            .label("Hex Noise")
+            .summary("Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour.")
+            .category("generator")
             .text("seed", "seed")
+            .described("Seed", "The text the noise grows from; the same seed always gives the same pattern.")
             .float("frequency", 0.01..=5.0, 0.15)
+            .described("Frequency", "How fast the noise changes from hex to hex; higher gives smaller, busier patches.")
             .float("offsetX", -1000.0..=1000.0, 0.0)
+            .described("Offset X", "Slides the noise sideways without changing its shape.")
             .float("offsetY", -1000.0..=1000.0, 0.0)
+            .described("Offset Y", "Slides the noise up or down without changing its shape.")
             .float("intensity", 0.0..=1.0, 1.0)
+            .described("Intensity", "How bright the grey is in shape mode; 0 is black.")
             .float("gamma", 0.1..=5.0, 1.0)
+            .described("Gamma", "Bends the noise towards its low or high end; 1 leaves it as it is.")
             .float("min", 0.0..=1.0, 0.0)
+            .described("Minimum", "Hexes whose noise is below this are left empty.")
             .float("max", 0.0..=1.0, 1.0)
+            .described("Maximum", "Hexes whose noise is above this are left empty.")
             .choice("mode", &["shape", "paint"], "shape")
+            .described("Mode", "Shape fills hexes with grey for use as a mask; paint fills them with terrain colour.")
+            .choice_labels(&[("shape", "Shape"), ("paint", "Paint")])
             .choice("terrain", BASE_TYPES, "plains")
-            .text("terrainId", ""),
+            .described("Terrain", "The kind of terrain painted in paint mode.")
+            .choice_labels(&[
+                ("water", "Water"),
+                ("plains", "Plains"),
+                ("forest", "Forest"),
+                ("hills", "Hills"),
+                ("mountains", "Mountains"),
+            ])
+            .text("terrainId", "")
+            .described("Palette terrain", "The id of one terrain in the palette to paint with, in place of the kind above."),
     );
     // The texture is a file reference kept as written (family requirement "No embedded
     // assets"); the rest are the 2025 texture-fill settings.
     k.kind(
         layer(FREEFORM.id, FREEFORM.base)
+            .label("Freeform")
+            .summary("Hexes you paint by hand, each filled with a terrain from the palette.")
+            .category("painting")
             .choice("renderMode", &["paint", "texture-fill"], "paint")
+            .described("Render mode", "Paint fills each painted hex with its terrain colour; texture fill shows an image through the painted hexes.")
+            .choice_labels(&[("paint", "Paint"), ("texture-fill", "Texture fill")])
             .reference("texture")
+            .described("Texture", "The image shown in texture fill mode, as a file path kept as written.")
             .bool("textureFillInvert", false)
+            .described("Invert fill", "Show the image everywhere except the painted hexes.")
             .float("textureOffsetX", -1000.0..=1000.0, 0.0)
+            .described("Texture offset X", "Slides the image sideways.")
             .float("textureOffsetY", -1000.0..=1000.0, 0.0)
+            .described("Texture offset Y", "Slides the image up or down.")
             .float("textureScale", 0.05..=8.0, 1.0)
+            .described("Texture scale", "How large the image is drawn; 1 is its fitted size.")
             .float("textureRotation", -180.0..=180.0, 0.0)
+            .described("Texture rotation", "Turns the image about the middle of the map.")
+            .unit("°")
             .choice("textureTiling", &["stretch", "fit", "repeat"], "stretch")
+            .described("Texture tiling", "Stretch fills the map, fit keeps the image's proportions, repeat tiles it.")
+            .choice_labels(&[("stretch", "Stretch"), ("fit", "Fit"), ("repeat", "Repeat")])
             .choice(
                 "textureOverlayMode",
                 &["normal", "overlay", "screen", "multiply"],
                 "normal",
-            ),
+            )
+            .described("Texture blend", "How the image mixes with the terrain colour under it.")
+            .choice_labels(&[
+                ("normal", "Normal"),
+                ("overlay", "Overlay"),
+                ("screen", "Screen"),
+                ("multiply", "Multiply"),
+            ]),
     );
     k.kind(
         layer(OUTLINE.id, OUTLINE.base)
+            .label("Outline")
+            .summary("Lines drawn along hex edges, for coasts, borders and roads.")
+            .category("lines")
             .shaped("paths", Shape::list(path()))
+            .described(
+                "Paths",
+                "The lines drawn, each a run of hex corners, open or closed.",
+            )
             // the 2025 default stroke, #f8f5e5
             .colour("strokeColor", rgb(0xf8, 0xf5, 0xe5))
-            .value(ValueSpec::float("strokeWidth", 1.0..=12.0, 4.0))
+            .described("Stroke colour", "The colour of every line on the layer.")
+            .value(
+                ValueSpec::float("strokeWidth", 1.0..=12.0, 4.0)
+                    .described("Stroke width", "How thick the lines are.")
+                    .unit("px"),
+            )
             .choice("strokePattern", &["solid", "dashed", "dotted"], "solid")
-            .float("roughness", 0.0..=1.0, 0.0),
+            .described(
+                "Stroke pattern",
+                "Whether the lines are unbroken, dashed or dotted.",
+            )
+            .choice_labels(&[
+                ("solid", "Solid"),
+                ("dashed", "Dashed"),
+                ("dotted", "Dotted"),
+            ])
+            .float("roughness", 0.0..=1.0, 0.0)
+            .described(
+                "Roughness",
+                "How far the corners wander off the grid, for a hand-drawn line; 0 is exact.",
+            ),
     );
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
     // `<cq>_<cr>` (floor of q and r over 16); `voxels` is a palette and run-length cells, row-major.
     k.kind(
         NodeType::new("chunk")
+            .label("Chunk")
+            .summary("A 16 by 16 block of a freeform layer's hexes; kept in the file, never added by hand.")
+            .group("internal")
             .in_categories(&["maps"])
-            .value(chunk_voxels())
+            .value(chunk_voxels().described("Voxels", "The block's hexes as a palette of terrains and a run-length string of which slot holds which."))
             .check(super::freeform::check_chunk),
     )
     .not_duplicable();
@@ -243,15 +401,27 @@ pub fn declare(k: &mut Kinds) {
     // The built-in catalogue is the nine 2025 settings; `palette.use` points followers at themes.
     k.kind(
         NodeType::new("palette")
+            .label("Palette")
+            .summary("A set of colours and terrains for the maps that follow it.")
+            .group("theme")
+            .category("colour")
             .in_categories(&["themes"])
             .text("name", "")
+            .described("Name", "What the palette is called.")
             .text("description", "")
+            .described("Description", "A line on the look the palette gives a map.")
             .colour("gridLine", BLACK)
+            .described("Grid line", "The colour of the hex grid lines when a grid follows the palette.")
             .colour("primary", BLACK)
+            .described("Primary", "The palette's main colour.")
             .colour("secondary", BLACK)
+            .described("Secondary", "The palette's second colour.")
             .colour("accent", BLACK)
+            .described("Accent", "The palette's highlight colour.")
             .colour("background", WHITE)
-            .shaped("terrains", Shape::list(terrain())),
+            .described("Background", "The palette's background colour.")
+            .shaped("terrains", Shape::list(terrain()))
+            .described("Terrains", "The terrains painted with this palette: each a name, a base type, traits and a colour."),
     )
     .presets(super::palette::PaletteAggregate)
     .catalogue(super::palette::catalogue());
@@ -260,4 +430,12 @@ pub fn declare(k: &mut Kinds) {
 /// The common layer blend modes (design: Values, "every layer kind except `paper`").
 pub const BLEND: &[&str] = &[
     "normal", "multiply", "screen", "overlay", "darken", "lighten",
+];
+const BLEND_LABELS: &[(&str, &str)] = &[
+    ("normal", "Normal"),
+    ("multiply", "Multiply"),
+    ("screen", "Screen"),
+    ("overlay", "Overlay"),
+    ("darken", "Darken"),
+    ("lighten", "Lighten"),
 ];

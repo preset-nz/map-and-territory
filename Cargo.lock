@@ -594,7 +594,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1831,7 +1831,7 @@ dependencies = [
  "png 0.18.1",
  "serde",
  "thiserror 2.0.21",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2588,9 +2588,9 @@ dependencies = [
 
 [[package]]
 name = "rhizome-core"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9270992ec5527404939a3e57dccc1534b428064d00a979aa2ae8397139f7393"
+checksum = "2830dea9a2a41d0b8df65f3d3d68e3470b70083e87a100ef21862e30021d4db3"
 dependencies = [
  "serde",
  "serde_json",
@@ -2600,9 +2600,9 @@ dependencies = [
 
 [[package]]
 name = "rhizome-pom"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71d20a9330f41b76bec7456101ceacba9f5c290cb977b40f2663a8ac9239356f"
+checksum = "988245af7c2f1d5397c86286b7a833bf7f9aa02cd10bbbb137b7fc4e05106f8c"
 dependencies = [
  "rhizome-core",
  "serde",
@@ -2612,9 +2612,9 @@ dependencies = [
 
 [[package]]
 name = "rhizome-pom-tauri"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a20789017e3adf6fc529af57be826848586931de0f9772315e938195cc4c32c"
+checksum = "f61367153e3a3efd532d77390f0aecd853afff70b5b8be1b6707c6ba194e0c9b"
 dependencies = [
  "rhizome-pom",
  "serde_json",
@@ -2944,7 +2944,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -3432,7 +3432,7 @@ dependencies = [
  "serde_with",
  "swift-rs",
  "thiserror 2.0.21",
- "toml 1.1.8+spec-1.1.0",
+ "toml 0.9.12+spec-1.1.0",
  "url",
  "urlpattern",
  "uuid",
@@ -3775,7 +3775,7 @@ dependencies = [
  "png 0.18.1",
  "serde",
  "thiserror 2.0.21",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4128,7 +4128,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4149,7 +4149,7 @@ dependencies = [
  "objc2-foundation",
  "objc2-quartz-core",
  "raw-window-handle",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
  "windows-version",
 ]
 
@@ -4452,7 +4452,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d6f32a0ff4a9f6f01231eb2059cc85479330739333e0e58cadf03b6af2cca10"
 dependencies = [
  "cfg-if",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]

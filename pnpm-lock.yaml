@@ -18,8 +18,8 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0
       '@preset.nz/pom':
-        specifier: ^0.1.5
-        version: 0.1.5(@tauri-apps/api@2.12.3)(react@19.3.0)
+        specifier: ^0.1.7
+        version: 0.1.7(@tauri-apps/api@2.12.3)(react@19.3.0)
       '@preset.nz/ux-kit':
         specifier: ^0.1.1
         version: 0.1.1(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -533,8 +533,8 @@ packages:
   '@preset.nz/math@0.1.0':
     resolution: {integrity: sha512-eGOJZVvox4NPtoWrolIk06GjsfDNy8OCwes3pYw6o3CDRKolGWrrwf78U733OkKexUjHVeQfi39xrbEIhsQodQ==}
 
-  '@preset.nz/pom@0.1.5':
-    resolution: {integrity: sha512-Rw+qSsiQ2AQfwyvddgjUBeY+2MoIwBNVAll78Ca2Q/10r1km1/+IfZs8ntmNLdOCiwSzNPykqmpXhsICFK2N3A==}
+  '@preset.nz/pom@0.1.7':
+    resolution: {integrity: sha512-xWLOt+paIVX5UfsKCa4NNIdZpRJO33VnXYQNZM10V4jvaN6//SLuPRM6EMP0VZwKya6/0Hk+yBSPx6GxY3TEwQ==}
     peerDependencies:
       '@tauri-apps/api': ^2
       react: ^19
@@ -2486,7 +2486,7 @@ snapshots:
 
   '@preset.nz/math@0.1.0': {}
 
-  '@preset.nz/pom@0.1.5(@tauri-apps/api@2.12.3)(react@19.3.0)':
+  '@preset.nz/pom@0.1.7(@tauri-apps/api@2.12.3)(react@19.3.0)':
     dependencies:
       '@tauri-apps/api': 2.12.3
       react: 19.3.0

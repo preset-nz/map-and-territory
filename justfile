@@ -22,6 +22,19 @@ install:
 run:
     pnpm tauri dev
 
+# Node pages (docs/nodes/) from the words the kinds carry. Rewrites each page's generated
+# block and leaves the prose around it. The generator is its own crate (docs/gen) and the
+# only thing that needs preset-docs, from crates.io (family-alignment: "preset-docs comes
+# from crates.io").
+[group('docs')]
+docs:
+    cargo run -q --manifest-path docs/gen/Cargo.toml
+
+# Fails if a page is missing, stale or orphaned, or a kind has no summary.
+[group('docs')]
+docs-check:
+    cargo run -q --manifest-path docs/gen/Cargo.toml -- --check
+
 [group('quality')]
 check:
     ./node_modules/.bin/tsc --noEmit
@@ -32,6 +45,7 @@ check:
     cargo fmt --all --check
     cargo clippy --workspace --all-targets -- -D warnings
     cargo test --workspace
+    just docs-check
     just licences
 
 # Fix lint/format issues in place (hooks only ever check; this writes).

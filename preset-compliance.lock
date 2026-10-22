@@ -6,7 +6,7 @@ version = 1
 [[inputs]]
 path = "Cargo.lock"
 ecosystem = "cargo"
-sha256 = "00eb2fee7d087abfbf07c25c885fb03e019fc93c4f0f233a19075bf28714d3b6"
+sha256 = "3f7babd41e7e5a88afda679deb2d53e0f78442be7466dcf92fd695db41a7edc1"
 
 [[inputs]]
 path = "Cargo.toml"
@@ -14,16 +14,25 @@ sha256 = "543dbac19f1edb9d319cbbd8ec54c9a3d01b5062fc87c59a474564b636f6f146"
 
 [[inputs]]
 path = "crates/map-and-territory-model/Cargo.toml"
-sha256 = "fb6fdb36e0307a9826d76de18eb99b538e82cd320f0db59141763d0d32617def"
+sha256 = "bef9ce83ac110738b8639ebbb8f3030f03a5e66a4f64737c682a9de79f5e8587"
+
+[[inputs]]
+path = "docs/gen/Cargo.lock"
+ecosystem = "cargo"
+sha256 = "ee72cda74e7a14ca5c1a8c3f4abb56261246f4aac00d49a2e775f54636eda512"
+
+[[inputs]]
+path = "docs/gen/Cargo.toml"
+sha256 = "6105ea2aa7b5bbc3ce9dfe2dc851d915c8a09c340fbca324be0046733a1e75ce"
 
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "98ae9ccd649860a123b3ae99883e75a5273eb615103d52f83f6b4f7e8d8efbb6"
+sha256 = "7162e33cc332dae307f9db97a5a80facbb399755b316a66f0b07de214e73c50f"
 
 [[inputs]]
 path = "src-tauri/Cargo.toml"
-sha256 = "6cf6bb1a173432a10eb2c315cb6dad264a0efc986dcbbead67398e8b4076806a"
+sha256 = "e922be6fe6764f0ec4bc9362126e5256914aa12bcf08035efcb7311cc5c712dd"
 
 [[packages]]
 ecosystem = "cargo"
@@ -1355,6 +1364,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "libc"
+version = "0.2.191"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "libdbus-sys"
 version = "0.2.7"
 source = "registry"
@@ -1399,6 +1416,14 @@ name = "log"
 version = "0.4.34"
 source = "registry"
 declared = "MIT OR Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "map-and-territory-model"
+version = "0.1.0"
+source = "path"
+declared = "MIT"
 scope = "shipped"
 
 [[packages]]
@@ -1859,6 +1884,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "preset-docs"
+version = "0.1.1"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "proc-macro-crate"
 version = "1.3.1"
 source = "registry"
@@ -1903,6 +1936,14 @@ name = "proc-macro2"
 version = "1.0.107"
 source = "registry"
 declared = "MIT OR Apache-2.0"
+scope = "build"
+
+[[packages]]
+ecosystem = "cargo"
+name = "proc-macro2"
+version = "1.0.107"
+source = "registry"
+declared = "MIT OR Apache-2.0"
 scope = "shipped"
 
 [[packages]]
@@ -1912,6 +1953,14 @@ version = "0.42.0"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
+name = "quote"
+version = "1.0.47"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "build"
 
 [[packages]]
 ecosystem = "cargo"
@@ -2044,7 +2093,7 @@ scope = "shipped"
 [[packages]]
 ecosystem = "cargo"
 name = "rhizome-core"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -2052,7 +2101,7 @@ scope = "shipped"
 [[packages]]
 ecosystem = "cargo"
 name = "rhizome-pom"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -2060,7 +2109,7 @@ scope = "shipped"
 [[packages]]
 ecosystem = "cargo"
 name = "rhizome-pom-tauri"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -2411,6 +2460,14 @@ scope = "build"
 
 [[packages]]
 ecosystem = "cargo"
+name = "syn"
+version = "3.0.9"
+source = "registry"
+declared = "MIT OR Apache-2.0"
+scope = "build"
+
+[[packages]]
+ecosystem = "cargo"
 name = "sync_wrapper"
 version = "1.0.2"
 source = "registry"
@@ -2671,7 +2728,7 @@ name = "toml"
 version = "1.1.8+spec-1.1.0"
 source = "registry"
 declared = "MIT OR Apache-2.0"
-scope = "shipped"
+scope = "build"
 
 [[packages]]
 ecosystem = "cargo"
@@ -2695,7 +2752,7 @@ name = "toml_datetime"
 version = "1.1.2+spec-1.1.0"
 source = "registry"
 declared = "MIT OR Apache-2.0"
-scope = "shipped"
+scope = "build"
 
 [[packages]]
 ecosystem = "cargo"
@@ -3443,8 +3500,24 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "zerocopy"
+version = "0.8.63"
+source = "registry"
+declared = "BSD-2-Clause OR Apache-2.0 OR MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "zerocopy-derive"
 version = "0.8.62"
+source = "registry"
+declared = "BSD-2-Clause OR Apache-2.0 OR MIT"
+scope = "build"
+
+[[packages]]
+ecosystem = "cargo"
+name = "zerocopy-derive"
+version = "0.8.63"
 source = "registry"
 declared = "BSD-2-Clause OR Apache-2.0 OR MIT"
 scope = "build"
@@ -4172,7 +4245,7 @@ scope = "shipped"
 [[packages]]
 ecosystem = "pnpm"
 name = "@preset.nz/pom"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry"
 declared = "MIT"
 scope = "shipped"

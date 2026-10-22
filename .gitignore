@@ -16,6 +16,7 @@ node_modules/
 # Build output
 /target
 /src-tauri/target
+/docs/gen/target
 /src-tauri/gen/schemas
 out/
 build/
