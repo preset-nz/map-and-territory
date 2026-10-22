@@ -35,6 +35,15 @@ docs:
 docs-check:
     cargo run -q --manifest-path docs/gen/Cargo.toml -- --check
 
+# Window tests (tests/window/*.toml) against a debug bundle, through the menu bar, with the
+# app in the background. Needs `app-smoke` (tools/app-smoke, `just build` there) and a
+# logged-in session, so it isn't part of `check`. Quit `just run` first. Its own target
+# dir, so it doesn't rebuild over the dev binary.
+[group('quality')]
+smoke *args:
+    CARGO_TARGET_DIR="{{justfile_directory()}}/target/smoke" pnpm tauri build --debug --bundles app
+    app-smoke run --app "target/smoke/debug/bundle/macos/Map & Territory.app" {{args}} tests/window
+
 [group('quality')]
 check:
     ./node_modules/.bin/tsc --noEmit

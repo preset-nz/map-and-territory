@@ -1,0 +1,81 @@
+# Window tests for panels, layers and tools: the menu side of the painting plan,
+# guidance projects/map-and-territory/testplans/20261014-painting.md. Painting, the
+# camera, outlines and the inspector are pointer work and judgement; they stay with Georg.
+
+name = "Panels, layers and tools"
+
+[[test]]
+name = "the left panel's tick follows it"
+covers = "painting 1.1-1.2"
+steps = [
+  { expect = "View > Show Left Panel", checked = true },
+  { menu = "View > Show Left Panel" },
+  { expect = "View > Show Left Panel", checked = false },
+  { menu = "View > Show Left Panel" },
+  { expect = "View > Show Left Panel", checked = true },
+]
+
+[[test]]
+name = "layers need a map"
+covers = "painting 3.1"
+steps = [
+  { expect = "Layer > Add Freeform Layer", enabled = false },
+  { menu = "Map > New Map" },
+  { expect = "Layer > Add Freeform Layer", enabled = true },
+]
+
+[[test]]
+name = "each layer kind is added in one named step"
+covers = "painting 3.1-3.2"
+steps = [
+  { menu = "Map > New Map" },
+  { menu = "Layer > Add Freeform Layer" },
+  { expect = "Edit > #1", title = "Undo Add Freeform Layer" },
+  { menu = "Layer > Add Hex Noise Layer" },
+  { expect = "Edit > #1", title = "Undo Add Hex Noise Layer" },
+  { menu = "Layer > Add Outline Layer" },
+  { expect = "Edit > #1", title = "Undo Add Outline Layer" },
+]
+
+[[test]]
+name = "a layer moves between the anchors, not past them"
+covers = "painting 3.3-3.4"
+steps = [
+  { menu = "Map > New Map" },
+  { menu = "Layer > Add Freeform Layer" },
+  # The first layer sits alone between the grid and the paper: nowhere to go.
+  { expect = "Layer > Bring Forward", enabled = false },
+  { expect = "Layer > Send Backward", enabled = false },
+  { menu = "Layer > Add Hex Noise Layer" },
+  { menu = "Layer > Send Backward" },
+  { expect = "Edit > #1", title = "Undo Send Backward" },
+  { expect = "Layer > Send Backward", enabled = false },
+  { expect = "Layer > Send to Back", enabled = false },
+  { menu = "Layer > Bring to Front" },
+  { expect = "Layer > Bring Forward", enabled = false },
+]
+
+[[test]]
+name = "duplicate and delete are named undo steps"
+covers = "painting 2.8"
+steps = [
+  { menu = "Map > New Map" },
+  { menu = "Layer > Add Freeform Layer" },
+  { menu = "Edit > Duplicate" },
+  { expect = "Edit > #1", title = "Undo Duplicate" },
+  { menu = "Edit > Delete" },
+  { expect = "Edit > #1", title = "Undo Delete" },
+]
+
+[[test]]
+name = "the Tool menu ticks one tool"
+covers = "painting 4.1"
+steps = [
+  { expect = "Tool > Select", checked = true },
+  { menu = "Tool > Paint" },
+  { expect = "Tool > Paint", checked = true },
+  { expect = "Tool > Select", checked = false },
+  { menu = "Tool > Outline" },
+  { expect = "Tool > Outline", checked = true },
+  { expect = "Tool > Paint", checked = false },
+]

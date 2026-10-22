@@ -1,0 +1,84 @@
+# Window tests for documents and undo: what the menu bar and the title say back.
+# Run with `just smoke` (tools/app-smoke). Each test starts from a fresh launch and is
+# killed at the end. `covers` names the row of the human test plan it replaces, in
+# guidance projects/map-and-territory/testplans/20261014-documents.md.
+# Not here, because a dialog needs Georg (System Events can't see app-kit's guard while
+# the app is in the background): the close guard (3.3-3.5), Save and Save As (4.1, 4.6),
+# Revert (4.4) and Open while unsaved (4.7).
+
+name = "Documents and undo"
+
+[[test]]
+name = "launches to an untitled document"
+covers = "documents 1.1"
+steps = [
+  { window_title = "Untitled-1" },
+  { expect = "Map > New Map", enabled = true },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+]
+
+[[test]]
+name = "Settings is off"
+covers = "documents 1.3"
+steps = [
+  { absent = "{app} > Settings…" },
+]
+
+[[test]]
+name = "Quit names the app"
+covers = "menu standard"
+steps = [
+  { expect = "{app} > #8", title = "Quit {app}" },
+]
+
+[[test]]
+name = "New Map is one named undo step"
+covers = "documents 2.1-2.3, 3.1-3.2"
+steps = [
+  { menu = "Map > New Map" },
+  { expect = "Edit > #1", title = "Undo New Map", enabled = true },
+  { window_title = "Untitled-1 *" },
+  { menu = "Edit > Undo New Map" },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+  { expect = "Edit > #2", title = "Redo New Map", enabled = true },
+  { window_title = "Untitled-1" },
+  { menu = "Edit > Redo New Map" },
+  { window_title = "Untitled-1 *" },
+]
+
+[[test]]
+name = "two maps, undo twice, redo once"
+covers = "documents 2.4"
+steps = [
+  { menu = "Map > New Map" },
+  { menu = "Map > New Map" },
+  { menu = "Edit > Undo New Map" },
+  { menu = "Edit > Undo New Map" },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+  { menu = "Edit > Redo New Map" },
+  { expect = "Edit > #1", title = "Undo New Map" },
+  { expect = "Edit > #2", title = "Redo New Map" },
+]
+
+[[test]]
+name = "a campaign opens from Finder"
+covers = "documents 5.2, 6.3"
+steps = [
+  { open = "fixtures/small.campaign" },
+  # The title keeps the extension. The human plan (4.1) expected `test`, Georg passed it;
+  # which one is meant is open (2026-10-23).
+  { window_title = "small.campaign" },
+  { expect = "File > Revert to Saved…", enabled = false },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+]
+
+[[test]]
+name = "a relaunch starts untitled, not the last document"
+covers = "documents 4.2, 5.1"
+steps = [
+  { open = "fixtures/small.campaign" },
+  { window_title = "small.campaign" },
+  { relaunch = true },
+  { window_title = "Untitled-1" },
+  { windows = 1 },
+]
