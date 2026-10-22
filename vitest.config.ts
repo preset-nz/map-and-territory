@@ -36,11 +36,6 @@ export default defineConfig({
       },
     },
     pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: false,
-      },
-    },
   },
   resolve: {
     // @preset.nz/pom is linked by path and has its own dev copy of React; tests use the app's.
