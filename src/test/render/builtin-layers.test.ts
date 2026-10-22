@@ -9,7 +9,7 @@ import type { SceneFrame } from '@/render/types';
 // The kind names the document gives layers: the anchors' NodeType names and each LayerKind id.
 function documentLayerKinds(): string[] {
   const src = readFileSync(
-    resolve(__dirname, '../../../src-tauri/src/object_model/kinds.rs'),
+    resolve(__dirname, '../../../crates/map-and-territory-model/src/kinds.rs'),
     'utf8',
   );
   const anchors = [...src.matchAll(/NodeType::new\("(paper|hexgrid)"\)/g)].map((m) => m[1]!);

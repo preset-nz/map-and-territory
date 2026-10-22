@@ -84,6 +84,31 @@ fn painted(d: &Doc, chunk: &str) -> usize {
 }
 
 #[test]
+fn a_freeform_layer_is_a_layer() {
+    let d = doc();
+    assert_eq!(d.tree().undo_label(), Some("Add Freeform Layer"));
+    let node = d.tree().at(LAYER).unwrap();
+    assert_eq!(node.value("name"), Some(Value::Text("Freeform 01".into())));
+    assert_eq!(node.value("visible"), Some(Value::Bool(true)));
+    assert_eq!(node.value("opacity"), Some(Value::Float(1.0)));
+    assert_eq!(node.value("blend"), Some(Value::Choice("normal".into())));
+}
+
+#[test]
+fn render_mode_is_a_choice() {
+    let mut d = doc();
+    let set = |d: &mut Doc, v: Json| {
+        run(
+            d,
+            "value.set",
+            json!({ "at": LAYER, "key": "renderMode", "value": v }),
+        )
+    };
+    set(&mut d, json!("texture-fill")).unwrap();
+    assert!(set(&mut d, json!("grey")).is_err());
+}
+
+#[test]
 fn a_hex_is_located_by_floor_division() {
     assert_eq!(locate(0, 0), ((0, 0), 0));
     assert_eq!(locate(15, 0), ((0, 0), 15));

@@ -1,9 +1,10 @@
 //! Map & Territory's object model on POM: the campaign tree, its kinds and policy, and
 //! the commands that edit it. Design: `guidance/projects/map-and-territory/design/object-model.md`.
 //!
-//! Headless on purpose. Nothing here imports Tauri; the document host that carries this
-//! model to the webview is a later story. `Context = ()` and `Projection = ()`: M&T has no
-//! sidecar, and nothing in Rust draws.
+//! Headless on purpose: this crate never depends on Tauri, so a CLI or Python module can
+//! link it. The app's document host (`src-tauri/src/document.rs`) carries it to the
+//! webview. `Context = ()` and `Projection = ()`: M&T has no sidecar, and nothing in Rust
+//! draws.
 
 mod commands;
 mod freeform;

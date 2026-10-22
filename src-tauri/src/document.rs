@@ -33,7 +33,7 @@ use rhizome_pom_tauri::{emit, PomHost};
 use serde_json::json;
 use tauri::{AppHandle, Runtime};
 
-use crate::object_model::MapAndTerritory;
+use map_and_territory_model::MapAndTerritory;
 
 type Hook = Box<dyn Fn() + Send + Sync>;
 
@@ -110,9 +110,9 @@ impl DocumentHost {
     pub fn texture_bytes(&self, file: &str) -> Result<Vec<u8>, String> {
         let path = self
             .pom
-            .read(|d| crate::object_model::texture::resolve(d.path(), file))
+            .read(|d| map_and_territory_model::texture::resolve(d.path(), file))
             .ok_or_else(|| "save the campaign first, or use the image's full path".to_string())?;
-        crate::object_model::texture::check_file(&path)?;
+        map_and_territory_model::texture::check_file(&path)?;
         std::fs::read(&path).map_err(|e| format!("can't read {}: {e}", path.display()))
     }
 

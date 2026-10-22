@@ -6,7 +6,7 @@ import { PaperType } from '@/layers/adapters/paper';
 import { registerLayerType } from '@/layers/registry';
 import type { LayerType } from '@/layers/types';
 
-/** Every layer kind the document has, by its kind name in `src-tauri/src/object_model/kinds.rs`. */
+/** Every layer kind the document has, by its kind name in `crates/map-and-territory-model/src/kinds.rs`. */
 export const BUILTIN_LAYER_TYPES = [
   PaperType,
   HexgridType,

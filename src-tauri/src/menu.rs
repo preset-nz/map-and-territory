@@ -11,7 +11,7 @@ use preset_app_kit::{shortcut, AppKit, Command, MenuName};
 use tauri::{AppHandle, Manager, Runtime};
 
 use crate::document::DocumentHost;
-use crate::object_model::EXTENSION;
+use map_and_territory_model::EXTENSION;
 
 pub const MENU_CONFIG: &str = include_str!("../menu.toml");
 

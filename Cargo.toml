@@ -1,0 +1,6 @@
+# Workspace: the Tauri-free object model plus the Tauri shell. The model crate is what a
+# CLI or Python module links (guidance design/python-sdk-and-cli.md), so it never
+# depends on Tauri.
+[workspace]
+resolver = "2"
+members = ["crates/map-and-territory-model", "src-tauri"]

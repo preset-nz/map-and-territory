@@ -1729,6 +1729,7 @@ checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 name = "map-and-territory"
 version = "0.1.0"
 dependencies = [
+ "map-and-territory-model",
  "preset-app-kit",
  "rhizome-core",
  "rhizome-pom",
@@ -1737,6 +1738,16 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+]
+
+[[package]]
+name = "map-and-territory-model"
+version = "0.1.0"
+dependencies = [
+ "rhizome-core",
+ "rhizome-pom",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

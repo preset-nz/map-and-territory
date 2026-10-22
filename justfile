@@ -29,16 +29,16 @@ check:
     ./node_modules/.bin/depcruise src
     ./node_modules/.bin/vite build
     ./node_modules/.bin/vitest run
-    cargo fmt --manifest-path src-tauri/Cargo.toml --check
-    cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-    cargo test --manifest-path src-tauri/Cargo.toml
+    cargo fmt --all --check
+    cargo clippy --workspace --all-targets -- -D warnings
+    cargo test --workspace
     just licences
 
 # Fix lint/format issues in place (hooks only ever check; this writes).
 [group('quality')]
 fmt:
     ./node_modules/.bin/biome check --write .
-    cargo fmt --manifest-path src-tauri/Cargo.toml
+    cargo fmt --all
 
 [group('quality')]
 test:

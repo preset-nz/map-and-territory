@@ -4,18 +4,26 @@
 version = 1
 
 [[inputs]]
+path = "Cargo.lock"
+ecosystem = "cargo"
+sha256 = "00eb2fee7d087abfbf07c25c885fb03e019fc93c4f0f233a19075bf28714d3b6"
+
+[[inputs]]
+path = "Cargo.toml"
+sha256 = "543dbac19f1edb9d319cbbd8ec54c9a3d01b5062fc87c59a474564b636f6f146"
+
+[[inputs]]
+path = "crates/map-and-territory-model/Cargo.toml"
+sha256 = "fb6fdb36e0307a9826d76de18eb99b538e82cd320f0db59141763d0d32617def"
+
+[[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
 sha256 = "0e8c5c52b97621c862a3c75c3c7bfc70efa05800170226c628ac422e0df1ded4"
 
 [[inputs]]
-path = "src-tauri/Cargo.lock"
-ecosystem = "cargo"
-sha256 = "a695d174ed40caea08f0075867880caae8de35e15efe7935176fd576a514840f"
-
-[[inputs]]
 path = "src-tauri/Cargo.toml"
-sha256 = "af8eb3a4dd9c6e4cd92fbda75252a4a4e00a2da9bd08f78b3200e517298fed26"
+sha256 = "6cf6bb1a173432a10eb2c315cb6dad264a0efc986dcbbead67398e8b4076806a"
 
 [[packages]]
 ecosystem = "cargo"

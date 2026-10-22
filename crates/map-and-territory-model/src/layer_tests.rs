@@ -92,7 +92,7 @@ fn a_layer_lands_just_below_the_grid() {
         stack(&d),
         [format!("{MAP}/paper"), a.clone(), format!("{MAP}/hexgrid")]
     );
-    let b = add(&mut d, "freeform");
+    let b = add(&mut d, "hex-noise");
     assert_eq!(
         stack(&d),
         [format!("{MAP}/paper"), a, b, format!("{MAP}/hexgrid")]
@@ -103,7 +103,7 @@ fn a_layer_lands_just_below_the_grid() {
 fn a_layer_lands_just_above_the_one_named() {
     let mut d = doc_with_map();
     let a = add(&mut d, "hex-noise");
-    let b = add(&mut d, "freeform");
+    let b = add(&mut d, "hex-noise");
     let c = add_above(&mut d, "outline", &a);
     assert_eq!(
         stack(&d),
@@ -134,11 +134,9 @@ fn layers_are_named_per_kind() {
     let mut d = doc_with_map();
     let n1 = add(&mut d, "hex-noise");
     let n2 = add(&mut d, "hex-noise");
-    let f1 = add(&mut d, "freeform");
     let o1 = add(&mut d, "outline");
     assert_eq!(name(&d, &n1), "Hex Noise 01");
     assert_eq!(name(&d, &n2), "Hex Noise 02");
-    assert_eq!(name(&d, &f1), "Freeform 01");
     assert_eq!(name(&d, &o1), "Outline 01");
     // paths are the kind's unique names; the display name is a value
     assert_eq!(last(&n1), "hex-noise");
@@ -158,15 +156,13 @@ fn add_is_one_labelled_undo_step() {
     let mut d = doc_with_map();
     add(&mut d, "hex-noise");
     assert_eq!(d.tree().undo_label(), Some("Add Hex Noise Layer"));
-    add(&mut d, "freeform");
-    assert_eq!(d.tree().undo_label(), Some("Add Freeform Layer"));
     add(&mut d, "outline");
     assert_eq!(d.tree().undo_label(), Some("Add Outline Layer"));
 
     d.undo().unwrap();
-    assert_eq!(stack(&d).len(), 4, "paper, noise, freeform, grid");
+    assert_eq!(stack(&d).len(), 3, "paper, noise, grid");
     d.redo().unwrap();
-    assert_eq!(stack(&d).len(), 5);
+    assert_eq!(stack(&d).len(), 4);
 }
 
 #[test]
@@ -187,9 +183,8 @@ fn layers_go_only_under_a_map() {
 fn the_layer_kinds_have_the_common_values_and_their_own() {
     let mut d = doc_with_map();
     let n = add(&mut d, "hex-noise");
-    let f = add(&mut d, "freeform");
     let o = add(&mut d, "outline");
-    for at in [&n, &f, &o] {
+    for at in [&n, &o] {
         let node = d.tree().at(at.as_str()).unwrap();
         assert_eq!(node.value("visible"), Some(Value::Bool(true)));
         assert_eq!(node.value("opacity"), Some(Value::Float(1.0)));
@@ -209,7 +204,6 @@ fn the_layer_kinds_have_the_common_values_and_their_own() {
     assert!(set(&mut d, &n, "gamma", json!(0.0)).is_err());
     set(&mut d, &n, "mode", json!("paint")).unwrap();
     assert!(set(&mut d, &n, "mode", json!("grey")).is_err());
-    set(&mut d, &f, "renderMode", json!("texture-fill")).unwrap();
     set(&mut d, &o, "strokeWidth", json!(12.0)).unwrap();
     assert!(set(&mut d, &o, "strokeWidth", json!(13.0)).is_err());
     set(&mut d, &o, "strokePattern", json!("dashed")).unwrap();
@@ -228,7 +222,7 @@ fn the_layer_kinds_have_the_common_values_and_their_own() {
 fn moves_reorder_within_the_anchors() {
     let mut d = doc_with_map();
     let a = add(&mut d, "hex-noise");
-    let b = add(&mut d, "freeform");
+    let b = add(&mut d, "hex-noise");
     let c = add(&mut d, "outline");
     let (paper, grid) = (format!("{MAP}/paper"), format!("{MAP}/hexgrid"));
 
@@ -266,7 +260,7 @@ fn moves_reorder_within_the_anchors() {
 fn moves_are_refused_at_the_anchors() {
     let mut d = doc_with_map();
     let a = add(&mut d, "hex-noise");
-    let b = add(&mut d, "freeform");
+    let b = add(&mut d, "hex-noise");
     let paper = format!("{MAP}/paper");
     let grid = format!("{MAP}/hexgrid");
     let before = stack(&d);
@@ -323,7 +317,7 @@ fn a_lone_layer_cannot_move() {
 fn a_duplicate_lands_above_its_source_between_the_anchors() {
     let mut d = doc_with_map();
     let a = add(&mut d, "hex-noise");
-    let b = add(&mut d, "freeform");
+    let b = add(&mut d, "hex-noise");
     run(&mut d, "edit.duplicate", json!({ "at": a })).unwrap();
     let s = stack(&d);
     assert_eq!(s.len(), 5);
@@ -331,7 +325,7 @@ fn a_duplicate_lands_above_its_source_between_the_anchors() {
     assert_eq!(s[1], a);
     assert_eq!(
         s[2],
-        format!("{MAP}/hex-noise-2"),
+        format!("{MAP}/hex-noise-3"),
         "straight above its source"
     );
     assert_eq!(s[3], b);

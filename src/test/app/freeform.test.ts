@@ -1,7 +1,7 @@
 import { createFrameBuilder, type FrameRow, type RowSource } from '@/app/scene/frame';
 import { chunkName, chunkOf, decodeChunk, decodeSlots } from '@/app/scene/voxels';
 import { createStroke } from '@/app/tools/stroke';
-import fixtures from '../../../src-tauri/src/object_model/voxels_fixtures.json';
+import fixtures from '../../../crates/map-and-territory-model/src/voxels_fixtures.json';
 
 describe('the voxel grid', () => {
   it('locates a hex by floor division, negatives included', () => {

@@ -2,7 +2,7 @@
 // layer, each a palette and a run-length string over its 256 slots, row-major (object-model
 // doc, "Chunk voxels"): `{ palette: [{terrainId, color?}], cells: "1 0*2 1 0*252" }`. A token is
 // `i` or `i*n`; 0 is empty, k is palette[k-1]. Rust encodes and decodes
-// (`src-tauri/src/object_model/voxels.rs`); this file only decodes the mirror's copy. Both run
+// (`crates/map-and-territory-model/src/voxels.rs`); this file only decodes the mirror's copy. Both run
 // the same fixtures, `voxels_fixtures.json`.
 import { cssColour } from './colour';
 

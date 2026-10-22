@@ -5,7 +5,6 @@
 
 mod document;
 mod menu;
-mod object_model;
 
 use tauri::Manager;
 

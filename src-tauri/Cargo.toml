@@ -20,9 +20,10 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 # The family's menu bar, Undo titles and relaunch restore.
 preset-app-kit = "0.1.3"
-# The document tree, its kinds and commands: rhizome and POM from crates.io. The
-# object model has no Tauri in it; the Tauri half (rhizome-pom-tauri) is the document
-# host's transport.
+# The campaign's kinds and commands, in their own Tauri-free crate.
+map-and-territory-model = { path = "../crates/map-and-territory-model" }
+# The document tree: rhizome and POM from crates.io. The Tauri half (rhizome-pom-tauri)
+# is the document host's transport.
 rhizome-core = "0.1.5"
 rhizome-pom = "0.1.5"
 rhizome-pom-tauri = "0.1.5"
