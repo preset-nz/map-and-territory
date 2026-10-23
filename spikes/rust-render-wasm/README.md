@@ -8,7 +8,9 @@ The same map (paper, about 2,000 to 40,000 painted hexes, a hex grid) drawn per 
 - `wasm-scalar`, `wasm-simd`: tiny-skia 0.11 compiled to `wasm32-unknown-unknown` (no wasm-bindgen), the pixmap handed to `putImageData`.
 - `cached`: tiny-skia renders once at 1.5× the viewport; each frame is one `drawImage` of that bitmap.
 
-## Run it on the Mac
+## Run it on the Mac, inside the app's window
+
+Map & Territory only ever runs in its Tauri window (WKWebView), never in a browser (guidance M&T README decision 15), so the numbers that count come from that window.
 
 ```sh
 rustup target add wasm32-unknown-unknown
@@ -19,7 +21,15 @@ cp target/wasm32-unknown-unknown/release/render.wasm web/render-simd.wasm
 cd web && python3 -m http.server 8765
 ```
 
-Open `http://127.0.0.1:8765/` in Safari (WKWebView's engine) and in Chrome; the table prints on the page. Copy it into epic 24's story 1.
+Then, in a second terminal at the repo root:
+
+1. `just run`, and make the window full screen on the 5K display.
+2. Safari ▸ Settings ▸ Advanced ▸ "Show features for web developers", once.
+3. Safari ▸ Develop ▸ (this Mac) ▸ Map & Territory opens the Web Inspector on the app's webview (debug builds allow it).
+4. In its console: `location.href = 'http://127.0.0.1:8765/'`. The page runs the spike in the app's own WebKit and prints the table.
+5. Copy the table into guidance epic 24, story 1. Quit the app; it reloads its own UI on the next launch.
+
+If the window refuses to navigate away from the app, the fallback is a debug-only menu item that loads the spike page in a second window; it isn't built yet.
 
 ## Results in the cloud container (2026-10-23)
 
