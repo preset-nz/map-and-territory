@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8"><title>Render spike</title><pre id="out">running…</pre><script>
+// Every mode at two sizes and two zooms; results print here and land on window.results.
+const runs = [];
+for (const [w, h] of [[2560, 1600], [5120, 2880]]) for (const zoom of [2, 1]) for (const mode of ['canvas2d', 'wasm-scalar', 'wasm-simd', 'cached'])
+  runs.push({ mode, w, h, zoom, frames: 30, wasm: mode === 'wasm-scalar' ? 'render-scalar.wasm' : 'render-simd.wasm' });
+window.results = [];
+(async () => {
+  const out = document.getElementById('out'); out.textContent = '';
+  for (const r of runs) {
+    const wk = new Worker('worker.js');
+    const res = await new Promise((ok) => { wk.onmessage = (e) => ok(e.data); wk.postMessage(r); });
+    wk.terminate(); window.results.push(res);
+    out.textContent += `${res.w}x${res.h} zoom${res.zoom} ${res.mode.padEnd(11)} median ${res.median.toFixed(1)} ms  p90 ${res.p90.toFixed(1)} ms${res.build ? `  (one-off raster ${res.build.toFixed(0)} ms)` : ''}\n`;
+  }
+  window.done = true;
+})();
+</script>
