@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HexgridAdapter, type HexgridState } from '@/layers/adapters/hexgrid';
 import {
   cornerKey,
@@ -9,6 +9,15 @@ import {
   seedBase,
 } from '@/layers/hex-lines';
 import { hexTiles } from '@/layers/hex-utils';
+import {
+  buildBlotch,
+  buildGrain,
+  GRAIN_TILE,
+  INK_FLOOR,
+  inkAlpha,
+  inkMaskBuilds,
+  resetInkMask,
+} from '@/layers/ink-noise';
 import type { RenderEnv } from '@/layers/types';
 
 const env = (w = 120, h = 100): RenderEnv => ({
@@ -688,5 +697,344 @@ describe('width noise timing', () => {
     }
     console.info(rows.join('\n'));
     expect(rows.length).toBe(2);
+  });
+});
+
+// ---- story 4: ink noise ----
+
+type Op = [string, ...unknown[]];
+
+/** An OffscreenCanvas that logs what is done to its 2D context. */
+class FakeCanvas {
+  static made: FakeCanvas[] = [];
+  log: Op[] = [];
+  constructor(
+    public width: number,
+    public height: number,
+  ) {
+    FakeCanvas.made.push(this);
+  }
+  getContext() {
+    const log = this.log;
+    const rec =
+      (name: string) =>
+      (...a: unknown[]) => {
+        log.push([name, ...a]);
+      };
+    const c: Record<string, unknown> = {
+      canvas: this,
+      globalCompositeOperation: 'source-over',
+      globalAlpha: 1,
+      createImageData: (w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+      createPattern: (src: unknown) => ({ pattern: src }),
+    };
+    for (const n of [
+      'save',
+      'restore',
+      'setTransform',
+      'clearRect',
+      'beginPath',
+      'moveTo',
+      'lineTo',
+      'closePath',
+      'fill',
+      'stroke',
+      'setLineDash',
+      'translate',
+      'fillRect',
+      'putImageData',
+    ]) {
+      c[n] = rec(n);
+    }
+    c.drawImage = (...a: unknown[]) => {
+      log.push(['drawImage', c.globalCompositeOperation, c.globalAlpha, ...a]);
+    };
+    return c;
+  }
+}
+
+/** The scratch the grid's ink went to: the canvas that was stroked or filled. */
+const scratchLog = () =>
+  FakeCanvas.made.find((c) => c.log.some((o) => o[0] === 'stroke' || o[0] === 'fill'))?.log ?? [];
+
+function inkCtx(w = 120, h = 100) {
+  const c = ctx() as unknown as Record<string, unknown>;
+  const log: Op[] = [];
+  c.canvas = { width: w, height: h };
+  c.getTransform = () => ({ m: 'camera' });
+  c.setTransform = (...a: unknown[]) => log.push(['setTransform', ...a]);
+  c.drawImage = (...a: unknown[]) =>
+    log.push(['drawImage', c.globalCompositeOperation, c.globalAlpha, ...a]);
+  c.globalCompositeOperation = 'source-over';
+  return Object.assign(c as unknown as CanvasRenderingContext2D & ReturnType<typeof ctx>, { log });
+}
+
+const withFakeCanvas = () => {
+  beforeEach(() => {
+    vi.stubGlobal('OffscreenCanvas', FakeCanvas);
+    resetInkMask();
+    for (const c of FakeCanvas.made) c.log.length = 0;
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+};
+
+describe('ink noise: the mask', () => {
+  const params = (over = {}) => ({
+    seed: 'grid',
+    amount: 1,
+    scale: 40,
+    size: { w: 300, h: 240 },
+    origin: { x: 150, y: 120 },
+    shift: { x: 0, y: 0 },
+    ...over,
+  });
+
+  it('never raises alpha and keeps at least the floor, at any amount', () => {
+    expect(INK_FLOOR).toBeGreaterThanOrEqual(0.15);
+    expect(inkAlpha(1, 1, 1)).toBeCloseTo(INK_FLOOR, 12);
+    expect(inkAlpha(0, 1, 1)).toBe(1);
+    for (const amount of [0, 0.3, 1]) {
+      const f = buildBlotch(params({ amount }));
+      const g = buildGrain('grid', amount);
+      const worst = (1 - Math.max(...f.data) / 255) * (1 - Math.max(...g) / 255);
+      expect(worst).toBeGreaterThanOrEqual(INK_FLOOR - 1e-9);
+      expect(worst).toBeLessThanOrEqual(1);
+    }
+    expect(Math.max(...buildBlotch(params({ amount: 0 })).data)).toBe(0);
+  });
+
+  it('is patchy at amount 1: some points keep most of the ink, some lose most', () => {
+    const d = buildBlotch(params()).data;
+    expect(Math.min(...d)).toBeLessThan(40);
+    expect(Math.max(...d)).toBeGreaterThan(150);
+  });
+
+  it('is deterministic, and a different seed, amount or scale gives a different mask', () => {
+    const sig = (o = {}) => Array.from(buildBlotch(params(o)).data).join();
+    expect(sig()).toBe(sig());
+    expect(sig()).not.toBe(sig({ seed: 'other' }));
+    expect(sig()).not.toBe(sig({ amount: 0.5 }));
+    expect(sig()).not.toBe(sig({ scale: 80 }));
+    expect(Array.from(buildGrain('a', 1)).join()).toBe(Array.from(buildGrain('a', 1)).join());
+    expect(Array.from(buildGrain('a', 1)).join()).not.toBe(Array.from(buildGrain('b', 1)).join());
+    expect(buildGrain('a', 1).length).toBe(GRAIN_TILE * GRAIN_TILE);
+  });
+
+  /** The field's value at a lattice point, `i` cells either way of the anchor. */
+  const at = (p: ReturnType<typeof params>, i: number, j: number) => {
+    const f = buildBlotch(p);
+    const ax = p.origin.x + p.shift.x;
+    const ay = p.origin.y + p.shift.y;
+    const kx0 = Math.round((f.rect.x - ax) / f.cell + 0.5);
+    const ky0 = Math.round((f.rect.y - ay) / f.cell + 0.5);
+    return f.data[(j - ky0) * f.cols + (i - kx0)]!;
+  };
+
+  it('puts a lattice point at the same density when the paper is resized or panned', () => {
+    const a = params();
+    const b = params({ size: { w: 700, h: 400 }, origin: { x: 350, y: 200 } });
+    let same = 0;
+    for (const [i, j] of [
+      [0, 0],
+      [3, -2],
+      [-5, 4],
+      [7, 7],
+    ] as const) {
+      expect(at(b, i, j)).toBe(at(a, i, j));
+      same++;
+    }
+    expect(same).toBe(4);
+    // and it isn't flat
+    expect(new Set([0, 1, 2, 3, 4, 5].map((i) => at(a, i, 0))).size).toBeGreaterThan(2);
+  });
+
+  it('moves with the misregistration, as the grid does', () => {
+    const a = params();
+    const b = params({ shift: { x: 7.5, y: -3 } });
+    for (const [i, j] of [
+      [0, 0],
+      [2, 3],
+      [-4, 1],
+    ] as const) {
+      expect(at(b, i, j)).toBe(at(a, i, j));
+    }
+    const fa = buildBlotch(a);
+    const fb = buildBlotch(b);
+    expect(fb.rect.x - fa.rect.x).toBeCloseTo(7.5 + (fb.rect.x - 7.5 - fa.rect.x), 9);
+  });
+
+  it('keeps big papers cheap: the sample count is capped', () => {
+    const f = buildBlotch(
+      params({ size: { w: 4000, h: 3000 }, scale: 4, origin: { x: 2000, y: 1500 } }),
+    );
+    expect(f.cols * f.rows).toBeLessThan(1_300_000);
+  });
+});
+
+describe('ink noise: drawing', () => {
+  withFakeCanvas();
+  const draw = (over: Partial<HexgridState> = {}, e = env(), c = inkCtx()) => {
+    HexgridAdapter.drawMain?.(c, state(over), e);
+    return c;
+  };
+
+  it('at 0 draws exactly story 3 and touches no canvas', () => {
+    for (const extra of [
+      {},
+      { widthNoise: 0.8, misregistration: 4, cornerJitter: 3, seed: 's' },
+      { lineStyle: 'dashed' as const, cornerJitter: 4 },
+      { lineStyle: 'dotted' as const },
+    ]) {
+      FakeCanvas.made.length = 0;
+      const a = ink({ ...extra });
+      const b = ink({ ...extra, inkNoise: 0, inkScale: 5 });
+      expect(JSON.stringify(b.polys)).toBe(JSON.stringify(a.polys));
+      expect(b.stroke).toHaveBeenCalledTimes(a.stroke.mock.calls.length);
+      expect(b.fill).toHaveBeenCalledTimes(a.fill.mock.calls.length);
+      expect(b.setLineDash.mock.calls).toEqual(a.setLineDash.mock.calls);
+      expect(FakeCanvas.made.length).toBe(0);
+    }
+  });
+
+  it('draws the ink into a scratch, masks it, then lays it on ctx once at the layer alpha', () => {
+    for (const extra of [
+      {},
+      { widthNoise: 0.9 },
+      { lineStyle: 'dashed' as const, cornerJitter: 3 },
+    ]) {
+      for (const c of FakeCanvas.made) c.log.length = 0;
+      const c = draw({ inkNoise: 0.7, alpha: 0.5, color: '#123456', ...extra });
+      // nothing stroked or filled on ctx itself
+      expect(c.stroke).not.toHaveBeenCalled();
+      const log = scratchLog();
+      const ops = log.map((o) => o[0]);
+      expect(ops.includes('stroke') || ops.includes('fill')).toBe(true);
+      // the mask comes after the ink, as destination-out
+      const lastInk = Math.max(ops.lastIndexOf('stroke'), ops.lastIndexOf('fill'));
+      const masks = log.filter((o, i) => i > lastInk && o[0] === 'drawImage');
+      expect(masks.length).toBe(1);
+      expect(masks[0]![1]).toBe('destination-out');
+      expect(ops.slice(lastInk)).toContain('fillRect');
+      // ctx got the scratch once, at the layer alpha, not twice over
+      const onto = c.log.filter((o) => o[0] === 'drawImage');
+      expect(onto.length).toBe(1);
+      expect(onto[0]![2]).toBe(0.5);
+      // the scratch is drawn at full alpha, so alpha is applied once
+      expect(log.find((o) => o[0] === 'stroke' || o[0] === 'fill')).toBeDefined();
+    }
+  });
+
+  it('sizes the scratch to the target and gives it the target transform', () => {
+    draw({ inkNoise: 0.5 }, env(), inkCtx(240, 200));
+    const scratch = FakeCanvas.made.find((c) => c.log.some((o) => o[0] === 'stroke'))!;
+    expect([scratch.width, scratch.height]).toEqual([240, 200]);
+    expect(scratch.log.filter((o) => o[0] === 'setTransform').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('builds the mask once while nothing it depends on changes, and rebuilds when it does', () => {
+    const base = { inkNoise: 0.6, inkScale: 30 };
+    draw(base);
+    draw(base);
+    // a pan or zoom is the camera, not the mask
+    draw(base, { ...env(), camera: { x: 90, y: -4, zoom: 3 }, zoom: 3 });
+    expect(inkMaskBuilds()).toBe(1);
+    // the alpha, colour, line style and width noise don't touch the mask either
+    draw({ ...base, alpha: 0.3, lineStyle: 'dashed' });
+    draw({ ...base, widthNoise: 0.5 });
+    expect(inkMaskBuilds()).toBe(1);
+    let n = 1;
+    for (const [over, e] of [
+      [{ inkNoise: 0.9 }, env()],
+      [{ inkScale: 60 }, env()],
+      [{ seed: 'new' }, env()],
+      [{ misregistration: 5 }, env()],
+      [{}, env(200, 160)],
+    ] as const) {
+      draw({ ...base, ...over }, e);
+      n++;
+      expect(inkMaskBuilds()).toBe(n);
+      draw({ ...base, ...over }, e);
+      expect(inkMaskBuilds()).toBe(n);
+    }
+  });
+
+  it('draws plain where there is no canvas to make a scratch', () => {
+    vi.unstubAllGlobals();
+    vi.stubGlobal('OffscreenCanvas', undefined);
+    const r = recorder();
+    HexgridAdapter.drawMain?.(r, state({ inkNoise: 1 }), env());
+    expect(r.stroke).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('hexgrid invalidation key, story 4', () => {
+  it('changes with ink noise and ink scale', () => {
+    const base = state();
+    const k = HexgridAdapter.getInvalidationKey(base);
+    expect(HexgridAdapter.getInvalidationKey({ ...base, inkNoise: 0.5 })).not.toEqual(k);
+    expect(HexgridAdapter.getInvalidationKey({ ...base, inkScale: 80 })).not.toEqual(k);
+  });
+});
+
+describe('ink noise timing', () => {
+  withFakeCanvas();
+  it('reports the mask build and the per-frame cost (no rasterising)', () => {
+    const rows: string[] = [];
+    const best = (n: number, f: () => void) =>
+      Math.min(
+        ...Array.from({ length: n }, () => {
+          const t = performance.now();
+          f();
+          return performance.now() - t;
+        }),
+      );
+    for (const [w, h, size] of [
+      [1600, 1000, 24],
+      [4000, 3000, 8],
+    ] as const) {
+      const over = { size, inkNoise: 1, inkScale: 40 };
+      const frame = () => {
+        const c = inkCtx(w, h);
+        HexgridAdapter.drawMain?.(c, state(over), env(w, h));
+      };
+      const cold = best(3, () => {
+        resetInkMask();
+        frame();
+      });
+      frame();
+      const warm = best(5, frame);
+      const plain = best(5, () => HexgridAdapter.drawMain?.(ctx(), state({ size }), env(w, h)));
+      const params = {
+        seed: 'grid',
+        amount: 1,
+        scale: 40,
+        size: { w, h },
+        origin: { x: w / 2, y: h / 2 },
+        shift: { x: 0, y: 0 },
+      };
+      const build = best(3, () => {
+        buildBlotch(params);
+        buildGrain('grid', 1);
+      });
+      rows.push(
+        `${w}x${h} size ${size}: mask build ${build.toFixed(1)} ms, cold frame ${cold.toFixed(1)} ms, warm frame ${warm.toFixed(1)} ms, story 3 plain ${plain.toFixed(1)} ms`,
+      );
+    }
+    // the worst mask: the smallest patches on the biggest paper (the sample cap applies)
+    const worst = best(3, () =>
+      buildBlotch({
+        seed: 'grid',
+        amount: 1,
+        scale: 4,
+        size: { w: 4000, h: 3000 },
+        origin: { x: 2000, y: 1500 },
+        shift: { x: 0, y: 0 },
+      }),
+    );
+    rows.push(`4000x3000 ink scale 4 (capped samples): mask build ${worst.toFixed(1)} ms`);
+    console.info(rows.join('\n'));
+    expect(rows.length).toBe(3);
   });
 });

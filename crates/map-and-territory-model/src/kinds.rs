@@ -219,7 +219,7 @@ pub fn declare(k: &mut Kinds) {
     .not_duplicable()
     .pinned_first(LAYERS);
 
-    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength`, `gapLength`, `misregistration`, `cornerJitter` and `noiseScale` stop their travel at the max
+    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength`, `gapLength`, `misregistration`, `cornerJitter`, `noiseScale` and `inkScale` stop their travel at the max
     // but a typed value may go past it.
     k.kind(
         NodeType::new("hexgrid")
@@ -346,6 +346,20 @@ pub fn declare(k: &mut Kinds) {
             .described(
                 "Join at corners",
                 "Make the lines that meet at a corner the same width there, so they join cleanly. Off, each line has its own swells and widths jump at corners. Solid lines only.",
+            )
+            .float("inkNoise", 0.0..=1.0, 0.0)
+            .described(
+                "Ink noise",
+                "How uneven the ink is: patches where the line is stronger and weaker, with a fine grain over them, like a print with uneven ink. It never goes lighter than the line's colour at full strength, and some ink always remains.",
+            )
+            .value(
+                ValueSpec::float("inkScale", 4.0..=400.0, 40.0)
+                    .soft_max()
+                    .described(
+                        "Ink scale",
+                        "The size of one patch of stronger or weaker ink.",
+                    )
+                    .unit("px"),
             ),
     )
     .max_per_parent(1)

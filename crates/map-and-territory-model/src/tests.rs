@@ -291,6 +291,8 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert_eq!(g.value("widthNoise"), Some(Value::Float(0.0)));
     assert_eq!(g.value("noiseScale"), Some(Value::Float(24.0)));
     assert_eq!(g.value("joinCorners"), Some(Value::Bool(true)));
+    assert_eq!(g.value("inkNoise"), Some(Value::Float(0.0)));
+    assert_eq!(g.value("inkScale"), Some(Value::Float(40.0)));
 
     // within
     set(&mut d, &grid, "size", json!(8.0)).unwrap();
@@ -308,6 +310,8 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     set(&mut d, &grid, "widthNoise", json!(1.0)).unwrap();
     set(&mut d, &grid, "noiseScale", json!(2.0)).unwrap();
     set(&mut d, &grid, "joinCorners", json!(false)).unwrap();
+    set(&mut d, &grid, "inkNoise", json!(1.0)).unwrap();
+    set(&mut d, &grid, "inkScale", json!(4.0)).unwrap();
     // below the minimum, and outside a hard range
     assert!(set(&mut d, &grid, "size", json!(7.0)).is_err());
     assert!(set(&mut d, &grid, "lineWidth", json!(0.5)).is_err());
@@ -320,6 +324,9 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert!(set(&mut d, &grid, "widthNoise", json!(1.5)).is_err());
     assert!(set(&mut d, &grid, "widthNoise", json!(-0.1)).is_err());
     assert!(set(&mut d, &grid, "noiseScale", json!(1.0)).is_err());
+    assert!(set(&mut d, &grid, "inkNoise", json!(1.5)).is_err());
+    assert!(set(&mut d, &grid, "inkNoise", json!(-0.1)).is_err());
+    assert!(set(&mut d, &grid, "inkScale", json!(3.0)).is_err());
     assert!(set(&mut d, &grid, "orientation", json!("diagonal")).is_err());
     // the sliders' max is soft: a typed value may go past it
     set(&mut d, &grid, "size", json!(200.0)).unwrap();
@@ -332,10 +339,11 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     set(&mut d, &grid, "misregistration", json!(50.0)).unwrap();
     set(&mut d, &grid, "cornerJitter", json!(50.0)).unwrap();
     set(&mut d, &grid, "noiseScale", json!(500.0)).unwrap();
+    set(&mut d, &grid, "inkScale", json!(900.0)).unwrap();
 }
 
 #[test]
-fn a_campaign_saved_before_line_styles_jitter_and_width_noise_opens_with_the_defaults() {
+fn a_campaign_saved_before_line_styles_jitter_width_noise_and_ink_noise_opens_with_the_defaults() {
     let store = MemoryStore::default();
     let mut d = Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap();
     let map = add_map(&mut d);
@@ -356,6 +364,8 @@ fn a_campaign_saved_before_line_styles_jitter_and_width_noise_opens_with_the_def
         "widthNoise",
         "noiseScale",
         "joinCorners",
+        "inkNoise",
+        "inkScale",
     ] {
         assert!(!saved.contains(k), "{k} isn't written at its default");
     }
@@ -372,6 +382,8 @@ fn a_campaign_saved_before_line_styles_jitter_and_width_noise_opens_with_the_def
     assert_eq!(g.value("widthNoise"), Some(Value::Float(0.0)));
     assert_eq!(g.value("noiseScale"), Some(Value::Float(24.0)));
     assert_eq!(g.value("joinCorners"), Some(Value::Bool(true)));
+    assert_eq!(g.value("inkNoise"), Some(Value::Float(0.0)));
+    assert_eq!(g.value("inkScale"), Some(Value::Float(40.0)));
 }
 
 #[test]
