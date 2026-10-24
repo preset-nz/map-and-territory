@@ -23,10 +23,13 @@ The hex grid drawn over the map, and the grid every other layer is laid out on.
 | Palette colour | on or off | on | Draw the lines in the palette's grid line colour instead of the colour above. |
 | Line strength | 0 to 1 | 1 | How solid the grid lines are, on top of the layer's opacity. |
 | Line width | 1 px to 8 px, or more | 1 px | How thick the grid lines are. |
+| Line style | Solid (`solid`), Dashed (`dashed`), Dotted (`dotted`), Dash-dot (`dash-dot`) | Solid (`solid`) | Whether the grid lines are unbroken, dashed, dotted, or dashes and dots in turn. |
+| Dash length | 1 to 20, or more | 4 | How long each dash is, in line widths. Each edge stretches the pattern slightly so it fits whole repeats. |
+| Gap length | 0.5 to 20, or more | 2 | The empty space between dashes and dots, in line widths. |
 <!-- generated:end -->
 
 ## Using it
 
 The hex grid sits on top of every other layer and sets the size and orientation of the hexes that Hex Noise, Freeform and Outline are laid out on. There is always exactly one, and it can't be deleted or duplicated.
 
-Change Hex size to make the map coarser or finer. Pointy-top and flat-top change how every hex is laid out, so choose before you start painting. By default the lines take the palette's grid line colour; turn off Palette colour to use your own. A low Line strength keeps the grid in the background.
+Change Hex size to make the map coarser or finer. Pointy-top and flat-top change how every hex is laid out, so choose before you start painting. By default the lines take the palette's grid line colour; turn off Palette colour to use your own. A low Line strength keeps the grid in the background. Line style turns the lines dashed, dotted or dash-dot; Dash length and Gap length are in line widths, so a thicker line keeps the same rhythm, and they are greyed out while the style is Solid. Each edge between two hexes is drawn once, and its pattern is stretched a little so a whole number of repeats fits and every corner gets ink.

@@ -229,4 +229,19 @@ describe('the inspector schema', () => {
     expect(byId('color').disabledWhen).toEqual({ path: 'usePaletteColor', equals: true });
     expect(byId('usePaletteColor').disabledWhen).toBeUndefined();
   });
+
+  it("greys the grid's dash and gap lengths while the line is solid", () => {
+    const values = [
+      { key: 'lineStyle', kind: 'choice', choices: ['solid', 'dashed', 'dotted', 'dash-dot'] },
+      { key: 'dashLength', kind: 'float' },
+      { key: 'gapLength', kind: 'float' },
+    ];
+    const rows = schemaFor(values, [], 'hexgrid').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+    const solid = { path: 'lineStyle', equals: 'solid' };
+    expect(byId('dashLength').disabledWhen).toEqual(solid);
+    expect(byId('gapLength').disabledWhen).toEqual(solid);
+    expect(byId('lineStyle').disabledWhen).toBeUndefined();
+  });
 });

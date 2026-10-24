@@ -3,6 +3,7 @@ import { FreeformAdapter, type FreeformState } from '@/layers/adapters/freeform-
 import { HexNoiseAdapter, type HexNoiseState } from '@/layers/adapters/hex-noise';
 import { HexgridAdapter, type HexgridState } from '@/layers/adapters/hexgrid';
 import type { RenderEnv } from '@/layers/types';
+import { corners } from '@/lib/hex/layout';
 
 type Pt = { x: number; y: number };
 
@@ -13,10 +14,13 @@ class Mock2DContext implements Partial<CanvasRenderingContext2D> {
   public filled: Pt[][] = [];
   public globalAlpha = 1;
   public lineWidth = 1;
+  public lineCap = 'butt';
+  public lineDashOffset = 0;
 
   public strokeStyle: any = '#000';
 
   public fillStyle: any = '#000';
+  setLineDash() {}
   save() {}
   restore() {}
   beginPath() {
@@ -129,7 +133,30 @@ describe('Alignment with master grid', () => {
           lineWidth: 1,
         };
         HexgridAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
-        expectCenterHexPresent(ctx.paths, { x: w / 2, y: h / 2 }, r, orientation);
+        // one path of separate edges (moveTo, lineTo pairs); the centre hex's six all show
+        const pts = ctx.stroked[0] ?? [];
+        const edges = new Set<string>();
+        for (let i = 0; i + 1 < pts.length; i += 2) {
+          edges.add(
+            [pts[i]!, pts[i + 1]!]
+              .map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
+              .sort()
+              .join('|'),
+          );
+        }
+        const cs = corners(
+          { x: w / 2, y: h / 2 },
+          { size: r, orientation, origin: { x: 0, y: 0 } },
+        );
+        for (let i = 0; i < 6; i++) {
+          const a = cs[i]!;
+          const b = cs[(i + 1) % 6]!;
+          const k = [a, b]
+            .map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
+            .sort()
+            .join('|');
+          expect(edges.has(k), `edge ${i}`).toBe(true);
+        }
       });
 
       it(`HexNoiseAdapter tiles aligned to grid (r=${r}, ${orientation})`, () => {

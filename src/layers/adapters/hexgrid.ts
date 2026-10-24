@@ -1,7 +1,13 @@
-import { createHexLayout, hexPath, hexTiles } from '@/layers/hex-utils';
+import {
+  fitDashPattern,
+  type HexOrientation,
+  type LineStyle,
+  ownedEdges,
+} from '@/layers/hex-lines';
+import { hexTiles } from '@/layers/hex-utils';
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
 
-export type HexOrientation = 'pointy' | 'flat';
+export type { HexOrientation };
 
 export interface HexgridState {
   size: number; // hex radius in px
@@ -10,6 +16,9 @@ export interface HexgridState {
   usePaletteColor: boolean; // inherit color from active palette setting when true
   alpha?: number;
   lineWidth?: number;
+  lineStyle?: LineStyle; // missing is solid
+  dashLength?: number; // in line widths
+  gapLength?: number; // in line widths, the visible space between marks
   origin?: { x: number; y: number }; // future use
 }
 
@@ -20,6 +29,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   drawMain(ctx, state, env: RenderEnv) {
     const { w, h } = env.size;
     const { size, orientation, color, alpha, lineWidth, usePaletteColor } = state;
+    const style = state.lineStyle ?? 'solid';
     const r = Math.max(4, size || 16);
     const paletteStroke = env.palette?.grid.line || '#000000';
     const stroke = usePaletteColor
@@ -35,8 +45,6 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
     ctx.strokeStyle = stroke;
     ctx.lineWidth = Math.max(1, lineWidth ?? 1) / dpr;
 
-    // Use shared hex utilities for tiling and drawing
-    const layout = createHexLayout(r, orientation);
     const tilingConfig = {
       size: r,
       orientation,
@@ -45,17 +53,35 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
       padding: 2,
     };
 
+    // Every edge once, as its own subpath, in one stroke: a dash pattern restarts at each
+    // subpath, and a shared edge drawn from both sides would put two phases on top of each
+    // other. Round caps close the corners that closed hex paths used to join.
+    ctx.lineCap = 'round';
+    const plan = fitDashPattern(
+      style,
+      state.dashLength ?? 4,
+      state.gapLength ?? 2,
+      ctx.lineWidth,
+      r,
+    );
+    ctx.setLineDash(plan.pattern);
+    ctx.lineDashOffset = plan.offset;
+
+    ctx.beginPath();
     for (const tile of hexTiles(tilingConfig)) {
-      hexPath(ctx, tile.center, layout);
-      ctx.stroke();
+      for (const [a, b] of ownedEdges(tile.center, r, orientation)) {
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+      }
     }
+    ctx.stroke();
 
     ctx.restore();
   },
   getInvalidationKey(state) {
     const s = state;
     const colorKey = s.usePaletteColor ? 'palette' : s.color;
-    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}`;
+    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}`;
   },
 };
 
@@ -69,6 +95,9 @@ export const HexgridType = {
     usePaletteColor: true,
     alpha: 1,
     lineWidth: 1,
+    lineStyle: 'solid',
+    dashLength: 4,
+    gapLength: 2,
     origin: { x: 0, y: 0 },
   },
   adapter: HexgridAdapter,

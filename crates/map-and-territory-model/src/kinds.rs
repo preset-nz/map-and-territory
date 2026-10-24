@@ -11,6 +11,7 @@ pub const MAPS: &str = "maps";
 
 pub const ASPECTS: &[&str] = &["square", "4:3", "16:10"];
 pub const ORIENTATIONS: &[&str] = &["pointy", "flat"];
+pub const LINE_STYLES: &[&str] = &["solid", "dashed", "dotted", "dash-dot"];
 /// The 2025 `BaseTerrainType`.
 pub const BASE_TYPES: &[&str] = &["water", "plains", "forest", "hills", "mountains"];
 /// The 2025 `TerrainTrait`.
@@ -218,7 +219,7 @@ pub fn declare(k: &mut Kinds) {
     .not_duplicable()
     .pinned_first(LAYERS);
 
-    // Ranges are the 2025 sliders'; `size` and `lineWidth` stop their travel at the max
+    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength` and `gapLength` stop their travel at the max
     // but a typed value may go past it.
     k.kind(
         NodeType::new("hexgrid")
@@ -276,6 +277,33 @@ pub fn declare(k: &mut Kinds) {
                     .soft_max()
                     .described("Line width", "How thick the grid lines are.")
                     .unit("px"),
+            )
+            .choice("lineStyle", LINE_STYLES, "solid")
+            .described(
+                "Line style",
+                "Whether the grid lines are unbroken, dashed, dotted, or dashes and dots in turn.",
+            )
+            .choice_labels(&[
+                ("solid", "Solid"),
+                ("dashed", "Dashed"),
+                ("dotted", "Dotted"),
+                ("dash-dot", "Dash-dot"),
+            ])
+            .value(
+                ValueSpec::float("dashLength", 1.0..=20.0, 4.0)
+                    .soft_max()
+                    .described(
+                        "Dash length",
+                        "How long each dash is, in line widths. Each edge stretches the pattern slightly so it fits whole repeats.",
+                    ),
+            )
+            .value(
+                ValueSpec::float("gapLength", 0.5..=20.0, 2.0)
+                    .soft_max()
+                    .described(
+                        "Gap length",
+                        "The empty space between dashes and dots, in line widths.",
+                    ),
             ),
     )
     .max_per_parent(1)

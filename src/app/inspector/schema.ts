@@ -99,6 +99,10 @@ function disabledWhen(
     // the palette's line colour wins while it is on
     return { path: 'usePaletteColor', equals: true };
   }
+  if (type === 'hexgrid' && (key === 'dashLength' || key === 'gapLength')) {
+    // a solid line has no marks to space
+    return { path: 'lineStyle', equals: 'solid' };
+  }
   if (type === 'paper' && /^texture[A-Z]/.test(key) && values.some((v) => v.key === key)) {
     // nothing to blend, fit or scale until an image is set
     return { path: 'texture', equals: null };

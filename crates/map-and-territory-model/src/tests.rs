@@ -282,6 +282,9 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert_eq!(g.value("orientation"), Some(Value::Choice("pointy".into())));
     assert_eq!(g.value("usePaletteColor"), Some(Value::Bool(true)));
     assert_eq!(g.value("lineWidth"), Some(Value::Float(1.0)));
+    assert_eq!(g.value("lineStyle"), Some(Value::Choice("solid".into())));
+    assert_eq!(g.value("dashLength"), Some(Value::Float(4.0)));
+    assert_eq!(g.value("gapLength"), Some(Value::Float(2.0)));
 
     // within
     set(&mut d, &grid, "size", json!(8.0)).unwrap();
@@ -289,11 +292,17 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     set(&mut d, &grid, "orientation", json!("flat")).unwrap();
     set(&mut d, &grid, "lineWidth", json!(8.0)).unwrap();
     set(&mut d, &grid, "alpha", json!(0.5)).unwrap();
+    set(&mut d, &grid, "lineStyle", json!("dash-dot")).unwrap();
+    set(&mut d, &grid, "dashLength", json!(1.0)).unwrap();
+    set(&mut d, &grid, "gapLength", json!(0.5)).unwrap();
     set(&mut d, &grid, "usePaletteColor", json!(false)).unwrap();
     // below the minimum, and outside a hard range
     assert!(set(&mut d, &grid, "size", json!(7.0)).is_err());
     assert!(set(&mut d, &grid, "lineWidth", json!(0.5)).is_err());
     assert!(set(&mut d, &grid, "alpha", json!(1.5)).is_err());
+    assert!(set(&mut d, &grid, "lineStyle", json!("wavy")).is_err());
+    assert!(set(&mut d, &grid, "dashLength", json!(0.5)).is_err());
+    assert!(set(&mut d, &grid, "gapLength", json!(0.4)).is_err());
     assert!(set(&mut d, &grid, "orientation", json!("diagonal")).is_err());
     // the sliders' max is soft: a typed value may go past it
     set(&mut d, &grid, "size", json!(200.0)).unwrap();
@@ -301,6 +310,32 @@ fn value_set_on_hexgrid_within_and_outside_range() {
         d.tree().at(grid.as_str()).unwrap().value("size"),
         Some(Value::Float(200.0))
     );
+    set(&mut d, &grid, "dashLength", json!(40.0)).unwrap();
+    set(&mut d, &grid, "gapLength", json!(40.0)).unwrap();
+}
+
+#[test]
+fn a_campaign_saved_before_line_styles_opens_with_the_defaults() {
+    let store = MemoryStore::default();
+    let mut d = Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap();
+    let map = add_map(&mut d);
+    set(&mut d, &format!("{map}/hexgrid"), "lineWidth", json!(3.0)).unwrap();
+    d.save_as("/old.campaign").unwrap();
+
+    // rhizome writes only what differs from the default, so this file has the shape of one
+    // saved before the three values existed
+    let saved = store.get("/old.campaign").unwrap();
+    assert!(saved.contains("lineWidth"), "the edit is in the file");
+    for k in ["lineStyle", "dashLength", "gapLength"] {
+        assert!(!saved.contains(k), "{k} isn't written at its default");
+    }
+
+    let (d, _report) = Document::<MapAndTerritory>::open(store, "/old.campaign").unwrap();
+    let g = d.tree().at(format!("{map}/hexgrid").as_str()).unwrap();
+    assert_eq!(g.value("lineWidth"), Some(Value::Float(3.0)));
+    assert_eq!(g.value("lineStyle"), Some(Value::Choice("solid".into())));
+    assert_eq!(g.value("dashLength"), Some(Value::Float(4.0)));
+    assert_eq!(g.value("gapLength"), Some(Value::Float(2.0)));
 }
 
 #[test]
