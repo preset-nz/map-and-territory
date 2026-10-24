@@ -46,6 +46,26 @@ describe('PrefixPlanner', () => {
     expect(p.plan(hidden).reuse).toBe(0);
   });
 
+  it('invalidates when the hex grid changes size, though the grid is the top layer', () => {
+    const grid = (size: number) => ({
+      id: 'grid',
+      type: 'hexgrid',
+      visible: true,
+      state: { size },
+    });
+    const withGrid = (size: number, layers = edited(2)): SceneFrame => {
+      const f = frame({}, layers);
+      return { ...f, layers: [...f.layers, grid(size)] };
+    };
+    const p = new PrefixPlanner();
+    p.plan(withGrid(16, states));
+    p.plan(withGrid(16));
+    p.snapshotTaken();
+    expect(p.plan(withGrid(16)).reuse).toBe(2);
+    p.snapshotTaken();
+    expect(p.plan(withGrid(24)).reuse).toBe(0);
+  });
+
   it('keeps the top layer out of the cache and survives drop()', () => {
     const p = new PrefixPlanner();
     p.plan(frame());

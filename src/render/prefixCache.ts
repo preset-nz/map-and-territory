@@ -2,6 +2,7 @@
 // layers [0, p). A layer is unchanged when its id, type, visibility and state object are
 // the same ones, which the delta decoder guarantees for unchanged rows. This module only
 // decides; the backend owns the bitmap.
+import { gridEnv } from './grid-env';
 import type { SceneFrame } from './types';
 
 interface Entry {
@@ -11,7 +12,11 @@ interface Entry {
   state: unknown;
 }
 
-type Global = Pick<SceneFrame, 'size' | 'pixelRatio' | 'paper' | 'camera' | 'palette'>;
+// The grid's size and orientation come from the hexgrid layer, the top one, but every layer
+// below draws on them; so they belong to the whole frame, not to that one layer.
+type Global = Pick<SceneFrame, 'size' | 'pixelRatio' | 'paper' | 'camera' | 'palette'> & {
+  grid: ReturnType<typeof gridEnv>;
+};
 
 export interface PrefixPlan {
   /** Layers [0, reuse) come from the cached bitmap; 0 draws everything. */
@@ -32,7 +37,9 @@ const sameGlobal = (a: Global, b: Global) =>
   a.camera.x === b.camera.x &&
   a.camera.y === b.camera.y &&
   a.camera.zoom === b.camera.zoom &&
-  a.palette === b.palette;
+  a.palette === b.palette &&
+  a.grid?.size === b.grid?.size &&
+  a.grid?.orientation === b.grid?.orientation;
 
 const globalOf = (f: SceneFrame): Global => ({
   size: { ...f.size },
@@ -40,6 +47,7 @@ const globalOf = (f: SceneFrame): Global => ({
   paper: { ...f.paper },
   camera: { ...f.camera },
   palette: f.palette,
+  grid: gridEnv(f),
 });
 
 export class PrefixPlanner {
