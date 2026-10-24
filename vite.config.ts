@@ -1,7 +1,7 @@
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -35,6 +35,11 @@ export default defineConfig({
     strictPort: true,
     host: host || false,
     hmr: host ? { protocol: 'ws', host, port: 1481 } : undefined,
+    // The linked packages (ux-kit's fonts live in packages/node_modules) are outside this
+    // project's root. Goes when the app is back on registry versions.
+    fs: {
+      allow: [searchForWorkspaceRoot(process.cwd()), path.resolve(__dirname, '../../packages')],
+    },
     watch: {
       ignored: ['**/src-tauri/**'],
     },

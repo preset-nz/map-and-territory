@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 # The family's menu bar, Undo titles and relaunch restore.
-preset-app-kit = "0.1.3"
+preset-app-kit = "0.1.4"
 # The campaign's kinds and commands, in their own Tauri-free crate.
 map-and-territory-model = { path = "../crates/map-and-territory-model" }
 # The document tree: rhizome and POM from crates.io. The Tauri half (rhizome-pom-tauri)

@@ -1,9 +1,10 @@
 @import "tailwindcss";
 /* @preset.nz packages ship unbuilt source into node_modules, which Tailwind
-   never scans on its own. Without these lines their classes are missing from
+   never scans on its own. The packages are linked by path (package.json), so Tailwind is
+   pointed at the checkout, not at the symlink. Without these lines their classes are missing from
    the build. */
-@source "../node_modules/@preset.nz/ux-kit/src";
-@source "../node_modules/@preset.nz/facets/src";
+@source "../../../packages/ux-kit/src";
+@source "../../../packages/facets/src";
 /* The family's look: tokens, palettes and fonts. `index.html` sets
    `class="dark"` on <html>. */
 @import "@preset.nz/ux-kit/index.css";
