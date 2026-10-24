@@ -42,6 +42,8 @@ describe('the app frame', () => {
       });
     const view = render(frame());
     expect(view.getByText('the inspector')).toBeTruthy();
+    // a long inspector scrolls inside the panel, not off the window
+    expect(view.getByText('the inspector').parentElement?.dataset.slot).toBe('side-panel-content');
     act(() => inspector.result.current.toggle());
     view.rerender(frame());
     expect(view.queryByText('the inspector')).toBeNull();

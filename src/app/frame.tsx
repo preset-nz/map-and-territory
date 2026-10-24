@@ -1,4 +1,4 @@
-import { Icons, SidePanel, StatusBar } from '@preset.nz/ux-kit';
+import { Icons, SidePanel, SidePanelContent, StatusBar } from '@preset.nz/ux-kit';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 const DEFAULT_PANEL = { open: true, width: 260 };
@@ -97,7 +97,7 @@ export function AppFrame({
           width={inspectorPanel.width}
           onWidthChange={inspectorPanel.setWidth}
         >
-          {inspector}
+          <SidePanelContent>{inspector}</SidePanelContent>
         </SidePanel>
       </div>
       <StatusBar>{status}</StatusBar>
