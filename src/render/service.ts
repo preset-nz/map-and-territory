@@ -6,6 +6,11 @@ export class RenderService {
   private ready = false;
   private queue: Array<{ msg: RenderMessage; transfer: Transferable[] }> = [];
   private encoder: DeltaEncoder = createDeltaEncoder();
+  private exports = new Map<
+    number,
+    { resolve: (png: ArrayBuffer) => void; reject: (e: Error) => void }
+  >();
+  private nextExport = 1;
 
   init(canvas: HTMLCanvasElement, pixelRatio: number): boolean {
     const fail = (stage: string, e?: unknown) => {
@@ -26,14 +31,7 @@ export class RenderService {
       return fail('create-worker-error', e);
     }
     this.ready = false;
-    this.worker.onmessage = (ev: MessageEvent<RenderMessage>) => {
-      if (ev.data?.type === 'inited') {
-        this.ready = true;
-        // flush queued messages in order
-        for (const { msg, transfer } of this.queue) this.worker?.postMessage(msg, transfer);
-        this.queue = [];
-      }
-    };
+    this.worker.onmessage = (ev: MessageEvent<RenderMessage>) => this.receive(ev.data);
     this.worker.onerror = (ev) => console.error('[RenderService] worker error', ev.message);
     const initMsg: RenderMessage = { type: 'init', canvas: offscreen, pixelRatio };
     try {
@@ -60,6 +58,39 @@ export class RenderService {
     this.post({ type: 'texture', id, bitmap }, [bitmap]);
   }
 
+  /**
+   * The map drawn at `out` pixels from paper space `logical` (epic 07 story 3), as PNG bytes.
+   * `frame` goes whole, beside the screen's delta stream, not through it.
+   */
+  exportPng(
+    frame: SceneFrame,
+    logical: { w: number; h: number },
+    out: { w: number; h: number },
+  ): Promise<ArrayBuffer> {
+    if (!this.worker) return Promise.reject(new Error('the renderer is not running'));
+    const id = this.nextExport++;
+    return new Promise((resolve, reject) => {
+      this.exports.set(id, { resolve, reject });
+      this.post({ type: 'export', id, frame, logical, out });
+    });
+  }
+
+  /** A message from the worker. */
+  receive(msg: RenderMessage | undefined) {
+    if (msg?.type === 'inited') {
+      this.ready = true;
+      // flush queued messages in order
+      for (const { msg: m, transfer } of this.queue) this.worker?.postMessage(m, transfer);
+      this.queue = [];
+    } else if (msg?.type === 'exported' || msg?.type === 'export-error') {
+      const waiting = this.exports.get(msg.id);
+      if (!waiting) return;
+      this.exports.delete(msg.id);
+      if (msg.type === 'exported') waiting.resolve(msg.png);
+      else waiting.reject(new Error(msg.message));
+    }
+  }
+
   private post(msg: RenderMessage, transfer: Transferable[] = []) {
     if (!this.worker) return;
     if (this.ready) this.worker.postMessage(msg, transfer);
@@ -73,6 +104,8 @@ export class RenderService {
     this.ready = false;
     this.queue = [];
     this.encoder = createDeltaEncoder();
+    for (const { reject } of this.exports.values()) reject(new Error('the renderer stopped'));
+    this.exports.clear();
   }
 }
 

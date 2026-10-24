@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { computePaperRect, type PaperAspect } from '@/render/geometry';
 import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
+import { type MapExporter, mapExporter, setMapExporter } from './export/render';
 import { createFrameBuilder, type FrameBuilder } from './scene/frame';
 import { hitTest, type PointerHit } from './scene/pointer';
 import { tauriTextureLoader } from './scene/textures';
@@ -82,6 +83,25 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       textures.want(lastFrame);
       svc.render(lastFrame);
     };
+    // The export draws the active map as the screen shows it at Fit: the same frame without
+    // the camera or the tool preview, on the paper's on-screen size (epic 07 story 3).
+    const exporter: MapExporter = {
+      target: svc,
+      current() {
+        const mapId = activeMapId(selection.get(), mirror);
+        if (!mapId || lastSize.w < 1 || lastSize.h < 1) return null;
+        const size = { w: lastSize.w, h: lastSize.h };
+        const frame = builder.build(mirror, mapId, size, lastSize.dpr);
+        if (frame.layers.length === 0) return null;
+        const paper = computePaperRect({
+          canvasSize: size,
+          paper: { aspect: frame.paper.aspect as PaperAspect },
+        });
+        return { frame, logical: { w: paper.w, h: paper.h } };
+      },
+    };
+    setMapExporter(exporter);
+
     const observer = new ResizeObserver(draw);
     observer.observe(wrap);
     const unsubscribe = mirror.subscribe(draw);
@@ -178,6 +198,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       undraft();
       uncamera();
       observer.disconnect();
+      if (mapExporter() === exporter) setMapExporter(null);
       svc.destroy();
       canvas.remove();
     };

@@ -3,6 +3,7 @@
 import { registerBuiltinLayers } from '@/layers/builtin';
 import { Canvas2DBackend } from '@/render/backends/canvas2d';
 import { createDeltaDecoder } from '@/render/delta';
+import { renderExportPng } from '@/render/export';
 import type { RenderMessage, SceneFrame } from '@/render/types';
 
 let backend: Canvas2DBackend | null = null;
@@ -112,6 +113,19 @@ function handleTexture(msg: Extract<RenderMessage, { type: 'texture' }>) {
   }
 }
 
+type Post = (m: RenderMessage, transfer?: Transferable[]) => void;
+
+async function handleExport(msg: Extract<RenderMessage, { type: 'export' }>) {
+  const post = (self as unknown as { postMessage: Post }).postMessage.bind(self);
+  try {
+    if (!backend) throw new Error('the renderer is not ready');
+    const png = await renderExportPng(backend, msg);
+    post({ type: 'exported', id: msg.id, png }, [png]);
+  } catch (e) {
+    post({ type: 'export-error', id: msg.id, message: e instanceof Error ? e.message : String(e) });
+  }
+}
+
 function handleDestroy() {
   backend?.destroy();
   backend = null;
@@ -134,6 +148,9 @@ self.onmessage = (ev: MessageEvent<RenderMessage>) => {
       break;
     case 'texture':
       handleTexture(msg);
+      break;
+    case 'export':
+      void handleExport(msg);
       break;
     case 'destroy':
       handleDestroy();

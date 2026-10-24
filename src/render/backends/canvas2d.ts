@@ -125,40 +125,11 @@ export class Canvas2DBackend implements RenderBackend {
     }
 
     const first = this.prefix ? plan.reuse : 0;
-    for (let index = first; index < frame.layers.length; index++) {
-      const l = frame.layers[index];
-      if (index === plan.snapshotAt) this.snapshot(ctx, cw, ch, dpr);
-      if (!l.visible) continue;
-      const type = getLayerType(l.type);
-      const draw = type?.adapter?.drawMain;
-      if (typeof draw !== 'function') continue;
-      const comp = layerComposite(l.state);
-      if (!comp) {
-        draw(ctx as CanvasRenderingContext2D, l.state as unknown, envLocal);
-        continue;
-      }
-      // Opacity and blend belong to the layer, not to each shape in it: draw it whole into
-      // the scratch buffer, then composite that once.
-      const w = Math.max(1, Math.floor(cw * dpr));
-      const h = Math.max(1, Math.floor(ch * dpr));
-      if (!this.scratch) this.scratch = new OffscreenCanvas(w, h);
-      if (this.scratch.width !== w || this.scratch.height !== h) {
-        this.scratch.width = w;
-        this.scratch.height = h;
-      }
-      const sctx = this.scratch.getContext('2d');
-      if (!sctx) continue;
-      sctx.setTransform(1, 0, 0, 1, 0, 0);
-      sctx.clearRect(0, 0, w, h);
-      sctx.setTransform(ctx.getTransform());
-      draw(sctx as unknown as CanvasRenderingContext2D, l.state as unknown, envLocal);
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // the paper clip stays in force
-      ctx.globalAlpha = comp.opacity;
-      ctx.globalCompositeOperation = comp.operation;
-      ctx.drawImage(this.scratch, 0, 0);
-      ctx.restore();
-    }
+    const device = { w: Math.max(1, Math.floor(cw * dpr)), h: Math.max(1, Math.floor(ch * dpr)) };
+    this.drawLayers(ctx, frame, envLocal, device, first, plan.snapshotAt, () => {
+      if (!this.scratch) this.scratch = new OffscreenCanvas(device.w, device.h);
+      return this.scratch;
+    });
 
     // the paper's edge is the host's chrome, drawn over every layer
     ctx.save();
@@ -176,14 +147,102 @@ export class Canvas2DBackend implements RenderBackend {
     ctx.restore();
   }
 
+  /**
+   * The map alone at print size (epic 07 story 3): paper space `logical` (CSS px, what the
+   * screen shows at Fit) scaled into `out` device px. Camera at 1x, no paper edge, no prefix
+   * cache; the textures are the ones this backend already holds. `env.pixelRatio` stays the
+   * frame's, so line widths that adapters divide by it come out as the screen's, scaled.
+   */
+  renderExport(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    frame: SceneFrame,
+    logical: { w: number; h: number },
+    out: { w: number; h: number },
+  ) {
+    const lw = Math.max(1, logical.w);
+    const lh = Math.max(1, logical.h);
+    const sx = out.w / lw;
+    const sy = out.h / lh;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, out.w, out.h);
+    ctx.save();
+    ctx.setTransform(sx, 0, 0, sy, 0, 0);
+    ctx.beginPath();
+    ctx.rect(0, 0, lw, lh);
+    ctx.clip();
+    const camera = { x: 0, y: 0, zoom: 1 };
+    const env: RenderEnv = {
+      zoom: 1,
+      pixelRatio: frame.pixelRatio || 1,
+      size: { w: lw, h: lh },
+      paperRect: { x: 0, y: 0, w: lw, h: lh },
+      camera,
+      palette: frame.palette,
+      textures: this.textures,
+      grid: gridEnv(frame),
+    };
+    // a scratch of its own, so the screen's is not grown to print size; dropped with the call
+    let scratch: OffscreenCanvas | null = null;
+    this.drawLayers(ctx, { ...frame, camera }, env, out, 0, null, () => {
+      if (!scratch) scratch = new OffscreenCanvas(out.w, out.h);
+      return scratch;
+    });
+    ctx.restore();
+  }
+
+  /**
+   * The layers from `first` up, bottom to top. A layer with opacity or a blend mode is drawn
+   * whole into the scratch (`device` px, the target's bitmap size) and composited once.
+   */
+  private drawLayers(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    frame: SceneFrame,
+    env: RenderEnv,
+    device: { w: number; h: number },
+    first: number,
+    snapshotAt: number | null,
+    scratchCanvas: () => OffscreenCanvas,
+  ) {
+    for (let index = first; index < frame.layers.length; index++) {
+      const l = frame.layers[index];
+      if (index === snapshotAt) this.snapshot(ctx, device);
+      if (!l.visible) continue;
+      const type = getLayerType(l.type);
+      const draw = type?.adapter?.drawMain;
+      if (typeof draw !== 'function') continue;
+      const comp = layerComposite(l.state);
+      if (!comp) {
+        draw(ctx as CanvasRenderingContext2D, l.state as unknown, env);
+        continue;
+      }
+      // Opacity and blend belong to the layer, not to each shape in it: draw it whole into
+      // the scratch buffer, then composite that once.
+      const { w, h } = device;
+      const scratch = scratchCanvas();
+      if (scratch.width !== w || scratch.height !== h) {
+        scratch.width = w;
+        scratch.height = h;
+      }
+      const sctx = scratch.getContext('2d');
+      if (!sctx) continue;
+      sctx.setTransform(1, 0, 0, 1, 0, 0);
+      sctx.clearRect(0, 0, w, h);
+      sctx.setTransform(ctx.getTransform());
+      draw(sctx as unknown as CanvasRenderingContext2D, l.state as unknown, env);
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // the paper clip stays in force
+      ctx.globalAlpha = comp.opacity;
+      ctx.globalCompositeOperation = comp.operation;
+      ctx.drawImage(scratch, 0, 0);
+      ctx.restore();
+    }
+  }
+
   private snapshot(
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-    cw: number,
-    ch: number,
-    dpr: number,
+    device: { w: number; h: number },
   ) {
-    const w = Math.max(1, Math.floor(cw * dpr));
-    const h = Math.max(1, Math.floor(ch * dpr));
+    const { w, h } = device;
     if (!this.prefix) this.prefix = new OffscreenCanvas(w, h);
     if (this.prefix.width !== w || this.prefix.height !== h) {
       this.prefix.width = w;

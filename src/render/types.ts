@@ -61,4 +61,19 @@ export type RenderMessage =
   | { type: 'resize'; size: { w: number; h: number }; pixelRatio: number }
   | { type: 'render'; frame: WireFrame }
   | { type: 'texture'; id: string; bitmap: ImageBitmap }
+  | ExportMessage
+  | { type: 'exported'; id: number; png: ArrayBuffer }
+  | { type: 'export-error'; id: number; message: string }
   | { type: 'destroy' };
+
+/**
+ * The map at print size (epic 07 story 3). `frame` is whole, not a delta: it stays out of the
+ * screen's delta stream. `logical` is paper space in CSS px, `out` the PNG's size in pixels.
+ */
+export interface ExportMessage {
+  type: 'export';
+  id: number;
+  frame: SceneFrame;
+  logical: { w: number; h: number };
+  out: { w: number; h: number };
+}

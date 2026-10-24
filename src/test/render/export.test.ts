@@ -1,0 +1,343 @@
+// Epic 07 story 3: the map at print size, through the same backend and adapters.
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { layoutPage } from '@/app/export/layout';
+import {
+  exportActiveMap,
+  exportSize,
+  renderMapForExport,
+  setMapExporter,
+} from '@/app/export/render';
+import { registerBuiltinLayers } from '@/layers/builtin';
+import { registerLayerType } from '@/layers/registry';
+import type { RenderEnv } from '@/layers/types';
+import { Canvas2DBackend } from '@/render/backends/canvas2d';
+import { renderExportPng } from '@/render/export';
+import RenderService from '@/render/service';
+import type { RenderMessage, SceneFrame } from '@/render/types';
+
+type Op = [string, ...unknown[]];
+
+/** A 2D context that logs every call; `getTransform` gives back the last transform set. */
+function recordingCtx(canvas: { width: number; height: number } = { width: 1, height: 1 }) {
+  const log: Op[] = [];
+  const props: Record<string | symbol, unknown> = {
+    canvas,
+    globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
+    lineWidth: 1,
+  };
+  let transform: number[] = [1, 0, 0, 1, 0, 0];
+  const fns: Record<string, (...a: unknown[]) => unknown> = {
+    setTransform: (...a) => {
+      transform = a.length === 1 ? (a[0] as number[]) : (a as number[]);
+      log.push(['setTransform', ...transform]);
+    },
+    getTransform: () => transform,
+    createPattern: (src) => ({ pattern: src }),
+    createImageData: (w, h) => ({ data: new Uint8ClampedArray((w as number) * (h as number) * 4) }),
+  };
+  const ctx = new Proxy(props, {
+    get(target, key) {
+      if (key in target) return target[key];
+      if (typeof key === 'string' && fns[key]) return fns[key];
+      return (...a: unknown[]) => {
+        log.push([String(key), ...a]);
+      };
+    },
+    set(target, key, value) {
+      target[key] = value;
+      return true;
+    },
+  });
+  return { ctx: ctx as unknown as OffscreenCanvasRenderingContext2D, log };
+}
+
+class FakeCanvas {
+  static made: FakeCanvas[] = [];
+  rec = recordingCtx(this);
+  constructor(
+    public width: number,
+    public height: number,
+  ) {
+    FakeCanvas.made.push(this);
+  }
+  getContext() {
+    return this.rec.ctx;
+  }
+  async convertToBlob(opts: { type: string }) {
+    const bytes = new Uint8Array([137, 80, 78, 71, this.width % 256]);
+    return { type: opts.type, arrayBuffer: async () => bytes.buffer };
+  }
+}
+
+const seen: RenderEnv[] = [];
+beforeAll(() => {
+  registerBuiltinLayers();
+  registerLayerType({
+    id: 'probe',
+    title: 'Probe',
+    defaultState: {},
+    adapter: {
+      title: 'Probe',
+      drawMain: (_ctx, _state, env) => {
+        seen.push(env);
+      },
+      getInvalidationKey: () => 'probe',
+    },
+  });
+});
+beforeEach(() => {
+  seen.length = 0;
+  FakeCanvas.made.length = 0;
+  vi.stubGlobal('OffscreenCanvas', FakeCanvas);
+});
+afterEach(() => vi.unstubAllGlobals());
+
+const LOGICAL = { w: 400, h: 250 };
+
+const frame = (over: Partial<SceneFrame> = {}): SceneFrame => ({
+  size: { w: 900, h: 700 },
+  pixelRatio: 2,
+  paper: { aspect: '16:10', color: '#fff' },
+  camera: { x: 120, y: 40, zoom: 3 },
+  layers: [
+    { id: 'paper', type: 'paper', visible: true, state: { color: '#f4ecd8', aspect: '16:10' } },
+    { id: 'probe', type: 'probe', visible: true, state: {} },
+    {
+      id: 'grid',
+      type: 'hexgrid',
+      visible: true,
+      state: { size: 20, orientation: 'pointy', color: '#000', usePaletteColor: false, alpha: 1 },
+    },
+  ],
+  ...over,
+});
+
+function exportAt(k: number, f = frame(), backend = new Canvas2DBackend()) {
+  const out = { w: LOGICAL.w * k, h: LOGICAL.h * k };
+  const { ctx, log } = recordingCtx({ width: out.w, height: out.h });
+  backend.renderExport(ctx, f, LOGICAL, out);
+  return { log, out };
+}
+
+const count = (log: Op[], name: string) => log.filter((o) => o[0] === name).length;
+
+describe('export render', () => {
+  it('draws at camera 1x on the logical paper, scaled by k into the output', () => {
+    const { log } = exportAt(3);
+    expect(seen).toHaveLength(1);
+    const env = seen[0]!;
+    expect(env.camera).toEqual({ x: 0, y: 0, zoom: 1 });
+    expect(env.zoom).toBe(1);
+    expect(env.size).toEqual(LOGICAL);
+    expect(env.paperRect).toEqual({ x: 0, y: 0, ...LOGICAL });
+    // the screen's pixel ratio, so line widths divided by it scale with the rest
+    expect(env.pixelRatio).toBe(2);
+    const transforms = log.filter((o) => o[0] === 'setTransform');
+    expect(transforms[0]).toEqual(['setTransform', 1, 0, 0, 1, 0, 0]);
+    expect(transforms[1]).toEqual(['setTransform', 3, 0, 0, 3, 0, 0]);
+    // no translate or scale for a camera
+    expect(count(log, 'translate')).toBe(0);
+    expect(count(log, 'scale')).toBe(0);
+    expect(log.find((o) => o[0] === 'clearRect')).toEqual(['clearRect', 0, 0, 1200, 750]);
+  });
+
+  it('draws no paper edge: that is screen chrome', () => {
+    const { log } = exportAt(2);
+    expect(count(log, 'strokeRect')).toBe(0);
+  });
+
+  it('scales the drawing rather than tiling it: the same hexes at 1x and 3x', () => {
+    const a = exportAt(1).log;
+    const b = exportAt(3).log;
+    const hexEdges = count(a, 'moveTo');
+    expect(hexEdges).toBeGreaterThan(50);
+    expect(count(b, 'moveTo')).toBe(hexEdges);
+    // the same paper-space coordinates; only the transform differs
+    expect(b.filter((o) => o[0] === 'moveTo')).toEqual(a.filter((o) => o[0] === 'moveTo'));
+  });
+
+  it('draws with the textures the backend already holds', () => {
+    const backend = new Canvas2DBackend();
+    const bmp = { width: 4, height: 4 } as unknown as ImageBitmap;
+    backend.setTexture('paper.png', bmp);
+    exportAt(2, frame(), backend);
+    expect(seen[0]!.textures?.get('paper.png')).toBe(bmp);
+  });
+
+  it('composites a layer with opacity through a scratch at the output size', () => {
+    const f = frame();
+    f.layers[1] = { ...f.layers[1]!, state: { opacity: 0.5 } };
+    const { log, out } = exportAt(3, f);
+    const scratch = FakeCanvas.made.find((c) => c.width === out.w && c.height === out.h);
+    expect(scratch).toBeDefined();
+    const composite = log.find((o) => o[0] === 'drawImage');
+    expect(composite?.[1]).toBe(scratch);
+  });
+
+  it("leaves the screen render's prefix cache alone", () => {
+    const backend = new Canvas2DBackend();
+    const planner = (backend as unknown as { planner: { plan: () => unknown } }).planner;
+    const plan = vi.spyOn(planner, 'plan');
+    exportAt(2, frame(), backend);
+    expect(plan).not.toHaveBeenCalled();
+  });
+});
+
+describe('export PNG in the worker', () => {
+  it('draws into a canvas of the output size and encodes PNG bytes', async () => {
+    const backend = new Canvas2DBackend();
+    const png = await renderExportPng(backend, {
+      frame: frame(),
+      logical: LOGICAL,
+      out: { w: 800, h: 500 },
+    });
+    expect(FakeCanvas.made[0]).toMatchObject({ width: 800, height: 500 });
+    expect(new Uint8Array(png).slice(0, 4)).toEqual(new Uint8Array([137, 80, 78, 71]));
+  });
+});
+
+describe('export size', () => {
+  it('keeps the map rectangle when it fits and clamps uniformly when not', () => {
+    expect(exportSize({ w: 2244, h: 1403 })).toEqual({
+      size: { w: 2244, h: 1403 },
+      clamped: false,
+    });
+    const big = exportSize({ w: 16000, h: 10000 }, 8192);
+    expect(big).toEqual({ size: { w: 8192, h: 5120 }, clamped: true });
+  });
+});
+
+/** A worker stand-in: answers `inited`, and an export with bytes or an error. */
+class FakeWorker {
+  static last: FakeWorker | null = null;
+  onmessage: ((ev: MessageEvent<RenderMessage>) => void) | null = null;
+  onerror: unknown = null;
+  posted: RenderMessage[] = [];
+  constructor() {
+    FakeWorker.last = this;
+  }
+  reply(msg: RenderMessage) {
+    this.onmessage?.({ data: msg } as MessageEvent<RenderMessage>);
+  }
+  postMessage(msg: RenderMessage) {
+    this.posted.push(msg);
+    if (msg.type === 'init') queueMicrotask(() => this.reply({ type: 'inited' }));
+    if (msg.type === 'export') {
+      queueMicrotask(() =>
+        msg.out.w > 0
+          ? this.reply({ type: 'exported', id: msg.id, png: new Uint8Array([msg.out.w]).buffer })
+          : this.reply({ type: 'export-error', id: msg.id, message: 'too small' }),
+      );
+    }
+  }
+  terminate() {}
+}
+
+describe('export through the render service', () => {
+  const start = () => {
+    vi.stubGlobal('Worker', FakeWorker);
+    const svc = new RenderService();
+    const canvas = { transferControlToOffscreen: () => ({}) } as unknown as HTMLCanvasElement;
+    expect(svc.init(canvas, 2)).toBe(true);
+    return svc;
+  };
+
+  it('posts the whole frame and resolves with the PNG bytes', async () => {
+    const svc = start();
+    const layout = layoutPage({ size: 'a5', orientation: 'portrait', marginMm: 10, aspect: 1.6 });
+    const done = await renderMapForExport(svc, frame(), LOGICAL, layout);
+    const sent = FakeWorker.last!.posted.find((m) => m.type === 'export');
+    expect(sent).toMatchObject({
+      logical: LOGICAL,
+      out: { w: layout.mapPx.w, h: layout.mapPx.h },
+    });
+    if (sent?.type !== 'export') throw new Error('no export posted');
+    expect(sent.frame.camera).toEqual({ x: 0, y: 0, zoom: 1 });
+    expect(sent.frame.layers).toHaveLength(3);
+    expect(done.size).toEqual({ w: layout.mapPx.w, h: layout.mapPx.h });
+    expect(done.clamped).toBe(false);
+    expect(new Uint8Array(done.png)[0]).toBe(layout.mapPx.w % 256);
+    svc.destroy();
+  });
+
+  it('rejects on a worker error and on destroy', async () => {
+    const svc = start();
+    await expect(svc.exportPng(frame(), LOGICAL, { w: 0, h: 0 })).rejects.toThrow('too small');
+    const pending = svc.exportPng(frame(), LOGICAL, { w: -1, h: 1 });
+    FakeWorker.last!.postMessage = () => {};
+    const never = svc.exportPng(frame(), LOGICAL, { w: 10, h: 10 });
+    svc.destroy();
+    await expect(never).rejects.toThrow('stopped');
+    await expect(pending).rejects.toThrow();
+  });
+});
+
+describe('export cost at A4 300 dpi (mock context: geometry and adapter work only)', () => {
+  it('measures', () => {
+    const layout = layoutPage({ size: 'a4', orientation: 'portrait', marginMm: 10, aspect: 1.6 });
+    const logical = { w: 1100, h: 687.5 };
+    const grid = (over: Record<string, unknown>) =>
+      frame({
+        layers: [
+          { id: 'paper', type: 'paper', visible: true, state: { color: '#fff', aspect: '16:10' } },
+          {
+            id: 'grid',
+            type: 'hexgrid',
+            visible: true,
+            state: { size: 24, orientation: 'pointy', color: '#000', alpha: 1, ...over },
+          },
+        ],
+      });
+    const time = (f: SceneFrame) => {
+      const backend = new Canvas2DBackend();
+      const { ctx } = recordingCtx({ width: layout.mapPx.w, height: layout.mapPx.h });
+      const t0 = performance.now();
+      backend.renderExport(ctx, f, logical, layout.mapPx);
+      return performance.now() - t0;
+    };
+    const plain = time(grid({}));
+    const noisy = time(grid({ widthNoise: 0.5, inkNoise: 0.5 }));
+    // EXPORT_COST=1 vitest run src/test/render/export.test.ts prints the numbers
+    if (process.env.EXPORT_COST) {
+      process.stderr.write(
+        `[export cost] A4 portrait 16:10 map ${layout.mapPx.w}x${layout.mapPx.h} px from ${logical.w}x${logical.h}: plain grid ${plain.toFixed(1)} ms, width+ink noise ${noisy.toFixed(1)} ms (mock ctx)\n`,
+      );
+    }
+    expect(plain).toBeGreaterThan(0);
+  });
+});
+
+describe('exporting the active map', () => {
+  it('draws it at its rectangle on the campaign page', async () => {
+    const campaign = {
+      id: 'c',
+      type: 'campaign',
+      values: { pageSize: 'a4', pageOrientation: 'landscape', pageMargin: 15 },
+    };
+    const rows = {
+      node: () => undefined,
+      nodeAt: (p: string) => (p === '/campaign/campaign' ? campaign : undefined),
+    };
+    expect(await exportActiveMap(rows)).toBeNull();
+    const exportPng = vi.fn(async () => new ArrayBuffer(1));
+    setMapExporter({
+      target: { exportPng },
+      current: () => ({ frame: frame(), logical: LOGICAL }),
+    });
+    try {
+      const done = await exportActiveMap(rows);
+      const layout = layoutPage({
+        size: 'a4',
+        orientation: 'landscape',
+        marginMm: 15,
+        aspect: 1.6,
+      });
+      const mapPx = { w: layout.mapPx.w, h: layout.mapPx.h };
+      expect(exportPng).toHaveBeenCalledWith(expect.anything(), LOGICAL, mapPx);
+      expect(done?.size).toEqual(mapPx);
+    } finally {
+      setMapExporter(null);
+    }
+  });
+});
