@@ -66,8 +66,9 @@ module.exports = {
       comment:
         "@preset.nz/pom's transport is the webview's one channel to the document host; nothing " +
         'in src/ calls @tauri-apps/api itself. One exception, 2026-10-14 (epic 18): ' +
-        'src/app/scene/textures.ts reads a texture file as raw bytes, which POM commands (JSON) cannot carry.',
-      from: { path: '^src/', pathNot: '^src/app/scene/textures\\.ts$' },
+        'src/app/scene/textures.ts reads a texture file as raw bytes, which POM commands (JSON) cannot carry. Second, 2026-10-25 (epic 07 story 4): ' +
+        'src/app/export/native.ts hands the exported PNG to Rust to write, and asks for the Save dialog.',
+      from: { path: '^src/', pathNot: '^src/app/(scene/textures|export/native)\\.ts$' },
       to: { path: '@tauri-apps/api' },
     },
   ],

@@ -15,13 +15,17 @@ use map_and_territory_model::EXTENSION;
 
 pub const MENU_CONFIG: &str = include_str!("../menu.toml");
 
+/// File > Export > Map as PNG…, the default export (menu standard: Shift+Cmd+E).
+pub const EXPORT_MAP_PNG: &str = "file.export-map-png";
+
 /// Menu > Map > New Map.
 pub const NEW_MAP: &str = "map-new";
 
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 20] = [
+const WEBVIEW: [&str; 21] = [
+    "file.export-map-png",
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
@@ -91,6 +95,13 @@ pub fn commands() -> Vec<Command> {
             .accelerator("CmdOrCtrl+Backspace")
             .menu(MenuName::Edit)
             .section(1),
+        // File > Export ▸ (menu standard rule: `<Format>…`, the default gets Shift+Cmd+E). PDF…
+        // joins this submenu in epic 07 story 5. The webview enables it with an active map.
+        Command::item(EXPORT_MAP_PNG, "Map as PNG…")
+            .accelerator("CmdOrCtrl+Shift+E")
+            .menu(MenuName::File)
+            .section(1)
+            .submenu("Export"),
         Command::item(NEW_MAP, "New Map").domain("Map").section(0),
         layer("layer.add-hex-noise", "Add Hex Noise Layer", 0),
         layer("layer.add-freeform", "Add Freeform Layer", 0),
@@ -187,9 +198,9 @@ mod tests {
                 Some(rest[..rest.find('"')?].to_string())
             })
             .collect();
-        assert_eq!(chords.len(), 16);
+        assert_eq!(chords.len(), 17);
         chords.sort();
         chords.dedup();
-        assert_eq!(chords.len(), 16);
+        assert_eq!(chords.len(), 17);
     }
 }

@@ -1,5 +1,6 @@
 import { useMirror, useNode } from '@preset.nz/pom';
 import { StatusItem, StatusSpacer } from '@preset.nz/ux-kit';
+import { notice } from './notice';
 import { mapPaletteName } from './scene/frame';
 import { displayName } from './scene/tree';
 import { selection, useActiveMapId } from './selection';
@@ -21,6 +22,7 @@ export function StatusContent() {
   const mapId = useActiveMapId();
   const selected = selection.use();
   const selectedRow = useNode('id' in selected ? selected.id : null);
+  const message = notice.use();
   const palette = mapId ? (mapPaletteName(mirror, mapId) ?? 'Default') : null;
   const what =
     selected.kind === 'campaign' ? 'Campaign' : selectedRow ? displayName(selectedRow) : null;
@@ -28,6 +30,7 @@ export function StatusContent() {
     <>
       <StatusItem label="Tool">{TOOL_NAMES[tool]}</StatusItem>
       <StatusItem label="Hex">{hex ? `${hex.q}, ${hex.r}` : '—'}</StatusItem>
+      {message && <StatusItem label="Export">{message.text}</StatusItem>}
       <StatusSpacer />
       {palette && <StatusItem label="Palette">{palette}</StatusItem>}
       {what && <StatusItem label="Selected">{what}</StatusItem>}

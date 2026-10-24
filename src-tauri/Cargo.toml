@@ -27,6 +27,8 @@ map-and-territory-model = { path = "../crates/map-and-territory-model" }
 rhizome-core = "0.1.7"
 rhizome-pom = "0.1.7"
 rhizome-pom-tauri = "0.1.7"
+# The Save dialog for exports; app-kit registers the plugin.
+tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 

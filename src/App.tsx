@@ -3,6 +3,7 @@ import { useCommands } from '@preset.nz/app-kit/core';
 import { useChildren, useMirror } from '@preset.nz/pom';
 import { useEffect, useMemo, useRef } from 'react';
 import { CanvasHost } from './app/canvas-host';
+import { useExportBindings } from './app/export/bindings';
 import { AppFrame, useInspectorPanel, useScenePanel } from './app/frame';
 import { Inspector } from './app/inspector/inspector';
 import { addedMap } from './app/scene/active-map';
@@ -40,6 +41,7 @@ export default function App() {
   // It also follows the history and routes Cmd+Z inside text fields.
   const scene = useSceneBindings();
   const toolBindings = useToolBindings();
+  const exportBindings = useExportBindings();
   const onPointer = useToolPointer();
   const bindings = useMemo(
     () => ({
@@ -48,6 +50,7 @@ export default function App() {
         Object.entries(LAYER_ICONS).map(([id, icon]) => [id, { ...scene[id], icon }]),
       ),
       ...toolBindings,
+      ...exportBindings,
       'view.toggle-left-panel': { icon: PANEL_ICONS.left, pressed: panel.open, run: panel.toggle },
       'view.zoom-in': { run: () => camera.zoomCentre(ZOOM_STEP) },
       'view.zoom-out': { run: () => camera.zoomCentre(1 / ZOOM_STEP) },
@@ -58,7 +61,15 @@ export default function App() {
         run: inspectorPanel.toggle,
       },
     }),
-    [scene, toolBindings, panel.open, panel.toggle, inspectorPanel.open, inspectorPanel.toggle],
+    [
+      scene,
+      toolBindings,
+      exportBindings,
+      panel.open,
+      panel.toggle,
+      inspectorPanel.open,
+      inspectorPanel.toggle,
+    ],
   );
   const { commands, run, shortcut } = useCommands(bindings);
 
