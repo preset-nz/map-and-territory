@@ -190,4 +190,31 @@ describe('the inspector schema', () => {
       expect(messageOf({ message: 'unreadable' })).toBe('unreadable');
     });
   });
+
+  it('gives the image layer an image field and greys its placing until one is set', () => {
+    const values = [
+      { key: 'name', kind: 'text' },
+      { key: 'blend', kind: 'choice', choices: ['normal', 'multiply'] },
+      { key: 'fit', kind: 'choice', choices: ['cover', 'contain', 'repeat'] },
+      { key: 'scale', kind: 'float', range: [0.05, 8] as [number, number] },
+    ];
+    const rows = schemaFor(values, ['file'], 'image').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+    expect(rows.map((r) => (r as { id: string }).id)).toEqual([
+      'name',
+      'blend',
+      'file',
+      'fit',
+      'scale',
+    ]);
+    expect(byId('file')).toMatchObject({
+      kind: 'file',
+      recentKey: 'image',
+      title: 'Choose an Image',
+    });
+    expect(fileRefCommand('image', 'file')).toBe('image.set-file');
+    expect(byId('fit').disabledWhen).toEqual({ path: 'file', equals: null });
+    expect(byId('blend').disabledWhen).toBeUndefined();
+  });
 });

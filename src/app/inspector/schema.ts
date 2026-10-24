@@ -44,6 +44,8 @@ interface FileRef {
   title: string;
   /** The value the field sits after; at the end when absent or not on the kind. */
   after?: string;
+  /** The field's label, as a reference has no words of its own (triage 5); else the key in words. */
+  label?: string;
 }
 
 const FILE_REFS: Record<string, FileRef> = {
@@ -53,6 +55,14 @@ const FILE_REFS: Record<string, FileRef> = {
     filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
     title: 'Choose a Texture',
     after: 'renderMode',
+  },
+  'image.file': {
+    command: 'image.set-file',
+    recentKey: 'image',
+    filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+    title: 'Choose an Image',
+    after: 'blend',
+    label: 'Image',
   },
   'paper.texture': {
     command: 'paper.set-texture',
@@ -68,6 +78,9 @@ export function fileRefCommand(type: string, key: string): string | undefined {
   return FILE_REFS[`${type}.${key}`]?.command;
 }
 
+/** An image layer's values that place its image. */
+const IMAGE_PLACING = new Set(['fit', 'scale', 'offsetX', 'offsetY', 'rotation']);
+
 /**
  * Values a freeform layer only uses in texture-fill mode are disabled otherwise. This is the
  * panel's, not the kind's: rhizome 0.1.7 has no condition on a value to declare it in Rust.
@@ -78,6 +91,10 @@ function disabledWhen(
   key: string,
   values: readonly ValueInfo[],
 ): DisabledWhen | undefined {
+  if (type === 'image' && IMAGE_PLACING.has(key)) {
+    // nothing to fit, scale, move or turn until an image is set
+    return { path: 'file', equals: null };
+  }
   if (type === 'paper' && /^texture[A-Z]/.test(key) && values.some((v) => v.key === key)) {
     // nothing to blend, fit or scale until an image is set
     return { path: 'texture', equals: null };
@@ -148,7 +165,7 @@ export function schemaFor(
       kind: 'file',
       id: key,
       path: key,
-      label: label(key),
+      label: ref.label ?? label(key),
       recentKey: ref.recentKey,
       filters: ref.filters,
       title: ref.title,
