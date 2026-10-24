@@ -103,6 +103,13 @@ function disabledWhen(
     // a solid line has no marks to space
     return { path: 'lineStyle', equals: 'solid' };
   }
+  if (
+    type === 'hexgrid' &&
+    (key === 'widthNoise' || key === 'noiseScale' || key === 'joinCorners')
+  ) {
+    // width noise is drawn on solid lines only
+    return { path: 'lineStyle', notEquals: 'solid' };
+  }
   if (type === 'paper' && /^texture[A-Z]/.test(key) && values.some((v) => v.key === key)) {
     // nothing to blend, fit or scale until an image is set
     return { path: 'texture', equals: null };

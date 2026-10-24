@@ -1,12 +1,20 @@
 import {
   type Edge,
   type EdgeWobble,
+  edgeHash,
   fitDashPattern,
   type HexOrientation,
   type LineStyle,
   misregistrationShift,
+  noiseAlongEdge,
+  noiseAtPoint,
+  noisyWidth,
+  ownedEdgeKeys,
   ownedEdges,
   seedBase,
+  traceInkEdge,
+  widthField,
+  widthStep,
 } from '@/layers/hex-lines';
 import { hexTiles } from '@/layers/hex-utils';
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
@@ -26,6 +34,9 @@ export interface HexgridState {
   seed?: string; // picks the misregistration direction and the corner jitter
   misregistration?: number; // px the whole grid sits off the paper
   cornerJitter?: number; // px, the most a corner moves
+  widthNoise?: number; // 0..1, how much the line swells and thins (solid lines only)
+  noiseScale?: number; // px, the length of one swell
+  joinCorners?: boolean; // edges meeting at a corner share its width; missing is on
   origin?: { x: number; y: number }; // future use
 }
 
@@ -82,7 +93,42 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
           }
         : undefined;
 
-    if (style === 'solid' || jitter === 0) {
+    const widthNoise = Math.min(1, Math.max(0, state.widthNoise ?? 0));
+    if (style === 'solid' && widthNoise > 0) {
+      // Width varies along each edge, which a stroke can't do: each edge is a filled outline,
+      // all in one path and one fill (nonzero, so overlaps at corners paint once).
+      const scale = Math.max(1, state.noiseScale ?? 24);
+      const join = state.joinCorners ?? true;
+      const field = widthField(
+        seed,
+        widthNoise,
+        scale,
+        join,
+        wobble?.shift ?? { x: 0, y: 0 },
+        tilingConfig.center,
+      );
+      const step = widthStep(scale);
+      const w0 = ctx.lineWidth;
+      ctx.fillStyle = stroke;
+      ctx.beginPath();
+      for (const tile of hexTiles(tilingConfig)) {
+        const edges = ownedEdges(tile.center, r, orientation, wobble);
+        const keys = join
+          ? undefined
+          : ownedEdgeKeys(tile.center, r, orientation, tilingConfig.center);
+        edges.forEach(([a, b], i) => {
+          const offset = keys ? edgeHash(field.edgeBase, keys[i]![0], keys[i]![1]) * 200 : 0;
+          traceInkEdge(ctx, a, b, step, (s, x, y) =>
+            noisyWidth(
+              w0,
+              widthNoise,
+              join ? noiseAtPoint(field, x, y) : noiseAlongEdge(field, s, offset),
+            ),
+          );
+        });
+      }
+      ctx.fill();
+    } else if (style === 'solid' || jitter === 0) {
       // all edges are r long (the shift moves them together), so one pattern fits them all
       const plan = fitDashPattern(style, dash, gap, ctx.lineWidth, r);
       ctx.setLineDash(plan.pattern);
@@ -127,7 +173,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   getInvalidationKey(state) {
     const s = state;
     const colorKey = s.usePaletteColor ? 'palette' : s.color;
-    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}:${s.seed ?? 'grid'}:${s.misregistration ?? 0}:${s.cornerJitter ?? 0}`;
+    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}:${s.seed ?? 'grid'}:${s.misregistration ?? 0}:${s.cornerJitter ?? 0}:${s.widthNoise ?? 0}:${s.noiseScale ?? 24}:${s.joinCorners ?? true}`;
   },
 };
 
@@ -147,6 +193,9 @@ export const HexgridType = {
     seed: 'grid',
     misregistration: 0,
     cornerJitter: 0,
+    widthNoise: 0,
+    noiseScale: 24,
+    joinCorners: true,
     origin: { x: 0, y: 0 },
   },
   adapter: HexgridAdapter,

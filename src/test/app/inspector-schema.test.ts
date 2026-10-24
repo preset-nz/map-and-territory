@@ -244,4 +244,21 @@ describe('the inspector schema', () => {
     expect(byId('gapLength').disabledWhen).toEqual(solid);
     expect(byId('lineStyle').disabledWhen).toBeUndefined();
   });
+
+  it("greys the grid's width noise fields unless the line is solid", () => {
+    const values = [
+      { key: 'lineStyle', kind: 'choice', choices: ['solid', 'dashed', 'dotted', 'dash-dot'] },
+      { key: 'widthNoise', kind: 'float' },
+      { key: 'noiseScale', kind: 'float' },
+      { key: 'joinCorners', kind: 'bool' },
+    ];
+    const rows = schemaFor(values, [], 'hexgrid').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+    const notSolid = { path: 'lineStyle', notEquals: 'solid' };
+    expect(byId('widthNoise').disabledWhen).toEqual(notSolid);
+    expect(byId('noiseScale').disabledWhen).toEqual(notSolid);
+    expect(byId('joinCorners').disabledWhen).toEqual(notSolid);
+    expect(byId('lineStyle').disabledWhen).toBeUndefined();
+  });
 });

@@ -1,5 +1,6 @@
 import { corners } from '@/lib/hex/layout';
 import type { Point } from '@/lib/hex/types';
+import { createPerlinNoise, type PerlinNoise } from '@/lib/noise';
 import { createRNG } from '@/lib/random';
 
 export type HexOrientation = 'pointy' | 'flat';
@@ -159,4 +160,167 @@ export function fitDashPattern(
   const scale = edgeLength / (periods * period);
   const pattern = base.map((v) => v * scale);
   return { pattern, offset: pattern[0]! / 2, periods };
+}
+
+// ---- width noise ----
+
+/** A line never thins below this fraction of its width, so it never breaks. */
+export const MIN_WIDTH_FRACTION = 0.05;
+
+/** The two lattice keys of each edge `ownedEdges` returns, in the same order, jitter ignored. */
+export function ownedEdgeKeys(
+  center: Point,
+  size: number,
+  orientation: HexOrientation,
+  origin: Point,
+): (readonly [CornerKey, CornerKey])[] {
+  const k = corners(center, { size, orientation, origin: { x: 0, y: 0 } })
+    .slice(0, 4)
+    .map((p) => cornerKey(p, origin, size, orientation));
+  return [
+    [k[0]!, k[1]!],
+    [k[1]!, k[2]!],
+    [k[2]!, k[3]!],
+  ];
+}
+
+/** A number in [0, 1) that belongs to an edge, the same whichever end it is read from. */
+export function edgeHash(base: number, a: CornerKey, b: CornerKey): number {
+  const [lo, hi] = a.u < b.u || (a.u === b.u && a.v <= b.v) ? [a, b] : [b, a];
+  return cornerHash(base, {
+    u: lo.u ^ Math.imul(hi.u | 0, 73856093),
+    v: lo.v ^ Math.imul(hi.v | 0, 19349663),
+  })[0];
+}
+
+/** Perlin 2D tops out near 0.7 and 1D at 0.5; stretch both to fill [-1, 1], then clamp. */
+const clampUnit = (n: number) => Math.max(-1, Math.min(1, n));
+
+/** The grid's width noise: seeded Perlin on a sub-seed of the grid's, so it is its own pattern. */
+export interface WidthField {
+  amount: number;
+  /** px per swell. */
+  scale: number;
+  /** Join at corners: sample paper space, so a corner has one width. Off: sample along the edge. */
+  join: boolean;
+  noise: PerlinNoise;
+  /** The misregistration, taken off before sampling so the ink pattern travels with the grid. */
+  shift: Point;
+  /** The tiling centre: the noise is sampled relative to it, like the jitter, so a resize keeps it. */
+  origin: Point;
+  /** `seedBase` of the width sub-seed, for the per-edge offset. */
+  edgeBase: number;
+}
+
+export function widthField(
+  seed: string,
+  amount: number,
+  scale: number,
+  join: boolean,
+  shift: Point,
+  origin: Point,
+): WidthField {
+  return {
+    amount,
+    scale,
+    join,
+    noise: createPerlinNoise(`${seed}:width`),
+    shift,
+    origin,
+    edgeBase: seedBase(`${seed}:width`),
+  };
+}
+
+/** Smooth noise in [-1, 1] at a paper-space point (join on). */
+export function noiseAtPoint(f: WidthField, x: number, y: number): number {
+  return clampUnit(
+    f.noise.noise2D(
+      (x - f.shift.x - f.origin.x) / f.scale,
+      (y - f.shift.y - f.origin.y) / f.scale,
+    ) * Math.SQRT2,
+  );
+}
+
+/** Smooth noise in [-1, 1] `s` px along an edge whose own offset is `offset` (join off). */
+export function noiseAlongEdge(f: WidthField, s: number, offset: number): number {
+  return clampUnit(f.noise.noise1D(offset + s / f.scale) * 2);
+}
+
+/** The line's width where the noise is `n`, for a base width `w0`. */
+export function noisyWidth(w0: number, amount: number, n: number): number {
+  return w0 * Math.max(MIN_WIDTH_FRACTION, 1 + amount * n);
+}
+
+export interface PathSink {
+  moveTo(x: number, y: number): void;
+  lineTo(x: number, y: number): void;
+  closePath(): void;
+}
+
+const CAP_STEPS = 6;
+const MAX_SEGMENTS = 16;
+const MIN_SEGMENTS = 2;
+
+/** Sample spacing along an edge: fine enough for the swell, never more than a few px. */
+export function widthStep(scale: number): number {
+  return Math.min(scale / 4, 4);
+}
+
+/**
+ * One edge as a closed outline: the width at `n` samples along it, offset half either side
+ * of the edge, with a round cap at each end of the width found there. Every outline turns
+ * the same way, so overlaps at corners add up under the nonzero rule and the lot can go in
+ * one fill. `widthAt(s, x, y)` is the width at `s` px along, at the point (x, y).
+ */
+export function traceInkEdge(
+  path: PathSink,
+  a: Point,
+  b: Point,
+  step: number,
+  widthAt: (s: number, x: number, y: number) => number,
+): void {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy);
+  if (!(len > 1e-9)) return;
+  const ux = dx / len;
+  const uy = dy / len;
+  const nx = -uy;
+  const ny = ux;
+  const segs = Math.max(MIN_SEGMENTS, Math.min(MAX_SEGMENTS, Math.ceil(len / step)));
+  const h: number[] = [];
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs;
+    h.push(widthAt(t * len, a.x + dx * t, a.y + dy * t) / 2);
+  }
+  // left side forward
+  path.moveTo(a.x + nx * h[0]!, a.y + ny * h[0]!);
+  for (let i = 1; i <= segs; i++) {
+    const t = i / segs;
+    path.lineTo(a.x + dx * t + nx * h[i]!, a.y + dy * t + ny * h[i]!);
+  }
+  // cap round the far end, left to right
+  const he = h[segs]!;
+  for (let k = 1; k < CAP_STEPS; k++) {
+    const th = (k / CAP_STEPS) * Math.PI;
+    path.lineTo(
+      b.x + nx * he * Math.cos(th) + ux * he * Math.sin(th),
+      b.y + ny * he * Math.cos(th) + uy * he * Math.sin(th),
+    );
+  }
+  // right side back
+  for (let i = segs; i >= 0; i--) {
+    const t = i / segs;
+    path.lineTo(a.x + dx * t - nx * h[i]!, a.y + dy * t - ny * h[i]!);
+  }
+  // cap round the near end, right to left
+  const hs = h[0]!;
+  for (let k = 1; k < CAP_STEPS; k++) {
+    const th = (k / CAP_STEPS) * Math.PI;
+    path.lineTo(
+      a.x - nx * hs * Math.cos(th) - ux * hs * Math.sin(th),
+      a.y - ny * hs * Math.cos(th) - uy * hs * Math.sin(th),
+    );
+  }
+  path.closePath();
 }

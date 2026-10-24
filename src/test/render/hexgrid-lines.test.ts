@@ -412,3 +412,281 @@ describe('hexgrid invalidation key, story 2', () => {
     expect(HexgridAdapter.getInvalidationKey({ ...base, cornerJitter: 2 })).not.toEqual(k);
   });
 });
+
+// ---- story 3: width noise ----
+
+/** Records each outline (moveTo, lineTo..., closePath) and counts fills and strokes. */
+function inkRecorder() {
+  const polys: number[][][] = [];
+  const c = ctx();
+  const extra = c as unknown as Record<string, unknown>;
+  extra.fill = vi.fn();
+  extra.closePath = vi.fn();
+  c.beginPath = vi.fn(() => {
+    polys.length = 0;
+  });
+  c.moveTo = vi.fn((x: number, y: number) => {
+    polys.push([[x, y]]);
+  });
+  c.lineTo = vi.fn((x: number, y: number) => {
+    polys[polys.length - 1]!.push([x, y]);
+  });
+  return Object.assign(c, { polys, fill: extra.fill as ReturnType<typeof vi.fn> });
+}
+
+const CAP = 6; // vertices per cap are CAP - 1; matches CAP_STEPS in hex-lines
+const ink = (over: Partial<HexgridState> = {}, e = env()) => {
+  const c = inkRecorder();
+  HexgridAdapter.drawMain?.(c, state(over), e);
+  return c;
+};
+
+/** The half-widths at each end of every outline, with the end points they sit at. */
+function ends(c: ReturnType<typeof inkRecorder>, over: Partial<HexgridState>, e = env()) {
+  const plain = allEdges(
+    (() => {
+      const r = recorder();
+      HexgridAdapter.drawMain?.(r, state({ ...over, widthNoise: 0 }), e);
+      return r;
+    })(),
+  );
+  expect(c.polys.length).toBe(plain.length);
+  return c.polys.map((poly, i) => {
+    const [a, b] = plain[i]!;
+    const segs = (poly.length - 2 - 2 * (CAP - 1)) / 2;
+    const first = poly[0]!;
+    const last = poly[segs]!;
+    return {
+      a,
+      b,
+      ha: Math.hypot(first[0]! - a![0]!, first[1]! - a![1]!),
+      hb: Math.hypot(last[0]! - b![0]!, last[1]! - b![1]!),
+    };
+  });
+}
+
+describe('width noise', () => {
+  const sigOf = (c: { polys: number[][][] }) =>
+    JSON.stringify(c.polys.map((p) => p.map((v) => v.map((n) => Math.round(n * 1e6)))));
+
+  it('draws exactly story 2 at 0, for any scale or join, including jitter', () => {
+    for (const orientation of ['pointy', 'flat'] as const) {
+      for (const extra of [
+        {},
+        { misregistration: 5, cornerJitter: 3, seed: 's' },
+        { lineStyle: 'dashed' as const, cornerJitter: 4 },
+      ]) {
+        const a = recorder();
+        const b = recorder();
+        HexgridAdapter.drawMain?.(a, state({ orientation, ...extra }), env());
+        HexgridAdapter.drawMain?.(
+          b,
+          state({ orientation, ...extra, widthNoise: 0, noiseScale: 5, joinCorners: false }),
+          env(),
+        );
+        expect(JSON.stringify(b.strokes)).toBe(JSON.stringify(a.strokes));
+        expect(b.stroke).toHaveBeenCalledTimes(a.stroke.mock.calls.length);
+      }
+    }
+  });
+
+  it('draws one fill and no stroke, with the stroke colour', () => {
+    const c = ink({ widthNoise: 0.7, color: '#123456', alpha: 0.5 });
+    expect(c.fill).toHaveBeenCalledTimes(1);
+    expect(c.stroke).not.toHaveBeenCalled();
+    expect((c as unknown as { fillStyle: string }).fillStyle).toBe('#123456');
+    expect(c.globalAlpha).toBe(0.5);
+  });
+
+  it('draws one outline per edge, each edge once', () => {
+    const plain = allEdges(
+      (() => {
+        const r = recorder();
+        HexgridAdapter.drawMain?.(r, state(), env());
+        return r;
+      })(),
+    );
+    expect(ink({ widthNoise: 1 }).polys.length).toBe(plain.length);
+  });
+
+  it('keeps every width between a floor and double, and reaches both ends of that range', () => {
+    const w0 = 2;
+    const c = ink({ widthNoise: 1, lineWidth: w0, size: 20 }, env(600, 500));
+    const widths = ends(c, { lineWidth: w0, size: 20 }, env(600, 500)).flatMap((e) => [
+      e.ha * 2,
+      e.hb * 2,
+    ]);
+    expect(Math.min(...widths)).toBeGreaterThanOrEqual(w0 * 0.05 - 1e-9);
+    expect(Math.max(...widths)).toBeLessThanOrEqual(w0 * 2 + 1e-9);
+    expect(Math.min(...widths)).toBeLessThan(w0 * 0.6);
+    expect(Math.max(...widths)).toBeGreaterThan(w0 * 1.4);
+    // a thin line never breaks: every outline has width at all samples
+    for (const poly of c.polys) expect(poly.every((p) => p.every(Number.isFinite))).toBe(true);
+  });
+
+  it('is deterministic, and a different seed or amount gives different ink', () => {
+    const o = { widthNoise: 0.8, seed: 'a' };
+    expect(sigOf(ink(o))).toBe(sigOf(ink(o)));
+    expect(sigOf(ink(o))).not.toBe(sigOf(ink({ ...o, seed: 'b' })));
+    expect(sigOf(ink(o))).not.toBe(sigOf(ink({ ...o, widthNoise: 0.4 })));
+    expect(sigOf(ink(o))).not.toBe(sigOf(ink({ ...o, noiseScale: 60 })));
+  });
+
+  it('with join on, every edge meeting at a corner has the same width there', () => {
+    for (const over of [{}, { cornerJitter: 3, misregistration: 4, seed: 'q' }]) {
+      const o = { widthNoise: 1, lineWidth: 3, ...over };
+      const c = ink(o, env(300, 240));
+      const widths = new Map<string, number[]>();
+      const count = new Map<string, number>();
+      for (const e of ends(c, o, env(300, 240))) {
+        // the corner as it is drawn: the jittered, shifted point, which is the plain end
+        // plus the same move for every edge, so key on the plain point
+        for (const [p, h] of [
+          [e.a, e.ha],
+          [e.b, e.hb],
+        ] as const) {
+          const k = `${p![0]!.toFixed(2)},${p![1]!.toFixed(2)}`;
+          (widths.get(k) ?? widths.set(k, []).get(k)!).push(h);
+          count.set(k, (count.get(k) ?? 0) + 1);
+        }
+      }
+      let shared = 0;
+      for (const [k, hs] of widths) {
+        if (hs.length < 2) continue;
+        shared++;
+        for (const h of hs) expect(h, k).toBeCloseTo(hs[0]!, 9);
+      }
+      expect(shared).toBeGreaterThan(20);
+    }
+  });
+
+  it('with join off, edges meeting at a corner differ in width there', () => {
+    const o = { widthNoise: 1, lineWidth: 3, joinCorners: false };
+    const c = ink(o, env(300, 240));
+    const widths = new Map<string, number[]>();
+    for (const e of ends(c, o, env(300, 240))) {
+      for (const [p, h] of [
+        [e.a, e.ha],
+        [e.b, e.hb],
+      ] as const) {
+        const k = `${p![0]!.toFixed(2)},${p![1]!.toFixed(2)}`;
+        (widths.get(k) ?? widths.set(k, []).get(k)!).push(h);
+      }
+    }
+    let differ = 0;
+    let total = 0;
+    for (const hs of widths.values()) {
+      if (hs.length < 2) continue;
+      total++;
+      if (Math.abs(hs[0]! - hs[1]!) > 1e-6) differ++;
+    }
+    expect(total).toBeGreaterThan(20);
+    expect(differ / total).toBeGreaterThan(0.8);
+  });
+
+  it('draws only solid lines this way; dashed and dotted draw as before', () => {
+    for (const lineStyle of ['dashed', 'dotted', 'dash-dot'] as const) {
+      const c = ink({ lineStyle, widthNoise: 1 });
+      expect(c.fill).not.toHaveBeenCalled();
+      expect(c.stroke).toHaveBeenCalled();
+    }
+  });
+
+  it('shares the misregistration: the ink pattern travels with the grid', () => {
+    const o = { widthNoise: 1, seed: 'm', lineWidth: 3 };
+    const plain = ends(ink(o), o);
+    const moved = ends(ink({ ...o, misregistration: 6 }), { ...o, misregistration: 6 });
+    plain.forEach((e, i) => {
+      expect(moved[i]!.ha).toBeCloseTo(e.ha, 9);
+      expect(moved[i]!.hb).toBeCloseTo(e.hb, 9);
+    });
+  });
+
+  it('puts a lattice corner at the same width when the paper is resized or panned', () => {
+    const r = 20;
+    const dx = r * Math.sqrt(3) * 2;
+    const o = { widthNoise: 1, lineWidth: 3, seed: 'x', cornerJitter: 3 };
+    const widthsAt = (e: ReturnType<typeof env>, shift: number) => {
+      const m = new Map<string, number>();
+      for (const x of ends(ink(o, e), o, e)) {
+        m.set(`${(x.a![0]! + shift).toFixed(2)},${x.a![1]!.toFixed(2)}`, x.ha);
+      }
+      return m;
+    };
+    const a = widthsAt(env(120, 100), dx);
+    const b = widthsAt(env(120 + 2 * dx, 100), 0);
+    let matched = 0;
+    for (const [k, h] of a) {
+      if (b.has(k)) {
+        expect(b.get(k)!, k).toBeCloseTo(h, 6);
+        matched++;
+      }
+    }
+    expect(matched).toBeGreaterThan(5);
+  });
+
+  it('a pan is a different camera, not different ink', () => {
+    const o = { widthNoise: 0.9 };
+    const a = ink(o, env());
+    const panned = { ...env(), camera: { x: 300, y: -40, zoom: 2.5 }, zoom: 2.5 };
+    expect(sigOf(ink(o, panned))).toBe(sigOf(a));
+  });
+});
+
+describe('hexgrid invalidation key, story 3', () => {
+  it('changes with width noise, noise scale and join corners', () => {
+    const base = state();
+    const k = HexgridAdapter.getInvalidationKey(base);
+    expect(HexgridAdapter.getInvalidationKey({ ...base, widthNoise: 0.5 })).not.toEqual(k);
+    expect(HexgridAdapter.getInvalidationKey({ ...base, noiseScale: 40 })).not.toEqual(k);
+    expect(HexgridAdapter.getInvalidationKey({ ...base, joinCorners: false })).not.toEqual(k);
+  });
+});
+
+describe('width noise timing', () => {
+  /** A mock context that does the work of a path without a canvas behind it. */
+  const timed = (w: number, h: number, over: Partial<HexgridState>) => {
+    const nop = () => {};
+    const c = {
+      save: nop,
+      restore: nop,
+      beginPath: nop,
+      moveTo: nop,
+      lineTo: nop,
+      closePath: nop,
+      fill: nop,
+      stroke: nop,
+      setLineDash: nop,
+      lineDashOffset: 0,
+      lineCap: 'butt',
+      lineWidth: 1,
+      strokeStyle: '',
+      fillStyle: '',
+      globalAlpha: 1,
+    } as unknown as CanvasRenderingContext2D;
+    const e = env(w, h);
+    const t = performance.now();
+    HexgridAdapter.drawMain?.(c, state(over), e);
+    return performance.now() - t;
+  };
+  it('reports geometry-only times (no canvas in the test runner)', () => {
+    const rows: string[] = [];
+    for (const [w, h, size] of [
+      [1600, 1000, 24],
+      [4000, 3000, 8],
+    ] as const) {
+      timed(w, h, { size }); // warm up
+      const best = (over: Partial<HexgridState>) =>
+        Math.min(...Array.from({ length: 5 }, () => timed(w, h, { size, ...over })));
+      const solid = best({});
+      const on = best({ widthNoise: 1, joinCorners: true });
+      const off = best({ widthNoise: 1, joinCorners: false });
+      const jit = best({ widthNoise: 1, cornerJitter: 4, misregistration: 4 });
+      rows.push(
+        `${w}x${h} size ${size}: solid ${solid.toFixed(1)} ms, width noise join ${on.toFixed(1)} ms, no join ${off.toFixed(1)} ms, with jitter ${jit.toFixed(1)} ms`,
+      );
+    }
+    console.info(rows.join('\n'));
+    expect(rows.length).toBe(2);
+  });
+});

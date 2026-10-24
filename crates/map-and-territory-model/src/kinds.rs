@@ -219,7 +219,7 @@ pub fn declare(k: &mut Kinds) {
     .not_duplicable()
     .pinned_first(LAYERS);
 
-    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength`, `gapLength`, `misregistration` and `cornerJitter` stop their travel at the max
+    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength`, `gapLength`, `misregistration`, `cornerJitter` and `noiseScale` stop their travel at the max
     // but a typed value may go past it.
     k.kind(
         NodeType::new("hexgrid")
@@ -327,6 +327,25 @@ pub fn declare(k: &mut Kinds) {
                         "How far each corner of the grid wanders from its place, up to this distance. The lines stay joined but go irregular.",
                     )
                     .unit("px"),
+            )
+            .float("widthNoise", 0.0..=1.0, 0.0)
+            .described(
+                "Width noise",
+                "How much the line swells and thins along its length, like a pen with uneven pressure. At 1 it goes from almost nothing to double its width. Solid lines only.",
+            )
+            .value(
+                ValueSpec::float("noiseScale", 2.0..=200.0, 24.0)
+                    .soft_max()
+                    .described(
+                        "Noise scale",
+                        "The length of one swell along the line. Solid lines only.",
+                    )
+                    .unit("px"),
+            )
+            .bool("joinCorners", true)
+            .described(
+                "Join at corners",
+                "Make the lines that meet at a corner the same width there, so they join cleanly. Off, each line has its own swells and widths jump at corners. Solid lines only.",
             ),
     )
     .max_per_parent(1)
