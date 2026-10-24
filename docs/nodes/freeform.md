@@ -24,7 +24,7 @@ Hexes you paint by hand, each filled with a terrain from the palette.
 | Texture scale | 0.05 to 8 | 1 | How large the image is drawn; 1 is its fitted size. |
 | Texture rotation | -180° to 180° | 0° | Turns the image about the middle of the map. |
 | Texture tiling | Stretch (`stretch`), Fit (`fit`), Repeat (`repeat`) | Stretch (`stretch`) | Stretch fills the map, fit keeps the image's proportions, repeat tiles it. |
-| Texture blend | Normal (`normal`), Overlay (`overlay`), Screen (`screen`), Multiply (`multiply`) | Normal (`normal`) | How the image mixes with the terrain colour under it. |
+| Mix with terrain | Image only (`normal`), Overlay (`overlay`), Screen (`screen`), Multiply (`multiply`) | Image only (`normal`) | How the image mixes with the painted hexes' terrain colours: image only, or the colours with the image's grain. Not used with Invert fill, where nothing painted is under the image. |
 
 References: `texture`.
 <!-- generated:end -->

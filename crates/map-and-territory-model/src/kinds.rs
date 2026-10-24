@@ -334,9 +334,12 @@ pub fn declare(k: &mut Kinds) {
                 &["normal", "overlay", "screen", "multiply"],
                 "normal",
             )
-            .described("Texture blend", "How the image mixes with the terrain colour under it.")
+            .described(
+                "Mix with terrain",
+                "How the image mixes with the painted hexes' terrain colours: image only, or the colours with the image's grain. Not used with Invert fill, where nothing painted is under the image.",
+            )
             .choice_labels(&[
-                ("normal", "Normal"),
+                ("normal", "Image only"),
                 ("overlay", "Overlay"),
                 ("screen", "Screen"),
                 ("multiply", "Multiply"),
