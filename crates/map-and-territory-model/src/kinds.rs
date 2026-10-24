@@ -148,11 +148,8 @@ pub fn declare(k: &mut Kinds) {
                 "Description",
                 "Notes about the campaign, such as its setting or premise.",
             )
-            .reference("palette")
-            .described(
-                "Palette",
-                "The palette the campaign's maps use unless a map picks its own.",
-            ),
+            // A reference has no words of its own; `.described` would land on the value above.
+            .reference("palette"),
     )
     .max_per_parent(1)
     .not_deletable()
@@ -176,10 +173,6 @@ pub fn declare(k: &mut Kinds) {
             .bool("visible", true)
             .described("Visible", "Whether the map is shown.")
             .reference("palette")
-            .described(
-                "Palette",
-                "The palette this map uses; without one it follows the campaign's.",
-            )
             .check(|map| {
                 let count = |t: &str| map.children().filter(|c| c.type_name() == t).count();
                 match (count("paper"), count("hexgrid")) {
@@ -322,7 +315,6 @@ pub fn declare(k: &mut Kinds) {
             .described("Render mode", "Paint fills each painted hex with its terrain colour; texture fill shows an image through the painted hexes.")
             .choice_labels(&[("paint", "Paint"), ("texture-fill", "Texture fill")])
             .reference("texture")
-            .described("Texture", "The image shown in texture fill mode, as a file path kept as written.")
             .bool("textureFillInvert", false)
             .described("Invert fill", "Show the image everywhere except the painted hexes.")
             .float("textureOffsetX", -1000.0..=1000.0, 0.0)

@@ -14,7 +14,7 @@ The whole document: its maps, its palettes and the notes that go with them.
 | Control | Range | Default | What it does |
 |---|---|---|---|
 | Name | text | empty | What you call the campaign. |
-| Palette | text | empty | The palette the campaign's maps use unless a map picks its own. |
+| Description | text | empty | Notes about the campaign, such as its setting or premise. |
 
 References: `palette`.
 <!-- generated:end -->

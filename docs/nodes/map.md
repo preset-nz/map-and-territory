@@ -15,7 +15,7 @@ One hexmap in the campaign: a paper, a hex grid and the layers between them.
 |---|---|---|---|
 | Name | text | empty | What you call the map. |
 | Description | text | empty | Notes about this map, such as the region it covers. |
-| Palette | on or off | on | The palette this map uses; without one it follows the campaign's. |
+| Visible | on or off | on | Whether the map is shown. |
 
 References: `palette`.
 <!-- generated:end -->

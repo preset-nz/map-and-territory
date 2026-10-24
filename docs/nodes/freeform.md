@@ -17,7 +17,7 @@ Hexes you paint by hand, each filled with a terrain from the palette.
 | Visible | on or off | on | Whether the layer is drawn. |
 | Opacity | 0 to 1 | 1 | How much of the layer shows through; 0 hides it, 1 draws it in full. |
 | Blend | Normal (`normal`), Multiply (`multiply`), Screen (`screen`), Overlay (`overlay`), Darken (`darken`), Lighten (`lighten`) | Normal (`normal`) | How the layer mixes with the layers beneath it. |
-| Texture | Paint (`paint`), Texture fill (`texture-fill`) | Paint (`paint`) | The image shown in texture fill mode, as a file path kept as written. |
+| Render mode | Paint (`paint`), Texture fill (`texture-fill`) | Paint (`paint`) | Paint fills each painted hex with its terrain colour; texture fill shows an image through the painted hexes. |
 | Invert fill | on or off | off | Show the image everywhere except the painted hexes. |
 | Texture offset X | -1000 to 1000 | 0 | Slides the image sideways. |
 | Texture offset Y | -1000 to 1000 | 0 | Slides the image up or down. |
