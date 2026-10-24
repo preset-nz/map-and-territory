@@ -48,6 +48,26 @@ describe('the app frame', () => {
     expect(view.getByText('the scene')).toBeTruthy();
   });
 
+  it('puts the toolbar across the full width, above both panels', () => {
+    const scene = renderHook(() => useScenePanel());
+    const inspector = renderHook(() => useInspectorPanel());
+    const view = render(
+      createElement(AppFrame, {
+        panel: scene.result.current,
+        inspectorPanel: inspector.result.current,
+        inspector: createElement('p', null, 'the inspector'),
+        scene: createElement('p', null, 'the scene'),
+        toolbar: createElement('div', { 'data-testid': 'toolbar' }),
+        canvas: createElement('canvas'),
+      }),
+    );
+    const toolbar = view.getByTestId('toolbar');
+    const root = view.container.firstElementChild;
+    expect(toolbar.parentElement).toBe(root);
+    expect(toolbar.parentElement?.contains(view.getByText('the scene'))).toBe(true);
+    expect(toolbar.contains(view.getByText('the scene'))).toBe(false);
+  });
+
   it('remembers the panel per viewer', () => {
     const first = renderHook(() => useScenePanel());
     act(() => first.result.current.setWidth(320));

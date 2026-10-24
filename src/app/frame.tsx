@@ -52,13 +52,13 @@ interface AppFrameProps {
   /** The panel toggle's shortcut, from the command table. */
   panelShortcut?: string;
   scene: ReactNode;
-  /** Along the top of the canvas area. */
+  /** Across the full width of the window, above both panels (ux-patterns, Toolbar). */
   toolbar?: ReactNode;
   canvas: ReactNode;
   status?: ReactNode;
 }
 
-/** Scene panel on the left, the canvas, the inspector on the right, a status bar along the bottom (epic 16, story 1). */
+/** The toolbar across the top, then the scene panel on the left, the canvas, the inspector on the right, and a status bar along the bottom (epic 16, story 1). */
 export function AppFrame({
   panel,
   panelShortcut,
@@ -72,6 +72,7 @@ export function AppFrame({
 }: AppFrameProps) {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
+      {toolbar}
       <div className="flex min-h-0 flex-1">
         <SidePanel
           side="left"
@@ -85,10 +86,7 @@ export function AppFrame({
         >
           {scene}
         </SidePanel>
-        <div className="flex min-w-0 flex-1 flex-col">
-          {toolbar}
-          <main className="relative min-h-0 flex-1">{canvas}</main>
-        </div>
+        <main className="relative min-w-0 flex-1">{canvas}</main>
         <SidePanel
           side="right"
           title="Inspector"
