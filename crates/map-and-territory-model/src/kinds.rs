@@ -11,6 +11,8 @@ pub const MAPS: &str = "maps";
 
 pub const ASPECTS: &[&str] = &["square", "4:3", "16:10"];
 pub const ORIENTATIONS: &[&str] = &["pointy", "flat"];
+pub const PAGE_SIZES: &[&str] = &["a5", "a4"];
+pub const PAGE_ORIENTATIONS: &[&str] = &["portrait", "landscape"];
 pub const LINE_STYLES: &[&str] = &["solid", "dashed", "dotted", "dash-dot"];
 /// The 2025 `BaseTerrainType`.
 pub const BASE_TYPES: &[&str] = &["water", "plains", "forest", "hills", "mountains"];
@@ -152,6 +154,26 @@ pub fn declare(k: &mut Kinds) {
             .described(
                 "Description",
                 "Notes about the campaign, such as its setting or premise.",
+            )
+            .choice("pageSize", PAGE_SIZES, "a5")
+            .described(
+                "Page size",
+                "The paper every map in the campaign is exported onto. A4 is A5 enlarged, so the map looks the same.",
+            )
+            .choice_labels(&[("a5", "A5"), ("a4", "A4")])
+            .choice("pageOrientation", PAGE_ORIENTATIONS, "portrait")
+            .described(
+                "Page orientation",
+                "Whether the page is taller than it is wide, or wider than it is tall.",
+            )
+            .choice_labels(&[("portrait", "Portrait"), ("landscape", "Landscape")])
+            .value(
+                ValueSpec::float("pageMargin", 0.0..=40.0, 10.0)
+                    .described(
+                        "Page margin",
+                        "The plain white border around the map on the exported page.",
+                    )
+                    .unit("mm"),
             )
             // A reference has no words of its own; `.described` would land on the value above.
             .reference("palette"),

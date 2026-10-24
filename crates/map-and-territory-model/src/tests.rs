@@ -408,3 +408,51 @@ fn duplicating_a_map_keeps_its_anchors_pinned() {
     // the copy joins the `maps` order, after its original
     assert_eq!(d.tree().at("/maps").unwrap().order("maps").len(), 2);
 }
+
+#[test]
+fn the_campaign_has_a_page_with_defaults_and_ranges() {
+    let mut d = new_doc();
+    let at = "/campaign/campaign";
+    let c = d.tree().at(at).unwrap();
+    assert_eq!(c.value("pageSize"), Some(Value::Choice("a5".into())));
+    assert_eq!(
+        c.value("pageOrientation"),
+        Some(Value::Choice("portrait".into()))
+    );
+    assert_eq!(c.value("pageMargin"), Some(Value::Float(10.0)));
+
+    set(&mut d, at, "pageSize", json!("a4")).unwrap();
+    set(&mut d, at, "pageOrientation", json!("landscape")).unwrap();
+    set(&mut d, at, "pageMargin", json!(0.0)).unwrap();
+    set(&mut d, at, "pageMargin", json!(40.0)).unwrap();
+    assert!(set(&mut d, at, "pageSize", json!("a3")).is_err());
+    assert!(set(&mut d, at, "pageOrientation", json!("square")).is_err());
+    assert!(set(&mut d, at, "pageMargin", json!(-1.0)).is_err());
+    assert!(set(&mut d, at, "pageMargin", json!(40.5)).is_err());
+    let c = d.tree().at(at).unwrap();
+    assert_eq!(c.value("pageSize"), Some(Value::Choice("a4".into())));
+    assert_eq!(c.value("pageMargin"), Some(Value::Float(40.0)));
+}
+
+#[test]
+fn a_campaign_saved_before_the_page_opens_with_a5_portrait() {
+    let store = MemoryStore::default();
+    let mut d = Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap();
+    set(&mut d, "/campaign/campaign", "name", json!("Old")).unwrap();
+    d.save_as("/old.campaign").unwrap();
+
+    let saved = store.get("/old.campaign").unwrap();
+    assert!(saved.contains("Old"), "the edit is in the file");
+    for k in ["pageSize", "pageOrientation", "pageMargin"] {
+        assert!(!saved.contains(k), "{k} isn't written at its default");
+    }
+
+    let (d, _report) = Document::<MapAndTerritory>::open(store, "/old.campaign").unwrap();
+    let c = d.tree().at("/campaign/campaign").unwrap();
+    assert_eq!(c.value("pageSize"), Some(Value::Choice("a5".into())));
+    assert_eq!(
+        c.value("pageOrientation"),
+        Some(Value::Choice("portrait".into()))
+    );
+    assert_eq!(c.value("pageMargin"), Some(Value::Float(10.0)));
+}
