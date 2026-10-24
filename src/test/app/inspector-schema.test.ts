@@ -217,4 +217,16 @@ describe('the inspector schema', () => {
     expect(byId('fit').disabledWhen).toEqual({ path: 'file', equals: null });
     expect(byId('blend').disabledWhen).toBeUndefined();
   });
+
+  it("greys the grid's line colour while the palette colour is on", () => {
+    const values = [
+      { key: 'color', kind: 'colour' },
+      { key: 'usePaletteColor', kind: 'bool' },
+    ];
+    const rows = schemaFor(values, [], 'hexgrid').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+    expect(byId('color').disabledWhen).toEqual({ path: 'usePaletteColor', equals: true });
+    expect(byId('usePaletteColor').disabledWhen).toBeUndefined();
+  });
 });

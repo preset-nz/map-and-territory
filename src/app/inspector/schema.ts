@@ -95,6 +95,10 @@ function disabledWhen(
     // nothing to fit, scale, move or turn until an image is set
     return { path: 'file', equals: null };
   }
+  if (type === 'hexgrid' && key === 'color') {
+    // the palette's line colour wins while it is on
+    return { path: 'usePaletteColor', equals: true };
+  }
   if (type === 'paper' && /^texture[A-Z]/.test(key) && values.some((v) => v.key === key)) {
     // nothing to blend, fit or scale until an image is set
     return { path: 'texture', equals: null };
