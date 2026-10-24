@@ -11,7 +11,7 @@ import { useMapIds } from './app/scene/maps';
 import { ScenePanel } from './app/scene/scene-panel';
 import { selection, useActiveMapId } from './app/selection';
 import { StatusContent } from './app/status';
-import { LAYER_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
+import { LAYER_ICONS, PANEL_ICONS, TOOLBAR, useToolBindings } from './app/tools/bindings';
 import { BrushPicker } from './app/tools/brush-picker';
 import { useToolPointer } from './app/tools/pointer-tools';
 import { camera, ZOOM_STEP } from './app/view/camera';
@@ -48,11 +48,15 @@ export default function App() {
         Object.entries(LAYER_ICONS).map(([id, icon]) => [id, { ...scene[id], icon }]),
       ),
       ...toolBindings,
-      'view.toggle-left-panel': { pressed: panel.open, run: panel.toggle },
+      'view.toggle-left-panel': { icon: PANEL_ICONS.left, pressed: panel.open, run: panel.toggle },
       'view.zoom-in': { run: () => camera.zoomCentre(ZOOM_STEP) },
       'view.zoom-out': { run: () => camera.zoomCentre(1 / ZOOM_STEP) },
       'view.fit': { run: camera.fit },
-      'view.toggle-right-panel': { pressed: inspectorPanel.open, run: inspectorPanel.toggle },
+      'view.toggle-right-panel': {
+        icon: PANEL_ICONS.right,
+        pressed: inspectorPanel.open,
+        run: inspectorPanel.toggle,
+      },
     }),
     [scene, toolBindings, panel.open, panel.toggle, inspectorPanel.open, inspectorPanel.toggle],
   );

@@ -49,11 +49,24 @@ export const LAYER_ICONS: Record<string, React.ReactNode> = {
   'layer.add-outline': icon('Polygon'),
 };
 
-/** The toolbar: New Map, the layer adds, then the tools. */
+/** The panel toggles at the toolbar's ends (ux-patterns, Side panels); the right one is mirrored. */
+export const PANEL_ICONS = {
+  left: icon('SidebarSimple'),
+  right: createElement(
+    Icons.SidebarSimple as unknown as React.ComponentType<{ className?: string }>,
+    {
+      className: '-scale-x-100',
+    },
+  ),
+};
+
+/** The toolbar: the left panel toggle, New Map, the layer adds, the tools, and the right panel toggle at the far end. */
 export const TOOLBAR = {
+  leading: ['view.toggle-left-panel'],
   groups: [
     ['map-new'],
     ['layer.add-hex-noise', 'layer.add-freeform', 'layer.add-outline'],
     Object.keys(TOOL_COMMANDS),
   ],
+  trailing: ['view.toggle-right-panel'],
 };
