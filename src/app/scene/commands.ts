@@ -15,7 +15,10 @@ export interface SceneCommandState {
   target: { path: string; title: string; anchor: boolean } | null;
   /** The active map's path: where an added layer goes. */
   mapPath: string | null;
-  /** The selected layer's path, when a layer is selected: an added layer goes above it. */
+  /**
+   * The selected layer's path, when a layer is selected: an added layer goes above it. Null for
+   * the grid, since nothing goes above it: the layer then lands just below it, at the map's top.
+   */
   layerPath: string | null;
   canMove: { forward: boolean; backward: boolean };
 }
@@ -44,7 +47,7 @@ export function sceneCommandState(selected: Selected, rows: Rows): SceneCommandS
   return {
     target: row ? { path: row.path, title: KIND_TITLE[row.type] ?? 'Layer', anchor } : null,
     mapPath: map?.path ?? null,
-    layerPath: isLayer ? row.path : null,
+    layerPath: isLayer && row.type !== 'hexgrid' ? row.path : null,
     canMove: { forward, backward },
   };
 }

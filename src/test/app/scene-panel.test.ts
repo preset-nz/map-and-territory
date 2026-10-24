@@ -97,6 +97,12 @@ describe('scene command state', () => {
     expect(grid.canMove).toEqual({ forward: false, backward: false });
   });
 
+  it("adds a layer to the grid's map, just below the grid, when the grid is selected", () => {
+    const grid = sceneCommandState({ kind: 'layer', id: 'g' }, rows);
+    expect(grid.mapPath).toBe('/maps/map');
+    expect(grid.layerPath).toBeNull();
+  });
+
   it('adds layers to the active map, above nothing when a map is selected', () => {
     const s = sceneCommandState({ kind: 'map', id: 'm' }, rows);
     expect(s.mapPath).toBe('/maps/map');
