@@ -40,7 +40,7 @@ fn map_of<'a>(d: &'a Doc, at: &str) -> Option<rhizome_core::Node<'a>> {
 
 /// `node.add`, in one place so `enabled` and `run` agree.
 ///
-/// A `map` under `/maps`, or a layer kind (`hex-noise`, `freeform`, `outline`) under a map.
+/// A `map` under `/maps`, or a layer kind (`hex-noise`, `freeform`, `outline`, `image`) under a map.
 /// `paper` and `hexgrid` are refused on their own (a map brings them). The built-in's
 /// `preset` argument isn't taken, because no layer kind has presets.
 fn check(d: &Doc, a: &AddArgs) -> Result<(), String> {

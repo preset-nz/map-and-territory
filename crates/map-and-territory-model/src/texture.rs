@@ -122,17 +122,44 @@ fn is_kind(d: &Doc, at: &str, kind: &str) -> bool {
     d.tree().at(at).is_some_and(|n| n.type_name() == kind)
 }
 
-/// Sets or clears the `texture` reference on a node of `kind`. The one validator behind
+/// What a command sets: the node kind, how to name it in a refusal, the reference value and
+/// the undo labels.
+struct Target {
+    kind: &'static str,
+    noun: &'static str,
+    reference: &'static str,
+    clear: &'static str,
+    set: &'static str,
+}
+
+const fn texture_of(kind: &'static str, noun: &'static str) -> Target {
+    Target {
+        kind,
+        noun,
+        reference: "texture",
+        clear: "Clear Texture",
+        set: "Set Texture",
+    }
+}
+
+/// Sets or clears a file reference (`texture`, or the image layer's `file`) on a node of `kind`. The one validator behind
 /// every command that takes a texture: the file is resolved and checked before anything
 /// changes, and the edit is one undo step.
-fn set_texture(d: &mut Doc, p: &Json, kind: &str, noun: &str) -> rhizome_pom::Result<Outcome> {
+fn set_texture(d: &mut Doc, p: &Json, target: Target) -> rhizome_pom::Result<Outcome> {
+    let Target {
+        kind,
+        noun,
+        reference,
+        clear,
+        set,
+    } = target;
     let a: Args = payload(p)?;
     if !is_kind(d, &a.at, kind) {
         return Err(Error::Payload(format!("{} isn't a {noun}", a.at)));
     }
     let Some(file) = a.file else {
         return Ok(Outcome::from(
-            d.edit("Clear Texture", |tx| tx.clear_ref(a.at.as_str(), "texture"))?
+            d.edit(clear, |tx| tx.clear_ref(a.at.as_str(), reference))?
                 .1,
         ));
     };
@@ -141,8 +168,8 @@ fn set_texture(d: &mut Doc, p: &Json, kind: &str, noun: &str) -> rhizome_pom::Re
     })?;
     check_file(&on_disk).map_err(Error::Payload)?;
     Ok(Outcome::from(
-        d.edit("Set Texture", |tx| {
-            tx.set_ref(a.at.as_str(), "texture", Ref::file(file))
+        d.edit(set, |tx| {
+            tx.set_ref(a.at.as_str(), reference, Ref::file(file))
         })?
         .1,
     ))
@@ -153,12 +180,30 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
         "freeform.set-texture",
         |_| "Set Texture".into(),
         |d: &Doc, p: &Json| payload::<Args>(p).is_ok_and(|a| is_kind(d, &a.at, "freeform")),
-        |d: &mut Doc, p: &Json| set_texture(d, p, "freeform", "freeform layer"),
+        |d: &mut Doc, p: &Json| set_texture(d, p, texture_of("freeform", "freeform layer")),
     );
     c.add(
         "paper.set-texture",
         |_| "Set Texture".into(),
         |d: &Doc, p: &Json| payload::<Args>(p).is_ok_and(|a| is_kind(d, &a.at, "paper")),
-        |d: &mut Doc, p: &Json| set_texture(d, p, "paper", "paper layer"),
+        |d: &mut Doc, p: &Json| set_texture(d, p, texture_of("paper", "paper layer")),
+    );
+    c.add(
+        "image.set-file",
+        |_| "Set Image".into(),
+        |d: &Doc, p: &Json| payload::<Args>(p).is_ok_and(|a| is_kind(d, &a.at, "image")),
+        |d: &mut Doc, p: &Json| {
+            set_texture(
+                d,
+                p,
+                Target {
+                    kind: "image",
+                    noun: "image layer",
+                    reference: "file",
+                    clear: "Clear Image",
+                    set: "Set Image",
+                },
+            )
+        },
     );
 }

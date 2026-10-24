@@ -34,3 +34,4 @@ title: Map & Territory nodes
 ## Painting
 
 - [Freeform](freeform.md): Hexes you paint by hand, each filled with a terrain from the palette.
+- [Image](image.md): A picture from a file laid over the map, for stains, paper grain or a scanned drawing.

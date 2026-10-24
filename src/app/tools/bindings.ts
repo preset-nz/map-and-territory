@@ -47,6 +47,7 @@ export const LAYER_ICONS: Record<string, React.ReactNode> = {
   'layer.add-hex-noise': icon('Waveform'),
   'layer.add-freeform': icon('PaintBrushBroad'),
   'layer.add-outline': icon('Polygon'),
+  'layer.add-image': icon('Image'),
 };
 
 /** The panel toggles at the toolbar's ends (ux-patterns, Side panels); the right one is mirrored. */
@@ -65,7 +66,7 @@ export const TOOLBAR = {
   leading: ['view.toggle-left-panel'],
   groups: [
     ['map-new'],
-    ['layer.add-hex-noise', 'layer.add-freeform', 'layer.add-outline'],
+    ['layer.add-hex-noise', 'layer.add-freeform', 'layer.add-outline', 'layer.add-image'],
     Object.keys(TOOL_COMMANDS),
   ],
   trailing: ['view.toggle-right-panel'],

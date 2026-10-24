@@ -22,7 +22,7 @@ describe('built-in layers', () => {
     registerBuiltinLayers();
     const kinds = documentLayerKinds();
     expect(kinds).toEqual(
-      expect.arrayContaining(['paper', 'hexgrid', 'hex-noise', 'freeform', 'outline']),
+      expect.arrayContaining(['paper', 'hexgrid', 'hex-noise', 'freeform', 'outline', 'image']),
     );
     for (const kind of kinds) {
       expect(typeof getLayerType(kind)?.adapter.drawMain, kind).toBe('function');

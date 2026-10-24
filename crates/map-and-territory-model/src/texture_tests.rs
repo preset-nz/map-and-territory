@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use rhizome_core::IdSource;
+use rhizome_core::{IdSource, Value};
 use rhizome_pom::{Document, MemoryStore};
 use serde_json::{json, Value as Json};
 
@@ -199,4 +199,91 @@ fn paper_stays_pinned_and_undeletable() {
     let mut d = doc();
     assert!(d.run("node.delete", &json!({ "at": PAPER })).is_err());
     assert!(d.tree().at(PAPER).is_some());
+}
+
+const IMAGE: &str = "/maps/map/image";
+
+fn image_doc() -> Doc {
+    let mut d = doc();
+    d.run(
+        "node.add",
+        &json!({ "parent": "/maps/map", "type": "image" }),
+    )
+    .unwrap();
+    d
+}
+
+fn image_file(d: &Doc) -> Option<String> {
+    d.tree()
+        .at(IMAGE)
+        .and_then(|n| n.reference("file").and_then(|r| r.file.clone()))
+}
+
+#[test]
+fn an_image_layer_sits_between_paper_and_hexgrid_with_its_defaults() {
+    let d = image_doc();
+    let order: Vec<String> = d
+        .tree()
+        .at("/maps/map")
+        .unwrap()
+        .order("layers")
+        .iter()
+        .map(|n| n.type_name().to_string())
+        .collect();
+    assert_eq!(order, ["paper", "freeform", "image", "hexgrid"]);
+    let n = d.tree().at(IMAGE).unwrap();
+    assert_eq!(n.value("fit"), Some(Value::Choice("cover".into())));
+    assert_eq!(n.value("scale"), Some(Value::Float(1.0)));
+    assert_eq!(n.value("rotation"), Some(Value::Float(0.0)));
+    assert_eq!(image_file(&d), None);
+    assert_eq!(d.tree().undo_label(), Some("Add Image Layer"));
+}
+
+#[test]
+fn image_set_file_checks_the_file_clears_with_null_and_undoes() {
+    let dir = dir("image");
+    let good = dir.join("i.png");
+    std::fs::write(&good, png(8, 8)).unwrap();
+    let junk = dir.join("i.txt");
+    std::fs::write(&junk, b"no").unwrap();
+    let mut d = image_doc();
+    let set = |d: &mut Doc, f: Json| d.run("image.set-file", &json!({ "at": IMAGE, "file": f }));
+    assert!(set(&mut d, json!(junk.to_str().unwrap())).is_err());
+    assert!(set(&mut d, json!(dir.join("nope.png").to_str().unwrap())).is_err());
+    assert_eq!(image_file(&d), None);
+    set(&mut d, json!(good.to_str().unwrap())).unwrap();
+    assert_eq!(image_file(&d).as_deref(), good.to_str());
+    assert_eq!(d.tree().undo_label(), Some("Set Image"));
+    set(&mut d, Json::Null).unwrap();
+    assert_eq!(image_file(&d), None);
+    assert_eq!(d.tree().undo_label(), Some("Clear Image"));
+    d.undo().unwrap();
+    assert_eq!(image_file(&d).as_deref(), good.to_str());
+    d.undo().unwrap();
+    assert_eq!(image_file(&d), None);
+}
+
+#[test]
+fn image_set_file_is_for_image_layers_only() {
+    let dir = dir("image-kind");
+    let good = dir.join("i.png");
+    std::fs::write(&good, png(8, 8)).unwrap();
+    let mut d = image_doc();
+    let f = good.to_str().unwrap();
+    for at in ["/maps/map", LAYER, "/maps/map/paper", "/nowhere"] {
+        assert!(
+            d.run("image.set-file", &json!({ "at": at, "file": f }))
+                .is_err(),
+            "{at}"
+        );
+    }
+    assert!(d
+        .run("freeform.set-texture", &json!({ "at": IMAGE, "file": f }))
+        .is_err());
+    assert!(d
+        .is_enabled("image.set-file", &json!({ "at": IMAGE, "file": f }))
+        .unwrap());
+    assert!(!d
+        .is_enabled("image.set-file", &json!({ "at": LAYER, "file": f }))
+        .unwrap());
 }

@@ -21,10 +21,11 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 19] = [
+const WEBVIEW: [&str; 20] = [
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
+    "layer.add-image",
     "edit.move-earlier",
     "edit.move-later",
     "edit.move-to-front",
@@ -94,6 +95,7 @@ pub fn commands() -> Vec<Command> {
         layer("layer.add-hex-noise", "Add Hex Noise Layer", 0),
         layer("layer.add-freeform", "Add Freeform Layer", 0),
         layer("layer.add-outline", "Add Outline Layer", 0),
+        layer("layer.add-image", "Add Image Layer", 0),
         // Bring Forward is up the stack (menu standard: Opt+Up). Ids are POM's move ids.
         layer("edit.move-earlier", "Bring Forward", 1).accelerator(shortcut::MOVE_EARLIER),
         layer("edit.move-later", "Send Backward", 1).accelerator(shortcut::MOVE_LATER),

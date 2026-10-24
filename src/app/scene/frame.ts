@@ -164,6 +164,17 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     return state;
   };
 
+  /** An image layer's adapter state: its values plus the file's path, kept per row. */
+  const imageStates = new WeakMap<FrameRow, Record<string, unknown>>();
+  const imageState = (row: FrameRow): Record<string, unknown> => {
+    const known = imageStates.get(row);
+    if (known) return known;
+    const file = row.refs?.file?.file;
+    const state = file ? { ...stateOf(row), file } : stateOf(row);
+    imageStates.set(row, state);
+    return state;
+  };
+
   const stateOf = (row: FrameRow): Record<string, unknown> => {
     const known = states.get(row);
     if (known) return known;
@@ -211,7 +222,9 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
             ? freeformState(rows, row)
             : row.type === 'paper'
               ? paperState(row)
-              : stateOf(row);
+              : row.type === 'image'
+                ? imageState(row)
+                : stateOf(row);
         if (row.type === 'outline' && preview?.layerId === id) {
           // tool state rides on a copy, so the row's memoised state stays clean
           const paths = state.paths as { id: string; closed: boolean }[];

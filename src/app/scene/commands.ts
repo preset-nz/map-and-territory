@@ -94,6 +94,7 @@ export function useSceneBindings(): Record<string, Binding> {
       'layer.add-hex-noise': { enabled: s.mapPath !== null, run: add('hex-noise') },
       'layer.add-freeform': { enabled: s.mapPath !== null, run: add('freeform') },
       'layer.add-outline': { enabled: s.mapPath !== null, run: add('outline') },
+      'layer.add-image': { enabled: s.mapPath !== null, run: add('image') },
       'edit.move-earlier': move('edit.move-earlier', s.canMove.forward),
       'edit.move-later': move('edit.move-later', s.canMove.backward),
       'edit.move-to-front': move('edit.move-to-front', s.canMove.forward),

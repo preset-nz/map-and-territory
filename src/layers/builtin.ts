@@ -1,6 +1,7 @@
 import { FreeformType } from '@/layers/adapters/freeform-hex';
 import { HexNoiseType } from '@/layers/adapters/hex-noise';
 import { HexgridType } from '@/layers/adapters/hexgrid';
+import { ImageType } from '@/layers/adapters/image';
 import { OutlineType } from '@/layers/adapters/outline';
 import { PaperType } from '@/layers/adapters/paper';
 import { registerLayerType } from '@/layers/registry';
@@ -13,6 +14,7 @@ export const BUILTIN_LAYER_TYPES = [
   HexNoiseType,
   FreeformType,
   OutlineType,
+  ImageType,
 ] as unknown as LayerType[];
 
 export function registerBuiltinLayers() {

@@ -55,7 +55,11 @@ pub const OUTLINE: LayerKind = LayerKind {
     base: "Outline",
 };
 /// Every layer kind between the anchors.
-pub const LAYER_KINDS: [&LayerKind; 3] = [&HEX_NOISE, &FREEFORM, &OUTLINE];
+pub const IMAGE: LayerKind = LayerKind {
+    id: "image",
+    base: "Image",
+};
+pub const LAYER_KINDS: [&LayerKind; 4] = [&HEX_NOISE, &FREEFORM, &OUTLINE, &IMAGE];
 
 fn rgb(r: u8, g: u8, b: u8) -> [f64; 4] {
     [
@@ -391,6 +395,28 @@ pub fn declare(k: &mut Kinds) {
                 "Roughness",
                 "How far the corners wander off the grid, for a hand-drawn line; 0 is exact.",
             ),
+    );
+
+    // The image is a file reference kept as written, like the textures; it goes last so no
+    // `.described` lands on the value before it.
+    k.kind(
+        layer(IMAGE.id, IMAGE.base)
+            .label("Image")
+            .summary("A picture from a file laid over the map, for stains, paper grain or a scanned drawing.")
+            .category("painting")
+            .choice("fit", &["cover", "contain", "repeat"], "cover")
+            .described("Fit", "Cover fills the paper and crops the edges, fit shows the whole picture, repeat tiles it.")
+            .choice_labels(&[("cover", "Cover"), ("contain", "Fit"), ("repeat", "Repeat")])
+            .float("scale", 0.05..=8.0, 1.0)
+            .described("Scale", "How large the picture is drawn; 1 is its fitted size.")
+            .float("offsetX", -1000.0..=1000.0, 0.0)
+            .described("Offset X", "Slides the picture sideways.")
+            .float("offsetY", -1000.0..=1000.0, 0.0)
+            .described("Offset Y", "Slides the picture up or down.")
+            .float("rotation", -180.0..=180.0, 0.0)
+            .described("Rotation", "Turns the picture about the middle of the paper.")
+            .unit("°")
+            .reference("file"),
     );
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
