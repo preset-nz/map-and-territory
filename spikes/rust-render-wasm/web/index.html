@@ -12,6 +12,6 @@ window.results = [];
     wk.terminate(); window.results.push(res);
     out.textContent += `${res.w}x${res.h} zoom${res.zoom} ${res.mode.padEnd(11)} median ${res.median.toFixed(1)} ms  p90 ${res.p90.toFixed(1)} ms${res.build ? `  (one-off raster ${res.build.toFixed(0)} ms)` : ''}\n`;
   }
-  window.done = true;
+  window.done = true; fetch('/results', { method: 'POST', body: out.textContent + 'cores ' + navigator.hardwareConcurrency + '\nua ' + navigator.userAgent + '\n' });
 })();
 </script>

@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><title>Grit spike</title><pre id="out">running…</pre><script>
+const runs = [];
+for (const [w, h] of [[2560, 1600], [5120, 2880]]) for (const zoom of [2, 1]) for (const mode of ['canvas', 'wasm', 'wasm-tile'])
+  runs.push({ mode, w, h, zoom, frames: 30, wasm: 'render-simd.wasm' });
+(async () => {
+  const out = document.getElementById('out'); out.textContent = '';
+  for (const r of runs) {
+    const wk = new Worker('grit-worker.js');
+    const res = await new Promise((ok) => { wk.onmessage = (e) => ok(e.data); wk.onerror = (e) => ok({ ...r, err: e.message }); wk.postMessage(r); });
+    wk.terminate();
+    const tiles = Math.ceil(r.w / 512) * Math.ceil(r.h / 512);
+    out.textContent += res.err ? `${r.mode} ERR ${res.err}\n` : `${res.w}x${res.h} zoom${res.zoom} ${res.mode.padEnd(9)} median ${res.median.toFixed(1)} ms  p90 ${res.p90.toFixed(1)} ms${res.mode === 'wasm-tile' ? `  (per tile; ${tiles} tiles = ${(tiles * res.median).toFixed(0)} ms on one worker)` : ''}\n`;
+  }
+  fetch('/results', { method: 'POST', body: out.textContent });
+})();
+</script>
