@@ -23,11 +23,14 @@ export interface TextureLoader {
   retryMissing(): boolean;
 }
 
-/** The paths freeform layers in a frame refer to. */
+/** The paths freeform and paper layers in a frame refer to. */
 export function texturePaths(frame: SceneFrame): string[] {
   const out = new Set<string>();
   for (const l of frame.layers) {
-    const t = l.type === 'freeform' ? (l.state as { texture?: unknown }).texture : undefined;
+    const t =
+      l.type === 'freeform' || l.type === 'paper'
+        ? (l.state as { texture?: unknown }).texture
+        : undefined;
     if (typeof t === 'string' && t) out.add(t);
   }
   return [...out];

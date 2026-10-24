@@ -194,7 +194,20 @@ pub fn declare(k: &mut Kinds) {
             .described("Aspect", "The shape of the sheet, as width to height.")
             .choice_labels(&[("square", "Square"), ("4:3", "4:3"), ("16:10", "16:10")])
             .colour("color", WHITE)
-            .described("Colour", "The colour of the paper."),
+            .described("Colour", "The colour of the paper.")
+            .choice("textureBlend", &["normal", "multiply"], "multiply")
+            .described(
+                "Mix with paper",
+                "How the image mixes with the paper colour: image only, or multiplied over the colour so the paper shows through its light parts.",
+            )
+            .choice_labels(&[("normal", "Image only"), ("multiply", "Multiply")])
+            .choice("textureFit", &["cover", "contain", "repeat"], "cover")
+            .described("Texture fit", "Cover fills the sheet and crops the edges, fit keeps the whole image inside, repeat tiles it.")
+            .choice_labels(&[("cover", "Cover"), ("contain", "Fit"), ("repeat", "Repeat")])
+            .float("textureScale", 0.05..=8.0, 1.0)
+            .described("Texture scale", "How large the image is drawn; 1 is its fitted size. Repeat tiles it at its own size times this.")
+            // the reference goes last: a `.described` after it would land on the value before
+            .reference("texture"),
     )
     .max_per_parent(1)
     .not_deletable()

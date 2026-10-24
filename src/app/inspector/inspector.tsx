@@ -16,7 +16,7 @@ import { CAMPAIGN_PATH } from '../scene/frame';
 import { selection } from '../selection';
 import {
   fileRefCommand,
-  label,
+  labelOf,
   messageOf,
   readRefs,
   readValues,
@@ -78,7 +78,7 @@ export function scopeOf(
     },
     gesture: {
       begin: (key, t, ctx: Ctx) => {
-        tokens.set(`${t.id}:${key}`, ctx.channel.begin(`Set ${label(key)}`));
+        tokens.set(`${t.id}:${key}`, ctx.channel.begin(`Set ${labelOf(byKey.get(key), key)}`));
       },
       end: (key, t, ctx: Ctx) => {
         const token = tokens.get(`${t.id}:${key}`);

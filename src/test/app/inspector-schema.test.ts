@@ -1,5 +1,6 @@
 import {
   fieldFor,
+  fileRefCommand,
   messageOf,
   parseColour,
   readRefs,
@@ -12,10 +13,14 @@ describe('the inspector schema', () => {
   it('maps each value kind to a field', () => {
     expect(fieldFor({ key: 'visible', kind: 'bool' })).toMatchObject({ kind: 'checkbox' });
     expect(fieldFor({ key: 'name', kind: 'text' })).toMatchObject({ kind: 'text', label: 'Name' });
-    expect(fieldFor({ key: 'strokeColor', kind: 'colour' })).toMatchObject({
-      kind: 'color',
-      label: 'Stroke colour',
-    });
+    expect(
+      fieldFor({
+        key: 'strokeColor',
+        kind: 'colour',
+        label: 'Stroke colour',
+        description: 'The colour of the line.',
+      }),
+    ).toMatchObject({ kind: 'color', label: 'Stroke colour', help: 'The colour of the line.' });
     expect(
       fieldFor({ key: 'orientation', kind: 'choice', choices: ['pointy', 'flat'] }),
     ).toMatchObject({
@@ -63,6 +68,67 @@ describe('the inspector schema', () => {
     expect(readValues({ c: [1, 0, 0, 1] }, info)).toEqual({ c: '#ff0000' });
     expect(writeValue(info[0], '#ff0000')).toEqual([1, 0, 0, 1]);
     expect(writeValue({ key: 'n', kind: 'float' }, 3)).toBe(3);
+  });
+
+  describe('the paper texture', () => {
+    const values = [
+      { key: 'aspect', kind: 'choice', choices: ['square', '4:3', '16:10'] },
+      { key: 'color', kind: 'colour' },
+      {
+        key: 'textureBlend',
+        kind: 'choice',
+        choices: ['normal', 'multiply'],
+        label: 'Mix with paper',
+        choice_labels: { normal: 'Image only', multiply: 'Multiply' },
+      },
+      {
+        key: 'textureFit',
+        kind: 'choice',
+        choices: ['cover', 'contain', 'repeat'],
+        label: 'Texture fit',
+        choice_labels: { cover: 'Cover', contain: 'Fit', repeat: 'Repeat' },
+      },
+      { key: 'textureScale', kind: 'float', range: [0.05, 8], label: 'Texture scale' },
+    ];
+    const rows = schemaFor(values, ['texture'], 'paper').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+
+    it('is a file field after the colour, running paper.set-texture', () => {
+      expect(byId('texture')).toMatchObject({
+        kind: 'file',
+        label: 'Texture',
+        recentKey: 'texture',
+        title: 'Choose a Paper Texture',
+        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+      });
+      expect(rows.map((r) => (r as { id: string }).id).slice(1, 3)).toEqual(['color', 'texture']);
+      expect(fileRefCommand('paper', 'texture')).toBe('paper.set-texture');
+    });
+
+    it('disables the texture values while no texture is set, with the kind’s words', () => {
+      const off = { path: 'texture', equals: null };
+      for (const id of ['textureBlend', 'textureFit', 'textureScale']) {
+        expect(byId(id).disabledWhen).toEqual(off);
+      }
+      expect(byId('texture').disabledWhen).toBeUndefined();
+      expect(byId('color').disabledWhen).toBeUndefined();
+      expect(byId('textureBlend')).toMatchObject({
+        label: 'Mix with paper',
+        options: [
+          { value: 'normal', label: 'Image only' },
+          { value: 'multiply', label: 'Multiply' },
+        ],
+      });
+      expect(byId('textureFit')).toMatchObject({
+        options: [
+          { value: 'cover', label: 'Cover' },
+          { value: 'contain', label: 'Fit' },
+          { value: 'repeat', label: 'Repeat' },
+        ],
+      });
+      expect(byId('textureScale').label).toBe('Texture scale');
+    });
   });
 
   describe('the freeform texture', () => {

@@ -1,4 +1,4 @@
-//! `freeform.set-texture`: a freeform layer's texture is a reference to an image on disk.
+//! `freeform.set-texture` and `paper.set-texture`: a layer's texture is a reference to an image on disk.
 //! Nothing is copied or embedded, and the path keeps the form it was written in (family
 //! requirement "No embedded assets"): a relative one resolves against the `.campaign` file,
 //! an absolute one stays absolute. The command checks the file so a bad one never lands.
@@ -118,38 +118,47 @@ pub fn check_file(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn is_freeform(d: &Doc, at: &str) -> bool {
-    d.tree().at(at).is_some_and(|n| n.type_name() == "freeform")
+fn is_kind(d: &Doc, at: &str, kind: &str) -> bool {
+    d.tree().at(at).is_some_and(|n| n.type_name() == kind)
+}
+
+/// Sets or clears the `texture` reference on a node of `kind`. The one validator behind
+/// every command that takes a texture: the file is resolved and checked before anything
+/// changes, and the edit is one undo step.
+fn set_texture(d: &mut Doc, p: &Json, kind: &str, noun: &str) -> rhizome_pom::Result<Outcome> {
+    let a: Args = payload(p)?;
+    if !is_kind(d, &a.at, kind) {
+        return Err(Error::Payload(format!("{} isn't a {noun}", a.at)));
+    }
+    let Some(file) = a.file else {
+        return Ok(Outcome::from(
+            d.edit("Clear Texture", |tx| tx.clear_ref(a.at.as_str(), "texture"))?
+                .1,
+        ));
+    };
+    let on_disk = resolve(d.path(), &file).ok_or_else(|| {
+        Error::Payload("save the campaign first, or choose the image by its full path".into())
+    })?;
+    check_file(&on_disk).map_err(Error::Payload)?;
+    Ok(Outcome::from(
+        d.edit("Set Texture", |tx| {
+            tx.set_ref(a.at.as_str(), "texture", Ref::file(file))
+        })?
+        .1,
+    ))
 }
 
 pub fn declare(c: &mut Commands<MapAndTerritory>) {
     c.add(
         "freeform.set-texture",
         |_| "Set Texture".into(),
-        |d: &Doc, p: &Json| payload::<Args>(p).is_ok_and(|a| is_freeform(d, &a.at)),
-        |d: &mut Doc, p: &Json| {
-            let a: Args = payload(p)?;
-            if !is_freeform(d, &a.at) {
-                return Err(Error::Payload(format!("{} isn't a freeform layer", a.at)));
-            }
-            let Some(file) = a.file else {
-                return Ok(Outcome::from(
-                    d.edit("Clear Texture", |tx| tx.clear_ref(a.at.as_str(), "texture"))?
-                        .1,
-                ));
-            };
-            let on_disk = resolve(d.path(), &file).ok_or_else(|| {
-                Error::Payload(
-                    "save the campaign first, or choose the image by its full path".into(),
-                )
-            })?;
-            check_file(&on_disk).map_err(Error::Payload)?;
-            Ok(Outcome::from(
-                d.edit("Set Texture", |tx| {
-                    tx.set_ref(a.at.as_str(), "texture", Ref::file(file))
-                })?
-                .1,
-            ))
-        },
+        |d: &Doc, p: &Json| payload::<Args>(p).is_ok_and(|a| is_kind(d, &a.at, "freeform")),
+        |d: &mut Doc, p: &Json| set_texture(d, p, "freeform", "freeform layer"),
+    );
+    c.add(
+        "paper.set-texture",
+        |_| "Set Texture".into(),
+        |d: &Doc, p: &Json| payload::<Args>(p).is_ok_and(|a| is_kind(d, &a.at, "paper")),
+        |d: &mut Doc, p: &Json| set_texture(d, p, "paper", "paper layer"),
     );
 }

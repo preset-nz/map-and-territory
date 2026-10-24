@@ -134,3 +134,69 @@ fn a_relative_path_resolves_against_the_document_and_stays_relative() {
     let e = set(&mut d, json!("t.png")).unwrap_err();
     assert!(e.to_string().contains("save the campaign first"), "{e}");
 }
+
+const PAPER: &str = "/maps/map/paper";
+
+fn set_paper(d: &mut Doc, file: Json) -> rhizome_pom::Result<rhizome_pom::Outcome> {
+    d.run("paper.set-texture", &json!({ "at": PAPER, "file": file }))
+}
+
+fn paper_texture(d: &Doc) -> Option<String> {
+    d.tree()
+        .at(PAPER)
+        .and_then(|n| n.reference("texture").and_then(|r| r.file.clone()))
+}
+
+#[test]
+fn paper_takes_an_image_as_written_and_undo_takes_it_back() {
+    let dir = dir("paper-good");
+    let file = dir.join("scan.png");
+    std::fs::write(&file, png(1024, 768)).unwrap();
+    let mut d = doc();
+    set_paper(&mut d, json!(file.to_str().unwrap())).unwrap();
+    assert_eq!(paper_texture(&d).as_deref(), file.to_str());
+    assert_eq!(d.label("paper.set-texture").unwrap(), "Set Texture");
+    d.undo().unwrap();
+    assert_eq!(paper_texture(&d), None);
+}
+
+#[test]
+fn paper_refuses_a_non_image_and_null_clears() {
+    let dir = dir("paper-bad");
+    let liar = dir.join("scan.png");
+    std::fs::write(&liar, b"just some text, not a picture at all").unwrap();
+    let good = dir.join("good.png");
+    std::fs::write(&good, png(8, 8)).unwrap();
+    let mut d = doc();
+    let e = set_paper(&mut d, json!(liar.to_str().unwrap())).unwrap_err();
+    assert!(e.to_string().contains("isn't a PNG, JPEG or WebP"), "{e}");
+    assert_eq!(paper_texture(&d), None);
+    set_paper(&mut d, json!(good.to_str().unwrap())).unwrap();
+    set_paper(&mut d, Json::Null).unwrap();
+    assert_eq!(paper_texture(&d), None);
+    // one undo step brings the cleared texture back
+    d.undo().unwrap();
+    assert_eq!(paper_texture(&d).as_deref(), good.to_str());
+}
+
+#[test]
+fn the_paper_command_is_for_paper_and_the_freeform_one_for_freeform() {
+    let dir = dir("paper-kind");
+    let file = dir.join("t.png");
+    std::fs::write(&file, png(8, 8)).unwrap();
+    let mut d = doc();
+    let p = file.to_str().unwrap();
+    assert!(d
+        .run("paper.set-texture", &json!({ "at": LAYER, "file": p }))
+        .is_err());
+    assert!(d
+        .run("freeform.set-texture", &json!({ "at": PAPER, "file": p }))
+        .is_err());
+}
+
+#[test]
+fn paper_stays_pinned_and_undeletable() {
+    let mut d = doc();
+    assert!(d.run("node.delete", &json!({ "at": PAPER })).is_err());
+    assert!(d.tree().at(PAPER).is_some());
+}

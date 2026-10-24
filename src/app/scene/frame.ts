@@ -153,6 +153,17 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     return state;
   };
 
+  /** The paper's adapter state: its values plus the texture's path, kept per row. */
+  const paperStates = new WeakMap<FrameRow, Record<string, unknown>>();
+  const paperState = (row: FrameRow): Record<string, unknown> => {
+    const known = paperStates.get(row);
+    if (known) return known;
+    const texture = row.refs?.texture?.file;
+    const state = texture ? { ...stateOf(row), texture } : stateOf(row);
+    paperStates.set(row, state);
+    return state;
+  };
+
   const stateOf = (row: FrameRow): Record<string, unknown> => {
     const known = states.get(row);
     if (known) return known;
@@ -195,7 +206,12 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       for (const id of map.orders?.layers ?? []) {
         const row = rows.node(id);
         if (!row) continue;
-        let state = row.type === 'freeform' ? freeformState(rows, row) : stateOf(row);
+        let state =
+          row.type === 'freeform'
+            ? freeformState(rows, row)
+            : row.type === 'paper'
+              ? paperState(row)
+              : stateOf(row);
         if (row.type === 'outline' && preview?.layerId === id) {
           // tool state rides on a copy, so the row's memoised state stays clean
           const paths = state.paths as { id: string; closed: boolean }[];

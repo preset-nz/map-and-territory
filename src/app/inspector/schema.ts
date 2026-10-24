@@ -12,24 +12,21 @@ export interface ValueInfo {
   range?: [number, number];
   choices?: string[];
   soft_max?: boolean;
+  /** The kind's words (rhizome's `ValueSchema`): what a person calls the value, and what it does. */
+  label?: string;
+  description?: string;
+  choice_labels?: Record<string, string>;
 }
 
-/** Keys that read better with a label of their own. */
-const LABELS: Record<string, string> = {
-  usePaletteColor: 'Palette colour',
-  lineWidth: 'Line width',
-  strokeColor: 'Stroke colour',
-  strokeWidth: 'Stroke width',
-  strokePattern: 'Stroke pattern',
-  offsetX: 'Offset X',
-  offsetY: 'Offset Y',
-  renderMode: 'Render mode',
-  color: 'Colour',
-  colour: 'Colour',
-};
-
+/**
+ * A label for a key the kind gave no words: a reference (rhizome 0.1.7 has no words for one,
+ * triage 5), or a value in a test. The kind's own `label` wins wherever there is one.
+ */
 export const label = (key: string): string =>
-  LABELS[key] ?? key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase());
+  key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase());
+
+/** What the panel and the undo title call a value: the kind's label, else the key in words. */
+export const labelOf = (v: ValueInfo | undefined, key: string): string => v?.label ?? label(key);
 
 const title = (choice: string): string =>
   choice.replace(/(^|[-: ])(\w)/g, (_, a, c) => a + c.toUpperCase());
@@ -57,6 +54,13 @@ const FILE_REFS: Record<string, FileRef> = {
     title: 'Choose a Texture',
     after: 'renderMode',
   },
+  'paper.texture': {
+    command: 'paper.set-texture',
+    recentKey: 'texture',
+    filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+    title: 'Choose a Paper Texture',
+    after: 'color',
+  },
 };
 
 /** Whether a type's reference is a file field, and the command a change to it runs. */
@@ -74,6 +78,10 @@ function disabledWhen(
   key: string,
   values: readonly ValueInfo[],
 ): DisabledWhen | undefined {
+  if (type === 'paper' && /^texture[A-Z]/.test(key) && values.some((v) => v.key === key)) {
+    // nothing to blend, fit or scale until an image is set
+    return { path: 'texture', equals: null };
+  }
   const modes = values.find((v) => v.key === 'renderMode');
   if (type !== 'freeform' || !modes?.choices?.includes('texture-fill')) return undefined;
   if (key === 'texture' || /^texture[A-Z]/.test(key)) {
@@ -84,7 +92,12 @@ function disabledWhen(
 
 /** The facets field for one value, or null when it has none. */
 export function fieldFor(v: ValueInfo): FieldDef | null {
-  const base = { id: v.key, path: v.key, label: label(v.key) };
+  const base = {
+    id: v.key,
+    path: v.key,
+    label: labelOf(v, v.key),
+    ...(v.description ? { help: v.description } : {}),
+  };
   switch (v.kind) {
     case 'bool':
       return { ...base, kind: 'checkbox' };
@@ -96,7 +109,10 @@ export function fieldFor(v: ValueInfo): FieldDef | null {
       return {
         ...base,
         kind: 'select',
-        options: (v.choices ?? []).map((value) => ({ value, label: title(value) })),
+        options: (v.choices ?? []).map((value) => ({
+          value,
+          label: v.choice_labels?.[value] ?? title(value),
+        })),
       };
     case 'int':
     case 'float': {
