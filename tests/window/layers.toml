@@ -79,3 +79,12 @@ steps = [
   { expect = "Tool > Outline", checked = true },
   { expect = "Tool > Paint", checked = false },
 ]
+
+[[test]]
+name = "the Orlo campaign opens"
+covers = "guidance walkthrough-orlo, test campaign"
+steps = [
+  { open = "fixtures/orlo.campaign" },
+  { window_title = "orlo.campaign" },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+]
