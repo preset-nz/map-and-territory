@@ -1,3 +1,4 @@
+import { clampScale, drawFitted } from '@/layers/adapters/image-fit';
 import type { LayerAdapter } from '@/layers/types';
 
 export interface PaperState {
@@ -10,11 +11,6 @@ export interface PaperState {
   textureFit?: 'cover' | 'contain' | 'repeat';
   textureScale?: number;
 }
-
-const clampScale = (s: unknown): number => {
-  const n = typeof s === 'number' && Number.isFinite(s) ? s : 1;
-  return Math.max(0.05, Math.min(8, n));
-};
 
 export const PaperAdapter: LayerAdapter<PaperState> = {
   title: 'Paper',
@@ -31,20 +27,7 @@ export const PaperAdapter: LayerAdapter<PaperState> = {
       ctx.rect(0, 0, w, h);
       ctx.clip();
       ctx.globalCompositeOperation = state.textureBlend === 'normal' ? 'source-over' : 'multiply';
-      if (state.textureFit === 'repeat') {
-        const pattern = ctx.createPattern(bitmap as CanvasImageSource, 'repeat');
-        if (pattern) {
-          ctx.scale(scale, scale);
-          ctx.fillStyle = pattern;
-          ctx.fillRect(0, 0, w / scale, h / scale);
-        }
-      } else {
-        const pick = state.textureFit === 'contain' ? Math.min : Math.max;
-        const ratio = pick(w / bitmap.width, h / bitmap.height) * scale;
-        const dw = bitmap.width * ratio;
-        const dh = bitmap.height * ratio;
-        ctx.drawImage(bitmap, (w - dw) / 2, (h - dh) / 2, dw, dh);
-      }
+      drawFitted(ctx, bitmap, w, h, state.textureFit, scale);
     }
     ctx.restore();
   },
