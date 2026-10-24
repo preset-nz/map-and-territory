@@ -219,7 +219,7 @@ pub fn declare(k: &mut Kinds) {
     .not_duplicable()
     .pinned_first(LAYERS);
 
-    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength` and `gapLength` stop their travel at the max
+    // Ranges are the 2025 sliders'; `size`, `lineWidth`, `dashLength`, `gapLength`, `misregistration` and `cornerJitter` stop their travel at the max
     // but a typed value may go past it.
     k.kind(
         NodeType::new("hexgrid")
@@ -304,6 +304,29 @@ pub fn declare(k: &mut Kinds) {
                         "Gap length",
                         "The empty space between dashes and dots, in line widths.",
                     ),
+            )
+            .text("seed", "grid")
+            .described(
+                "Seed",
+                "The text the grid's misregistration and corner jitter grow from; the same seed always gives the same grid.",
+            )
+            .value(
+                ValueSpec::float("misregistration", 0.0..=12.0, 0.0)
+                    .soft_max()
+                    .described(
+                        "Misregistration",
+                        "How far the whole grid sits off the paper, as if printed out of register. The seed picks the direction.",
+                    )
+                    .unit("px"),
+            )
+            .value(
+                ValueSpec::float("cornerJitter", 0.0..=8.0, 0.0)
+                    .soft_max()
+                    .described(
+                        "Corner jitter",
+                        "How far each corner of the grid wanders from its place, up to this distance. The lines stay joined but go irregular.",
+                    )
+                    .unit("px"),
             ),
     )
     .max_per_parent(1)

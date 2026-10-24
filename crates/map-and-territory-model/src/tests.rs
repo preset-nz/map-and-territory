@@ -285,6 +285,9 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert_eq!(g.value("lineStyle"), Some(Value::Choice("solid".into())));
     assert_eq!(g.value("dashLength"), Some(Value::Float(4.0)));
     assert_eq!(g.value("gapLength"), Some(Value::Float(2.0)));
+    assert_eq!(g.value("seed"), Some(Value::Text("grid".into())));
+    assert_eq!(g.value("misregistration"), Some(Value::Float(0.0)));
+    assert_eq!(g.value("cornerJitter"), Some(Value::Float(0.0)));
 
     // within
     set(&mut d, &grid, "size", json!(8.0)).unwrap();
@@ -296,6 +299,9 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     set(&mut d, &grid, "dashLength", json!(1.0)).unwrap();
     set(&mut d, &grid, "gapLength", json!(0.5)).unwrap();
     set(&mut d, &grid, "usePaletteColor", json!(false)).unwrap();
+    set(&mut d, &grid, "seed", json!("other")).unwrap();
+    set(&mut d, &grid, "misregistration", json!(12.0)).unwrap();
+    set(&mut d, &grid, "cornerJitter", json!(8.0)).unwrap();
     // below the minimum, and outside a hard range
     assert!(set(&mut d, &grid, "size", json!(7.0)).is_err());
     assert!(set(&mut d, &grid, "lineWidth", json!(0.5)).is_err());
@@ -303,6 +309,8 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert!(set(&mut d, &grid, "lineStyle", json!("wavy")).is_err());
     assert!(set(&mut d, &grid, "dashLength", json!(0.5)).is_err());
     assert!(set(&mut d, &grid, "gapLength", json!(0.4)).is_err());
+    assert!(set(&mut d, &grid, "misregistration", json!(-1.0)).is_err());
+    assert!(set(&mut d, &grid, "cornerJitter", json!(-0.5)).is_err());
     assert!(set(&mut d, &grid, "orientation", json!("diagonal")).is_err());
     // the sliders' max is soft: a typed value may go past it
     set(&mut d, &grid, "size", json!(200.0)).unwrap();
@@ -312,10 +320,12 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     );
     set(&mut d, &grid, "dashLength", json!(40.0)).unwrap();
     set(&mut d, &grid, "gapLength", json!(40.0)).unwrap();
+    set(&mut d, &grid, "misregistration", json!(50.0)).unwrap();
+    set(&mut d, &grid, "cornerJitter", json!(50.0)).unwrap();
 }
 
 #[test]
-fn a_campaign_saved_before_line_styles_opens_with_the_defaults() {
+fn a_campaign_saved_before_line_styles_and_jitter_opens_with_the_defaults() {
     let store = MemoryStore::default();
     let mut d = Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap();
     let map = add_map(&mut d);
@@ -326,7 +336,14 @@ fn a_campaign_saved_before_line_styles_opens_with_the_defaults() {
     // saved before the three values existed
     let saved = store.get("/old.campaign").unwrap();
     assert!(saved.contains("lineWidth"), "the edit is in the file");
-    for k in ["lineStyle", "dashLength", "gapLength"] {
+    for k in [
+        "lineStyle",
+        "dashLength",
+        "gapLength",
+        "seed",
+        "misregistration",
+        "cornerJitter",
+    ] {
         assert!(!saved.contains(k), "{k} isn't written at its default");
     }
 
@@ -336,6 +353,9 @@ fn a_campaign_saved_before_line_styles_opens_with_the_defaults() {
     assert_eq!(g.value("lineStyle"), Some(Value::Choice("solid".into())));
     assert_eq!(g.value("dashLength"), Some(Value::Float(4.0)));
     assert_eq!(g.value("gapLength"), Some(Value::Float(2.0)));
+    assert_eq!(g.value("seed"), Some(Value::Text("grid".into())));
+    assert_eq!(g.value("misregistration"), Some(Value::Float(0.0)));
+    assert_eq!(g.value("cornerJitter"), Some(Value::Float(0.0)));
 }
 
 #[test]
