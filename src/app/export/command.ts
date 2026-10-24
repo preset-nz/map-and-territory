@@ -1,10 +1,27 @@
-// File ▸ Export ▸ Map as PNG… (epic 07 story 4): choose a file, draw the active map, stamp
-// 300 dpi into the PNG and write it. The steps are injected so the flow is tested without a
-// window; `native.ts` supplies the real ones.
+// File ▸ Export ▸ Map as PNG… (epic 07 story 4) and PDF… (story 5): choose a file, draw the
+// active map, then write it as a PNG with 300 dpi stamped in, or place it in a one-page PDF.
+// The steps are injected so the flow is tested without a window; `native.ts` supplies the real ones.
+import { mmToPt, type Rect } from './layout';
 import { setPngDpi } from './png';
-import type { ExportedMap } from './render';
+import type { ExportedPage } from './render';
 
 export const EXPORT_DPI = 300;
+
+export type ExportFormat = 'png' | 'pdf';
+
+/** Where the map goes on the PDF page, in points from the page's top-left. */
+export interface PdfPlacement {
+  pagePt: { w: number; h: number };
+  mapPt: Rect;
+}
+
+/** The PDF's placement from the layout in mm. */
+export function pdfPlacement({ pageMm, mapMm }: ExportedPage['page']): PdfPlacement {
+  return {
+    pagePt: { w: mmToPt(pageMm.w), h: mmToPt(pageMm.h) },
+    mapPt: { x: mmToPt(mapMm.x), y: mmToPt(mapMm.y), w: mmToPt(mapMm.w), h: mmToPt(mapMm.h) },
+  };
+}
 
 export interface ExportDeps {
   /** The suggested file name's stem: the map's name. */
@@ -12,9 +29,15 @@ export interface ExportDeps {
   /** The campaign file's path, or null while Untitled. */
   documentPath: () => Promise<string | null>;
   /** The Save dialog: the chosen path, or null when cancelled. */
-  chooseFile: (name: string, dir: string | undefined) => Promise<string | null>;
-  render: () => Promise<ExportedMap | null>;
+  chooseFile: (
+    name: string,
+    dir: string | undefined,
+    format: ExportFormat,
+  ) => Promise<string | null>;
+  render: () => Promise<ExportedPage | null>;
   writeFile: (path: string, bytes: Uint8Array) => Promise<void>;
+  /** Rust builds the PDF around the PNG and writes it. */
+  writePdf: (path: string, png: Uint8Array, placement: PdfPlacement) => Promise<void>;
   /** Status-bar message. */
   notify: (text: string, kind: 'info' | 'error') => void;
 }
@@ -22,10 +45,13 @@ export interface ExportDeps {
 export type ExportResult = 'saved' | 'cancelled' | 'failed';
 
 /** A file name from a map's name: no path separators or control characters, "Map" if empty. */
-export function exportFileName(mapName: string | null | undefined): string {
+export function exportFileName(
+  mapName: string | null | undefined,
+  format: ExportFormat = 'png',
+): string {
   // biome-ignore lint/suspicious/noControlCharactersInRegex: stripping them is the point
   const stem = (mapName ?? '').replace(/[/\\:\u0000-\u001f]/g, ' ').trim();
-  return `${stem === '' ? 'Map' : stem}.png`;
+  return `${stem === '' ? 'Map' : stem}.${format}`;
 }
 
 /** The folder of a path, or undefined. */
@@ -37,15 +63,27 @@ function dirOf(path: string | null): string | undefined {
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-export async function exportMapAsPng(deps: ExportDeps): Promise<ExportResult> {
+export async function exportMap(format: ExportFormat, deps: ExportDeps): Promise<ExportResult> {
   try {
     const dir = dirOf(await deps.documentPath());
-    const path = await deps.chooseFile(exportFileName(deps.mapName), dir);
+    const path = await deps.chooseFile(exportFileName(deps.mapName, format), dir, format);
     if (path === null) return 'cancelled';
     const exported = await deps.render();
     if (!exported) {
       deps.notify('Could not export: there is no map to draw.', 'error');
       return 'failed';
+    }
+    if (format === 'pdf') {
+      // The PNG goes in as drawn: the PDF places its pixels, so there is no pHYs to stamp.
+      await deps.writePdf(path, new Uint8Array(exported.png), pdfPlacement(exported.page));
+      const { size } = exported.page;
+      deps.notify(
+        exported.clamped
+          ? `Exported ${size.toUpperCase()} PDF. The map was larger than the export limit, so it is below ${EXPORT_DPI} dpi.`
+          : `Exported ${size.toUpperCase()} PDF.`,
+        exported.clamped ? 'error' : 'info',
+      );
+      return 'saved';
     }
     await deps.writeFile(path, setPngDpi(exported.png, EXPORT_DPI));
     const { w, h } = exported.size;

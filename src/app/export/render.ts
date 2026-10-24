@@ -4,7 +4,7 @@
 import type { SceneFrame } from '@/render/types';
 import { readCampaignPage } from '../scene/campaign-page';
 import type { RowSource } from '../scene/frame';
-import { layoutPage, type PageLayout, paperAspectRatio } from './layout';
+import { layoutPage, type PageLayout, type PageSize, paperAspectRatio } from './layout';
 
 /** The longest side the export draws, in pixels. A4 at 300 dpi is about 2480 × 3508. */
 export const MAX_EXPORT_SIDE = 8192;
@@ -24,6 +24,12 @@ export interface ExportedMap {
   size: { w: number; h: number };
   /** True when the map rectangle was larger than MAX_EXPORT_SIDE and was drawn smaller. */
   clamped: boolean;
+}
+
+/** An export with where it sits on the page, for the PDF. */
+export interface ExportedPage extends ExportedMap {
+  /** The page's size name and its physical size and the map's rectangle on it, in mm. */
+  page: { size: PageSize; pageMm: PageLayout['pageMm']; mapMm: PageLayout['mapMm'] };
 }
 
 /** The map rectangle's pixel size, scaled down uniformly if a side is over `max`. */
@@ -81,9 +87,9 @@ export function mapExporter(): MapExporter | null {
 
 /**
  * The active map drawn at its size on the campaign's page, or null with no canvas or no map.
- * Story 4's command calls this and writes the PNG.
+ * The export commands call this: the PNG writes it alone, the PDF places it on the page.
  */
-export async function exportActiveMap(rows: RowSource): Promise<ExportedMap | null> {
+export async function exportActiveMap(rows: RowSource): Promise<ExportedPage | null> {
   const current = exporter?.current();
   if (!exporter || !current) return null;
   const page = readCampaignPage(rows);
@@ -93,5 +99,11 @@ export async function exportActiveMap(rows: RowSource): Promise<ExportedMap | nu
     marginMm: page.marginMm,
     aspect: paperAspectRatio(current.frame.paper.aspect),
   });
-  return renderMapForExport(exporter.target, current.frame, current.logical, layout);
+  const exported = await renderMapForExport(
+    exporter.target,
+    current.frame,
+    current.logical,
+    layout,
+  );
+  return { ...exported, page: { size: page.size, pageMm: layout.pageMm, mapMm: layout.mapMm } };
 }
