@@ -90,6 +90,13 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     const uncamera = camera.subscribe(draw);
     draw();
 
+    // A texture file that was missing is tried again when the window regains focus, so putting
+    // it back brings the texture without a reopen (epic 18 story 3).
+    const refocus = () => {
+      if (textures.retryMissing()) draw();
+    };
+    window.addEventListener('focus', refocus);
+
     // Space held pans by dragging: the one held-gesture key (CLAUDE.md), so a stroke can pan
     let spaceHeld = false;
     let panFrom: { x: number; y: number } | null = null;
@@ -163,6 +170,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       for (const [type, f] of handlers) wrap.removeEventListener(type, f as EventListener);
       wrap.removeEventListener('pointerleave', leave);
       wrap.removeEventListener('wheel', wheel);
+      window.removeEventListener('focus', refocus);
       window.removeEventListener('keydown', keydown);
       window.removeEventListener('keyup', keyup);
       unsubscribe();

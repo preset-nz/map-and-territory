@@ -19,6 +19,8 @@ export interface TextureLoader {
   status(path: string): TextureStatus | undefined;
   /** Forget a path so the next `want` tries again (the file may have come back). */
   retry(path: string): void;
+  /** Forget every path that failed to load. True when there were any, so the caller redraws. */
+  retryMissing(): boolean;
 }
 
 /** The paths freeform layers in a frame refer to. */
@@ -55,6 +57,15 @@ export function createTextureLoader(deps: TextureLoaderDeps): TextureLoader {
     status: (path) => known.get(path),
     retry(path) {
       if (known.get(path) === 'missing') known.delete(path);
+    },
+    retryMissing() {
+      let any = false;
+      for (const [path, status] of known) {
+        if (status !== 'missing') continue;
+        known.delete(path);
+        any = true;
+      }
+      return any;
     },
   };
 }

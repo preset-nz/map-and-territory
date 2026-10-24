@@ -1,5 +1,7 @@
 // The right panel: a facets panel over the selected node's kind (epic 03). Edits are
 // `value.set` through the channel; a slider or number drag is one gesture, so one undo step.
+
+import { useDocument } from '@preset.nz/app-kit';
 import {
   PropertyPanel,
   registerBuiltinRenderers,
@@ -9,15 +11,27 @@ import {
 import { type Channel, type Mirror, useMirror, useNode } from '@preset.nz/pom';
 import { useMemo } from 'react';
 import { useChannel } from '../document';
+import { setDocumentFolder } from '../files';
 import { CAMPAIGN_PATH } from '../scene/frame';
 import { selection } from '../selection';
-import { label, readValues, schemaFor, type ValueInfo, writeValue } from './schema';
+import {
+  fileRefCommand,
+  label,
+  messageOf,
+  readRefs,
+  readValues,
+  schemaFor,
+  type ValueInfo,
+  writeValue,
+} from './schema';
 
 registerBuiltinRenderers();
 
 interface Ctx {
   mirror: Mirror;
   channel: Channel;
+  /** The campaign file's folder: a change to it re-reads the file fields' Missing check. */
+  folder?: string | null;
 }
 interface Target {
   id: string;
@@ -28,17 +42,36 @@ const scopeKey = (type: string) => `inspector:${type}`;
 const infoOf = (mirror: Mirror, type: string): ValueInfo[] =>
   (mirror.schema.types.find((t) => t.name === type)?.values ?? []) as ValueInfo[];
 
+const refsOf = (mirror: Mirror, type: string): string[] =>
+  mirror.schema.types.find((t) => t.name === type)?.refs ?? [];
+
 const tokens = new Map<string, Promise<number>>();
 
-function scopeOf(info: ValueInfo[]): Scope<Target, Record<string, unknown>> {
+export function scopeOf(
+  type: string,
+  info: ValueInfo[],
+  refs: string[],
+): Scope<Target, Record<string, unknown>> {
   const byKey = new Map(info.map((v) => [v.key, v]));
   const pathOf = (id: string, ctx: Ctx) => ctx.mirror.node(id)?.path;
   return {
-    schema: schemaFor(info),
-    read: (t, ctx: Ctx) => readValues(ctx.mirror.node(t.id)?.values, info),
+    schema: schemaFor(info, refs, type),
+    read: (t, ctx: Ctx) => {
+      const node = ctx.mirror.node(t.id);
+      return { ...readValues(node?.values, info), ...readRefs(node?.refs, refs, type) };
+    },
     write: (key, value, t, ctx: Ctx) => {
       const at = pathOf(t.id, ctx);
       if (!at) return;
+      const command = fileRefCommand(type, key);
+      if (command) {
+        // A file field: the command checks the file, and its refusal (not an image, too
+        // large, unreadable) comes back to the field as its message. An empty value clears.
+        return ctx.channel.run(command, { at, file: value || null }).then(
+          () => undefined,
+          (e) => ({ error: messageOf(e) }),
+        );
+      }
       ctx.channel
         .run('value.set', { at, key, value: writeValue(byKey.get(key), value) })
         .catch((e) => console.error('[inspector] value.set refused', e));
@@ -70,14 +103,21 @@ export function Inspector() {
   const channel = useChannel();
   const id = useSelectedId();
   const row = useNode(id);
-  const ctx = useMemo<Ctx>(() => ({ mirror, channel }), [mirror, channel]);
+  // File fields resolve a relative path against the campaign file's folder. Set during render so
+  // it is current before the fields below read it; a new folder gives a new ctx, so they re-check.
+  const documentPath = useDocument()?.path ?? null;
+  setDocumentFolder(documentPath);
+  const ctx = useMemo<Ctx>(
+    () => ({ mirror, channel, folder: documentPath }),
+    [mirror, channel, documentPath],
+  );
 
   const type = row?.type;
   const registered = useMemo(() => {
     if (!type) return null;
     const info = infoOf(mirror, type);
     if (info.length === 0) return null;
-    registerScope(scopeKey(type), scopeOf(info));
+    registerScope(scopeKey(type), scopeOf(type, info, refsOf(mirror, type)));
     return type;
   }, [mirror, type, mirror.schema]);
 

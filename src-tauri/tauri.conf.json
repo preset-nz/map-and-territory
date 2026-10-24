@@ -15,7 +15,7 @@
         "title": "Map & Territory",
         "width": 900,
         "height": 640,
-        "dragDropEnabled": false
+        "dragDropEnabled": true
       }
     ],
     "security": {

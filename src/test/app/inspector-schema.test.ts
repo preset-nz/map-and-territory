@@ -1,4 +1,12 @@
-import { fieldFor, parseColour, readValues, schemaFor, writeValue } from '@/app/inspector/schema';
+import {
+  fieldFor,
+  messageOf,
+  parseColour,
+  readRefs,
+  readValues,
+  schemaFor,
+  writeValue,
+} from '@/app/inspector/schema';
 
 describe('the inspector schema', () => {
   it('maps each value kind to a field', () => {
@@ -55,5 +63,65 @@ describe('the inspector schema', () => {
     expect(readValues({ c: [1, 0, 0, 1] }, info)).toEqual({ c: '#ff0000' });
     expect(writeValue(info[0], '#ff0000')).toEqual([1, 0, 0, 1]);
     expect(writeValue({ key: 'n', kind: 'float' }, 3)).toBe(3);
+  });
+
+  describe('the freeform texture', () => {
+    const values = [
+      { key: 'renderMode', kind: 'choice', choices: ['paint', 'texture-fill'] },
+      { key: 'textureFillInvert', kind: 'bool' },
+      { key: 'textureScale', kind: 'float', range: [0.05, 8] },
+      { key: 'opacity', kind: 'float', range: [0, 1] },
+    ];
+    const rows = schemaFor(values, ['texture', 'palette'], 'freeform').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as {
+        kind: string;
+        label: string;
+        recentKey?: string;
+        filters?: unknown;
+        title?: string;
+        disabledWhen?: unknown;
+      };
+
+    it('is a file field with its recent key, filters and title, after the render mode', () => {
+      expect(byId('texture')).toMatchObject({
+        kind: 'file',
+        label: 'Texture',
+        recentKey: 'texture',
+        title: 'Choose a Texture',
+        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+      });
+      const ids = rows.map((r) => (r as { id: string }).id);
+      expect(ids.slice(0, 2)).toEqual(['renderMode', 'texture']);
+      // a reference without a file field (the palette) draws nothing
+      expect(ids).not.toContain('palette');
+    });
+
+    it('is enabled only in texture-fill mode, like the texture values', () => {
+      const off = { path: 'renderMode', notEquals: 'texture-fill' };
+      expect(byId('texture').disabledWhen).toEqual(off);
+      expect(byId('textureFillInvert').disabledWhen).toEqual(off);
+      expect(byId('textureScale').disabledWhen).toEqual(off);
+      expect(byId('renderMode').disabledWhen).toBeUndefined();
+      expect(byId('opacity').disabledWhen).toBeUndefined();
+    });
+
+    it('gives other kinds no file field and no enablement', () => {
+      expect(schemaFor(values, ['texture'], 'outline').groups[0]?.rows).toHaveLength(4);
+      expect(byId('textureScale')).toBeDefined();
+    });
+
+    it('reads the path as written, or null when unset', () => {
+      expect(readRefs({ texture: { file: 'maps/a.png' } }, ['texture'], 'freeform')).toEqual({
+        texture: 'maps/a.png',
+      });
+      expect(readRefs(undefined, ['texture', 'palette'], 'freeform')).toEqual({ texture: null });
+    });
+
+    it('finds the words of a refusal', () => {
+      expect(messageOf('not an image')).toBe('not an image');
+      expect(messageOf(new Error('too big'))).toBe('too big');
+      expect(messageOf({ message: 'unreadable' })).toBe('unreadable');
+    });
   });
 });

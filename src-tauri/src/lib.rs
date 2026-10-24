@@ -64,6 +64,14 @@ pub fn run() {
             preset_app_kit::app_kit_undo,
             preset_app_kit::app_kit_redo,
             preset_app_kit::app_kit_text_menu,
+            // Path fields (the inspector's file fields): recents, the Open dialog, Reveal,
+            // Missing, and the Reveal/Clear menu.
+            preset_app_kit::app_kit_recent_paths,
+            preset_app_kit::app_kit_remember_path,
+            preset_app_kit::app_kit_pick_file,
+            preset_app_kit::app_kit_reveal_path,
+            preset_app_kit::app_kit_paths_exist,
+            preset_app_kit::app_kit_path_field_menu,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -57,4 +57,21 @@ describe('texture loader', () => {
     await tick();
     expect(send).toHaveBeenCalledTimes(1);
   });
+
+  it('retries every missing path when told, and says whether there were any', async () => {
+    const load = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('gone'))
+      .mockResolvedValue(new ArrayBuffer(1));
+    const send = vi.fn();
+    const loader = createTextureLoader({ load, decode: async () => ({}) as ImageBitmap, send });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    loader.want(frame('a.png'));
+    await tick();
+    expect(loader.retryMissing()).toBe(true);
+    loader.want(frame('a.png'));
+    await tick();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(loader.retryMissing()).toBe(false);
+  });
 });

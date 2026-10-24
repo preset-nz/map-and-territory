@@ -35,4 +35,6 @@ Freeform is the layer you paint by hand. Each painted hex takes the colour of a 
 
 Add one from the Layer menu, then use the Paint, Erase and Fill tools (keys 1, 2 and 3) on the map. Use a separate Freeform layer for each kind of thing you may want to hide or reorder later, such as coastline, roads and settlements.
 
-Texture fill is partly built. The layer stores a path to an image and can draw it through the painted hexes, but there is no picker for the image in the inspector yet.
+Texture fill shows an image through the painted hexes. Set Render mode to Texture fill, then choose the image in Texture: type or paste a path, pick from the list of recent ones, use the browse button, or drop the file from the Finder onto the field. The layer keeps the path as you wrote it; a relative path is found from the folder the campaign is saved in. PNG, JPEG and WebP work, up to 16 MB and 4096 pixels on a side. The Texture controls stay greyed out while the layer paints.
+
+If the image has moved or been renamed, the field says Missing and the layer draws no texture. Put the file back and return to the window, and the texture comes back without reopening the campaign.

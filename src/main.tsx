@@ -3,7 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ChannelProvider } from './app/document';
+import { installFileFields } from './app/files';
 import './index.css';
+
+installFileFields();
 
 // The document lives in Rust; this is the webview's read-only copy of it, made once at launch
 // and outside React, so StrictMode's double mount can't make a second one. App starts it.
