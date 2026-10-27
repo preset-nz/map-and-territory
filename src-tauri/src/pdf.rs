@@ -98,21 +98,32 @@ fn deflate(bytes: &[u8]) -> Result<Vec<u8>, String> {
     z.finish().map_err(|e| e.to_string())
 }
 
+/// The black rule around the map, in points: 0.3 mm (Georg, 2026-10-28). Drawn inside the
+/// map's rectangle, as the screen's paper edge is, so the margins measure the same.
+const BORDER_PT: f64 = 0.3 * 72.0 / 25.4;
+
 /// A one-page PDF: white, `layout.page_w × page_h` points, `png` placed at the layout's
-/// rectangle.
+/// rectangle with a thin black border.
 pub fn build_pdf(png: &[u8], layout: &PdfLayout) -> Result<Vec<u8>, String> {
     let (iw, ih, rgb) = decode_rgb(png)?;
     let image = deflate(&rgb)?;
     // PDF's y axis is bottom-up: the rectangle's bottom edge is page height minus its lower edge.
     let bottom = layout.page_h - (layout.y + layout.h);
+    let half = BORDER_PT / 2.0;
     let content = format!(
-        "1 1 1 rg\n0 0 {pw} {ph} re f\nq\n{w} 0 0 {h} {x} {y} cm\n/Im0 Do\nQ\n",
+        "1 1 1 rg\n0 0 {pw} {ph} re f\nq\n{w} 0 0 {h} {x} {y} cm\n/Im0 Do\nQ\n\
+         0 0 0 RG\n{lw} w\n{bx} {by} {bw} {bh} re S\n",
         pw = num(layout.page_w),
         ph = num(layout.page_h),
         w = num(layout.w),
         h = num(layout.h),
         x = num(layout.x),
         y = num(bottom),
+        lw = num(BORDER_PT),
+        bx = num(layout.x + half),
+        by = num(bottom + half),
+        bw = num((layout.w - BORDER_PT).max(0.0)),
+        bh = num((layout.h - BORDER_PT).max(0.0)),
     );
 
     let mut out: Vec<u8> = b"%PDF-1.4\n%\xE2\xE3\xCF\xD3\n".to_vec();
@@ -245,6 +256,41 @@ mod tests {
         assert!((cm[5] + cm[3] - (l.page_h - l.y)).abs() < 0.002);
         assert!(s.contains("/Subtype /Image /Width 2 /Height 1"));
         assert!(s.contains("/Filter /FlateDecode"));
+    }
+
+    #[test]
+    fn a_black_border_sits_inside_the_map_after_the_image() {
+        let pdf = build_pdf(&tiny_png(), &layout()).unwrap();
+        let s = text(&pdf);
+        let image_at = s.find("/Im0 Do").unwrap();
+        let rule_at = s.find("0 0 0 RG\n").expect("a black stroke");
+        assert!(rule_at > image_at, "the border is drawn over the image");
+        let (width, rest) = s[rule_at + "0 0 0 RG\n".len()..]
+            .split_once(" w\n")
+            .unwrap();
+        let width: f64 = width.parse().unwrap();
+        assert!(
+            (width - 0.3 * 72.0 / 25.4).abs() < 0.001,
+            "0.3 mm, got {width}"
+        );
+        let re: Vec<f64> = rest
+            .split(" re S")
+            .next()
+            .unwrap()
+            .split_whitespace()
+            .map(|n| n.parse().unwrap())
+            .collect();
+        let l = layout();
+        let bottom = l.page_h - (l.y + l.h);
+        let want = [
+            l.x + width / 2.0,
+            bottom + width / 2.0,
+            l.w - width,
+            l.h - width,
+        ];
+        for (got, want) in re.iter().zip(want) {
+            assert!((got - want).abs() < 0.002, "{re:?} vs {want:?}");
+        }
     }
 
     #[test]
