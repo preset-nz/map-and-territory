@@ -3,7 +3,7 @@
 // gets its panel from its declaration; the bridge in `@preset.nz/pom` (design pom.md, "The
 // facets bridge") replaces this when it is built. Values with a shape (paths, voxels, terrain
 // lists) have no field and are left to their tools.
-import type { DisabledWhen, FieldDef, FileFilter, PropertySchema } from '@preset.nz/facets';
+import type { DisabledWhenAny, FieldDef, FileFilter, PropertySchema } from '@preset.nz/facets';
 import { cssColour } from '../scene/colour';
 
 export interface ValueInfo {
@@ -90,7 +90,7 @@ function disabledWhen(
   type: string,
   key: string,
   values: readonly ValueInfo[],
-): DisabledWhen | undefined {
+): DisabledWhenAny | undefined {
   if (type === 'image' && IMAGE_PLACING.has(key)) {
     // nothing to fit, scale, move or turn until an image is set
     return { path: 'file', equals: null };
@@ -111,8 +111,11 @@ function disabledWhen(
     type === 'hexgrid' &&
     (key === 'widthNoise' || key === 'noiseScale' || key === 'joinCorners')
   ) {
-    // width noise is drawn on solid lines only
-    return { path: 'lineStyle', notEquals: 'solid' };
+    // width noise is drawn on solid lines only, and a hairline has no width to vary
+    return [
+      { path: 'lineStyle', notEquals: 'solid' },
+      { path: 'hairline', equals: true },
+    ];
   }
   if (type === 'paper' && /^texture[A-Z]/.test(key) && values.some((v) => v.key === key)) {
     // nothing to blend, fit or scale until an image is set

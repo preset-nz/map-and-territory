@@ -257,7 +257,7 @@ describe('the inspector schema', () => {
     expect(byId('lineStyle').disabledWhen).toBeUndefined();
   });
 
-  it("greys the grid's width noise fields unless the line is solid", () => {
+  it("greys the grid's width noise fields unless the line is solid, and on a hairline", () => {
     const values = [
       { key: 'lineStyle', kind: 'choice', choices: ['solid', 'dashed', 'dotted', 'dash-dot'] },
       { key: 'widthNoise', kind: 'float' },
@@ -267,10 +267,13 @@ describe('the inspector schema', () => {
     const rows = schemaFor(values, [], 'hexgrid').groups[0]?.rows ?? [];
     const byId = (id: string) =>
       rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
-    const notSolid = { path: 'lineStyle', notEquals: 'solid' };
-    expect(byId('widthNoise').disabledWhen).toEqual(notSolid);
-    expect(byId('noiseScale').disabledWhen).toEqual(notSolid);
-    expect(byId('joinCorners').disabledWhen).toEqual(notSolid);
+    const moot = [
+      { path: 'lineStyle', notEquals: 'solid' },
+      { path: 'hairline', equals: true },
+    ];
+    expect(byId('widthNoise').disabledWhen).toEqual(moot);
+    expect(byId('noiseScale').disabledWhen).toEqual(moot);
+    expect(byId('joinCorners').disabledWhen).toEqual(moot);
     expect(byId('lineStyle').disabledWhen).toBeUndefined();
   });
 });
