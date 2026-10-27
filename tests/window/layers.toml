@@ -88,3 +88,14 @@ steps = [
   { window_title = "orlo.campaign" },
   { expect = "Edit > #1", title = "Undo", enabled = false },
 ]
+
+[[test]]
+name = "export needs a map"
+covers = "export 2.1"
+steps = [
+  { expect = "File > Export > Map as PNG…", enabled = false },
+  { expect = "File > Export > PDF…", enabled = false },
+  { menu = "Map > New Map" },
+  { expect = "File > Export > Map as PNG…", enabled = true },
+  { expect = "File > Export > PDF…", enabled = true },
+]

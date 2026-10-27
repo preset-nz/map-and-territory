@@ -258,6 +258,14 @@ mod tests {
         assert!(s.contains("/Filter /FlateDecode"));
     }
 
+    /// Writes the test PDF to `$OUT_PDF`, to open in a viewer (export plan 3.4).
+    #[test]
+    #[ignore = "writes the test PDF to $OUT_PDF"]
+    fn write_a_pdf() {
+        let out = std::env::var("OUT_PDF").expect("OUT_PDF");
+        std::fs::write(out, build_pdf(&tiny_png(), &layout()).unwrap()).unwrap();
+    }
+
     #[test]
     fn a_black_border_sits_inside_the_map_after_the_image() {
         let pdf = build_pdf(&tiny_png(), &layout()).unwrap();
