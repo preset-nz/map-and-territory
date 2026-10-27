@@ -57,6 +57,7 @@ function makeEnv(
   return {
     zoom: 1,
     pixelRatio: 1,
+    deviceScale: 1,
     size: { w, h },
     paperRect: { x: 0, y: 0, w, h },
     camera: { x: 0, y: 0, zoom: 1 },

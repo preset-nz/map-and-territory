@@ -300,6 +300,11 @@ pub fn declare(k: &mut Kinds) {
                     .described("Line width", "How thick the grid lines are.")
                     .unit("px"),
             )
+            .bool("hairline", false)
+            .described(
+                "Hairline",
+                "Always the thinnest line the output can draw: one screen pixel at any zoom, one pixel of the 300 dpi export on paper. Line width and width noise don't apply.",
+            )
             .choice("lineStyle", LINE_STYLES, "solid")
             .described(
                 "Line style",

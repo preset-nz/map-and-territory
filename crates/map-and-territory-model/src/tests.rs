@@ -282,6 +282,7 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert_eq!(g.value("orientation"), Some(Value::Choice("pointy".into())));
     assert_eq!(g.value("usePaletteColor"), Some(Value::Bool(true)));
     assert_eq!(g.value("lineWidth"), Some(Value::Float(1.0)));
+    assert_eq!(g.value("hairline"), Some(Value::Bool(false)));
     assert_eq!(g.value("lineStyle"), Some(Value::Choice("solid".into())));
     assert_eq!(g.value("dashLength"), Some(Value::Float(4.0)));
     assert_eq!(g.value("gapLength"), Some(Value::Float(2.0)));
@@ -299,6 +300,7 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     set(&mut d, &grid, "size", json!(120.0)).unwrap();
     set(&mut d, &grid, "orientation", json!("flat")).unwrap();
     set(&mut d, &grid, "lineWidth", json!(8.0)).unwrap();
+    set(&mut d, &grid, "hairline", json!(true)).unwrap();
     set(&mut d, &grid, "alpha", json!(0.5)).unwrap();
     set(&mut d, &grid, "lineStyle", json!("dash-dot")).unwrap();
     set(&mut d, &grid, "dashLength", json!(1.0)).unwrap();
@@ -316,6 +318,7 @@ fn value_set_on_hexgrid_within_and_outside_range() {
     assert!(set(&mut d, &grid, "size", json!(7.0)).is_err());
     assert!(set(&mut d, &grid, "lineWidth", json!(0.5)).is_err());
     assert!(set(&mut d, &grid, "alpha", json!(1.5)).is_err());
+    assert!(set(&mut d, &grid, "hairline", json!("yes")).is_err());
     assert!(set(&mut d, &grid, "lineStyle", json!("wavy")).is_err());
     assert!(set(&mut d, &grid, "dashLength", json!(0.5)).is_err());
     assert!(set(&mut d, &grid, "gapLength", json!(0.4)).is_err());
@@ -343,7 +346,8 @@ fn value_set_on_hexgrid_within_and_outside_range() {
 }
 
 #[test]
-fn a_campaign_saved_before_line_styles_jitter_width_noise_and_ink_noise_opens_with_the_defaults() {
+fn a_campaign_saved_before_line_styles_jitter_width_noise_ink_noise_and_hairline_opens_with_the_defaults(
+) {
     let store = MemoryStore::default();
     let mut d = Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap();
     let map = add_map(&mut d);
@@ -355,6 +359,7 @@ fn a_campaign_saved_before_line_styles_jitter_width_noise_and_ink_noise_opens_wi
     let saved = store.get("/old.campaign").unwrap();
     assert!(saved.contains("lineWidth"), "the edit is in the file");
     for k in [
+        "hairline",
         "lineStyle",
         "dashLength",
         "gapLength",
@@ -373,6 +378,7 @@ fn a_campaign_saved_before_line_styles_jitter_width_noise_and_ink_noise_opens_wi
     let (d, _report) = Document::<MapAndTerritory>::open(store, "/old.campaign").unwrap();
     let g = d.tree().at(format!("{map}/hexgrid").as_str()).unwrap();
     assert_eq!(g.value("lineWidth"), Some(Value::Float(3.0)));
+    assert_eq!(g.value("hairline"), Some(Value::Bool(false)));
     assert_eq!(g.value("lineStyle"), Some(Value::Choice("solid".into())));
     assert_eq!(g.value("dashLength"), Some(Value::Float(4.0)));
     assert_eq!(g.value("gapLength"), Some(Value::Float(2.0)));

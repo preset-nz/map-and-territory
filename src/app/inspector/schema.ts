@@ -99,6 +99,10 @@ function disabledWhen(
     // the palette's line colour wins while it is on
     return { path: 'usePaletteColor', equals: true };
   }
+  if (type === 'hexgrid' && key === 'lineWidth') {
+    // a hairline is always one device pixel, whatever the width says
+    return { path: 'hairline', equals: true };
+  }
   if (type === 'hexgrid' && (key === 'dashLength' || key === 'gapLength')) {
     // a solid line has no marks to space
     return { path: 'lineStyle', equals: 'solid' };

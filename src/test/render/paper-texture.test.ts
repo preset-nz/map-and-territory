@@ -7,6 +7,7 @@ import type { SceneFrame } from '@/render/types';
 const env = (textures?: Map<string, ImageBitmap>): RenderEnv => ({
   zoom: 1,
   pixelRatio: 1,
+  deviceScale: 1,
   size: { w: 200, h: 100 },
   paperRect: { x: 0, y: 0, w: 200, h: 100 },
   camera: { x: 0, y: 0, zoom: 1 },

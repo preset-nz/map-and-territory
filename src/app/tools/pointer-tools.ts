@@ -48,22 +48,18 @@ export function fillRegion(
 }
 
 import { toPoint } from '@/lib/hex/layout';
-import { computePaperRect, type PaperAspect } from '@/render/geometry';
+import { type PaperAspect, paperView } from '@/render/geometry';
 
-/** A hex centre in canvas pixels, or null with no grid. */
+/** A hex centre in canvas pixels at zoom 1, or null with no grid. */
 function hexCentre(frame: SceneFrame, q: number, r: number): { x: number; y: number } | null {
   const grid = gridOf(frame);
   if (!grid) return null;
-  const paper = computePaperRect({
-    canvasSize: frame.size,
-    paper: { aspect: frame.paper.aspect as PaperAspect },
-  });
-  const c = toPoint({ q, r }, { ...grid, origin: { x: paper.w / 2, y: paper.h / 2 } });
-  const x = paper.x + c.x;
-  const y = paper.y + c.y;
-  return x < paper.x || y < paper.y || x > paper.x + paper.w || y > paper.y + paper.h
-    ? null
-    : { x, y };
+  const { rect, size, fit } = paperView(frame.size, frame.paper.aspect as PaperAspect);
+  const c = toPoint({ q, r }, { ...grid, origin: { x: size.w / 2, y: size.h / 2 } });
+  // paper px to canvas px: the fit, from the paper's corner
+  const x = rect.x + c.x * fit;
+  const y = rect.y + c.y * fit;
+  return x < rect.x || y < rect.y || x > rect.x + rect.w || y > rect.y + rect.h ? null : { x, y };
 }
 
 /** The selected layer's id and path, when it is an outline layer. */
@@ -98,11 +94,8 @@ function outlineEvent(
 }
 
 function layoutOf(frame: SceneFrame, grid: NonNullable<ReturnType<typeof gridOf>>) {
-  const paper = computePaperRect({
-    canvasSize: frame.size,
-    paper: { aspect: frame.paper.aspect as PaperAspect },
-  });
-  return { ...grid, origin: { x: paper.w / 2, y: paper.h / 2 } };
+  const { size } = paperView(frame.size, frame.paper.aspect as PaperAspect);
+  return { ...grid, origin: { x: size.w / 2, y: size.h / 2 } };
 }
 
 export function useToolPointer(): OnPointer {

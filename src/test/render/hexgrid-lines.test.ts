@@ -23,6 +23,7 @@ import type { RenderEnv } from '@/layers/types';
 const env = (w = 120, h = 100): RenderEnv => ({
   zoom: 1,
   pixelRatio: 1,
+  deviceScale: 1,
   size: { w, h },
   paperRect: { x: 0, y: 0, w, h },
   camera: { x: 0, y: 0, zoom: 1 },
@@ -146,6 +147,19 @@ describe('hexgrid edges', () => {
     expect(c.lineDashOffset).toBe(plan.offset);
     expect(c.stroke).toHaveBeenCalledTimes(1);
   });
+
+  // epic 07 story 6: a hairline's dashes keep the rhythm of a 1 paper px line
+  it('fits a hairline dash as if the line were 1 paper px wide', () => {
+    const c = ctx();
+    const at = { ...env(), deviceScale: 6 };
+    HexgridAdapter.drawMain?.(
+      c,
+      state({ lineStyle: 'dashed', hairline: true, lineWidth: 4, dashLength: 4, gapLength: 2 }),
+      at,
+    );
+    expect(c.lineWidth).toBeCloseTo(1 / 6);
+    expect(c.setLineDash).toHaveBeenCalledWith(fitDashPattern('dashed', 4, 2, 1, 20).pattern);
+  });
 });
 
 describe('fitDashPattern', () => {
@@ -197,6 +211,7 @@ describe('hexgrid invalidation key', () => {
     expect(HexgridAdapter.getInvalidationKey({ ...base, lineStyle: 'dashed' })).not.toEqual(k);
     expect(HexgridAdapter.getInvalidationKey({ ...base, dashLength: 5 })).not.toEqual(k);
     expect(HexgridAdapter.getInvalidationKey({ ...base, gapLength: 3 })).not.toEqual(k);
+    expect(HexgridAdapter.getInvalidationKey({ ...base, hairline: true })).not.toEqual(k);
   });
 });
 

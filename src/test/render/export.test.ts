@@ -3,11 +3,13 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { layoutPage } from '@/app/export/layout';
 import {
   exportActiveMap,
+  exportFrame,
   exportSize,
   renderMapForExport,
   setMapExporter,
 } from '@/app/export/render';
 import { registerBuiltinLayers } from '@/layers/builtin';
+import { resetInkMask } from '@/layers/ink-noise';
 import { registerLayerType } from '@/layers/registry';
 import type { RenderEnv } from '@/layers/types';
 import { Canvas2DBackend } from '@/render/backends/canvas2d';
@@ -17,7 +19,10 @@ import type { RenderMessage, SceneFrame } from '@/render/types';
 
 type Op = [string, ...unknown[]];
 
-/** A 2D context that logs every call; `getTransform` gives back the last transform set. */
+/**
+ * A 2D context that logs every call and every line width set; `getTransform` gives back the
+ * last transform set.
+ */
 function recordingCtx(canvas: { width: number; height: number } = { width: 1, height: 1 }) {
   const log: Op[] = [];
   const props: Record<string | symbol, unknown> = {
@@ -45,6 +50,7 @@ function recordingCtx(canvas: { width: number; height: number } = { width: 1, he
       };
     },
     set(target, key, value) {
+      if (key === 'lineWidth') log.push(['lineWidth', value]);
       target[key] = value;
       return true;
     },
@@ -131,8 +137,9 @@ describe('export render', () => {
     expect(env.zoom).toBe(1);
     expect(env.size).toEqual(LOGICAL);
     expect(env.paperRect).toEqual({ x: 0, y: 0, ...LOGICAL });
-    // the screen's pixel ratio, so line widths divided by it scale with the rest
+    // a device pixel is out / logical paper px, whatever the screen's pixel ratio
     expect(env.pixelRatio).toBe(2);
+    expect(env.deviceScale).toBe(3);
     const transforms = log.filter((o) => o[0] === 'setTransform');
     expect(transforms[0]).toEqual(['setTransform', 1, 0, 0, 1, 0, 0]);
     expect(transforms[1]).toEqual(['setTransform', 3, 0, 0, 3, 0, 0]);
@@ -181,6 +188,58 @@ describe('export render', () => {
     const plan = vi.spyOn(planner, 'plan');
     exportAt(2, frame(), backend);
     expect(plan).not.toHaveBeenCalled();
+  });
+});
+
+// epic 07 story 6: the export draws the map's paper size, not the window's
+describe('export independent of the window', () => {
+  const inWindow = (size: { w: number; h: number }, pixelRatio: number) =>
+    frame({ size, pixelRatio, camera: { x: 0, y: 0, zoom: 1 } });
+
+  it("exports at the map's paper size, whatever the window", () => {
+    const a = exportFrame(inWindow({ w: 900, h: 700 }, 2));
+    const b = exportFrame(inWindow({ w: 2200, h: 1300 }, 1));
+    expect(a.logical).toEqual({ w: 1200, h: 750 });
+    expect(b.logical).toEqual(a.logical);
+    expect(exportFrame(frame({ paper: { aspect: 'square', color: '#fff' } })).logical).toEqual({
+      w: 1200,
+      h: 1200,
+    });
+    // the camera is dropped: the export is at Fit
+    expect(exportFrame(frame()).frame.camera).toEqual({ x: 0, y: 0, zoom: 1 });
+  });
+
+  it('draws the same calls from two window sizes and pixel ratios', () => {
+    const draw = (f: SceneFrame) => {
+      const { frame: atFit, logical } = exportFrame(f);
+      const out = { w: 600, h: 375 };
+      const { ctx, log } = recordingCtx({ width: out.w, height: out.h });
+      // ink noise draws its lines into a scratch canvas, kept across draws: its calls count too
+      for (const c of FakeCanvas.made) c.rec.log.length = 0;
+      new Canvas2DBackend().renderExport(ctx, atFit, logical, out);
+      const scratches = FakeCanvas.made.flatMap((c) => c.rec.log);
+      return [...log, ...scratches].filter((o) => o[0] !== 'drawImage');
+    };
+    const grids = [
+      { lineWidth: 2 },
+      { hairline: true, lineStyle: 'dashed' },
+      { widthNoise: 0.5, inkNoise: 0.5 },
+    ];
+    for (const grid of grids) {
+      const at = (size: { w: number; h: number }, pixelRatio: number) => {
+        const f = inWindow(size, pixelRatio);
+        const layers = f.layers.map((l) =>
+          l.type === 'hexgrid' ? { ...l, state: { ...(l.state as object), ...grid } } : l,
+        );
+        return draw({ ...f, layers });
+      };
+      // the first draw builds the ink mask and scratch, which later draws reuse
+      resetInkMask();
+      at({ w: 900, h: 700 }, 2);
+      const a = at({ w: 900, h: 700 }, 2);
+      expect(a.length).toBeGreaterThan(50);
+      expect(at({ w: 2200, h: 1300 }, 1)).toEqual(a);
+    }
   });
 });
 

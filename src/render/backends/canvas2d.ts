@@ -1,7 +1,7 @@
 import { getLayerType } from '@/layers/registry';
 import type { RenderEnv } from '@/layers/types';
 import { layerComposite } from '@/render/composite';
-import { computePaperRect } from '@/render/geometry';
+import { type PaperAspect, paperView } from '@/render/geometry';
 import { gridEnv } from '@/render/grid-env';
 import { PrefixPlanner } from '@/render/prefixCache';
 import type { RenderBackend, SceneFrame } from '@/render/types';
@@ -93,23 +93,27 @@ export class Canvas2DBackend implements RenderBackend {
     // Now draw in CSS pixels by applying dpr transform
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const paperRect = computePaperRect({ canvasSize: { w: cw, h: ch }, paper: frame.paper });
+    const view = paperView({ w: cw, h: ch }, frame.paper.aspect as PaperAspect);
+    const paperRect = view.rect;
+    if (view.fit <= 0) return;
+    const zoom = frame.camera.zoom || 1;
 
     // Clip to paper
     ctx.save();
     ctx.beginPath();
     ctx.rect(paperRect.x, paperRect.y, paperRect.w, paperRect.h);
     ctx.clip();
-    // Transform origin to paper top-left and apply camera
+    // Origin at the paper's top-left, paper px scaled to fit the view, then the camera
     ctx.translate(paperRect.x, paperRect.y);
-    ctx.scale(frame.camera.zoom || 1, frame.camera.zoom || 1);
+    ctx.scale(view.fit * zoom, view.fit * zoom);
     ctx.translate(-(frame.camera.x || 0), -(frame.camera.y || 0));
 
     // Build env and delegate drawing to adapters in array order (bottom -> top)
     const envLocal: RenderEnv = {
-      zoom: frame.camera.zoom || 1,
+      zoom,
       pixelRatio: dpr,
-      size: { w: paperRect.w, h: paperRect.h },
+      deviceScale: dpr * view.fit * zoom,
+      size: view.size,
       paperRect,
       camera: frame.camera,
       palette: frame.palette,
@@ -151,10 +155,10 @@ export class Canvas2DBackend implements RenderBackend {
   }
 
   /**
-   * The map alone at print size (epic 07 story 3): paper space `logical` (CSS px, what the
-   * screen shows at Fit) scaled into `out` device px. Camera at 1x, no paper edge, no prefix
-   * cache; the textures are the ones this backend already holds. `env.pixelRatio` stays the
-   * frame's, so line widths that adapters divide by it come out as the screen's, scaled.
+   * The map alone at print size (epic 07 story 3): paper space `logical` (the map's paper size,
+   * story 6) scaled into `out` device px. Camera at 1x, no paper edge, no prefix cache; the
+   * textures are the ones this backend already holds. Nothing drawn depends on the window: a
+   * device pixel is `out.w / logical.w` paper px, whatever the screen's pixel ratio.
    */
   renderExport(
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
@@ -177,6 +181,7 @@ export class Canvas2DBackend implements RenderBackend {
     const env: RenderEnv = {
       zoom: 1,
       pixelRatio: frame.pixelRatio || 1,
+      deviceScale: sx,
       size: { w: lw, h: lh },
       paperRect: { x: 0, y: 0, w: lw, h: lh },
       camera,

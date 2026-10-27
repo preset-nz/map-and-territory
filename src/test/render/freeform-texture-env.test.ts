@@ -5,6 +5,7 @@ import type { RenderEnv } from '@/layers/types';
 const env = (textures?: Map<string, ImageBitmap>): RenderEnv => ({
   zoom: 1,
   pixelRatio: 1,
+  deviceScale: 1,
   size: { w: 100, h: 100 },
   paperRect: { x: 0, y: 0, w: 100, h: 100 },
   camera: { x: 0, y: 0, zoom: 1 },

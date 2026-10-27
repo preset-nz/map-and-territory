@@ -63,7 +63,49 @@ export function computePaperRect({ canvasSize, paper, padding }: ComputePaperRec
   return { x: offsetX, y: offsetY, w: paperW, h: paperH };
 }
 
+/** The paper's long side in paper px (epic 07 story 6). */
+export const PAPER_LONG_SIDE = 1200;
+
+/**
+ * A map's paper in paper px, from its aspect alone: 1200 on the long side. Paper space is
+ * this, whatever the window: the screen and the export scale it, they never crop it.
+ */
+export function paperSize(aspect: PaperAspect): { w: number; h: number } {
+  const { aw, ah } = resolveAspectRatio(aspect);
+  return aw >= ah
+    ? { w: PAPER_LONG_SIDE, h: (PAPER_LONG_SIDE * ah) / aw }
+    : { w: (PAPER_LONG_SIDE * aw) / ah, h: PAPER_LONG_SIDE };
+}
+
+export interface PaperView {
+  /** Where the paper sits in the canvas, in CSS px. */
+  rect: PaperRect;
+  /** The paper in paper px. */
+  size: { w: number; h: number };
+  /** CSS px per paper px at zoom 1; 0 when the canvas has no room for the paper. */
+  fit: number;
+}
+
+/**
+ * The paper as a canvas shows it: its screen rect and the one scale from paper px into it.
+ * The backend, the camera's inputs, pointer-to-hex and the tools all go through this.
+ */
+export function paperView(canvasSize: { w: number; h: number }, aspect: PaperAspect): PaperView {
+  const rect = computePaperRect({ canvasSize, paper: { aspect } });
+  const size = paperSize(aspect);
+  const fit = rect.w > 0 && rect.h > 0 ? rect.w / size.w : 0;
+  return { rect, size, fit };
+}
+
+/** A point in canvas CSS px as paper px at zoom 1 from the paper's top-left: what the camera takes. */
+export function viewToFitted(view: PaperView, x: number, y: number): { x: number; y: number } {
+  const f = view.fit || 1;
+  return { x: (x - view.rect.x) / f, y: (y - view.rect.y) / f };
+}
+
 export const PaperGeometry = {
   computePaperRect,
+  paperSize,
+  paperView,
   resolveAspectRatio,
 } as const;

@@ -28,7 +28,8 @@ export interface HexgridState {
   color: string; // stroke color when not inheriting from palette
   usePaletteColor: boolean; // inherit color from active palette setting when true
   alpha?: number;
-  lineWidth?: number;
+  lineWidth?: number; // paper px
+  hairline?: boolean; // the thinnest line the output draws: one device px, lineWidth ignored
   lineStyle?: LineStyle; // missing is solid
   dashLength?: number; // in line widths
   gapLength?: number; // in line widths, the visible space between marks
@@ -50,15 +51,18 @@ const LENGTH_BIN = 0.25;
 
 let scratchCanvas: OffscreenCanvas | null = null;
 
-/** The ink-noise scratch, one per worker, as big as the canvas being drawn on. */
+/**
+ * The ink-noise scratch, one per worker, as big as the canvas being drawn on: it takes ctx's
+ * transform, so the paper lands on the same device pixels in it as in ctx.
+ */
 function scratchFor(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  dpr: number,
+  deviceScale: number,
 ): OffscreenCanvas | null {
-  const cw = ctx.canvas?.width || Math.ceil(w * dpr);
-  const ch = ctx.canvas?.height || Math.ceil(h * dpr);
+  const cw = ctx.canvas?.width || Math.ceil(w * deviceScale);
+  const ch = ctx.canvas?.height || Math.ceil(h * deviceScale);
   if (!scratchCanvas) scratchCanvas = makeSurface(cw, ch);
   else if (scratchCanvas.width !== cw || scratchCanvas.height !== ch) {
     scratchCanvas.width = cw;
@@ -81,10 +85,14 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
         ? color
         : paletteStroke;
     const a = alpha ?? 0.25;
-    const dpr = env.pixelRatio || 1;
+    const deviceScale = env.deviceScale || 1;
 
     const inkNoise = Math.min(1, Math.max(0, state.inkNoise ?? 0));
-    const lineW = Math.max(1, lineWidth ?? 1) / dpr;
+    // 1 px is 1 paper px on every display (epic 07 story 6). A hairline is one device pixel at
+    // any zoom, fit and pixel ratio; its dashes keep the rhythm of a 1 paper px line.
+    const hairline = state.hairline === true;
+    const lineW = hairline ? 1 / deviceScale : Math.max(1, lineWidth ?? 1);
+    const dashWidth = hairline ? 1 : lineW;
     const styleCtx = (c: CanvasRenderingContext2D, alpha: number) => {
       c.globalAlpha = alpha;
       c.strokeStyle = stroke;
@@ -117,7 +125,8 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
           }
         : undefined;
 
-    const widthNoise = Math.min(1, Math.max(0, state.widthNoise ?? 0));
+    // a hairline has no width to vary
+    const widthNoise = hairline ? 0 : Math.min(1, Math.max(0, state.widthNoise ?? 0));
 
     // The lines, in whatever ctx they go to: the layer's own, or the ink noise's scratch.
     const paintInk = (ctx: CanvasRenderingContext2D) => {
@@ -158,7 +167,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
         ctx.fill();
       } else if (style === 'solid' || jitter === 0) {
         // all edges are r long (the shift moves them together), so one pattern fits them all
-        const plan = fitDashPattern(style, dash, gap, ctx.lineWidth, r);
+        const plan = fitDashPattern(style, dash, gap, dashWidth, r);
         ctx.setLineDash(plan.pattern);
         ctx.lineDashOffset = plan.offset;
         ctx.beginPath();
@@ -184,7 +193,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
           }
         }
         for (const [bin, edges] of groups) {
-          const plan = fitDashPattern(style, dash, gap, ctx.lineWidth, bin * LENGTH_BIN);
+          const plan = fitDashPattern(style, dash, gap, dashWidth, bin * LENGTH_BIN);
           ctx.setLineDash(plan.pattern);
           ctx.lineDashOffset = plan.offset;
           ctx.beginPath();
@@ -210,14 +219,14 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
     // off them there, then lay the scratch on ctx once, at the layer's alpha. No canvas
     // (a test runner) or no 2D context: draw the lines plain.
     const mask = inkNoise > 0 ? getInkMask(ink) : null;
-    const scratch = mask ? scratchFor(ctx, w, h, dpr) : null;
+    const scratch = mask ? scratchFor(ctx, w, h, deviceScale) : null;
     const sctx = scratch?.getContext('2d') as CanvasRenderingContext2D | null | undefined;
     if (mask && scratch && sctx) {
       sctx.setTransform(1, 0, 0, 1, 0, 0);
       sctx.clearRect(0, 0, scratch.width, scratch.height);
-      // the same transform as ctx's: the camera and the pixel ratio
+      // the same transform as ctx's: the camera, the fit and the pixel ratio
       if (ctx.getTransform) sctx.setTransform(ctx.getTransform());
-      else sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      else sctx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
       sctx.save();
       styleCtx(sctx, 1);
       paintInk(sctx);
@@ -238,7 +247,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   getInvalidationKey(state) {
     const s = state;
     const colorKey = s.usePaletteColor ? 'palette' : s.color;
-    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}:${s.seed ?? 'grid'}:${s.misregistration ?? 0}:${s.cornerJitter ?? 0}:${s.widthNoise ?? 0}:${s.noiseScale ?? 24}:${s.joinCorners ?? true}:${s.inkNoise ?? 0}:${s.inkScale ?? 40}`;
+    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}:${s.hairline ?? false}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}:${s.seed ?? 'grid'}:${s.misregistration ?? 0}:${s.cornerJitter ?? 0}:${s.widthNoise ?? 0}:${s.noiseScale ?? 24}:${s.joinCorners ?? true}:${s.inkNoise ?? 0}:${s.inkScale ?? 40}`;
   },
 };
 
@@ -252,6 +261,7 @@ export const HexgridType = {
     usePaletteColor: true,
     alpha: 1,
     lineWidth: 1,
+    hairline: false,
     lineStyle: 'solid',
     dashLength: 4,
     gapLength: 2,

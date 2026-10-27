@@ -230,6 +230,18 @@ describe('the inspector schema', () => {
     expect(byId('usePaletteColor').disabledWhen).toBeUndefined();
   });
 
+  it("greys the grid's line width while Hairline is on", () => {
+    const values = [
+      { key: 'lineWidth', kind: 'float' },
+      { key: 'hairline', kind: 'bool' },
+    ];
+    const rows = schemaFor(values, [], 'hexgrid').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+    expect(byId('lineWidth').disabledWhen).toEqual({ path: 'hairline', equals: true });
+    expect(byId('hairline').disabledWhen).toBeUndefined();
+  });
+
   it("greys the grid's dash and gap lengths while the line is solid", () => {
     const values = [
       { key: 'lineStyle', kind: 'choice', choices: ['solid', 'dashed', 'dotted', 'dash-dot'] },

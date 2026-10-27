@@ -4,8 +4,16 @@ import type { MapPalette } from '@/palettes/types';
 
 export interface RenderEnv {
   zoom: number;
+  /** The display's; it sizes backing stores. No adapter scales a drawing by it. */
   pixelRatio: number;
+  /**
+   * Device px per paper px: pixel ratio × fit × zoom on screen, output over paper size in an
+   * export. What a line one device pixel wide (a hairline) is divided by.
+   */
+  deviceScale: number;
+  /** The paper in paper px (epic 07 story 6): what adapters draw in, from its aspect alone. */
   size: { w: number; h: number };
+  /** Where the paper sits in the canvas, in CSS px; no adapter reads it. */
   paperRect: { x: number; y: number; w: number; h: number };
   camera: { x: number; y: number; zoom: number };
   // Optional hints derived by render host (e.g., for layers that coordinate with grid)

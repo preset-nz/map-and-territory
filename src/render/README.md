@@ -9,7 +9,7 @@ Key points
 
 - Single source of truth: the backend calls getLayerType(layer.type).adapter.drawMain(ctx, state, env) for each visible layer (bottom → top).
 - The backend computes screen-space layout once per frame:
-  - paperRect via computePaperRect (src/render/env.ts).
+  - the paper view via paperView (src/render/geometry.ts): the paper's screen rect and the fit that scales its fixed size in paper px (1200 on the long side) into it.
   - grid hint via deriveGridHint for adapters that align to the grid.
 - The Paper adapter draws the paper fill; the backend draws only a simple paper outline.
 

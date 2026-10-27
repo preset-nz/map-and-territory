@@ -91,6 +91,7 @@ class MockContext implements Partial<CanvasRenderingContext2D> {
 const baseEnv: RenderEnv = {
   zoom: 1,
   pixelRatio: 1,
+  deviceScale: 1,
   size: { w: 200, h: 200 },
   paperRect: { x: 0, y: 0, w: 200, h: 200 },
   camera: { x: 0, y: 0, zoom: 1 },

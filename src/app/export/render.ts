@@ -1,6 +1,7 @@
 // The map at print size (epic 07 story 3): the active map drawn by the render worker into a
 // buffer as big as its rectangle on the page. The page layout is story 2's; the PNG and PDF
 // writers are stories 4 and 5.
+import { type PaperAspect, paperSize } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
 import { readCampaignPage } from '../scene/campaign-page';
 import type { RowSource } from '../scene/frame';
@@ -49,9 +50,9 @@ export function exportSize(
 }
 
 /**
- * Draws `frame` at the map rectangle's pixel size. `logical` is the paper's size in CSS px as
- * the screen shows it at Fit: the export is that view scaled up, so the hex count is the
- * screen's and lines, noise and textures scale with the page. The camera is set to 1×.
+ * Draws `frame` at the map rectangle's pixel size. `logical` is the map's paper size in paper
+ * px (story 6): the export is the paper scaled to the page, so the hex count is the screen's
+ * at any window size and lines, noise and textures scale with the page. The camera is set to 1×.
  */
 export async function renderMapForExport(
   target: ExportTarget,
@@ -73,6 +74,17 @@ export interface MapExporter {
   /** null when there is no active map to draw. */
   current(): { frame: SceneFrame; logical: { w: number; h: number } } | null;
   target: ExportTarget;
+}
+
+/** What an export of `frame` draws: the frame at Fit, on the map's paper size, not the window's. */
+export function exportFrame(frame: SceneFrame): {
+  frame: SceneFrame;
+  logical: { w: number; h: number };
+} {
+  return {
+    frame: { ...frame, camera: { x: 0, y: 0, zoom: 1 } },
+    logical: paperSize(frame.paper.aspect as PaperAspect),
+  };
 }
 
 let exporter: MapExporter | null = null;

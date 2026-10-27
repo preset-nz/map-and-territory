@@ -1,9 +1,9 @@
 import { useMirror } from '@preset.nz/pom';
 import { useEffect, useRef } from 'react';
-import { computePaperRect, type PaperAspect } from '@/render/geometry';
+import { type PaperAspect, paperView } from '@/render/geometry';
 import RenderService from '@/render/service';
 import type { SceneFrame } from '@/render/types';
-import { type MapExporter, mapExporter, setMapExporter } from './export/render';
+import { exportFrame, type MapExporter, mapExporter, setMapExporter } from './export/render';
 import { createFrameBuilder, type FrameBuilder } from './scene/frame';
 import { hitTest, type PointerHit } from './scene/pointer';
 import { tauriTextureLoader } from './scene/textures';
@@ -74,17 +74,13 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         outlineDraft.get(),
         camera.get(),
       );
-      // the camera is clamped to the paper, which moves with the canvas and the aspect
-      const paper = computePaperRect({
-        canvasSize: size,
-        paper: { aspect: lastFrame.paper.aspect as PaperAspect },
-      });
-      camera.setPaper({ w: paper.w, h: paper.h });
+      // the camera is clamped to the paper, in paper px: its size follows the aspect alone
+      camera.setPaper(paperView(size, lastFrame.paper.aspect as PaperAspect).size);
       textures.want(lastFrame);
       svc.render(lastFrame);
     };
-    // The export draws the active map as the screen shows it at Fit: the same frame without
-    // the camera or the tool preview, on the paper's on-screen size (epic 07 story 3).
+    // The export draws the active map at Fit: the same frame without the camera or the tool
+    // preview, on the map's paper size, whatever the window (epic 07 stories 3 and 6).
     const exporter: MapExporter = {
       target: svc,
       current() {
@@ -93,11 +89,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         const size = { w: lastSize.w, h: lastSize.h };
         const frame = builder.build(mirror, mapId, size, lastSize.dpr);
         if (frame.layers.length === 0) return null;
-        const paper = computePaperRect({
-          canvasSize: size,
-          paper: { aspect: frame.paper.aspect as PaperAspect },
-        });
-        return { frame, logical: { w: paper.w, h: paper.h } };
+        return exportFrame(frame);
       },
     };
     setMapExporter(exporter);
@@ -134,6 +126,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
 
+    const viewOf = (f: SceneFrame) => paperView(f.size, f.paper.aspect as PaperAspect);
     const pointer = (kind: PointerKind) => (e: PointerEvent) => {
       if (!lastFrame) return;
       const box = wrap.getBoundingClientRect();
@@ -146,7 +139,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       }
       if (panFrom) {
         if (kind === 'move') {
-          camera.pan(panFrom.x - x, panFrom.y - y);
+          camera.pan(viewOf(lastFrame), panFrom.x - x, panFrom.y - y);
           panFrom = { x, y };
         } else if (kind === 'up' || kind === 'cancel') panFrom = null;
         return;
@@ -162,16 +155,14 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       e.preventDefault();
       if (e.ctrlKey || e.metaKey) {
         const box = wrap.getBoundingClientRect();
-        const paper = computePaperRect({
-          canvasSize: lastFrame.size,
-          paper: { aspect: lastFrame.paper.aspect as PaperAspect },
-        });
-        camera.zoomAt(Math.exp(-e.deltaY * 0.01), {
-          x: e.clientX - box.left - paper.x,
-          y: e.clientY - box.top - paper.y,
-        });
+        camera.zoomAt(
+          Math.exp(-e.deltaY * 0.01),
+          viewOf(lastFrame),
+          e.clientX - box.left,
+          e.clientY - box.top,
+        );
       } else {
-        camera.pan(e.deltaX, e.deltaY);
+        camera.pan(viewOf(lastFrame), e.deltaX, e.deltaY);
       }
     };
     wrap.addEventListener('wheel', wheel, { passive: false });
