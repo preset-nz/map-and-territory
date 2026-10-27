@@ -58,11 +58,20 @@ impl DocumentHost {
         let hook = changed.clone();
         // Runs with the document locked, on every commit: it only hands over to whoever set
         // `on_change`, and that must not call back into the Pom.
-        let pom = Arc::new(pom.on_change(move |_doc| {
-            if let Some(f) = hook.get() {
-                f();
-            }
-        }));
+        // `on_status` also sees a gesture's end, which changes the history but commits nothing.
+        let status_hook = hook.clone();
+        let pom = Arc::new(
+            pom.on_change(move |_doc| {
+                if let Some(f) = hook.get() {
+                    f();
+                }
+            })
+            .on_status(move |_status| {
+                if let Some(f) = status_hook.get() {
+                    f();
+                }
+            }),
+        );
         let transport = PomHost::new(pom.clone());
         let host = DocumentHost {
             pom,

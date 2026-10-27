@@ -5,7 +5,11 @@
 resolver = "2"
 members = ["crates/map-and-territory-model", "src-tauri"]
 
-# By path until app-kit's next release (path fields, unreleased; ledger: runbooks/pending-releases.md).
+# By path until the packages' next release (path fields, unreleased; ledger: runbooks/pending-releases.md).
 # A clean clone needs ../../packages beside initiatives/.
 [patch.crates-io]
 preset-app-kit = { path = "../../packages/app-kit" }
+# rhizome-pom's on_status and labelled value sets (unreleased, same ledger).
+rhizome-core = { path = "../../packages/rhizome/crates/rhizome-core" }
+rhizome-pom = { path = "../../packages/rhizome/crates/rhizome-pom" }
+rhizome-pom-tauri = { path = "../../packages/rhizome/crates/rhizome-pom-tauri" }

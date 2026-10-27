@@ -72,16 +72,9 @@ export function scopeOf(
           (e) => ({ error: messageOf(e) }),
         );
       }
-      // Outside a drag, a one-edit gesture gives the undo step the value's label: rhizome's
-      // `value.set` alone names it by key ("Set pageSize").
-      const token = tokens.has(`${t.id}:${key}`)
-        ? null
-        : ctx.channel.begin(`Set ${labelOf(byKey.get(key), key)}`);
-      const set = () =>
-        ctx.channel.run('value.set', { at, key, value: writeValue(byKey.get(key), value) });
-      (token ? token.then(set).finally(() => ctx.channel.end(token)) : set()).catch((e) =>
-        console.error('[inspector] value.set refused', e),
-      );
+      ctx.channel
+        .run('value.set', { at, key, value: writeValue(byKey.get(key), value) })
+        .catch((e) => console.error('[inspector] value.set refused', e));
     },
     gesture: {
       begin: (key, t, ctx: Ctx) => {

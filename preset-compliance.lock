@@ -6,11 +6,11 @@ version = 1
 [[inputs]]
 path = "Cargo.lock"
 ecosystem = "cargo"
-sha256 = "1718c18c55fb7c33d810877f89836e97bb407d2519b0d81beaa04a3b204e7371"
+sha256 = "f43c905fbe7ae5cd6e30f5490acdf2a165730b3742b1cafdcb0c2a9fd25d119b"
 
 [[inputs]]
 path = "Cargo.toml"
-sha256 = "442240d960421c0dbf98a42708601d2fecc61172c8f2e230a02422c056ecce45"
+sha256 = "cd86ceb45aa437098e322effd45e7f86a703279ea69a00abe497d6bca7e51d89"
 
 [[inputs]]
 path = "crates/map-and-territory-model/Cargo.toml"
@@ -2100,6 +2100,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "rhizome-core"
+version = "0.1.7"
+source = "path"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "rhizome-pom"
 version = "0.1.7"
 source = "registry"
@@ -2108,9 +2116,17 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "cargo"
+name = "rhizome-pom"
+version = "0.1.7"
+source = "path"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "cargo"
 name = "rhizome-pom-tauri"
 version = "0.1.7"
-source = "registry"
+source = "path"
 declared = "MIT"
 scope = "shipped"
 
