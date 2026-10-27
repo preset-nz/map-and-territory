@@ -3,9 +3,9 @@
 //! against the document host (`document.rs`).
 //!
 //! **Map** is the domain menu, one per collection (menu standard rule 1). Its only item is New
-//! Map, which runs `node.add` on the document in Rust and so never reaches the webview. No
-//! accelerator: Cmd+N is New (the campaign). Layer is the second collection and arrives with
-//! epic 16.
+//! Map, which runs `node.add` on the document in Rust and so never reaches the webview, on
+//! Opt+Cmd+N: Cmd+N is New (the campaign) in every app (Georg, 2026-10-28). Layer is the
+//! second collection and arrives with epic 16.
 
 use preset_app_kit::{shortcut, AppKit, Command, MenuName};
 use tauri::{AppHandle, Manager, Runtime};
@@ -110,7 +110,10 @@ pub fn commands() -> Vec<Command> {
             .menu(MenuName::File)
             .section(1)
             .submenu("Export"),
-        Command::item(NEW_MAP, "New Map").domain("Map").section(0),
+        Command::item(NEW_MAP, "New Map")
+            .domain("Map")
+            .section(0)
+            .accelerator("CmdOrCtrl+Alt+N"),
         layer("layer.add-hex-noise", "Add Hex Noise Layer", 0),
         layer("layer.add-freeform", "Add Freeform Layer", 0),
         layer("layer.add-outline", "Add Outline Layer", 0),
@@ -170,14 +173,17 @@ mod tests {
     }
 
     #[test]
-    fn new_map_is_in_the_map_menu_with_no_accelerator() {
+    fn new_map_is_in_the_map_menu_on_opt_cmd_n() {
         let table = commands();
         let new_map = table.iter().find(|c| c.id() == NEW_MAP).unwrap();
         // Command's fields are app-kit's; its Debug shows the domain, label and chord
         let shown = format!("{new_map:?}");
         assert!(shown.contains("\"Map\""), "{shown}");
         assert!(shown.contains("\"New Map\""), "{shown}");
-        assert!(shown.contains("accelerator: None"), "{shown}");
+        assert!(
+            shown.contains("accelerator: Some(\"CmdOrCtrl+Alt+N\")"),
+            "{shown}"
+        );
     }
 
     #[test]
@@ -206,9 +212,9 @@ mod tests {
                 Some(rest[..rest.find('"')?].to_string())
             })
             .collect();
-        assert_eq!(chords.len(), 17);
+        assert_eq!(chords.len(), 18);
         chords.sort();
         chords.dedup();
-        assert_eq!(chords.len(), 17);
+        assert_eq!(chords.len(), 18);
     }
 }
