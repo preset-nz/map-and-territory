@@ -87,6 +87,9 @@ export class Canvas2DBackend implements RenderBackend {
     // Clear in device pixels with identity transform
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, Math.floor(cw * dpr), Math.floor(ch * dpr));
+    // No map: the frame has no layers (a map always has its paper and grid), so the canvas
+    // stays empty, with no paper edge.
+    if (frame.layers.length === 0) return;
     // Now draw in CSS pixels by applying dpr transform
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
