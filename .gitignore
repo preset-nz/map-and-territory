@@ -59,5 +59,6 @@ yarn-error.log*
 # Certificates and keys (keep out of VCS)
 *.pem
 
-# Local Claude state
-.claude/
+# Local Claude state; the shared settings are checked in
+.claude/*
+!.claude/settings.json
