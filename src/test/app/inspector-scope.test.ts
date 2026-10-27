@@ -2,10 +2,25 @@ import type { Channel, Mirror } from '@preset.nz/pom';
 import { describe, expect, it, vi } from 'vitest';
 import { scopeOf } from '@/app/inspector/inspector';
 
-const values = [{ key: 'renderMode', kind: 'choice', choices: ['paint', 'texture-fill'] }];
+const values = [
+  { key: 'renderMode', kind: 'choice', choices: ['paint', 'texture-fill'], label: 'Render mode' },
+];
 
 function setup(run: (id: string, payload: unknown) => Promise<unknown>) {
-  const channel = { run: vi.fn(run) } as unknown as Channel;
+  const calls: unknown[][] = [];
+  const channel = {
+    run: vi.fn((id: string, payload: unknown) => {
+      calls.push(['run', id]);
+      return run(id, payload);
+    }),
+    begin: vi.fn(async (label: string) => {
+      calls.push(['begin', label]);
+      return 7;
+    }),
+    end: vi.fn(async (token: Promise<number> | number) => {
+      calls.push(['end', await token]);
+    }),
+  } as unknown as Channel;
   const mirror = {
     node: () => ({
       path: '/maps/map/layers/freeform',
@@ -14,7 +29,7 @@ function setup(run: (id: string, payload: unknown) => Promise<unknown>) {
     }),
   } as unknown as Mirror;
   const scope = scopeOf('freeform', values, ['texture']);
-  return { scope, ctx: { channel, mirror }, channel };
+  return { scope, ctx: { channel, mirror }, channel, calls };
 }
 
 describe('the texture field in the inspector scope', () => {
@@ -54,5 +69,29 @@ describe('the texture field in the inspector scope', () => {
       key: 'renderMode',
       value: 'paint',
     });
+  });
+
+  it('names a one-off edit by the value, in a gesture of its own', async () => {
+    const { scope, ctx, calls } = setup(async () => 'nothing');
+    await scope.write?.('renderMode', 'paint', { id: 'n' }, ctx);
+    await vi.waitFor(() => expect(calls).toHaveLength(3));
+    expect(calls).toEqual([
+      ['begin', 'Set Render mode'],
+      ['run', 'value.set'],
+      ['end', 7],
+    ]);
+  });
+
+  it('opens no second gesture inside a drag', async () => {
+    const { scope, ctx, calls } = setup(async () => 'nothing');
+    scope.gesture?.begin('renderMode', { id: 'n' }, ctx);
+    await scope.write?.('renderMode', 'paint', { id: 'n' }, ctx);
+    scope.gesture?.end('renderMode', { id: 'n' }, ctx);
+    await vi.waitFor(() => expect(calls).toHaveLength(3));
+    expect(calls).toEqual([
+      ['begin', 'Set Render mode'],
+      ['run', 'value.set'],
+      ['end', 7],
+    ]);
   });
 });

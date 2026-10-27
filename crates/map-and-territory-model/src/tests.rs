@@ -435,6 +435,29 @@ fn the_campaign_has_a_page_with_defaults_and_ranges() {
 }
 
 #[test]
+fn each_page_value_is_one_named_undo_step() {
+    let mut d = new_doc();
+    let at = "/campaign/campaign";
+    for (key, v) in [
+        ("pageSize", json!("a4")),
+        ("pageOrientation", json!("landscape")),
+        ("pageMargin", json!(20.0)),
+    ] {
+        let before = d.tree().at(at).unwrap().value(key);
+        set(&mut d, at, key, v).unwrap();
+        let label = d.tree().undo_label().map(str::to_owned);
+        assert!(label.is_some_and(|l| !l.is_empty()), "{key} is named");
+        d.undo().unwrap();
+        assert_eq!(
+            d.tree().at(at).unwrap().value(key),
+            before,
+            "{key} undoes in one step"
+        );
+        d.redo().unwrap();
+    }
+}
+
+#[test]
 fn a_campaign_saved_before_the_page_opens_with_a5_portrait() {
     let store = MemoryStore::default();
     let mut d = Document::new_with_ids(store.clone(), IdSource::sequential()).unwrap();
