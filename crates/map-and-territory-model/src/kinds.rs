@@ -296,7 +296,7 @@ pub fn declare(k: &mut Kinds) {
                 ValueSpec::float("pageMargin", 0.0..=40.0, DEFAULT_PAGE_MARGIN_MM)
                     .described(
                         "Page margin",
-                        "The plain white border around the map on the exported page.",
+                        "The plain white border around everything on a printed page.",
                     )
                     .unit("mm"),
             )
