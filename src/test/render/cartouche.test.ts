@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest';
 import {
   CartoucheAdapter,
   type CartoucheState,
+  CORNER_BLOCK,
+  DOUBLE_GAP,
+  INNER_RULE,
   LINE_GAP,
   LINE_HEIGHT,
+  MUTED_INK_ALPHA,
   PAD_X,
   PAD_Y,
+  RULE_WIDTH,
   SUBTITLE_SCALE,
 } from '@/layers/adapters/cartouche';
 import type { RenderEnv } from '@/layers/types';
@@ -19,11 +24,56 @@ class MockContext {
   lineWidth = 1;
   textAlign = 'start';
   textBaseline = 'alphabetic';
+  lineCap = 'butt';
+  globalAlpha = 1;
   fills: { x: number; y: number; w: number; h: number; style: string }[] = [];
   strokes: { x: number; y: number; w: number; h: number }[] = [];
-  texts: { text: string; x: number; y: number; font: string; style: string; align: string }[] = [];
-  save() {}
-  restore() {}
+  texts: {
+    text: string;
+    x: number;
+    y: number;
+    font: string;
+    style: string;
+    align: string;
+    alpha: number;
+    rotation: number;
+  }[] = [];
+  /** Paths stroked or filled by hand, with the style and width they were drawn in. */
+  paths: { op: 'stroke' | 'fill'; pts: [number, number][]; style: string; width: number }[] = [];
+  private pts: [number, number][] = [];
+  private rotation = 0;
+  private saved: number[] = [];
+  save() {
+    this.saved.push(this.rotation);
+  }
+  restore() {
+    this.rotation = this.saved.pop() ?? 0;
+  }
+  translate() {}
+  rotate(a: number) {
+    this.rotation += a;
+  }
+  beginPath() {
+    this.pts = [];
+  }
+  moveTo(x: number, y: number) {
+    this.pts.push([x, y]);
+  }
+  lineTo(x: number, y: number) {
+    this.pts.push([x, y]);
+  }
+  closePath() {}
+  stroke() {
+    this.paths.push({
+      op: 'stroke',
+      pts: this.pts,
+      style: String(this.strokeStyle),
+      width: this.lineWidth,
+    });
+  }
+  fill() {
+    this.paths.push({ op: 'fill', pts: this.pts, style: String(this.fillStyle), width: 0 });
+  }
   measureText(text: string) {
     const px = Number(/(\d+(?:\.\d+)?)px/.exec(this.font)?.[1] ?? 10);
     return { width: text.length * px * 0.5 } as TextMetrics;
@@ -42,6 +92,8 @@ class MockContext {
       font: this.font,
       style: String(this.fillStyle),
       align: this.textAlign,
+      alpha: this.globalAlpha,
+      rotation: this.rotation,
     });
   }
 }
@@ -172,8 +224,11 @@ describe('the cartouche adapter', () => {
       { inset: 25 },
       { backing: false },
       { face: 'serif' },
+      { hand: 'scratched' },
+      { seed: 'other' },
       { ink: '#000000' },
       { titleInk: '#00000073' },
+      { titleMuted: true },
       { paper: '#ffffff' },
     ];
     const keys = changes.map(key);
@@ -181,5 +236,92 @@ describe('the cartouche adapter', () => {
     expect(new Set(keys).size).toBe(keys.length);
     // the override reaches the drawing only through resolvedTitle, which the projection sets
     expect(key({ title: 'typed' })).toBe(k);
+  });
+});
+
+describe('the double frame', () => {
+  const room = (DOUBLE_GAP + INNER_RULE * RULE_WIDTH) * 30;
+
+  it('draws two rules and four corner blocks, and grows to keep the lines clear of them', () => {
+    const ctx = draw({ frame: 'double' });
+    expect(ctx.strokes).toHaveLength(2);
+    const [outer, inner] = ctx.strokes;
+    expect(inner.x).toBeGreaterThan(outer.x);
+    expect(inner.w).toBeLessThan(outer.w);
+    // the backing, then the four blocks in the ink
+    const blocks = ctx.fills.slice(1);
+    expect(blocks).toHaveLength(4);
+    for (const b of blocks) expect(b).toMatchObject({ w: CORNER_BLOCK * 30, style: '#222222' });
+    expect(ctx.fills[0].w).toBeCloseTo(BOX_W + 2 * room);
+    expect(ctx.fills[0].h).toBeCloseTo(BOX_H + 2 * room);
+    // left-aligned text starts inside the inner rule
+    expect(draw({ frame: 'double', align: 'left' }).texts[0].x).toBeCloseTo(24 + PAD_X * 30 + room);
+  });
+});
+
+describe('the plate frame', () => {
+  it('fills the box with the ink and reverses the lines out in the paper', () => {
+    const ctx = draw({ frame: 'plate', subtitle: 'Sub' });
+    // no backing under a plate: the plate is the only fill
+    expect(ctx.fills).toEqual([
+      { x: 24, y: 24, w: BOX_W + 0, h: expect.any(Number), style: '#222222' },
+    ]);
+    expect(ctx.strokes).toEqual([]);
+    expect(ctx.texts.map((t) => t.style)).toEqual(['#eeeeee', '#eeeeee']);
+  });
+
+  it('reverses "Untitled map" out at the muted alpha', () => {
+    const ctx = draw({ frame: 'plate', titleMuted: true, subtitle: 'Sub' });
+    expect(ctx.texts.map((t) => t.alpha)).toEqual([MUTED_INK_ALPHA, 1]);
+  });
+});
+
+describe('the cartouche by hand', () => {
+  const pts = (s: Partial<CartoucheState>) => draw(s).paths.map((p) => p.pts);
+
+  it('draws clean as exact rects and upright lines', () => {
+    const ctx = draw({ hand: 'clean' });
+    expect(ctx.paths).toEqual([]);
+    expect(ctx.strokes).toHaveLength(1);
+    expect(ctx.texts[0].rotation).toBe(0);
+  });
+
+  it('draws the rule as four wobbled strokes when drawn, and twice over when scratched', () => {
+    const drawn = draw({ hand: 'drawn' });
+    expect(drawn.strokes).toEqual([]);
+    expect(drawn.paths.filter((p) => p.op === 'stroke')).toHaveLength(4);
+    const scratched = draw({ hand: 'scratched' }).paths;
+    expect(scratched).toHaveLength(8);
+    expect(scratched[1].width).toBeCloseTo(scratched[0].width * 0.6);
+  });
+
+  it('keeps the backing clean', () => {
+    expect(draw({ hand: 'scratched' }).fills).toEqual([
+      { x: 24, y: 24, w: BOX_W, h: BOX_H, style: '#eeeeee' },
+    ]);
+  });
+
+  it('fills a plate through its wobbled outline', () => {
+    const ctx = draw({ frame: 'plate', hand: 'drawn' });
+    expect(ctx.fills).toEqual([]);
+    const plate = ctx.paths.filter((p) => p.op === 'fill');
+    expect(plate).toHaveLength(1);
+    expect(plate[0].style).toBe('#222222');
+    expect(plate[0].pts.length).toBeGreaterThan(4);
+  });
+
+  it('draws the same wobble for the same seed, and a different one for a new id', () => {
+    expect(pts({ hand: 'drawn', seed: 'a' })).toEqual(pts({ hand: 'drawn', seed: 'a' }));
+    expect(pts({ hand: 'drawn', seed: 'a' })).not.toEqual(pts({ hand: 'drawn', seed: 'b' }));
+    const lean = (seed: string) => draw({ hand: 'scratched', seed }).texts[0].rotation;
+    expect(lean('a')).toBe(lean('a'));
+    expect(lean('a')).not.toBe(lean('b'));
+  });
+
+  it('leans each line within the hand’s tilt', () => {
+    for (const seed of ['a', 'b', 'c', 'd']) {
+      const t = draw({ hand: 'drawn', seed, subtitle: 'Sub' }).texts;
+      for (const l of t) expect(Math.abs(l.rotation)).toBeLessThanOrEqual((1.5 / 180) * Math.PI);
+    }
   });
 });

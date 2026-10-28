@@ -74,7 +74,7 @@ pub const CARTOUCHE: LayerKind = LayerKind {
 /// Every furniture kind: each lives in a map's `furniture`, never in `layers`.
 pub const FURNITURE_KINDS: [&LayerKind; 1] = [&CARTOUCHE];
 
-pub const FRAMES: &[&str] = &["none", "rule"];
+pub const FRAMES: &[&str] = &["none", "rule", "double", "plate"];
 pub const ALIGNS: &[&str] = &["left", "centre", "right"];
 pub const ANCHORS: &[&str] = &[
     "top-left",
@@ -84,9 +84,25 @@ pub const ANCHORS: &[&str] = &[
     "bottom-centre",
     "bottom-right",
 ];
-/// The faces (map furniture §5). Story 2 of epic 23 adds `map`, the sheet style's, and makes it
-/// the default; until then a title picks its own.
+/// The faces (map furniture §5): the map's sheet style picks one of these.
 pub const FACES: &[&str] = &["condensed", "serif", "blackletter", "marker"];
+/// A furniture node's face: `map` follows the map's (map furniture §3).
+pub const FURNITURE_FACES: &[&str] = &["map", "condensed", "serif", "blackletter", "marker"];
+/// The hands (drawing by hand): the map's sheet style picks one of these.
+pub const HANDS: &[&str] = &["clean", "drawn", "scratched"];
+/// A furniture node's hand: `map` follows the map's.
+pub const FURNITURE_HANDS: &[&str] = &["map", "clean", "drawn", "scratched"];
+const FACE_LABELS: &[(&str, &str)] = &[
+    ("condensed", "Condensed"),
+    ("serif", "Serif"),
+    ("blackletter", "Blackletter"),
+    ("marker", "Marker"),
+];
+const HAND_LABELS: &[(&str, &str)] = &[
+    ("clean", "Clean"),
+    ("drawn", "Drawn"),
+    ("scratched", "Scratched"),
+];
 
 fn rgb(r: u8, g: u8, b: u8) -> [f64; 4] {
     [
@@ -243,6 +259,13 @@ pub fn declare(k: &mut Kinds) {
             )
             .bool("visible", true)
             .described("Visible", "Whether the map is shown.")
+            // The sheet style (map furniture §3): furniture left on `map` follows these.
+            .choice("face", FACES, "condensed")
+            .described("Face", "The lettering of every title left on Map: a condensed sans in capitals, an old atlas serif, blackletter, or a marker in capitals.")
+            .choice_labels(FACE_LABELS)
+            .choice("hand", HANDS, "clean")
+            .described("Hand", "How every title left on Map is drawn: ruled, pen-drawn, or scratched in and gone over twice.")
+            .choice_labels(HAND_LABELS)
             .reference("palette")
             .check(|map| {
                 let count = |t: &str| map.children().filter(|c| c.type_name() == t).count();
@@ -588,8 +611,13 @@ pub fn declare(k: &mut Kinds) {
             .text("credit", "")
             .described("Credit", "A small third line in a typewriter face, such as who surveyed the map and when. Blank leaves it out.")
             .choice("frame", FRAMES, "rule")
-            .described("Frame", "What is drawn around the lines: nothing, or a single ruled box.")
-            .choice_labels(&[("none", "None"), ("rule", "Rule")])
+            .described("Frame", "What is drawn around the lines: nothing, a ruled box, a double rule with corner blocks, or a solid plate with the lines reversed out of it.")
+            .choice_labels(&[
+                ("none", "None"),
+                ("rule", "Rule"),
+                ("double", "Double"),
+                ("plate", "Plate"),
+            ])
             .choice("align", ALIGNS, "centre")
             .described("Align", "Where the lines sit within the box.")
             .choice_labels(&[("left", "Left"), ("centre", "Centre"), ("right", "Right")])
@@ -616,14 +644,14 @@ pub fn declare(k: &mut Kinds) {
             )
             .bool("backing", true)
             .described("Backing", "A plain plate in the paper's colour behind the title, so busy terrain doesn't show through it.")
-            .choice("face", FACES, "condensed")
-            .described("Face", "The lettering of the title: a condensed sans in capitals, an old atlas serif, blackletter, or a marker in capitals.")
-            .choice_labels(&[
-                ("condensed", "Condensed"),
-                ("serif", "Serif"),
-                ("blackletter", "Blackletter"),
-                ("marker", "Marker"),
-            ]),
+            .choice("face", FURNITURE_FACES, "map")
+            .described("Face", "The lettering of the title. Map follows the map's face.")
+            .choice_labels(&[("map", "Map")])
+            .choice_labels(FACE_LABELS)
+            .choice("hand", FURNITURE_HANDS, "map")
+            .described("Hand", "How the frame is drawn and the lines lean. Map follows the map's hand.")
+            .choice_labels(&[("map", "Map")])
+            .choice_labels(HAND_LABELS),
     );
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named

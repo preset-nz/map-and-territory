@@ -253,7 +253,8 @@ fn the_cartouche_has_its_defaults_and_ranges() {
     assert_eq!(n.value("anchor"), choice("top-left"));
     assert_eq!(n.value("inset"), Some(Value::Float(24.0)));
     assert_eq!(n.value("backing"), Some(Value::Bool(true)));
-    assert_eq!(n.value("face"), choice("condensed"));
+    assert_eq!(n.value("face"), choice("map"));
+    assert_eq!(n.value("hand"), choice("map"));
     assert_eq!(n.value("visible"), Some(Value::Bool(true)));
     assert_eq!(n.value("opacity"), Some(Value::Float(1.0)));
     assert_eq!(n.value("blend"), choice("normal"));
@@ -263,6 +264,11 @@ fn the_cartouche_has_its_defaults_and_ranges() {
         ("align", json!("right")),
         ("anchor", json!("bottom-centre")),
         ("face", json!("blackletter")),
+        ("face", json!("map")),
+        ("frame", json!("double")),
+        ("frame", json!("plate")),
+        ("hand", json!("scratched")),
+        ("hand", json!("map")),
         ("titleSize", json!(12.0)),
         // a soft max: a typed size may go past the slider's end
         ("titleSize", json!(200.0)),
@@ -273,10 +279,9 @@ fn the_cartouche_has_its_defaults_and_ranges() {
         assert!(set(&mut d, &at, key, v.clone()).is_ok(), "{key} {v}");
     }
     for (key, v) in [
-        // story 2's frames and the sheet style's `map` aren't in yet
-        ("frame", json!("double")),
-        ("frame", json!("plate")),
-        ("face", json!("map")),
+        // `banner` and `title-block` are left for later (epic 23, The cut)
+        ("frame", json!("banner")),
+        ("hand", json!("rough")),
         ("align", json!("center")),
         ("anchor", json!("middle")),
         ("titleSize", json!(11.0)),
@@ -290,6 +295,19 @@ fn the_cartouche_has_its_defaults_and_ranges() {
         d.tree().at(MAP).unwrap().value("name"),
         Some(Value::Text("Map 01".into()))
     );
+}
+
+#[test]
+fn the_map_carries_the_sheet_style() {
+    let mut d = doc_with_map();
+    let map = d.tree().at(MAP).unwrap();
+    assert_eq!(map.value("face"), Some(Value::Choice("condensed".into())));
+    assert_eq!(map.value("hand"), Some(Value::Choice("clean".into())));
+    assert!(set(&mut d, MAP, "hand", json!("scratched")).is_ok());
+    assert!(set(&mut d, MAP, "face", json!("marker")).is_ok());
+    // the map has no `map` to follow
+    assert!(set(&mut d, MAP, "hand", json!("map")).is_err());
+    assert!(set(&mut d, MAP, "face", json!("map")).is_err());
 }
 
 #[test]

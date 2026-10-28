@@ -139,6 +139,37 @@ describe('furniture in the frame', () => {
     expect(title(doc()).paper).toBe('#e6e6d9');
   });
 
+  it("follows the map's face and hand while left on map, and keeps its own otherwise", () => {
+    const rows = doc();
+    // a map without a sheet style yet draws condensed and clean
+    expect(title(rows)).toMatchObject({ face: 'condensed', hand: 'clean' });
+    rows.m = { ...rows.m, values: { ...rows.m.values, face: 'marker', hand: 'scratched' } };
+    rows.t = { ...rows.t, values: { ...rows.t.values, face: 'map', hand: 'map' } };
+    expect(title(rows)).toMatchObject({ face: 'marker', hand: 'scratched' });
+    rows.t = { ...rows.t, values: { ...rows.t.values, face: 'serif', hand: 'clean' } };
+    expect(title(rows)).toMatchObject({ face: 'serif', hand: 'clean' });
+  });
+
+  it('redraws when the map changes its hand, though the title row is the same', () => {
+    const b = createFrameBuilder(schema);
+    const rows = doc();
+    const before = title(rows, b);
+    rows.m = { ...rows.m, values: { ...rows.m.values, hand: 'drawn' } };
+    expect(title(rows, b)).not.toBe(before);
+    expect(title(rows, b).hand).toBe('drawn');
+  });
+
+  it("seeds its wobble with the node's id", () => {
+    expect(title(doc()).seed).toBe('t');
+  });
+
+  it('says when the title is the muted stand-in, for a plate to reverse it out', () => {
+    expect(title(doc()).titleMuted).toBe(false);
+    const rows = doc();
+    rows.m = { ...rows.m, values: { name: '' } };
+    expect(title(rows).titleMuted).toBe(true);
+  });
+
   it('keeps the same state object while nothing it draws changed', () => {
     const b = createFrameBuilder(schema);
     const rows = doc();

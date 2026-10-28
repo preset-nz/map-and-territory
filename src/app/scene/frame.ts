@@ -1,6 +1,7 @@
 // The projection from the document to the renderer: mirror rows in, a SceneFrame out.
 // Pure, so it is tested without a window. Object model: guidance
 // projects/map-and-territory/design/object-model.md, "The mirror and the SceneFrame".
+import { MUTED_INK_ALPHA } from '@/layers/adapters/cartouche';
 import { DefaultPalette } from '@/palettes/defaults';
 import type { MapPalette, TerrainCategory } from '@/palettes/types';
 import type { PaperSpec, SceneFrame, SceneLayer } from '@/render/types';
@@ -41,8 +42,7 @@ const TERRAINS: TerrainCategory[] = ['water', 'plains', 'forest', 'hills', 'moun
 
 /** What a title prints when neither it nor its map has a name (disco-03, Values). */
 export const UNTITLED_MAP = 'Untitled map';
-/** The muted ink "Untitled map" prints in: the ink at this alpha, so it reads as a stand-in. */
-export const MUTED_INK_ALPHA = 0.45;
+export { MUTED_INK_ALPHA };
 
 /** A CSS hex colour at `alpha` times its own alpha; anything else is returned as it is. */
 export function withAlpha(css: string, alpha: number): string {
@@ -74,6 +74,15 @@ export function resolveTitle(title: unknown, mapName: unknown): { text: string; 
   if (typeof title === 'string' && title.trim() !== '') return { text: title, muted: false };
   if (typeof mapName === 'string' && mapName.trim() !== '') return { text: mapName, muted: false };
   return { text: UNTITLED_MAP, muted: true };
+}
+
+/**
+ * A furniture value that may follow the map's sheet style (map furniture §3): `map` (or unset)
+ * takes the map's, and a map without one takes `fallback`.
+ */
+export function sheetStyle(own: unknown, map: unknown, fallback: string): string {
+  if (typeof own === 'string' && own !== '' && own !== 'map') return own;
+  return typeof map === 'string' && map !== '' ? map : fallback;
 }
 
 /** Each kind's colour-valued keys, from the schema the view carries. */
@@ -245,7 +254,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
 
   /**
    * A furniture node's adapter state: its values plus what the projection resolves (the title's
-   * words, the grid's ink, the paper's colour). Kept while the row and all of those are
+   * words, `map` face and hand from the map's sheet style, the node's id as its seed, the grid's
+   * ink, the paper's colour). Kept while the row and all of those are
    * unchanged, so a pointer move posts nothing.
    */
   const furnitureStates = new WeakMap<FrameRow, { key: string; state: Record<string, unknown> }>();
@@ -259,12 +269,17 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     const resolved =
       row.type === 'cartouche' ? resolveTitle(base.title, map.values?.name) : undefined;
     const titleInk = resolved?.muted ? withAlpha(ink, MUTED_INK_ALPHA) : ink;
-    const key = JSON.stringify([resolved?.text, titleInk, ink, paper]);
+    const face = sheetStyle(base.face, map.values?.face, 'condensed');
+    const hand = sheetStyle(base.hand, map.values?.hand, 'clean');
+    const key = JSON.stringify([resolved?.text, titleInk, ink, paper, face, hand]);
     const known = furnitureStates.get(row);
     if (known && known.key === key) return known.state;
     const state = {
       ...base,
-      ...(resolved ? { resolvedTitle: resolved.text, titleInk } : {}),
+      ...(resolved ? { resolvedTitle: resolved.text, titleInk, titleMuted: resolved.muted } : {}),
+      face,
+      hand,
+      seed: row.id,
       ink,
       paper,
     };
