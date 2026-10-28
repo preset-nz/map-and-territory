@@ -831,7 +831,7 @@ pub fn declare(k: &mut Kinds) {
             .bool("hidden", false)
             .described(
                 "Hidden",
-                "A secret for the map's owner: drawn dashed and faint in the window.",
+                "A secret for the map's owner: dashed and faint in the window, left out of an export.",
             )
             .check(super::locations::check_location),
     );

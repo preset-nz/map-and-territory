@@ -1,6 +1,7 @@
 // The map at print size (epic 07 story 3): the active map drawn by the render worker into a
 // buffer as big as its rectangle on the page. The page layout is story 2's; the PNG and PDF
 // writers are stories 4 and 5.
+import type { LocationsState } from '@/layers/adapters/locations';
 import { type PaperAspect, paperSize } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
 import { readCampaignPage } from '../scene/campaign-page';
@@ -76,13 +77,26 @@ export interface MapExporter {
   target: ExportTarget;
 }
 
-/** What an export of `frame` draws: the frame at Fit, on the map's paper size, not the window's. */
+/** A layer with its hidden places left out: they are the owner's secrets (epic 28). */
+function withoutHidden(layer: SceneFrame['layers'][number]): SceneFrame['layers'][number] {
+  if (layer.type !== 'locations') return layer;
+  const state = layer.state as LocationsState;
+  const locations = (state.locations ?? []).filter((l) => !l.hidden);
+  return locations.length === state.locations?.length
+    ? layer
+    : { ...layer, state: { ...state, locations } };
+}
+
+/**
+ * What an export of `frame` draws: the frame at Fit, on the map's paper size, not the window's,
+ * without the hidden places. Their numbers stay, so the printed ones match the window's.
+ */
 export function exportFrame(frame: SceneFrame): {
   frame: SceneFrame;
   logical: { w: number; h: number };
 } {
   return {
-    frame: { ...frame, camera: { x: 0, y: 0, zoom: 1 } },
+    frame: { ...frame, camera: { x: 0, y: 0, zoom: 1 }, layers: frame.layers.map(withoutHidden) },
     logical: paperSize(frame.paper.aspect as PaperAspect),
   };
 }

@@ -209,6 +209,32 @@ describe('export independent of the window', () => {
     expect(exportFrame(frame()).frame.camera).toEqual({ x: 0, y: 0, zoom: 1 });
   });
 
+  it('leaves hidden places out, keeping the others’ numbers', () => {
+    const place = (id: string, number: number, hidden: boolean) => ({
+      id,
+      name: id,
+      hexes: [{ q: 0, r: number }],
+      number,
+      marker: 'number',
+      hidden,
+    });
+    const f = frame();
+    const layer = {
+      ...f.layers[0],
+      id: 'loc',
+      type: 'locations',
+      state: {
+        locations: [place('keep', 1, false), place('chapel', 2, true), place('ford', 3, false)],
+      },
+    };
+    const out = exportFrame({ ...f, layers: [...f.layers, layer] }).frame.layers.at(-1);
+    const left = (out?.state as { locations?: { id: string; number: number }[] })?.locations ?? [];
+    expect(left.map((l) => [l.id, l.number])).toEqual([
+      ['keep', 1],
+      ['ford', 3],
+    ]);
+  });
+
   it('draws the same calls from two window sizes and pixel ratios', () => {
     const draw = (f: SceneFrame) => {
       const { frame: atFit, logical } = exportFrame(f);
