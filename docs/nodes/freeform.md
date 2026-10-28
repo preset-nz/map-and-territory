@@ -3,13 +3,13 @@ title: Freeform
 node: freeform
 group: layer
 category: painting
-summary: Hexes you paint by hand, each filled with a terrain from the palette.
+summary: Hexes you paint by hand, each filled with a terrain from the setting.
 ---
 
 # Freeform
 
 <!-- generated:begin — preset-docs rewrites this block; write outside it -->
-Hexes you paint by hand, each filled with a terrain from the palette.
+Hexes you paint by hand, each filled with a terrain from the setting.
 
 | Control | Range | Default | What it does |
 |---|---|---|---|
@@ -31,7 +31,7 @@ References: `texture`.
 
 ## Using it
 
-Freeform is the layer you paint by hand. Each painted hex takes the colour of a terrain from the palette, so it's where most of a map's land, water and settlement ends up.
+Freeform is the layer you paint by hand. Each painted hex takes the colour of a terrain from the setting, so it's where most of a map's land, water and settlement ends up.
 
 Add one from the Layer menu, then use the Paint, Erase and Fill tools (keys 1, 2 and 3) on the map. Use a separate Freeform layer for each kind of thing you may want to hide or reorder later, such as coastline, roads and settlements.
 

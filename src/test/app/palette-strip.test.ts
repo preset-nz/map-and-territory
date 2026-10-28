@@ -1,5 +1,5 @@
 import { pickedSwatch } from '@/app/inspector/palette-strip';
-import { mapTerrains, type RowSource } from '@/app/scene/frame';
+import { mapRoles, mapTerrains, type RowSource } from '@/app/scene/frame';
 
 const RED = [1, 0, 0, 1];
 const BLUE = [0, 0, 1, 1];
@@ -85,5 +85,31 @@ describe('the swatch the brush marks', () => {
     // picked in another palette
     expect(pickedSwatch(swatches, { baseType: 'water', id: 'blood-mires' })).toBe('acid');
     expect(pickedSwatch(swatches, { baseType: 'hills', id: null })).toBeNull();
+  });
+});
+
+describe('the setting’s other colours', () => {
+  it('lists the colours a setting has, in the strip’s order', () => {
+    const all = [
+      { id: 'c', type: 'campaign', path: '/campaign/campaign', refs: { palette: { node: 'p' } } },
+      { id: 'm', type: 'map', path: '/maps/map' },
+      {
+        id: 'p',
+        type: 'palette',
+        path: '/themes/p',
+        values: { gridLine: RED, background: BLUE, accent: RED },
+      },
+    ];
+    const source: RowSource = {
+      node: (id) => all.find((r) => r.id === id),
+      nodeAt: (p) => all.find((r) => r.path === p),
+    };
+    expect(mapRoles(source, 'm').map((r) => r.key)).toEqual(['background', 'gridLine', 'accent']);
+  });
+
+  it('gives the fallback’s grid line when nothing has a setting', () => {
+    expect(mapRoles(rows(), 'm')).toEqual([
+      { key: 'gridLine', label: 'Grid line', fill: '#333333' },
+    ]);
   });
 });

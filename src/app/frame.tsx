@@ -97,7 +97,7 @@ function InspectorFooter({ children }: { children: ReactNode }) {
       <div
         role="separator"
         aria-orientation="horizontal"
-        aria-label="Resize Palette"
+        aria-label="Resize Setting"
         aria-valuenow={height}
         tabIndex={0}
         onPointerDown={startDrag}

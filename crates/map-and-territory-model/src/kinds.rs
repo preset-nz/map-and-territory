@@ -222,7 +222,7 @@ pub fn declare(k: &mut Kinds) {
     k.kind(
         NodeType::new("campaign")
             .label("Campaign")
-            .summary("The whole document: its maps, its palettes and the notes that go with them.")
+            .summary("The whole document: its maps, its settings and the notes that go with them.")
             .group("document")
             .category("document")
             .in_categories(&["campaign"])
@@ -367,12 +367,12 @@ pub fn declare(k: &mut Kinds) {
             .colour("color", BLACK)
             .described(
                 "Line colour",
-                "The colour of the grid lines when the palette's isn't used.",
+                "The colour of the grid lines when the setting's isn't used.",
             )
             .bool("usePaletteColor", true)
             .described(
-                "Palette colour",
-                "Draw the lines in the palette's grid line colour instead of the colour above.",
+                "Setting colour",
+                "Draw the lines in the setting's grid line colour instead of the colour above.",
             )
             .float("alpha", 0.0..=1.0, 1.0)
             .described(
@@ -515,14 +515,14 @@ pub fn declare(k: &mut Kinds) {
                 ("mountains", "Mountains"),
             ])
             .text("terrainId", "")
-            .described("Palette terrain", "The id of one terrain in the palette to paint with, in place of the kind above."),
+            .described("Setting terrain", "The id of one terrain in the setting to paint with, in place of the kind above."),
     );
     // The texture is a file reference kept as written (family requirement "No embedded
     // assets"); the rest are the 2025 texture-fill settings.
     k.kind(
         layer(FREEFORM.id, FREEFORM.base)
             .label("Freeform")
-            .summary("Hexes you paint by hand, each filled with a terrain from the palette.")
+            .summary("Hexes you paint by hand, each filled with a terrain from the setting.")
             .category("painting")
             .choice("renderMode", &["paint", "texture-fill"], "paint")
             .described("Render mode", "Paint fills each painted hex with its terrain colour; texture fill shows an image through the painted hexes.")
@@ -757,27 +757,27 @@ pub fn declare(k: &mut Kinds) {
     // The built-in catalogue is the nine 2025 settings; `palette.use` points followers at themes.
     k.kind(
         NodeType::new("palette")
-            .label("Palette")
-            .summary("A set of colours and terrains for the maps that follow it.")
+            .label("Setting")
+            .summary("The world a map is drawn in: its terrains and their colours, for the maps that follow it.")
             .group("theme")
             .category("colour")
             .in_categories(&["themes"])
             .text("name", "")
-            .described("Name", "What the palette is called.")
+            .described("Name", "What the setting is called.")
             .text("description", "")
-            .described("Description", "A line on the look the palette gives a map.")
+            .described("Description", "A line on the world the setting gives a map.")
             .colour("gridLine", BLACK)
-            .described("Grid line", "The colour of the hex grid lines when a grid follows the palette.")
+            .described("Grid line", "The colour of the hex grid lines when a grid follows the setting.")
             .colour("primary", BLACK)
-            .described("Primary", "The palette's main colour.")
+            .described("Primary", "The setting's main colour.")
             .colour("secondary", BLACK)
-            .described("Secondary", "The palette's second colour.")
+            .described("Secondary", "The setting's second colour.")
             .colour("accent", BLACK)
-            .described("Accent", "The palette's highlight colour.")
+            .described("Accent", "The setting's highlight colour.")
             .colour("background", WHITE)
-            .described("Background", "The palette's background colour.")
+            .described("Background", "The setting's background colour.")
             .shaped("terrains", Shape::list(terrain()))
-            .described("Terrains", "The terrains painted with this palette: each a name, a base type, traits and a colour."),
+            .described("Terrains", "The terrains painted with this setting: each a name, a base type, traits and a colour."),
     )
     .presets(super::palette::PaletteAggregate)
     .catalogue(super::palette::catalogue());

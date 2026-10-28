@@ -32,7 +32,7 @@ export function StatusContent() {
       <StatusItem label="Hex">{hex ? `${hex.q}, ${hex.r}` : '—'}</StatusItem>
       {message && <StatusItem label="Export">{message.text}</StatusItem>}
       <StatusSpacer />
-      {palette && <StatusItem label="Palette">{palette}</StatusItem>}
+      {palette && <StatusItem label="Setting">{palette}</StatusItem>}
       {what && <StatusItem label="Selected">{what}</StatusItem>}
     </>
   );

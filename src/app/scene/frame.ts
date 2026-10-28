@@ -421,6 +421,32 @@ export function mapPaletteName(rows: RowSource, mapId: string | null): string | 
   return typeof theme.values?.name === 'string' ? theme.values.name : null;
 }
 
+/** A setting's colour that isn't a terrain, as the strip's second row shows it. */
+export interface RoleSwatch {
+  key: string;
+  label: string;
+  fill: string;
+}
+
+/** The setting's colours beside its terrains, in the strip's order, until roles (epic 30 story 3). */
+const ROLES: [key: string, label: string][] = [
+  ['background', 'Background'],
+  ['gridLine', 'Grid line'],
+  ['primary', 'Primary'],
+  ['secondary', 'Secondary'],
+  ['accent', 'Accent'],
+];
+
+/** The setting's other colours, by the cascade; the fallback has only its grid line. */
+export function mapRoles(rows: RowSource, mapId: string | null): RoleSwatch[] {
+  const theme = mapTheme(rows, mapId);
+  if (!theme) return [{ key: 'gridLine', label: 'Grid line', fill: DefaultPalette.grid.line }];
+  return ROLES.flatMap(([key, label]) => {
+    const fill = cssColour(theme.values?.[key]);
+    return fill ? [{ key, label, fill }] : [];
+  });
+}
+
 /** One of a palette's terrains as the palette strip shows it. */
 export interface TerrainSwatch {
   id: string;

@@ -12,11 +12,11 @@ title: Map & Territory nodes
 
 ## Colour
 
-- [Palette](palette.md): A set of colours and terrains for the maps that follow it.
+- [Setting](palette.md): The world a map is drawn in: its terrains and their colours, for the maps that follow it.
 
 ## Document
 
-- [Campaign](campaign.md): The whole document: its maps, its palettes and the notes that go with them.
+- [Campaign](campaign.md): The whole document: its maps, its settings and the notes that go with them.
 - [Map](map.md): One hexmap in the campaign: a paper, a hex grid and the layers between them.
 
 ## Furniture
@@ -38,5 +38,5 @@ title: Map & Territory nodes
 
 ## Painting
 
-- [Freeform](freeform.md): Hexes you paint by hand, each filled with a terrain from the palette.
+- [Freeform](freeform.md): Hexes you paint by hand, each filled with a terrain from the setting.
 - [Image](image.md): A picture from a file laid over the map, for stains, paper grain or a scanned drawing.

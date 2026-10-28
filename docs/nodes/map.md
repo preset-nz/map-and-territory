@@ -26,6 +26,6 @@ References: `palette`.
 
 A map is one sheet of the campaign: a region, a dungeon level, a town. Each map holds a paper at the bottom, a hex grid on top, and any layers you add between them. Add a new one from the Map menu.
 
-Give maps plain names so the list reads like your session notes. If a map should look different from the rest, give it its own palette; otherwise leave it to follow the campaign's.
+Give maps plain names so the list reads like your session notes. If a map should look different from the rest, give it its own setting; otherwise leave it to follow the campaign's.
 
 Face and Hand are the map's sheet style: every title on the map left on Map letters itself in the map's face and is drawn in its hand, so one change restyles the whole sheet.

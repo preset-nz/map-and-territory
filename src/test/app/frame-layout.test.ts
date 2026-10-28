@@ -104,7 +104,7 @@ describe('the app frame', () => {
         canvas: createElement('canvas'),
       }),
     );
-    const edge = view.getByLabelText('Resize Palette');
+    const edge = view.getByLabelText('Resize Setting');
     fireEvent.keyDown(edge, { key: 'ArrowUp' });
     expect(edge.getAttribute('aria-valuenow')).toBe('196');
     expect(view.getByText('the strip')).toBeTruthy();
