@@ -11,10 +11,12 @@
 //! Step 23's locations are points with names and numbers (epic 28's first slice).
 //!
 //! When a kind lands that takes a walkthrough step further, add the step here and write the file
-//! again with `SALLOW_WRITE=1 cargo test -p map-and-territory-model --test sallow_fen`.
+//! again with `just fixtures sallow-fen`.
+
+mod common;
 
 use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use map_and_territory_model::MapAndTerritory;
 use rhizome_core::IdSource;
@@ -386,7 +388,7 @@ fn build(d: &mut Doc) {
 }
 
 fn fixture() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/window/fixtures/sallow-fen.campaign")
+    common::fixture("sallow-fen")
 }
 
 fn saved_text() -> String {
@@ -459,15 +461,7 @@ fn the_lines_run_the_length_of_the_map() {
 #[test]
 fn the_fixture_is_current() {
     let text = saved_text();
-    if std::env::var_os("SALLOW_WRITE").is_some() {
-        std::fs::write(fixture(), &text).unwrap();
-        return;
-    }
-    let on_disk = std::fs::read_to_string(fixture()).unwrap_or_default();
-    assert!(
-        on_disk == text,
-        "tests/window/fixtures/sallow-fen.campaign is stale: write it again with SALLOW_WRITE=1"
-    );
+    common::check_or_write("sallow-fen", &text);
 }
 
 #[test]

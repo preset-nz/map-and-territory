@@ -35,7 +35,9 @@
           "00000000000000000000000012",
           "0000000000000000000000001V",
           "0000000000000000000000002M",
-          "0000000000000000000000003D"
+          "0000000000000000000000003D",
+          "00000000000000000000000046",
+          "0000000000000000000000004Z"
         ]
       }
     },
@@ -3133,6 +3135,1250 @@
       "path": "/maps/map-5/paper",
       "id": "00000000000000000000000045",
       "type": "paper"
+    },
+    {
+      "path": "/maps/map-6",
+      "id": "00000000000000000000000046",
+      "type": "map",
+      "values": {
+        "layout": "map-top",
+        "name": "Square map"
+      },
+      "orders": {
+        "furniture": [
+          "00000000000000000000000047",
+          "00000000000000000000000048"
+        ],
+        "layers": [
+          "0000000000000000000000004Y",
+          "0000000000000000000000004E",
+          "00000000000000000000000049",
+          "0000000000000000000000004X",
+          "0000000000000000000000004G",
+          "0000000000000000000000004F"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/cartouche",
+      "id": "00000000000000000000000047",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-6/compass",
+      "id": "00000000000000000000000048",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform",
+      "id": "00000000000000000000000049",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000004A",
+          "0000000000000000000000004B",
+          "0000000000000000000000004C",
+          "0000000000000000000000004D"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/-1_-1",
+      "id": "0000000000000000000000004A",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/-1_0",
+      "id": "0000000000000000000000004B",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/0_-1",
+      "id": "0000000000000000000000004C",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/0_0",
+      "id": "0000000000000000000000004D",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/hex-noise",
+      "id": "0000000000000000000000004E",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-6/hexgrid",
+      "id": "0000000000000000000000004F",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-6/locations",
+      "id": "0000000000000000000000004G",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000004H",
+          "0000000000000000000000004N",
+          "0000000000000000000000004P",
+          "0000000000000000000000004Q",
+          "0000000000000000000000004R",
+          "0000000000000000000000004S",
+          "0000000000000000000000004T",
+          "0000000000000000000000004V",
+          "0000000000000000000000004W",
+          "0000000000000000000000004J",
+          "0000000000000000000000004K",
+          "0000000000000000000000004M"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location",
+      "id": "0000000000000000000000004H",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-10",
+      "id": "0000000000000000000000004J",
+      "type": "location",
+      "values": {
+        "description": "The fare is a coin and a secret.",
+        "hexes": [
+          {
+            "q": 4,
+            "r": 3
+          }
+        ],
+        "name": "Ferryman's Hut"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-11",
+      "id": "0000000000000000000000004K",
+      "type": "location",
+      "values": {
+        "description": "Deep, cold and full of eels as long as a man.",
+        "hexes": [
+          {
+            "q": 9,
+            "r": -3
+          }
+        ],
+        "name": "Blackwater"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-12",
+      "id": "0000000000000000000000004M",
+      "type": "location",
+      "values": {
+        "description": "Count them twice: the number is never the same.",
+        "hexes": [
+          {
+            "q": 8,
+            "r": 3
+          }
+        ],
+        "name": "Standing Stones"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-2",
+      "id": "0000000000000000000000004N",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-3",
+      "id": "0000000000000000000000004P",
+      "type": "location",
+      "values": {
+        "description": "Held by the Vane since the flood, three towers and a drowned gate.",
+        "hexes": [
+          {
+            "q": -7,
+            "r": -3
+          }
+        ],
+        "name": "Reedwall Keep"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-4",
+      "id": "0000000000000000000000004Q",
+      "type": "location",
+      "values": {
+        "description": "Its water tastes of salt; the village will not drink from it.",
+        "hexes": [
+          {
+            "q": -8,
+            "r": 3
+          }
+        ],
+        "name": "Weeping Well"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-5",
+      "id": "0000000000000000000000004R",
+      "type": "location",
+      "values": {
+        "description": "Knee-deep in summer, a swim in spring. A rope still hangs.",
+        "hexes": [
+          {
+            "q": -3,
+            "r": -3
+          }
+        ],
+        "name": "Gallows Ford"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-6",
+      "id": "0000000000000000000000004S",
+      "type": "location",
+      "values": {
+        "description": "The wheel turns with no stream under it.",
+        "hexes": [
+          {
+            "q": -4,
+            "r": 3
+          }
+        ],
+        "name": "Old Mill"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-7",
+      "id": "0000000000000000000000004T",
+      "type": "location",
+      "values": {
+        "description": "A beacon stands ready; nobody remembers who lights it.",
+        "hexes": [
+          {
+            "q": 1,
+            "r": -3
+          }
+        ],
+        "name": "Crow Hill"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-8",
+      "id": "0000000000000000000000004V",
+      "type": "location",
+      "values": {
+        "description": "Warm beds, thin walls, a landlord who sells to both sides.",
+        "hexes": [
+          {
+            "q": 0,
+            "r": 3
+          }
+        ],
+        "name": "Saltmarsh Inn"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-9",
+      "id": "0000000000000000000000004W",
+      "type": "location",
+      "values": {
+        "description": "Seven mounds, one opened, one that hums at night.",
+        "hexes": [
+          {
+            "q": 5,
+            "r": -3
+          }
+        ],
+        "name": "Barrow of Kings"
+      }
+    },
+    {
+      "path": "/maps/map-6/outline",
+      "id": "0000000000000000000000004X",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/paper",
+      "id": "0000000000000000000000004Y",
+      "type": "paper",
+      "values": {
+        "aspect": "square"
+      }
+    },
+    {
+      "path": "/maps/map-7",
+      "id": "0000000000000000000000004Z",
+      "type": "map",
+      "values": {
+        "layout": "map-top",
+        "name": "4:3 map"
+      },
+      "orders": {
+        "furniture": [
+          "00000000000000000000000050",
+          "00000000000000000000000051"
+        ],
+        "layers": [
+          "0000000000000000000000005Q",
+          "00000000000000000000000057",
+          "00000000000000000000000052",
+          "0000000000000000000000005P",
+          "00000000000000000000000059",
+          "00000000000000000000000058"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/cartouche",
+      "id": "00000000000000000000000050",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-7/compass",
+      "id": "00000000000000000000000051",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform",
+      "id": "00000000000000000000000052",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "00000000000000000000000053",
+          "00000000000000000000000054",
+          "00000000000000000000000055",
+          "00000000000000000000000056"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/-1_-1",
+      "id": "00000000000000000000000053",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/-1_0",
+      "id": "00000000000000000000000054",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/0_-1",
+      "id": "00000000000000000000000055",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/0_0",
+      "id": "00000000000000000000000056",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/hex-noise",
+      "id": "00000000000000000000000057",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-7/hexgrid",
+      "id": "00000000000000000000000058",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-7/locations",
+      "id": "00000000000000000000000059",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000005A",
+          "0000000000000000000000005E",
+          "0000000000000000000000005F",
+          "0000000000000000000000005G",
+          "0000000000000000000000005H",
+          "0000000000000000000000005J",
+          "0000000000000000000000005K",
+          "0000000000000000000000005M",
+          "0000000000000000000000005N",
+          "0000000000000000000000005B",
+          "0000000000000000000000005C",
+          "0000000000000000000000005D"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location",
+      "id": "0000000000000000000000005A",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-10",
+      "id": "0000000000000000000000005B",
+      "type": "location",
+      "values": {
+        "description": "The fare is a coin and a secret.",
+        "hexes": [
+          {
+            "q": 4,
+            "r": 3
+          }
+        ],
+        "name": "Ferryman's Hut"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-11",
+      "id": "0000000000000000000000005C",
+      "type": "location",
+      "values": {
+        "description": "Deep, cold and full of eels as long as a man.",
+        "hexes": [
+          {
+            "q": 9,
+            "r": -3
+          }
+        ],
+        "name": "Blackwater"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-12",
+      "id": "0000000000000000000000005D",
+      "type": "location",
+      "values": {
+        "description": "Count them twice: the number is never the same.",
+        "hexes": [
+          {
+            "q": 8,
+            "r": 3
+          }
+        ],
+        "name": "Standing Stones"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-2",
+      "id": "0000000000000000000000005E",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-3",
+      "id": "0000000000000000000000005F",
+      "type": "location",
+      "values": {
+        "description": "Held by the Vane since the flood, three towers and a drowned gate.",
+        "hexes": [
+          {
+            "q": -7,
+            "r": -3
+          }
+        ],
+        "name": "Reedwall Keep"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-4",
+      "id": "0000000000000000000000005G",
+      "type": "location",
+      "values": {
+        "description": "Its water tastes of salt; the village will not drink from it.",
+        "hexes": [
+          {
+            "q": -8,
+            "r": 3
+          }
+        ],
+        "name": "Weeping Well"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-5",
+      "id": "0000000000000000000000005H",
+      "type": "location",
+      "values": {
+        "description": "Knee-deep in summer, a swim in spring. A rope still hangs.",
+        "hexes": [
+          {
+            "q": -3,
+            "r": -3
+          }
+        ],
+        "name": "Gallows Ford"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-6",
+      "id": "0000000000000000000000005J",
+      "type": "location",
+      "values": {
+        "description": "The wheel turns with no stream under it.",
+        "hexes": [
+          {
+            "q": -4,
+            "r": 3
+          }
+        ],
+        "name": "Old Mill"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-7",
+      "id": "0000000000000000000000005K",
+      "type": "location",
+      "values": {
+        "description": "A beacon stands ready; nobody remembers who lights it.",
+        "hexes": [
+          {
+            "q": 1,
+            "r": -3
+          }
+        ],
+        "name": "Crow Hill"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-8",
+      "id": "0000000000000000000000005M",
+      "type": "location",
+      "values": {
+        "description": "Warm beds, thin walls, a landlord who sells to both sides.",
+        "hexes": [
+          {
+            "q": 0,
+            "r": 3
+          }
+        ],
+        "name": "Saltmarsh Inn"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-9",
+      "id": "0000000000000000000000005N",
+      "type": "location",
+      "values": {
+        "description": "Seven mounds, one opened, one that hums at night.",
+        "hexes": [
+          {
+            "q": 5,
+            "r": -3
+          }
+        ],
+        "name": "Barrow of Kings"
+      }
+    },
+    {
+      "path": "/maps/map-7/outline",
+      "id": "0000000000000000000000005P",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/paper",
+      "id": "0000000000000000000000005Q",
+      "type": "paper",
+      "values": {
+        "aspect": "4:3"
+      }
     },
     {
       "path": "/pages",

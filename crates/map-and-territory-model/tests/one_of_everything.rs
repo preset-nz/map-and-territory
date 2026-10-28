@@ -4,16 +4,18 @@
 //! map. Open it to see a new
 //! kind or a palette change against all the rest at once.
 //!
-//! `every-layout.campaign` is the same map once per page layout (epic 32), with more places so
+//! `every-layout.campaign` is the same map once per page layout (epic 32) and once as a square
+//! and a 4:3 map, with more places so
 //! the key fills its columns: export it as one PDF to see every layout side by side. Write it
-//! again with `LAYOUTS_WRITE=1`.
+//! again with `just fixtures every-layout`.
 //!
 //! Built through the commands the app runs, as `sallow_fen.rs` is. When a kind lands (roads and
 //! rivers, epic 29; locations' areas, epic 28) or cells paint terrain ids (epic 26), add it here and write
-//! the file again with `EVERYTHING_WRITE=1 cargo test -p map-and-territory-model --test
-//! one_of_everything`.
+//! the file again with `just fixtures one-of-everything`.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+mod common;
 
 use map_and_territory_model::MapAndTerritory;
 use rhizome_core::IdSource;
@@ -150,6 +152,9 @@ const LAYOUTS: [(&str, &str); 5] = [
     ("map-full", "Map alone"),
 ];
 
+/// The paper shapes besides 16:10, each once after the layouts.
+const SHAPES: [(&str, &str); 2] = [("square", "Square map"), ("4:3", "4:3 map")];
+
 /// Places for the key, with a line each.
 const PLACES: [(&str, &str); 10] = [
     (
@@ -188,7 +193,8 @@ const PLACES: [(&str, &str); 10] = [
     ),
 ];
 
-/// The one-of-everything map with ten more places, once per layout.
+/// The one-of-everything map with ten more places, once per layout, then once more for each
+/// other paper shape.
 fn build_layouts(d: &mut Doc) {
     build(d);
     set(d, "/campaign/campaign", "name", json!("Every Layout"));
@@ -223,16 +229,19 @@ fn build_layouts(d: &mut Doc) {
         set(d, &at, "name", json!(name));
         set(d, &at, "layout", json!(layout));
     }
+    // the other shapes, one example each, on the first layout (Georg)
+    for (aspect, name) in SHAPES {
+        let last = newest(d, "/maps", "maps");
+        run(d, "edit.duplicate", json!({ "at": last }));
+        let at = newest(d, "/maps", "maps");
+        set(d, &at, "name", json!(name));
+        set(d, &at, "layout", json!(LAYOUTS[0].0));
+        set(d, &format!("{at}/paper"), "aspect", json!(aspect));
+    }
 }
 
 fn fixture() -> PathBuf {
-    fixture_at("one-of-everything.campaign")
-}
-
-fn fixture_at(name: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../tests/window/fixtures")
-        .join(name)
+    common::fixture("one-of-everything")
 }
 
 fn saved_text() -> String {
@@ -280,15 +289,7 @@ fn it_holds_one_of_each_kind() {
 #[test]
 fn the_fixture_is_current() {
     let text = saved_text();
-    if std::env::var_os("EVERYTHING_WRITE").is_some() {
-        std::fs::write(fixture(), &text).unwrap();
-        return;
-    }
-    let on_disk = std::fs::read_to_string(fixture()).unwrap_or_default();
-    assert!(
-        on_disk == text,
-        "tests/window/fixtures/one-of-everything.campaign is stale: write it again with EVERYTHING_WRITE=1"
-    );
+    common::check_or_write("one-of-everything", &text);
 }
 
 #[test]
@@ -298,7 +299,7 @@ fn the_fixture_opens() {
 }
 
 #[test]
-fn every_layout_holds_the_same_map_once_per_layout() {
+fn every_layout_holds_the_same_map_once_per_layout_and_shape() {
     let mut d: Doc =
         Document::new_with_ids(MemoryStore::default(), IdSource::sequential()).unwrap();
     build_layouts(&mut d);
@@ -310,7 +311,9 @@ fn every_layout_holds_the_same_map_once_per_layout() {
             other => panic!("layout is {other:?}"),
         })
         .collect();
-    assert_eq!(layouts, LAYOUTS.map(|(l, _)| l.to_string()));
+    let mut want: Vec<String> = LAYOUTS.iter().map(|(l, _)| l.to_string()).collect();
+    want.extend(["map-top".to_string(), "map-top".to_string()]);
+    assert_eq!(layouts, want);
     // every copy keeps the twelve places
     for m in &maps {
         let places = &m.order("layers")[4];
@@ -322,14 +325,5 @@ fn every_layout_holds_the_same_map_once_per_layout() {
 #[test]
 fn every_layout_fixture_is_current() {
     let text = saved_text_of(build_layouts, "every-layout.campaign");
-    let path = fixture_at("every-layout.campaign");
-    if std::env::var_os("LAYOUTS_WRITE").is_some() {
-        std::fs::write(&path, &text).unwrap();
-        return;
-    }
-    let on_disk = std::fs::read_to_string(&path).unwrap_or_default();
-    assert!(
-        on_disk == text,
-        "tests/window/fixtures/every-layout.campaign is stale: write it again with LAYOUTS_WRITE=1"
-    );
+    common::check_or_write("every-layout", &text);
 }

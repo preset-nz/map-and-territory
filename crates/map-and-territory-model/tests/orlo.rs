@@ -7,10 +7,12 @@
 //! open it in the app to see how close the sheets come.
 //!
 //! When a kind lands that takes a walkthrough step further, add the step here and write the
-//! file again with `ORLO_WRITE=1 cargo test -p map-and-territory-model --test orlo`. The
+//! file again with `just fixtures orlo`. The
 //! walkthrough's "Test campaign" section says which steps the file reaches.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+mod common;
 
 use map_and_territory_model::MapAndTerritory;
 use rhizome_core::IdSource;
@@ -186,7 +188,7 @@ fn build(d: &mut Doc) {
 }
 
 fn fixture() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/window/fixtures/orlo.campaign")
+    common::fixture("orlo")
 }
 
 fn saved_text() -> String {
@@ -228,15 +230,7 @@ fn the_four_sheets_build_through_commands() {
 #[test]
 fn the_fixture_is_current() {
     let text = saved_text();
-    if std::env::var_os("ORLO_WRITE").is_some() {
-        std::fs::write(fixture(), &text).unwrap();
-        return;
-    }
-    let on_disk = std::fs::read_to_string(fixture()).unwrap_or_default();
-    assert!(
-        on_disk == text,
-        "tests/window/fixtures/orlo.campaign is stale: write it again with ORLO_WRITE=1"
-    );
+    common::check_or_write("orlo", &text);
 }
 
 #[test]
