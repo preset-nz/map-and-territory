@@ -7,7 +7,7 @@ import type { SceneFrame } from '@/render/types';
 import type { OnPointer } from '../canvas-host';
 import { useChannel } from '../document';
 import { gridOf, hitTest, type PointerHit } from '../scene/pointer';
-import { selection } from '../selection';
+import { activeMapId, selection } from '../selection';
 import { brush } from './brush';
 import { click, cornerAt, openPath, outlineDraft, type StoredPath } from './outline';
 import { createStroke, type Stroke } from './stroke';
@@ -60,6 +60,38 @@ function hexCentre(frame: SceneFrame, q: number, r: number): { x: number; y: num
   const x = rect.x + c.x * fit;
   const y = rect.y + c.y * fit;
   return x < rect.x || y < rect.y || x > rect.x + rect.w || y > rect.y + rect.h ? null : { x, y };
+}
+
+/**
+ * Where the location tool adds (epic 28): the selected locations layer, the layer of the
+ * selected location, else the topmost locations layer on the active map.
+ */
+export function locationsTarget(
+  rows: Pick<ReturnType<typeof useMirror>, 'node'>,
+  selected: ReturnType<typeof selection.get>,
+  mapId: string | null,
+): string | null {
+  if (selected.kind === 'layer') {
+    const row = rows.node(selected.id) as { type: string; path: string; parent?: string | null };
+    if (row?.type === 'locations') return row.path;
+    const parent = row?.parent ? rows.node(row.parent) : undefined;
+    if (row?.type === 'location' && parent?.type === 'locations') return parent.path ?? null;
+  }
+  const map = mapId ? rows.node(mapId) : undefined;
+  for (const id of [...(map?.orders?.layers ?? [])].reverse()) {
+    const row = rows.node(id);
+    if (row?.type === 'locations') return row.path ?? null;
+  }
+  return null;
+}
+
+/** The path of the node of `type` a command added, from its commit. */
+export function addedPath(ran: unknown, type: string): string | null {
+  const changes = (ran as { committed?: { changes?: unknown[] } })?.committed?.changes ?? [];
+  for (const c of changes as { change?: string; type?: string; path?: string }[]) {
+    if (c.change === 'added' && c.type === type && c.path) return c.path;
+  }
+  return null;
 }
 
 /** The selected layer's id and path, when it is an outline layer. */
@@ -129,6 +161,25 @@ export function useToolPointer(): OnPointer {
             .run('outline.draw', { at: target.at, paths })
             .catch((err) => console.error('[outline]', err)),
         );
+        return;
+      }
+      if (tool === 'location') {
+        if (kind !== 'down' || e.button !== 0 || !hit?.hex) return;
+        const { q, r } = hit.hex;
+        const mapId = activeMapId(selection.get(), mirror);
+        const at = locationsTarget(mirror, selection.get(), mapId);
+        const map = mapId ? mirror.node(mapId)?.path : undefined;
+        // with no locations layer on the map, the first click makes one (its own undo step)
+        const ready: Promise<string | null> = at
+          ? Promise.resolve(at)
+          : map
+            ? channel
+                .run('node.add', { parent: map, type: 'locations' })
+                .then((ran) => addedPath(ran, 'locations'))
+            : Promise.resolve(null);
+        ready
+          .then((layer) => (layer ? channel.run('locations.add', { at: layer, q, r }) : null))
+          .catch((err) => console.error('[location]', err));
         return;
       }
       if (tool !== 'paint' && tool !== 'erase' && tool !== 'fill') return;

@@ -44,21 +44,22 @@
       },
       "orders": {
         "furniture": [
-          "0000000000000000000000000J",
-          "0000000000000000000000000K"
+          "0000000000000000000000000N",
+          "0000000000000000000000000P"
         ],
         "layers": [
           "00000000000000000000000009",
           "0000000000000000000000000B",
           "0000000000000000000000000C",
           "0000000000000000000000000H",
+          "0000000000000000000000000J",
           "0000000000000000000000000A"
         ]
       }
     },
     {
       "path": "/maps/map/cartouche",
-      "id": "0000000000000000000000000J",
+      "id": "0000000000000000000000000N",
       "type": "cartouche",
       "values": {
         "name": "Title 01"
@@ -66,7 +67,7 @@
     },
     {
       "path": "/maps/map/compass",
-      "id": "0000000000000000000000000K",
+      "id": "0000000000000000000000000P",
       "type": "compass",
       "values": {
         "labels": "cardinal",
@@ -193,6 +194,49 @@
       "path": "/maps/map/hexgrid",
       "id": "0000000000000000000000000A",
       "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map/locations",
+      "id": "0000000000000000000000000J",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000000K",
+          "0000000000000000000000000M"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/locations/location",
+      "id": "0000000000000000000000000K",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map/locations/location-2",
+      "id": "0000000000000000000000000M",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
     },
     {
       "path": "/maps/map/outline",

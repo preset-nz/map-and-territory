@@ -65,7 +65,27 @@ pub const IMAGE: LayerKind = LayerKind {
     id: "image",
     base: "Image",
 };
-pub const LAYER_KINDS: [&LayerKind; 4] = [&HEX_NOISE, &FREEFORM, &OUTLINE, &IMAGE];
+pub const LOCATIONS: LayerKind = LayerKind {
+    id: "locations",
+    base: "Locations",
+};
+pub const LAYER_KINDS: [&LayerKind; 5] = [&HEX_NOISE, &FREEFORM, &OUTLINE, &IMAGE, &LOCATIONS];
+
+/// How a location is marked on the map (epic 28); `symbol` waits for stickers (disco-08).
+pub const LOCATION_MARKERS: &[&str] = &["number", "dot", "none"];
+const LOCATION_MARKER_LABELS: &[(&str, &str)] =
+    &[("number", "Number"), ("dot", "Dot"), ("none", "None")];
+/// What kind of place a location is: for filtering, and for the legend later.
+pub const LOCATION_CATEGORIES: &[&str] = &[
+    "settlement",
+    "stronghold",
+    "dungeon",
+    "ruin",
+    "lair",
+    "shrine",
+    "landmark",
+    "other",
+];
 
 pub const CARTOUCHE: LayerKind = LayerKind {
     id: "cartouche",
@@ -739,6 +759,71 @@ pub fn declare(k: &mut Kinds) {
             .described("Hand", "How the compass is drawn and its labels lean. Map follows the map's hand.")
             .choice_labels(&[("map", "Map")])
             .choice_labels(HAND_LABELS),
+    );
+
+    // Locations (epic 28, first slice): a layer of named places, each a `location` child listed
+    // in the layer's `locations` order. Numbers are resolved by the frame projection.
+    k.kind(
+        layer(LOCATIONS.id, LOCATIONS.base)
+            .label("Locations")
+            .summary("Named places on the map, numbered for the key: keeps, wells, fords, lairs.")
+            .category("markers")
+            .choice("marker", LOCATION_MARKERS, "number")
+            .described("Marker", "How each location is marked: its number in a ring, a dot, or nothing but its name.")
+            .choice_labels(LOCATION_MARKER_LABELS)
+            .bool("showLabels", true)
+            .described("Names", "Print each location's name beside its marker.")
+            .bool("numbered", true)
+            .described("Numbered", "Count this layer's locations in the map's numbering. Off, they keep their names but take no number.")
+            .choice("face", FURNITURE_FACES, "map")
+            .described("Face", "The lettering of the names and numbers. Map follows the map's face.")
+            .choice_labels(&[("map", "Map")])
+            .choice_labels(FACE_LABELS),
+    );
+    k.kind(
+        NodeType::new("location")
+            .label("Location")
+            .summary("One named place on the map: a hex, its name and what is there.")
+            .group("object")
+            .in_categories(&["maps"])
+            .text("name", "Location")
+            .described("Name", "Printed beside the marker and in the key.")
+            .text("note", "")
+            .described(
+                "Note",
+                "A short second line printed under the name: \"ford, deep in spring\".",
+            )
+            .text("description", "")
+            .described(
+                "Description",
+                "Who holds it, what waits there: for the key and for you.",
+            )
+            .choice("category", LOCATION_CATEGORIES, "landmark")
+            .described("Category", "What kind of place it is.")
+            .choice_labels(&[
+                ("settlement", "Settlement"),
+                ("stronghold", "Stronghold"),
+                ("dungeon", "Dungeon"),
+                ("ruin", "Ruin"),
+                ("lair", "Lair"),
+                ("shrine", "Shrine"),
+                ("landmark", "Landmark"),
+                ("other", "Other"),
+            ])
+            .shaped(
+                "hexes",
+                Shape::list(Shape::record([("q", Shape::Int), ("r", Shape::Int)])),
+            )
+            .described(
+                "Hexes",
+                "Where it is: one hex for a place, several for an area.",
+            )
+            .bool("hidden", false)
+            .described(
+                "Hidden",
+                "A secret for the map's owner: drawn dashed and faint in the window.",
+            )
+            .check(super::locations::check_location),
     );
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named

@@ -90,7 +90,7 @@ fn check(d: &Doc, a: &AddArgs) -> Result<(), String> {
 
 /// "Map 01" style: one past the highest number any sibling name ends in (the 2025
 /// `generateName` rule, `src/stores/naming.ts`).
-fn next_name(tx: &Edit<'_>, parent: NodeId, base: &str) -> String {
+pub(crate) fn next_name(tx: &Edit<'_>, parent: NodeId, base: &str) -> String {
     let max = tx
         .at(parent)
         .map(|p| {

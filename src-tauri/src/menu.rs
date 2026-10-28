@@ -27,13 +27,14 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 24] = [
+const WEBVIEW: [&str; 26] = [
     "file.export-map-png",
     "file.export-pdf",
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
     "layer.add-image",
+    "layer.add-locations",
     "layer.add-title",
     "layer.add-compass",
     "edit.move-earlier",
@@ -52,6 +53,7 @@ const WEBVIEW: [&str; 24] = [
     "tool.fill",
     "tool.select",
     "tool.outline",
+    "tool.location",
 ];
 
 /// The app's own commands, in menu order. Domain menus sit after View in the order they are
@@ -120,6 +122,7 @@ pub fn commands() -> Vec<Command> {
         layer("layer.add-freeform", "Add Freeform Layer", 0),
         layer("layer.add-outline", "Add Outline Layer", 0),
         layer("layer.add-image", "Add Image Layer", 0),
+        layer("layer.add-locations", "Add Locations Layer", 0),
         // The furniture kinds (epics 23 and 24): added on top of the grid, in the map's
         // `furniture`. No chord, like the layer Add items.
         layer("layer.add-title", "Add Title", 0),
@@ -137,6 +140,7 @@ pub fn commands() -> Vec<Command> {
         tool("tool.fill", "Fill", "3"),
         tool("tool.select", "Select", "4"),
         tool("tool.outline", "Outline", "5"),
+        tool("tool.location", "Location", "6"),
     ]
 }
 
@@ -218,9 +222,9 @@ mod tests {
                 Some(rest[..rest.find('"')?].to_string())
             })
             .collect();
-        assert_eq!(chords.len(), 18);
+        assert_eq!(chords.len(), 19);
         chords.sort();
         chords.dedup();
-        assert_eq!(chords.len(), 18);
+        assert_eq!(chords.len(), 19);
     }
 }

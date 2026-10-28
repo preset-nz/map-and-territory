@@ -1,5 +1,5 @@
 // Tool commands and the toolbar's document commands. Rust declares the ids and chords; the
-// webview binds them. A bare-key chord (the tools' `1` to `5`) would be taken by the menu while
+// webview binds them. A bare-key chord (the tools' `1` to `6`) would be taken by the menu while
 // a text field has focus, so tools are disabled then: a disabled item's key reaches the field.
 import { type Binding, useTextFocus } from '@preset.nz/app-kit/core';
 import { Icons } from '@preset.nz/ux-kit';
@@ -14,6 +14,7 @@ const ICONS: Record<ToolId, keyof typeof Icons> = {
   fill: 'PaintBucket',
   select: 'Cursor',
   outline: 'Polygon',
+  location: 'MapPin',
 };
 
 const icon = (name: keyof typeof Icons) =>
@@ -48,6 +49,7 @@ export const LAYER_ICONS: Record<string, React.ReactNode> = {
   'layer.add-freeform': icon('PaintBrushBroad'),
   'layer.add-outline': icon('Polygon'),
   'layer.add-image': icon('Image'),
+  'layer.add-locations': icon('MapPinArea'),
 };
 
 /** The panel toggles at the toolbar's ends (ux-patterns, Side panels); the right one is mirrored. */
@@ -66,7 +68,13 @@ export const TOOLBAR = {
   leading: ['view.toggle-left-panel'],
   groups: [
     ['map-new'],
-    ['layer.add-hex-noise', 'layer.add-freeform', 'layer.add-outline', 'layer.add-image'],
+    [
+      'layer.add-hex-noise',
+      'layer.add-freeform',
+      'layer.add-outline',
+      'layer.add-image',
+      'layer.add-locations',
+    ],
     Object.keys(TOOL_COMMANDS),
   ],
   trailing: ['view.toggle-right-panel'],

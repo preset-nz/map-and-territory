@@ -35,9 +35,13 @@ type WithParent = { parent?: string | null };
 export function activeMapId(selected: Selected, rows: RowSource): string | null {
   if (selected.kind === 'map' && rows.node(selected.id)) return selected.id;
   if (selected.kind === 'layer') {
-    const layer = rows.node(selected.id) as (WithParent & object) | undefined;
-    const parent = layer?.parent;
-    if (parent && rows.node(parent)) return parent;
+    // a layer's parent is its map; a location's is its layer, whose parent is the map
+    let node = rows.node(selected.id) as (WithParent & { type?: string }) | undefined;
+    for (let up = 0; node && up < 3; up++) {
+      const parent = node.parent ? (rows.node(node.parent) as typeof node) : undefined;
+      if (parent?.type === 'map') return node.parent ?? null;
+      node = parent;
+    }
   }
   return rows.nodeAt(MAPS_PATH)?.orders?.maps?.[0] ?? null;
 }

@@ -12,6 +12,7 @@ const TOOL_NAMES = {
   fill: 'Fill',
   select: 'Select',
   outline: 'Outline',
+  location: 'Location',
 } as const;
 
 /** Active tool and the hex under the pointer on the left; palette and selection on the right. */

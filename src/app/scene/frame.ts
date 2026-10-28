@@ -2,6 +2,7 @@
 // Pure, so it is tested without a window. Object model: guidance
 // projects/map-and-territory/design/object-model.md, "The mirror and the SceneFrame".
 import { MUTED_INK_ALPHA } from '@/layers/adapters/cartouche';
+import type { LocationMarker, PlacedLocation } from '@/layers/adapters/locations';
 import { DefaultPalette } from '@/palettes/defaults';
 import type { MapPalette, TerrainCategory } from '@/palettes/types';
 import type { PaperSpec, SceneFrame, SceneLayer } from '@/render/types';
@@ -314,6 +315,56 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     return state;
   };
 
+  /**
+   * A locations layer's adapter state (epic 28): its values plus each place in its `locations`
+   * order, numbered from `first` when the layer is numbered, with the map's face, the grid's ink
+   * and the paper's colour. Kept while the row, its locations and those are unchanged.
+   */
+  const locationsStates = new WeakMap<
+    FrameRow,
+    { key: string; children: FrameRow[]; state: Record<string, unknown> }
+  >();
+  const locationsState = (
+    rows: RowSource,
+    row: FrameRow,
+    map: FrameRow,
+    first: number,
+    ink: string,
+    paper: string,
+  ): Record<string, unknown> => {
+    const children = locationRows(rows, row);
+    const base = stateOf(row);
+    const face = sheetStyle(base.face, map.values?.face, 'condensed');
+    const key = JSON.stringify([first, ink, paper, face]);
+    const known = locationsStates.get(row);
+    if (
+      known &&
+      known.key === key &&
+      known.children.length === children.length &&
+      known.children.every((c, i) => c === children[i])
+    ) {
+      return known.state;
+    }
+    const numbered = base.numbered !== false;
+    const layerMarker = (base.marker as LocationMarker | undefined) ?? 'number';
+    const locations: PlacedLocation[] = children.map((c, i) => {
+      const v = c.values ?? {};
+      const own = v.marker as string | undefined;
+      return {
+        id: c.id,
+        name: typeof v.name === 'string' ? v.name : '',
+        note: typeof v.note === 'string' ? v.note : '',
+        hexes: Array.isArray(v.hexes) ? (v.hexes as { q: number; r: number }[]) : [],
+        number: numbered ? first + i : null,
+        marker: own === 'number' || own === 'dot' || own === 'none' ? own : layerMarker,
+        hidden: v.hidden === true,
+      };
+    });
+    const state = { ...base, locations, face, ink, paper };
+    locationsStates.set(row, { key, children, state });
+    return state;
+  };
+
   return {
     build(rows, mapId, size, pixelRatio, preview, camera = IDENTITY_CAMERA) {
       const map = mapId ? rows.node(mapId) : undefined;
@@ -321,9 +372,18 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         return { size, pixelRatio, paper: DEFAULT_PAPER, camera, layers: [] };
       }
       let paper = DEFAULT_PAPER;
-      let grid: Record<string, unknown> | undefined;
       const layers: SceneLayer[] = [];
-      for (const id of map.orders?.layers ?? []) {
+      const palette = resolvePalette(rows, map);
+      // locations print in the grid's ink on the paper's colour, which come later in `layers`
+      const order = map.orders?.layers ?? [];
+      const gridRow = order.map((id) => rows.node(id)).find((r) => r?.type === 'hexgrid');
+      const paperRow = order.map((id) => rows.node(id)).find((r) => r?.type === 'paper');
+      const ink = gridInk(gridRow ? stateOf(gridRow) : undefined, palette);
+      const paperColour =
+        (paperRow ? (stateOf(paperRow).color as string | undefined) : undefined) ??
+        DEFAULT_PAPER.color;
+      const numbers = locationNumbers(rows, order);
+      for (const id of order) {
         const row = rows.node(id);
         if (!row) continue;
         let state =
@@ -333,7 +393,9 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
               ? paperState(row)
               : row.type === 'image'
                 ? imageState(row)
-                : stateOf(row);
+                : row.type === 'locations'
+                  ? locationsState(rows, row, map, numbers.get(id) ?? 1, ink, paperColour)
+                  : stateOf(row);
         if (row.type === 'outline' && preview?.layerId === id) {
           // tool state rides on a copy, so the row's memoised state stays clean
           const paths = state.paths as { id: string; closed: boolean }[];
@@ -344,7 +406,6 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
             hoverCorner: preview.hover,
           };
         }
-        if (row.type === 'hexgrid') grid = state;
         if (row.type === 'paper') {
           paper = {
             aspect: (state.aspect as PaperSpec['aspect']) ?? DEFAULT_PAPER.aspect,
@@ -353,10 +414,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         }
         layers.push({ id, type: row.type, visible: state.visible !== false, state });
       }
-      const palette = resolvePalette(rows, map);
       // Furniture after the grid, so no grid line crosses it (map furniture §1). One array: the
       // backend draws it in order and knows nothing of the two orders.
-      const ink = gridInk(grid, palette);
       for (const id of map.orders?.furniture ?? []) {
         const row = rows.node(id);
         if (!row) continue;
@@ -366,6 +425,29 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       return { size, pixelRatio, paper, camera, layers, palette };
     },
   };
+}
+
+/** A locations layer's places, in its `locations` order. */
+function locationRows(rows: RowSource, layer: FrameRow): FrameRow[] {
+  return (layer.orders?.locations ?? [])
+    .map((id) => rows.node(id))
+    .filter((c): c is FrameRow => c !== undefined);
+}
+
+/**
+ * Where each locations layer's numbering starts (epic 28): the map's numbered locations layers
+ * count on from each other, top of the stack first, so the key reads down the scene panel.
+ */
+export function locationNumbers(rows: RowSource, layerIds: readonly string[]): Map<string, number> {
+  const out = new Map<string, number>();
+  let next = 1;
+  for (const id of [...layerIds].reverse()) {
+    const row = rows.node(id);
+    if (row?.type !== 'locations') continue;
+    out.set(id, next);
+    if (row.values?.numbered !== false) next += row.orders?.locations?.length ?? 0;
+  }
+  return out;
 }
 
 interface TerrainEntry {

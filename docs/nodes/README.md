@@ -36,6 +36,14 @@ title: Map & Territory nodes
 
 - [Outline](outline.md): Lines drawn along hex edges, for coasts, borders and roads.
 
+## Markers
+
+- [Locations](locations.md): Named places on the map, numbered for the key: keeps, wells, fords, lairs.
+
+## Object
+
+- [Location](location.md): One named place on the map: a hex, its name and what is there.
+
 ## Painting
 
 - [Freeform](freeform.md): Hexes you paint by hand, each filled with a terrain from the setting.

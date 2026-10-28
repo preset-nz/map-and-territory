@@ -103,12 +103,35 @@ function LayerItem({
   const row = useNode(id);
   if (!row) return null;
   return (
+    <>
+      <Item
+        row={row}
+        depth={1}
+        selected={isSelected(selected, 'layer', id)}
+        onSelect={() => selection.selectLayer(id)}
+        icon={row.type === 'locations' ? <Icons.MapPinArea /> : icon}
+      />
+      {row.type === 'locations' && <LocationItems layerId={id} selected={selected} />}
+    </>
+  );
+}
+
+/** A locations layer's places, under it in its order (epic 28); each selects as a layer does. */
+function LocationItems({ layerId, selected }: { layerId: string; selected: Selected }) {
+  const ids = useChildren(layerId, 'locations');
+  return ids.map((id) => <LocationItem key={id} id={id} selected={selected} />);
+}
+
+function LocationItem({ id, selected }: { id: string; selected: Selected }) {
+  const row = useNode(id);
+  if (!row) return null;
+  return (
     <Item
       row={row}
-      depth={1}
+      depth={2}
       selected={isSelected(selected, 'layer', id)}
       onSelect={() => selection.selectLayer(id)}
-      icon={icon}
+      icon={<Icons.MapPin />}
     />
   );
 }

@@ -58,6 +58,8 @@ export function actionsFor(row: TreeRow): RowActions {
   const v = row.values?.visible;
   const visible = typeof v === 'boolean' ? v : undefined;
   if (row.type === 'campaign') return { rename: true, duplicate: false, delete: false };
+  // a location is listed in its layer's order, which a duplicate wouldn't join (epic 28)
+  if (row.type === 'location') return { rename: true, duplicate: false, delete: true };
   const anchor = ANCHORS.has(row.type);
   return {
     rename: 'name' in (row.values ?? {}),

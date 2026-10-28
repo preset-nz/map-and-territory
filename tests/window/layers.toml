@@ -20,8 +20,10 @@ name = "layers need a map"
 covers = "painting 3.1"
 steps = [
   { expect = "Layer > Add Freeform Layer", enabled = false },
+  { expect = "Layer > Add Locations Layer", enabled = false },
   { menu = "Map > New Map" },
   { expect = "Layer > Add Freeform Layer", enabled = true },
+  { expect = "Layer > Add Locations Layer", enabled = true },
 ]
 
 [[test]]
@@ -35,6 +37,8 @@ steps = [
   { expect = "Edit > #1", title = "Undo Add Hex Noise Layer" },
   { menu = "Layer > Add Outline Layer" },
   { expect = "Edit > #1", title = "Undo Add Outline Layer" },
+  { menu = "Layer > Add Locations Layer" },
+  { expect = "Edit > #1", title = "Undo Add Locations Layer" },
 ]
 
 [[test]]
@@ -78,6 +82,9 @@ steps = [
   { menu = "Tool > Outline" },
   { expect = "Tool > Outline", checked = true },
   { expect = "Tool > Paint", checked = false },
+  { menu = "Tool > Location" },
+  { expect = "Tool > Location", checked = true },
+  { expect = "Tool > Outline", checked = false },
 ]
 
 [[test]]

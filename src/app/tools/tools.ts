@@ -1,15 +1,16 @@
 // The active tool and the hex under the pointer: interaction state, never in the document.
 import { createStore, useStore } from '@preset.nz/app-kit/core';
 
-export type ToolId = 'paint' | 'erase' | 'fill' | 'select' | 'outline';
+export type ToolId = 'paint' | 'erase' | 'fill' | 'select' | 'outline' | 'location';
 
-/** Menu command id → tool, in the Tool menu's order (menu standard: `1` to `5`). */
+/** Menu command id → tool, in the Tool menu's order (menu standard: `1` to `6`). */
 export const TOOL_COMMANDS: Record<string, ToolId> = {
   'tool.paint': 'paint',
   'tool.erase': 'erase',
   'tool.fill': 'fill',
   'tool.select': 'select',
   'tool.outline': 'outline',
+  'tool.location': 'location',
 };
 
 const active = createStore<ToolId>('select');

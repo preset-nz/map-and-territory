@@ -105,6 +105,7 @@ export function useSceneBindings(): Record<string, Binding> {
       'layer.add-freeform': { enabled: s.mapPath !== null, run: add('freeform') },
       'layer.add-outline': { enabled: s.mapPath !== null, run: add('outline') },
       'layer.add-image': { enabled: s.mapPath !== null, run: add('image') },
+      'layer.add-locations': { enabled: s.mapPath !== null, run: add('locations') },
       // furniture always lands on top of the map's `furniture`, whatever is selected
       'layer.add-title': {
         enabled: s.mapPath !== null,

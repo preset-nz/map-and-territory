@@ -1,10 +1,11 @@
 //! One of everything: a campaign with each thing the app can put on a map once, not every
 //! style of it (Georg, 2026-10-28). Every terrain of the palette in its own band, a hex noise
-//! layer, an open and a closed outline, a title and a compass, on one map. Open it to see a new
+//! layer, an open and a closed outline, a place and a hidden one, a title and a compass, on one
+//! map. Open it to see a new
 //! kind or a palette change against all the rest at once.
 //!
-//! Built through the commands the app runs, as `sallow_fen.rs` is. When a kind lands (locations,
-//! roads and rivers, epics 28 and 29) or cells paint terrain ids (epic 26), add it here and write
+//! Built through the commands the app runs, as `sallow_fen.rs` is. When a kind lands (roads and
+//! rivers, epic 29; locations' areas, epic 28) or cells paint terrain ids (epic 26), add it here and write
 //! the file again with `EVERYTHING_WRITE=1 cargo test -p map-and-territory-model --test
 //! one_of_everything`.
 
@@ -110,6 +111,22 @@ fn build(d: &mut Doc) {
         ] }),
     );
 
+    // a place and a hidden one
+    let places = layer(d, &m, "locations", "Locations");
+    for (name, col, hidden) in [("Keep", -6, false), ("Secret", 6, true)] {
+        let (q, r) = axial(col, 0);
+        run(
+            d,
+            "locations.add",
+            json!({ "at": places, "q": q, "r": r, "name": name }),
+        );
+        if hidden {
+            let n = d.tree().at(&places).unwrap();
+            let at = n.order("locations").last().unwrap().path().to_string();
+            set(d, &at, "hidden", json!(true));
+        }
+    }
+
     run(d, "node.add", json!({ "parent": m, "type": "cartouche" }));
     run(d, "node.add", json!({ "parent": m, "type": "compass" }));
     let compass = newest(d, &m, "furniture");
@@ -151,7 +168,14 @@ fn it_holds_one_of_each_kind() {
     };
     assert_eq!(
         kinds("layers"),
-        ["paper", "hex-noise", "freeform", "outline", "hexgrid"]
+        [
+            "paper",
+            "hex-noise",
+            "freeform",
+            "outline",
+            "locations",
+            "hexgrid"
+        ]
     );
     assert_eq!(kinds("furniture"), ["cartouche", "compass"]);
 }

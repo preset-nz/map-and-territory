@@ -8,6 +8,8 @@
 //! lines that page draws them. The result is saved as `tests/window/fixtures/sallow-fen.campaign`:
 //! open it in the app to see how close the page comes.
 //!
+//! Step 23's locations are points with names and numbers (epic 28's first slice).
+//!
 //! When a kind lands that takes a walkthrough step further, add the step here and write the file
 //! again with `SALLOW_WRITE=1 cargo test -p map-and-territory-model --test sallow_fen`.
 
@@ -317,6 +319,28 @@ fn build(d: &mut Doc) {
         json!({ "at": old_road, "paths": [{ "corners": road, "closed": false }] }),
     );
 
+    // Step 23: the locations, the Sunken Chapel hidden (epic 28, first slice: points only)
+    let places = layer(d, &m, "locations", "Locations");
+    for (name, col, row, category, hidden) in [
+        ("Reedwall Keep", 5, 3, "stronghold", false),
+        ("The Weeping Well", 13, 4, "landmark", false),
+        ("Gallows Ford", 11, 7, "landmark", false),
+        ("Sunken Chapel", 15, 9, "shrine", true),
+    ] {
+        let (q, r) = axial(col, row);
+        run(
+            d,
+            "locations.add",
+            json!({ "at": places, "q": q, "r": r, "name": name }),
+        );
+        let n = d.tree().at(&places).unwrap();
+        let at = n.order("locations").last().unwrap().path().to_string();
+        set(d, &at, "category", json!(category));
+        if hidden {
+            set(d, &at, "hidden", json!(true));
+        }
+    }
+
     // Step 14: the title, double-ruled in the serif, with its subtitle and credit
     let title = furniture(d, &m, "cartouche");
     set(d, &title, "frame", json!("double"));
@@ -392,7 +416,14 @@ fn the_fen_builds_through_commands() {
             .collect();
         assert_eq!(
             stack,
-            ["paper", "freeform", "outline", "outline", "hexgrid"]
+            [
+                "paper",
+                "freeform",
+                "outline",
+                "outline",
+                "locations",
+                "hexgrid"
+            ]
         );
         let furniture: Vec<String> = m
             .order("furniture")
@@ -400,6 +431,12 @@ fn the_fen_builds_through_commands() {
             .map(|n| n.type_name().to_string())
             .collect();
         assert_eq!(furniture, ["cartouche", "compass"]);
+        // the grimdark copy keeps its own four places
+        let places = m.order("layers")[4];
+        assert_eq!(places.order("locations").len(), 4);
+        for p in places.order("locations") {
+            assert_eq!(p.parent().unwrap().id(), places.id());
+        }
     }
 }
 

@@ -33,7 +33,7 @@
       "orders": {
         "maps": [
           "00000000000000000000000008",
-          "0000000000000000000000000M"
+          "0000000000000000000000000S"
         ]
       }
     },
@@ -46,21 +46,22 @@
       },
       "orders": {
         "furniture": [
-          "0000000000000000000000000J",
-          "0000000000000000000000000K"
+          "0000000000000000000000000Q",
+          "0000000000000000000000000R"
         ],
         "layers": [
           "00000000000000000000000009",
           "0000000000000000000000000B",
           "0000000000000000000000000G",
           "0000000000000000000000000H",
+          "0000000000000000000000000J",
           "0000000000000000000000000A"
         ]
       }
     },
     {
       "path": "/maps/map/cartouche",
-      "id": "0000000000000000000000000J",
+      "id": "0000000000000000000000000Q",
       "type": "cartouche",
       "values": {
         "credit": "Surveyed in the year 1347",
@@ -74,7 +75,7 @@
     },
     {
       "path": "/maps/map/compass",
-      "id": "0000000000000000000000000K",
+      "id": "0000000000000000000000000R",
       "type": "compass",
       "values": {
         "anchor": "bottom-right",
@@ -216,6 +217,83 @@
         "misregistration": 1.0,
         "size": 38.0,
         "widthNoise": 0.35
+      }
+    },
+    {
+      "path": "/maps/map/locations",
+      "id": "0000000000000000000000000J",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000000K",
+          "0000000000000000000000000M",
+          "0000000000000000000000000N",
+          "0000000000000000000000000P"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/locations/location",
+      "id": "0000000000000000000000000K",
+      "type": "location",
+      "values": {
+        "category": "stronghold",
+        "hexes": [
+          {
+            "q": -2,
+            "r": -3
+          }
+        ],
+        "name": "Reedwall Keep"
+      }
+    },
+    {
+      "path": "/maps/map/locations/location-2",
+      "id": "0000000000000000000000000M",
+      "type": "location",
+      "values": {
+        "category": "landmark",
+        "hexes": [
+          {
+            "q": 5,
+            "r": -2
+          }
+        ],
+        "name": "The Weeping Well"
+      }
+    },
+    {
+      "path": "/maps/map/locations/location-3",
+      "id": "0000000000000000000000000N",
+      "type": "location",
+      "values": {
+        "category": "landmark",
+        "hexes": [
+          {
+            "q": 2,
+            "r": 1
+          }
+        ],
+        "name": "Gallows Ford"
+      }
+    },
+    {
+      "path": "/maps/map/locations/location-4",
+      "id": "0000000000000000000000000P",
+      "type": "location",
+      "values": {
+        "category": "shrine",
+        "hexes": [
+          {
+            "q": 5,
+            "r": 3
+          }
+        ],
+        "hidden": true,
+        "name": "Sunken Chapel"
       }
     },
     {
@@ -628,7 +706,7 @@
     },
     {
       "path": "/maps/map-2",
-      "id": "0000000000000000000000000M",
+      "id": "0000000000000000000000000S",
       "type": "map",
       "values": {
         "face": "marker",
@@ -637,21 +715,22 @@
       },
       "orders": {
         "furniture": [
-          "0000000000000000000000000N",
-          "0000000000000000000000000P"
+          "0000000000000000000000000T",
+          "0000000000000000000000000V"
         ],
         "layers": [
-          "0000000000000000000000000Z",
-          "0000000000000000000000000Q",
-          "0000000000000000000000000X",
-          "0000000000000000000000000Y",
-          "0000000000000000000000000W"
+          "00000000000000000000000019",
+          "0000000000000000000000000W",
+          "00000000000000000000000017",
+          "00000000000000000000000018",
+          "00000000000000000000000012",
+          "00000000000000000000000011"
         ]
       }
     },
     {
       "path": "/maps/map-2/cartouche",
-      "id": "0000000000000000000000000N",
+      "id": "0000000000000000000000000T",
       "type": "cartouche",
       "values": {
         "credit": "Surveyed in the year 1347",
@@ -666,7 +745,7 @@
     },
     {
       "path": "/maps/map-2/compass",
-      "id": "0000000000000000000000000P",
+      "id": "0000000000000000000000000V",
       "type": "compass",
       "values": {
         "anchor": "bottom-right",
@@ -677,7 +756,7 @@
     },
     {
       "path": "/maps/map-2/freeform",
-      "id": "0000000000000000000000000Q",
+      "id": "0000000000000000000000000W",
       "type": "freeform",
       "values": {
         "name": "Terrain",
@@ -685,16 +764,16 @@
       },
       "orders": {
         "chunks": [
-          "0000000000000000000000000R",
-          "0000000000000000000000000S",
-          "0000000000000000000000000T",
-          "0000000000000000000000000V"
+          "0000000000000000000000000X",
+          "0000000000000000000000000Y",
+          "0000000000000000000000000Z",
+          "00000000000000000000000010"
         ]
       }
     },
     {
       "path": "/maps/map-2/freeform/-1_-1",
-      "id": "0000000000000000000000000R",
+      "id": "0000000000000000000000000X",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -721,7 +800,7 @@
     },
     {
       "path": "/maps/map-2/freeform/-1_0",
-      "id": "0000000000000000000000000S",
+      "id": "0000000000000000000000000Y",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -745,7 +824,7 @@
     },
     {
       "path": "/maps/map-2/freeform/0_-1",
-      "id": "0000000000000000000000000T",
+      "id": "0000000000000000000000000Z",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -772,7 +851,7 @@
     },
     {
       "path": "/maps/map-2/freeform/0_0",
-      "id": "0000000000000000000000000V",
+      "id": "00000000000000000000000010",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -799,7 +878,7 @@
     },
     {
       "path": "/maps/map-2/hexgrid",
-      "id": "0000000000000000000000000W",
+      "id": "00000000000000000000000011",
       "type": "hexgrid",
       "values": {
         "alpha": 0.45,
@@ -811,8 +890,85 @@
       }
     },
     {
+      "path": "/maps/map-2/locations",
+      "id": "00000000000000000000000012",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "00000000000000000000000013",
+          "00000000000000000000000014",
+          "00000000000000000000000015",
+          "00000000000000000000000016"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/locations/location",
+      "id": "00000000000000000000000013",
+      "type": "location",
+      "values": {
+        "category": "stronghold",
+        "hexes": [
+          {
+            "q": -2,
+            "r": -3
+          }
+        ],
+        "name": "Reedwall Keep"
+      }
+    },
+    {
+      "path": "/maps/map-2/locations/location-2",
+      "id": "00000000000000000000000014",
+      "type": "location",
+      "values": {
+        "category": "landmark",
+        "hexes": [
+          {
+            "q": 5,
+            "r": -2
+          }
+        ],
+        "name": "The Weeping Well"
+      }
+    },
+    {
+      "path": "/maps/map-2/locations/location-3",
+      "id": "00000000000000000000000015",
+      "type": "location",
+      "values": {
+        "category": "landmark",
+        "hexes": [
+          {
+            "q": 2,
+            "r": 1
+          }
+        ],
+        "name": "Gallows Ford"
+      }
+    },
+    {
+      "path": "/maps/map-2/locations/location-4",
+      "id": "00000000000000000000000016",
+      "type": "location",
+      "values": {
+        "category": "shrine",
+        "hexes": [
+          {
+            "q": 5,
+            "r": 3
+          }
+        ],
+        "hidden": true,
+        "name": "Sunken Chapel"
+      }
+    },
+    {
       "path": "/maps/map-2/outline",
-      "id": "0000000000000000000000000X",
+      "id": "00000000000000000000000017",
       "type": "outline",
       "values": {
         "name": "Edge of the Fen",
@@ -974,7 +1130,7 @@
     },
     {
       "path": "/maps/map-2/outline-2",
-      "id": "0000000000000000000000000Y",
+      "id": "00000000000000000000000018",
       "type": "outline",
       "values": {
         "name": "Old Road",
@@ -1207,7 +1363,7 @@
     },
     {
       "path": "/maps/map-2/paper",
-      "id": "0000000000000000000000000Z",
+      "id": "00000000000000000000000019",
       "type": "paper",
       "values": {
         "color": [
