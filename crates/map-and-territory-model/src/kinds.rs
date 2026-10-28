@@ -78,8 +78,8 @@ pub const COMPASS: LayerKind = LayerKind {
 /// Every furniture kind: each lives in a map's `furniture`, never in `layers`.
 pub const FURNITURE_KINDS: [&LayerKind; 2] = [&CARTOUCHE, &COMPASS];
 
-/// The compass styles in the MVP (epic 24): `rose` comes in story 2, the rest of disco-02 later.
-pub const COMPASS_STYLES: &[&str] = &["mark", "arrow", "cross"];
+/// The compass styles in the MVP (epic 24); the rest of disco-02 come later.
+pub const COMPASS_STYLES: &[&str] = &["mark", "arrow", "cross", "rose"];
 /// The compass label sets; `traveller` is left for later (epic 24, The cut).
 pub const COMPASS_LABELS: &[&str] = &["cardinal", "north-only", "none"];
 
@@ -681,8 +681,8 @@ pub fn declare(k: &mut Kinds) {
             .summary("A compass that shows where north is, printed over the grid.")
             .category("furniture")
             .choice("style", COMPASS_STYLES, "mark")
-            .described("Style", "How the compass is drawn: a plain cross with a crossbar, a split arrow, or four split points. Changing it also sets Labels to the style's own.")
-            .choice_labels(&[("mark", "Mark"), ("arrow", "Arrow"), ("cross", "Cross")])
+            .described("Style", "How the compass is drawn: a plain cross with a crossbar, a split arrow, four split points, or a rose of four long and four short points in a ring. Changing it also sets Labels to the style's own.")
+            .choice_labels(&[("mark", "Mark"), ("arrow", "Arrow"), ("cross", "Cross"), ("rose", "Rose")])
             .choice("labels", COMPASS_LABELS, compass_default_labels("mark"))
             .described("Labels", "Which directions are named: all four, north only, or none. Mark and Arrow point one way, so they only ever name north.")
             .choice_labels(&[

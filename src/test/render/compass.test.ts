@@ -191,6 +191,32 @@ describe('the compass adapter', () => {
     expect(fills.filter((f) => f.style === '#eeeeee')).toHaveLength(4);
   });
 
+  it('draws a rose: the ring, four short points, then four long ones over them', () => {
+    const ctx = draw({ style: 'rose', ring: false });
+    const c = centre(ctx);
+    const fills = ctx.paths.filter((p) => p.op === 'fill');
+    expect(fills).toHaveLength(16);
+    expect(fills.filter((f) => f.style === '#222222')).toHaveLength(8);
+    const reach = (p: (typeof fills)[number]) =>
+      Math.max(...p.pts.map(([x, y]) => Math.hypot(x - c.x, y - c.y)));
+    // the short points reach 0.7 of the long, and come first, so the long lie over them
+    expect(fills.slice(0, 8).every((f) => reach(f) <= 0.7 * 60 + 1e-6)).toBe(true);
+    expect(fills.slice(8).every((f) => reach(f) >= 60 - 1e-6)).toBe(true);
+    // the inner ring at 0.6 of the points' reach, stroked before any point is filled
+    const first = ctx.paths[0];
+    expect(first.op).toBe('stroke');
+    expect(Math.hypot(first.pts[0][0] - c.x, first.pts[0][1] - c.y)).toBeCloseTo(36);
+  });
+
+  it('turns a rose by north, its long points on the turned directions', () => {
+    const ctx = draw({ style: 'rose', ring: false, north: 90 });
+    const c = centre(ctx);
+    const pts = ctx.paths.filter((p) => p.op === 'fill').flatMap((p) => p.pts);
+    const east = pts.reduce((a, b) => (b[0] > a[0] ? b : a));
+    expect(east[0]).toBeCloseTo(c.x + 60);
+    expect(east[1]).toBeCloseTo(c.y);
+  });
+
   it('draws an arrow as two halves and a mark as two strokes', () => {
     const arrow = draw({ style: 'arrow', ring: false }).paths;
     expect(arrow.filter((p) => p.op === 'fill').map((p) => p.style)).toEqual([

@@ -17,7 +17,7 @@ A compass that shows where north is, printed over the grid.
 | Visible | on or off | on | Whether the layer is drawn. |
 | Opacity | 0 to 1 | 1 | How much of the layer shows through; 0 hides it, 1 draws it in full. |
 | Blend | Normal (`normal`), Multiply (`multiply`), Screen (`screen`), Overlay (`overlay`), Darken (`darken`), Lighten (`lighten`) | Normal (`normal`) | How the layer mixes with the layers beneath it. |
-| Style | Mark (`mark`), Arrow (`arrow`), Cross (`cross`) | Mark (`mark`) | How the compass is drawn: a plain cross with a crossbar, a split arrow, or four split points. Changing it also sets Labels to the style's own. |
+| Style | Mark (`mark`), Arrow (`arrow`), Cross (`cross`), Rose (`rose`) | Mark (`mark`) | How the compass is drawn: a plain cross with a crossbar, a split arrow, four split points, or a rose of four long and four short points in a ring. Changing it also sets Labels to the style's own. |
 | Labels | N, E, S, W (`cardinal`), North only (`north-only`), None (`none`) | North only (`north-only`) | Which directions are named: all four, north only, or none. Mark and Arrow point one way, so they only ever name north. |
 | North word | text | empty | A word to print for north instead of N. Blank prints N. |
 | East word | text | empty | A word to print for east instead of E. Blank prints E. |
@@ -38,7 +38,7 @@ A compass that shows where north is, printed over the grid.
 
 Layer ▸ Add Compass puts a compass on the active map: a Mark, just a cross with N above it, in the top-right corner, over the grid. It prints in the grid's ink on a disc of the paper's colour, ringed by a line (switch Ring off for a bare disc), and lists with the titles above the layers in the scene panel.
 
-Style picks the drawing. Mark is two square-ended strokes, the crossbar a little above the middle. Arrow is a single north arrow, split down the middle into an inked half and a paper half. Cross is four points, each split the same way, so the compass reads in one ink. Changing the style sets Labels to the style's own (Cross names all four directions, Mark and Arrow only north), and one Undo puts both back.
+Style picks the drawing. Mark is two square-ended strokes, the crossbar a little above the middle. Arrow is a single north arrow, split down the middle into an inked half and a paper half. Cross is four points, each split the same way, so the compass reads in one ink. Rose is the classic map rose: the cross's four long points over four short ones between them, with a smaller ring behind that shows in the gaps. Changing the style sets Labels to the style's own (Cross and Rose name all four directions, Mark and Arrow only north), and one Undo puts both back.
 
 Labels picks which directions are named, and the four words print something else in their place: type Throne as the North word and Throne prints over the compass instead of N; clear it to bring N back. A direction the labels leave out stays out, whatever is typed, and Mark and Arrow only ever name north. The words the compass won't print are greyed.
 

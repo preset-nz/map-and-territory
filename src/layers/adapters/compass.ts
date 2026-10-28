@@ -164,38 +164,45 @@ export function centreOf(s: CompassState, reach: number, paper: { w: number; h: 
   return { x, y };
 }
 
-/** The points: each half filled through its sides, then every side stroked once. */
+/**
+ * The points, shape by shape: its rings, each half filled through its sides, then every side
+ * stroked once, so a later shape lies over the whole of an earlier one.
+ */
 function drawShape(ctx: Ctx, s: CompassState, c: Pt, hand: Hand, seed: string) {
   const size = sizeOf(s);
-  const shape = compassShape(styleOf(s.style), c, size, northOf(s));
   const ink = s.ink || '#000000';
   const paper = s.paper || '#ffffff';
-  const sides = new Map(
-    Object.entries(shape.sides).map(([name, side]) => [
-      name,
-      handEdge(side.a, side.b, hand, `${seed}:${name}`),
-    ]),
-  );
-  for (const half of shape.halves) {
-    const pts = half.sides.flatMap(([name, reversed]) => {
-      const p = sides.get(name) ?? [];
-      return reversed ? [...p].reverse() : p;
-    });
-    ctx.fillStyle = half.ink ? ink : paper;
-    fillOutline(ctx, pts);
-  }
-  ctx.strokeStyle = ink;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
   const outline = outlineWidth(size);
-  for (const [name, side] of Object.entries(shape.sides)) {
-    strokeEdge(ctx, side.a, side.b, hand, `${seed}:${name}`, outline);
-  }
-  // square ends in every hand: a mark is chiselled, not dabbed
-  ctx.lineCap = 'square';
-  ctx.lineJoin = 'miter';
-  for (const st of shape.strokes) {
-    strokeByHand(ctx, st.a, st.b, hand, `${seed}:${st.name}`, st.width);
+  for (const shape of compassShape(styleOf(s.style), c, size, northOf(s))) {
+    ctx.strokeStyle = ink;
+    ctx.lineJoin = 'round';
+    for (const [i, r] of shape.rings.entries()) {
+      strokeRing(ctx, c, r, hand, `${seed}:inner${i}`, outline);
+    }
+    const sides = new Map(
+      Object.entries(shape.sides).map(([name, side]) => [
+        name,
+        handEdge(side.a, side.b, hand, `${seed}:${name}`),
+      ]),
+    );
+    for (const half of shape.halves) {
+      const pts = half.sides.flatMap(([name, reversed]) => {
+        const p = sides.get(name) ?? [];
+        return reversed ? [...p].reverse() : p;
+      });
+      ctx.fillStyle = half.ink ? ink : paper;
+      fillOutline(ctx, pts);
+    }
+    ctx.lineCap = 'round';
+    for (const [name, side] of Object.entries(shape.sides)) {
+      strokeEdge(ctx, side.a, side.b, hand, `${seed}:${name}`, outline);
+    }
+    // square ends in every hand: a mark is chiselled, not dabbed
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
+    for (const st of shape.strokes) {
+      strokeByHand(ctx, st.a, st.b, hand, `${seed}:${st.name}`, st.width);
+    }
   }
 }
 

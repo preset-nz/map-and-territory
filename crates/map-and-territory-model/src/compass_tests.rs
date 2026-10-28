@@ -145,6 +145,14 @@ fn setting_the_style_resets_the_labels_in_one_undo_step_and_keeps_the_words() {
 }
 
 #[test]
+fn a_rose_names_all_four_directions() {
+    let mut d = doc_with_compass();
+    set_style(&mut d, "rose").unwrap();
+    assert_eq!(value(&d, "style"), choice("rose"));
+    assert_eq!(value(&d, "labels"), choice("cardinal"));
+}
+
+#[test]
 fn set_style_is_refused_off_a_compass_or_for_an_unknown_style() {
     let mut d = doc_with_compass();
     assert!(set_style(&mut d, "mariner").is_err());
@@ -158,6 +166,7 @@ fn set_style_is_refused_off_a_compass_or_for_an_unknown_style() {
         d.is_enabled("compass.set-style", &json!({ "at": AT, "style": style }))
             .unwrap()
     };
-    assert!(!enabled("rose"));
+    assert!(!enabled("mariner"));
     assert!(enabled("cross"));
+    assert!(enabled("rose"));
 }
