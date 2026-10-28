@@ -1,5 +1,5 @@
 // Locations (epic 28, first slice): each place's marker on its hex and its name beside it, in
-// the grid's ink with a halo of the paper's colour so a name reads over any terrain. The frame
+// the grid's ink, plain or over a glow or label of the paper's colour (`labelStyle`). The frame
 // projection resolves numbers, the face, the ink and the paper; the adapter draws what it is
 // given. Hidden places draw faint with a dashed ring (the window only, until player copies).
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
@@ -8,6 +8,8 @@ import type { Layout } from '@/lib/hex/types';
 import { faceCaps, faceFont } from '@/render/faces';
 
 export type LocationMarker = 'number' | 'dot' | 'none';
+/** How a name sits on the map: plain ink, a glow of paper behind it, or on a paper label. */
+export type LabelStyle = 'plain' | 'glow' | 'label';
 
 /** One place, as the projection gives it. */
 export interface PlacedLocation {
@@ -24,6 +26,7 @@ export interface PlacedLocation {
 export interface LocationsState {
   locations?: PlacedLocation[];
   showLabels?: boolean;
+  labelStyle?: LabelStyle;
   /** `map` is resolved by the projection, so the adapter sees a face id. */
   face?: string;
   ink?: string;
@@ -36,7 +39,9 @@ const DOT = 0.16;
 const NUMBER_SIZE = 0.42;
 const NAME_SIZE = 0.5;
 const NOTE_SIZE = 0.36;
-const HALO = 0.12;
+/** The glow's blur, and the label's padding, as fractions of the hex size. */
+const GLOW = 0.35;
+const PAD = 0.12;
 /** How faint a hidden place draws. */
 export const HIDDEN_ALPHA = 0.45;
 
@@ -46,11 +51,35 @@ function layoutOf(env: RenderEnv): Layout {
   return { size, orientation, origin: { x: env.size.w / 2, y: env.size.h / 2 } };
 }
 
-/** Text with a halo of the paper's colour under it. */
-function haloText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, halo: number) {
-  ctx.lineWidth = halo * 2;
-  ctx.lineJoin = 'round';
-  ctx.strokeText(text, x, y);
+/**
+ * A name in the layer's style: plain ink; over a glow of the paper's colour, laid down a few
+ * times so it carries over dark ground; or on a paper label behind it.
+ */
+function styledText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  style: LabelStyle,
+  s: number,
+  paper: string,
+  ink: string,
+) {
+  if (style === 'label') {
+    const w = ctx.measureText(text).width;
+    const h = parseFloat(ctx.font) || s * NAME_SIZE;
+    const left = ctx.textAlign === 'center' ? x - w / 2 : x;
+    ctx.fillStyle = paper;
+    ctx.fillRect(left - s * PAD, y - h * 0.6, w + s * PAD * 2, h * 1.2);
+  } else if (style === 'glow') {
+    ctx.save();
+    ctx.shadowColor = paper;
+    ctx.shadowBlur = s * GLOW;
+    ctx.fillStyle = paper;
+    for (let i = 0; i < 3; i++) ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+  ctx.fillStyle = ink;
   ctx.fillText(text, x, y);
 }
 
@@ -105,15 +134,14 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
         const x = loc.marker === 'none' ? c.x : c.x + reach + s * 0.15;
         ctx.textAlign = loc.marker === 'none' ? 'center' : 'left';
         ctx.textBaseline = 'middle';
-        ctx.strokeStyle = paper;
-        ctx.fillStyle = ink;
+        const style = state.labelStyle ?? 'plain';
         ctx.font = faceFont(face, s * NAME_SIZE);
         const note = loc.note?.trim();
         const y = note ? c.y - s * NAME_SIZE * 0.4 : c.y;
-        haloText(ctx, caps ? loc.name.toUpperCase() : loc.name, x, y, s * HALO);
+        styledText(ctx, caps ? loc.name.toUpperCase() : loc.name, x, y, style, s, paper, ink);
         if (note) {
           ctx.font = faceFont(face, s * NOTE_SIZE);
-          haloText(ctx, note, x, c.y + s * NAME_SIZE * 0.55, s * HALO);
+          styledText(ctx, note, x, c.y + s * NAME_SIZE * 0.55, style, s, paper, ink);
         }
       }
       ctx.restore();
@@ -124,6 +152,7 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
       'locations',
       s.locations ?? [],
       s.showLabels !== false,
+      s.labelStyle ?? 'plain',
       s.face ?? 'condensed',
       s.ink ?? '',
       s.paper ?? '',
@@ -134,6 +163,11 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
 export const LocationsType = {
   id: 'locations',
   title: 'Locations',
-  defaultState: { locations: [], showLabels: true, face: 'condensed' } satisfies LocationsState,
+  defaultState: {
+    locations: [],
+    showLabels: true,
+    labelStyle: 'plain',
+    face: 'condensed',
+  } satisfies LocationsState,
   adapter: LocationsAdapter,
 } as const;

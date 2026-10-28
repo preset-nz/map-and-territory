@@ -11,15 +11,19 @@ class MockContext {
   textAlign = 'start';
   textBaseline = 'alphabetic';
   globalAlpha = 1;
+  shadowBlur = 0;
+  shadowColor = '';
+  rects = 0;
+  glows = 0;
   dash: number[] = [];
   dashes: number[][] = [];
   texts: { text: string; x: number; y: number; alpha: number }[] = [];
-  private stack: number[] = [];
+  private stack: [number, number][] = [];
   save() {
-    this.stack.push(this.globalAlpha);
+    this.stack.push([this.globalAlpha, this.shadowBlur]);
   }
   restore() {
-    this.globalAlpha = this.stack.pop() ?? 1;
+    [this.globalAlpha, this.shadowBlur] = this.stack.pop() ?? [1, 0];
   }
   beginPath() {}
   arc() {}
@@ -31,7 +35,17 @@ class MockContext {
     this.dash = d;
   }
   strokeText() {}
+  measureText(text: string) {
+    return { width: text.length * 5 };
+  }
+  fillRect() {
+    this.rects++;
+  }
   fillText(text: string, x: number, y: number) {
+    if (this.shadowBlur > 0) {
+      this.glows++;
+      return;
+    }
     this.texts.push({ text, x, y, alpha: this.globalAlpha });
   }
 }
@@ -109,5 +123,14 @@ describe('the locations adapter', () => {
       locations: state.locations?.map((l, i) => (i ? l : { ...l, hexes: [{ q: 1, r: 0 }] })),
     };
     expect(LocationsAdapter.getInvalidationKey(moved)).not.toBe(key);
+  });
+
+  it('prints names plain by default, over a glow, or on a paper label', () => {
+    const plain = draw();
+    expect(plain.glows + plain.rects).toBe(0);
+    const glow = draw({ ...state, labelStyle: 'glow' });
+    expect(glow.glows).toBe(9);
+    expect(glow.texts.filter((t) => t.text === 'Reedwall Keep')).toHaveLength(1);
+    expect(draw({ ...state, labelStyle: 'label' }).rects).toBe(3);
   });
 });

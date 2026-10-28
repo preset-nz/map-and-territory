@@ -75,6 +75,8 @@ pub const LAYER_KINDS: [&LayerKind; 5] = [&HEX_NOISE, &FREEFORM, &OUTLINE, &IMAG
 pub const LOCATION_MARKERS: &[&str] = &["number", "dot", "none"];
 const LOCATION_MARKER_LABELS: &[(&str, &str)] =
     &[("number", "Number"), ("dot", "Dot"), ("none", "None")];
+/// How a location's name sits on the map (Georg, 2026-10-28: all three, plain first).
+pub const LABEL_STYLES: &[&str] = &["plain", "glow", "label"];
 /// What kind of place a location is: for filtering, and for the legend later.
 pub const LOCATION_CATEGORIES: &[&str] = &[
     "settlement",
@@ -773,6 +775,9 @@ pub fn declare(k: &mut Kinds) {
             .choice_labels(LOCATION_MARKER_LABELS)
             .bool("showLabels", true)
             .described("Names", "Print each location's name beside its marker.")
+            .choice("labelStyle", LABEL_STYLES, "plain")
+            .described("Name style", "How a name sits on the map: plain ink, a soft glow of paper behind it so it reads over dark ground, or on a small paper label.")
+            .choice_labels(&[("plain", "Plain"), ("glow", "Glow"), ("label", "Label")])
             .bool("numbered", true)
             .described("Numbered", "Count this layer's locations in the map's numbering. Off, they keep their names but take no number.")
             .choice("face", FURNITURE_FACES, "map")
