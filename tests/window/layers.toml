@@ -99,6 +99,15 @@ steps = [
 ]
 
 [[test]]
+name = "the one-of-everything campaign opens"
+covers = "every kind on one map (crates/map-and-territory-model/tests/one_of_everything.rs)"
+steps = [
+  { open = "fixtures/one-of-everything.campaign" },
+  { window_title = "one-of-everything.campaign" },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+]
+
+[[test]]
 name = "export needs a map"
 covers = "export 2.1"
 steps = [
