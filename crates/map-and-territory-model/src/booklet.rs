@@ -3,9 +3,15 @@
 //! order `pages`: the cover first, the back last, at least two pages between. A page refers
 //! to at most one map, and a map sits on at most one page. The `maps` order is untouched.
 //!
-//! Commands: `booklet.set` turns a booklet type on or off (on, a campaign with no pages yet
-//! gets a cover, a page per map and a back, padded to the type); `pages.add` adds the type's
-//! step of blank pages before the back; `page.set-map` puts a map on a page, or takes it off.
+//! The campaign's check holds the page count however the tree is edited (epic 33 story 1): in
+//! a booklet, at least the cover, two pages and the back, in whole steps of the type. So a
+//! plain `value.set` of `booklet` or `doubleSided`, or deleting a page, is refused when it
+//! would break that; the commands below keep it.
+//!
+//! Commands: `booklet.set` changes the booklet type or Double-sided (on, a campaign with no
+//! pages yet gets a cover, a page per map and a back, and the pages pad to the type);
+//! `pages.add` adds the type's step of blank pages before the back; `page.set-map` puts a map
+//! on a page, or takes it off.
 
 use rhizome_core::{Edit, Node, NodeId, Ref, Value};
 use rhizome_pom::{payload, Commands, Document, Error, Outcome};
@@ -13,7 +19,7 @@ use serde::Deserialize;
 
 use super::commands::next_name;
 use super::kinds::MAPS;
-use super::MapAndTerritory;
+use super::{MapAndTerritory, CAMPAIGN};
 
 type Doc = Document<MapAndTerritory>;
 
@@ -23,7 +29,6 @@ pub const PAGES: &str = "pages";
 pub const MAP: &str = "map";
 /// The campaign's booklet types: none (a collection of maps), a spine booklet, stapled pages.
 pub const BOOKLETS: &[&str] = &["none", "spine", "stapled"];
-const CAMPAIGN: &str = "/campaign/campaign";
 /// Cover, two pages, back.
 const MIN_PAGES: usize = 4;
 
@@ -66,11 +71,14 @@ pub fn check_page(n: &Node<'_>) -> Result<(), String> {
     Ok(())
 }
 
-fn text(n: &Node<'_>, key: &str) -> String {
-    match n.value(key) {
-        Some(Value::Text(t) | Value::Choice(t)) => t,
-        _ => String::new(),
-    }
+/// A campaign's booklet type ("none" when unset) and whether it prints on both sides.
+fn settings(campaign: &Node<'_>) -> (String, bool) {
+    let kind = match campaign.value("booklet") {
+        Some(Value::Choice(k) | Value::Text(k)) if !k.is_empty() => k,
+        _ => "none".to_string(),
+    };
+    let double = !matches!(campaign.value("doubleSided"), Some(Value::Bool(false)));
+    (kind, double)
 }
 
 /// The campaign's booklet type and its step.
@@ -78,13 +86,35 @@ fn booklet_of(d: &Doc) -> (String, usize) {
     let Some(c) = d.tree().at(CAMPAIGN) else {
         return ("none".into(), 1);
     };
-    let kind = match text(&c, "booklet") {
-        k if k.is_empty() => "none".to_string(),
-        k => k,
-    };
-    let double = !matches!(c.value("doubleSided"), Some(Value::Bool(false)));
+    let (kind, double) = settings(&c);
     let step = step(&kind, double);
     (kind, step)
+}
+
+/// In a booklet, `/pages` holds at least the cover, two pages and the back, in whole steps
+/// of the type. A collection's pages are kept as they are, for turning the booklet on again.
+pub fn check_campaign(n: &Node<'_>) -> Result<(), String> {
+    let (kind, double) = settings(n);
+    if kind == "none" {
+        return Ok(());
+    }
+    let count = n
+        .parent()
+        .and_then(|c| c.parent())
+        .and_then(|root| root.child(PAGES))
+        .map_or(0, |p| p.order(PAGES).len());
+    let step = step(&kind, double);
+    if count < MIN_PAGES {
+        return Err(format!(
+            "a booklet has a cover, two pages and a back at the least, not {count} pages"
+        ));
+    }
+    if !count.is_multiple_of(step) {
+        return Err(format!(
+            "this booklet's pages go in {step}s, so it can't have {count}"
+        ));
+    }
+    Ok(())
 }
 
 fn page_ids(tx: &Edit<'_>, pages: NodeId) -> Vec<NodeId> {
@@ -165,9 +195,26 @@ fn page_and_map(d: &Doc, a: &MapArgs) -> Result<(NodeId, Option<NodeId>), Error>
     Ok((page.id(), Some(map.id())))
 }
 
+/// Either or both of the campaign's booklet values; the other keeps its value.
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct SetArgs {
-    booklet: String,
+    booklet: Option<String>,
+    double_sided: Option<bool>,
+}
+
+/// The booklet type and Double-sided `a` asks for, or why not; `None` when nothing changes.
+fn wanted(d: &Doc, a: &SetArgs) -> Result<Option<(String, bool)>, Error> {
+    let now = d
+        .tree()
+        .at(CAMPAIGN)
+        .map_or(("none".to_string(), true), |c| settings(&c));
+    let kind = a.booklet.clone().unwrap_or_else(|| now.0.clone());
+    if !BOOKLETS.contains(&kind.as_str()) {
+        return Err(Error::Payload(format!("no booklet type {kind}")));
+    }
+    let double = a.double_sided.unwrap_or(now.1);
+    Ok(((kind.clone(), double) != now).then_some((kind, double)))
 }
 
 fn pages_id(d: &Doc) -> Result<NodeId, Error> {
@@ -182,29 +229,24 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
         "booklet.set",
         |_| "Make Booklet".into(),
         |d: &Doc, p: &serde_json::Value| {
-            payload::<SetArgs>(p).is_ok_and(|a| {
-                BOOKLETS.contains(&a.booklet.as_str()) && booklet_of(d).0 != a.booklet
-            })
+            payload::<SetArgs>(p).is_ok_and(|a| matches!(wanted(d, &a), Ok(Some(_))))
         },
         |d: &mut Doc, p: &serde_json::Value| {
             let a: SetArgs = payload(p)?;
-            if !BOOKLETS.contains(&a.booklet.as_str()) {
-                return Err(Error::Payload(format!("no booklet type {}", a.booklet)));
-            }
+            let Some((kind, double)) = wanted(d, &a)? else {
+                return Err(Error::Payload("the booklet is that already".into()));
+            };
             let pages = pages_id(d)?;
-            let double = d
-                .tree()
-                .at(CAMPAIGN)
-                .is_none_or(|c| !matches!(c.value("doubleSided"), Some(Value::Bool(false))));
-            let label = if a.booklet == "none" {
-                "Make Collection"
-            } else {
-                "Make Booklet"
+            let label = match (&a.booklet, kind.as_str()) {
+                (Some(_), "none") => "Make Collection",
+                (Some(_), _) => "Make Booklet",
+                (None, _) => "Set Double-sided",
             };
             Ok(Outcome::from(
                 d.edit(label, |tx| {
-                    tx.set_value(CAMPAIGN, "booklet", Value::Choice(a.booklet.clone()))?;
-                    if a.booklet == "none" {
+                    tx.set_value(CAMPAIGN, "booklet", Value::Choice(kind.clone()))?;
+                    tx.set_value(CAMPAIGN, "doubleSided", Value::Bool(double))?;
+                    if kind == "none" {
                         // the pages stay, for turning it back on
                         return Ok(());
                     }
@@ -212,7 +254,7 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
                         build(tx, pages)?;
                     }
                     let n = page_ids(tx, pages).len();
-                    pad(tx, pages, padded(n, step(&a.booklet, double)))
+                    pad(tx, pages, padded(n, step(&kind, double)))
                 })?
                 .1,
             ))
@@ -237,7 +279,8 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
             let label = if step == 1 { "Add Page" } else { "Add Pages" };
             Ok(Outcome::from(
                 d.edit(label, |tx| {
-                    // a booklet set by its value alone has no pages yet
+                    // a campaign saved before the campaign's check (epic 33) may name a booklet
+                    // and have no pages; this repairs it
                     if page_ids(tx, pages).is_empty() {
                         build(tx, pages)?;
                     }

@@ -17,6 +17,7 @@
       "type": "campaign",
       "values": {
         "booklet": "spine",
+        "doubleSided": true,
         "name": "Every Layout Booklet"
       },
       "refs": {

@@ -20,3 +20,5 @@ References: `map`.
 ## Using it
 
 A page belongs to a booklet: set the campaign's Booklet to a spine booklet or stapled pages and it gets a cover, a page for each map in order, and a back. A spine booklet goes in fours, so adding pages adds four; stapled pages add one, or two when double-sided. Each page shows at most one map, and a map sits on one page only. Set Booklet back to None and the campaign prints as a collection of maps again; the pages stay for next time.
+
+A booklet always keeps its cover, two pages and its back, in whole steps: deleting a page that would leave a spine booklet short of a four is refused, and pages aren't duplicated, since Add Pages adds the step. Turning Double-sided on adds a page when the count is odd.

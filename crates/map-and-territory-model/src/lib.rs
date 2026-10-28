@@ -44,6 +44,8 @@ use rhizome_pom::{Commands, Kinds, ObjectModel};
 
 /// The extension of a campaign file.
 pub const EXTENSION: &str = "campaign";
+/// The campaign node, which [`MapAndTerritory::seed`] puts in every document.
+pub const CAMPAIGN: &str = "/campaign/campaign";
 
 pub struct MapAndTerritory;
 

@@ -312,6 +312,9 @@ describe('the inspector schema', () => {
   it("runs the compass's style through compass.set-style, and every other value as value.set", () => {
     expect(valueCommand('compass', 'style')).toBe('compass.set-style');
     expect(valueCommand('compass', 'labels')).toBeUndefined();
+    // the campaign's check holds the page count, so both booklet values pad through the command
+    expect(valueCommand('campaign', 'booklet')).toBe('booklet.set');
+    expect(valueCommand('campaign', 'doubleSided')).toBe('booklet.set');
     expect(valueCommand('cartouche', 'style')).toBeUndefined();
   });
 

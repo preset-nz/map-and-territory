@@ -137,18 +137,98 @@ fn an_older_campaign_opens_and_becomes_a_booklet() {
     assert_eq!(pages(&d).len(), 4);
 }
 
-#[test]
-fn add_pages_on_a_booklet_set_by_its_value_makes_the_cover_and_back_first() {
-    let mut d = doc(1);
+/// The path of the page at `i` in the `pages` order.
+fn page_at(d: &Doc, i: usize) -> String {
+    d.tree().at("/pages").unwrap().order(PAGES)[i]
+        .path()
+        .to_string()
+}
+
+fn set_value(d: &mut Doc, key: &str, value: serde_json::Value) -> rhizome_pom::Result<()> {
     d.run(
         "value.set",
-        &json!({ "at": "/campaign/campaign", "key": "booklet", "value": "spine" }),
+        &json!({ "at": "/campaign/campaign", "key": key, "value": value }),
     )
-    .unwrap();
+    .map(|_| ())
+}
+
+#[test]
+fn a_booklet_value_set_alone_is_refused_without_its_pages() {
+    let mut d = doc(1);
+    assert!(set_value(&mut d, "booklet", json!("spine")).is_err());
+    assert!(pages(&d).is_empty());
+    // with pages that fit, the plain value is no breach
+    set(&mut d, "stapled");
+    set(&mut d, "none");
+    set_value(&mut d, "booklet", json!("stapled")).unwrap();
+    // six stapled pages (in twos) aren't whole fours for a spine booklet
     d.run("pages.add", &json!({})).unwrap();
-    let names: Vec<String> = pages(&d).into_iter().map(|(n, _)| n).collect();
-    assert_eq!(names.len(), 8);
-    assert_eq!((names[0].as_str(), names[7].as_str()), ("Cover", "Back"));
+    set(&mut d, "none");
+    assert!(set_value(&mut d, "booklet", json!("spine")).is_err());
+}
+
+#[test]
+fn deleting_a_page_is_refused_when_the_count_breaks() {
+    let mut d = doc(1);
+    set(&mut d, "spine");
+    let blank = page_at(&d, 2);
+    // a spine booklet goes in fours
+    assert!(d.run("edit.delete", &json!({ "at": blank })).is_err());
+    assert_eq!(pages(&d).len(), 4);
+    set(&mut d, "stapled");
+    set_value(&mut d, "doubleSided", json!(false)).unwrap();
+    d.run("pages.add", &json!({})).unwrap();
+    assert_eq!(pages(&d).len(), 5);
+    d.run("edit.delete", &json!({ "at": page_at(&d, 2) }))
+        .unwrap();
+    // cover, two pages and the back at the least
+    assert!(d
+        .run("edit.delete", &json!({ "at": page_at(&d, 2) }))
+        .is_err());
+    assert_eq!(pages(&d).len(), 4);
+}
+
+#[test]
+fn a_page_is_not_duplicated_or_taken_out_of_the_order() {
+    let mut d = doc(1);
+    set(&mut d, "spine");
+    assert!(!d
+        .is_enabled("edit.duplicate", &json!({ "at": page_at(&d, 2) }))
+        .unwrap());
+    let pages_id = d.tree().at("/pages").unwrap().id();
+    let r = d.edit("Drop", |tx| {
+        let mut order: Vec<_> = tx
+            .at(pages_id)
+            .unwrap()
+            .order(PAGES)
+            .iter()
+            .map(|n| n.id())
+            .collect();
+        order.pop();
+        tx.set_order(pages_id, PAGES, order)
+    });
+    assert!(r.is_err(), "{r:?}");
+}
+
+#[test]
+fn double_sided_through_booklet_set_pads_where_the_plain_value_is_refused() {
+    let mut d = doc(1);
+    set(&mut d, "stapled");
+    set_value(&mut d, "doubleSided", json!(false)).unwrap();
+    d.run("pages.add", &json!({})).unwrap();
+    assert_eq!(pages(&d).len(), 5);
+    // five pages printed on both sides break the twos
+    assert!(set_value(&mut d, "doubleSided", json!(true)).is_err());
+    d.run("booklet.set", &json!({ "doubleSided": true }))
+        .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Set Double-sided"));
+    let after = pages(&d);
+    assert_eq!(after.len(), 6);
+    assert_eq!(after.last().unwrap().0, "Back");
+    // nothing to change
+    assert!(!d
+        .is_enabled("booklet.set", &json!({ "doubleSided": true }))
+        .unwrap());
 }
 
 #[test]

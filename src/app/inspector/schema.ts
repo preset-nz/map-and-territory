@@ -98,8 +98,10 @@ const PLACEHOLDERS: Record<string, string> = {
  */
 const VALUE_COMMANDS: Record<string, string> = {
   'compass.style': 'compass.set-style',
-  // making a booklet makes its pages in the same step (epic 32)
+  // making a booklet makes its pages in the same step (epic 32); Double-sided changes the
+  // step, so it pads the pages too (the campaign's check refuses a plain value.set that breaks it)
   'campaign.booklet': 'booklet.set',
+  'campaign.doubleSided': 'booklet.set',
 };
 
 /** The command a change to a value runs, when it isn't a plain `value.set`. */

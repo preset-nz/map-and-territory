@@ -302,7 +302,8 @@ pub fn declare(k: &mut Kinds) {
             .bool("doubleSided", true)
             .described("Double-sided", "Stapled pages printed on both sides, so pages are added in twos.")
             // A reference has no words of its own; `.described` would land on the value above.
-            .reference("palette"),
+            .reference("palette")
+            .check(super::booklet::check_campaign),
     )
     .max_per_parent(1)
     .not_deletable()
@@ -881,7 +882,9 @@ pub fn declare(k: &mut Kinds) {
             .described("Name", "What you call the page.")
             .reference(super::booklet::MAP)
             .check(super::booklet::check_page),
-    );
+    )
+    // pages are alike; Add Pages adds the type's step, which a copy after the back would break
+    .not_duplicable();
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
     // `<cq>_<cr>` (floor of q and r over 16); `voxels` is a palette and run-length cells, row-major.
