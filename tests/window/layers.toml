@@ -156,3 +156,15 @@ steps = [
   { window_title = "every-layout.campaign" },
   { expect = "File > Export > Campaign as PDF…", enabled = true },
 ]
+
+[[test]]
+name = "a booklet adds pages in one named step"
+covers = "epic 32 story 4"
+steps = [
+  { expect = "Map > Add Pages", enabled = false },
+  { open = "fixtures/booklet.campaign" },
+  { window_title = "booklet.campaign" },
+  { expect = "Map > Add Pages", enabled = true },
+  { menu = "Map > Add Pages" },
+  { expect = "Edit > #1", title = "Undo Add Pages" },
+]

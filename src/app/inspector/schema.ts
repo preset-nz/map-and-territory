@@ -98,6 +98,8 @@ const PLACEHOLDERS: Record<string, string> = {
  */
 const VALUE_COMMANDS: Record<string, string> = {
   'compass.style': 'compass.set-style',
+  // making a booklet makes its pages in the same step (epic 32)
+  'campaign.booklet': 'booklet.set',
 };
 
 /** The command a change to a value runs, when it isn't a plain `value.set`. */

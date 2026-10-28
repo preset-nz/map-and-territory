@@ -11,8 +11,16 @@ import { createElement } from 'react';
 import { ChannelProvider } from '@/app/document';
 import { sceneCommandState } from '@/app/scene/commands';
 import { ScenePanel } from '@/app/scene/scene-panel';
-import { actionsFor, displayName, furnitureTopFirst, layersTopFirst } from '@/app/scene/tree';
-import { selection } from '@/app/selection';
+import {
+  actionsFor,
+  displayName,
+  furnitureTopFirst,
+  isBooklet,
+  layersTopFirst,
+  mapsOffPages,
+  pageMap,
+} from '@/app/scene/tree';
+import { activeMapId, selection } from '@/app/selection';
 
 const row = (id: string, path: string, type: string, extra: Partial<Row> = {}): Row => ({
   id,
@@ -46,6 +54,32 @@ const doc = (): Row[] => [
     values: { name: 'Hex Grid', visible: true },
   }),
 ];
+
+/** The map as a spine booklet: a cover, the map's page, a blank page and the back, and a second map on no page (epic 32). */
+const booklet = (): Row[] =>
+  doc()
+    .map((r) =>
+      r.id === 'c'
+        ? { ...r, values: { ...r.values, booklet: 'spine' } }
+        : r.id === 'maps'
+          ? { ...r, orders: { maps: ['m', 'm2'] } }
+          : r,
+    )
+    .concat([
+      row('m2', '/maps/map-2', 'map', { parent: 'maps', values: { name: 'Map 02' } }),
+      row('pages', '/pages', 'category', {
+        role: 'category',
+        orders: { pages: ['cover', 'p1', 'p2', 'back'] },
+      }),
+      row('cover', '/pages/page', 'page', { parent: 'pages', values: { name: 'Cover' } }),
+      row('p1', '/pages/page-2', 'page', {
+        parent: 'pages',
+        values: { name: 'Page 01' },
+        refs: { map: { node: 'm' } },
+      }),
+      row('p2', '/pages/page-3', 'page', { parent: 'pages', values: { name: 'Page 02' } }),
+      row('back', '/pages/page-4', 'page', { parent: 'pages', values: { name: 'Back' } }),
+    ]);
 
 /** The same map with two titles in its `furniture`, the newer last. */
 const withTitles = (): Row[] =>
@@ -107,6 +141,32 @@ describe('scene tree logic', () => {
     expect(actionsFor(grid)).toMatchObject({ visible: true, duplicate: false, delete: false });
     expect(actionsFor(freeform)).toMatchObject({ rename: true, duplicate: true, delete: true });
     expect(actionsFor(map)).toMatchObject({ rename: true, duplicate: true, delete: true });
+  });
+});
+
+describe('a booklet in the scene (epic 32)', () => {
+  const rows = booklet();
+  const find = (id: string) => rows.find((r) => r.id === id);
+
+  it('knows a booklet, a page’s map and the maps on no page', () => {
+    expect(isBooklet(find('c'))).toBe(true);
+    expect(isBooklet(doc()[0])).toBe(false);
+    expect(pageMap(find('p1'))).toBe('m');
+    expect(pageMap(find('cover'))).toBeNull();
+    expect(
+      mapsOffPages(
+        ['m', 'm2'],
+        rows.filter((r) => r.type === 'page'),
+      ),
+    ).toEqual(['m2']);
+  });
+
+  it('draws a page’s map, and Delete names it a Page', () => {
+    expect(activeMapId({ kind: 'page', id: 'p1' }, source(rows))).toBe('m');
+    // a blank page draws the first map until Booklet mode shows the page itself
+    expect(activeMapId({ kind: 'page', id: 'cover' }, source(rows))).toBe('m');
+    expect(sceneCommandState({ kind: 'page', id: 'p2' }, source(rows)).target?.title).toBe('Page');
+    expect(actionsFor(find('p2') as Row)).toEqual({ rename: true, duplicate: false, delete: true });
   });
 });
 
@@ -255,5 +315,29 @@ describe('the scene panel', () => {
     expect(ran).toEqual([
       { id: 'node.set-visible', payload: { at: '/maps/map/hex-noise', visible: true } },
     ]);
+  });
+
+  it('in a booklet lists the pages, each with its map, then the maps on no page', async () => {
+    const { view, mirror } = mount(booklet());
+    await act(async () => {
+      await mirror.start();
+    });
+    const items = view.getAllByRole('treeitem').map((el) => el.textContent);
+    expect(items).toEqual([
+      'Westmarch',
+      'Cover',
+      'Page 01',
+      'Map 01',
+      'Hex Grid',
+      'Hex Noise 01',
+      'Freeform 01',
+      'Paper',
+      'Page 02',
+      'Back',
+      'Map 02',
+    ]);
+    expect(view.getByRole('group', { name: 'Not on a page' }).textContent).toContain('Map 02');
+    fireEvent.click(view.getByText('Page 02'));
+    expect(selection.get()).toEqual({ kind: 'page', id: 'p2' });
   });
 });

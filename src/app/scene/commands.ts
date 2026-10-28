@@ -5,8 +5,8 @@ import { useMirror } from '@preset.nz/pom';
 import { useMemo, useSyncExternalStore } from 'react';
 import { useRun } from '../document';
 import { activeMapId, type Selected, selection } from '../selection';
-import type { RowSource } from './frame';
-import { FURNITURE_KINDS, type TreeRow } from './tree';
+import { CAMPAIGN_PATH, type RowSource } from './frame';
+import { FURNITURE_KINDS, isBooklet, type TreeRow } from './tree';
 
 type Rows = { node(id: string): (TreeRow & { parent?: string | null }) | undefined } & RowSource;
 
@@ -27,6 +27,7 @@ export interface SceneCommandState {
 const ANCHORS = new Set(['paper', 'hexgrid']);
 const KIND_TITLE: Record<string, string> = {
   map: 'Map',
+  page: 'Page',
   campaign: 'Campaign',
   cartouche: 'Title',
   compass: 'Compass',
@@ -36,7 +37,10 @@ const KIND_TITLE: Record<string, string> = {
 export function sceneCommandState(selected: Selected, rows: Rows): SceneCommandState {
   const mapId = activeMapId(selected, rows);
   const map = mapId ? rows.node(mapId) : undefined;
-  const id = selected.kind === 'map' || selected.kind === 'layer' ? selected.id : null;
+  const id =
+    selected.kind === 'map' || selected.kind === 'layer' || selected.kind === 'page'
+      ? selected.id
+      : null;
   const row = id ? rows.node(id) : undefined;
   const anchor = row ? ANCHORS.has(row.type) : false;
   const isLayer = selected.kind === 'layer' && row !== undefined;
@@ -100,6 +104,10 @@ export function useSceneBindings(): Record<string, Binding> {
           run('edit.delete', { at });
           selection.clear();
         },
+      },
+      'pages.add': {
+        enabled: isBooklet(mirror.nodeAt(CAMPAIGN_PATH) as TreeRow | undefined),
+        run: () => run('pages.add', {}),
       },
       'layer.add-hex-noise': { enabled: s.mapPath !== null, run: add('hex-noise') },
       'layer.add-freeform': { enabled: s.mapPath !== null, run: add('freeform') },

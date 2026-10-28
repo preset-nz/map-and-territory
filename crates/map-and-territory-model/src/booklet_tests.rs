@@ -150,3 +150,29 @@ fn add_pages_on_a_booklet_set_by_its_value_makes_the_cover_and_back_first() {
     assert_eq!(names.len(), 8);
     assert_eq!((names[0].as_str(), names[7].as_str()), ("Cover", "Back"));
 }
+
+#[test]
+fn set_map_puts_a_map_on_a_page_and_takes_it_off() {
+    let mut d = doc(2);
+    set(&mut d, "spine");
+    let page = |d: &Doc, i: usize| {
+        d.tree().at("/pages").unwrap().order(PAGES)[i]
+            .path()
+            .to_string()
+    };
+    let (cover, first) = (page(&d, 0), page(&d, 1));
+    // the first map is on page 1 already
+    assert!(!d
+        .is_enabled("page.set-map", &json!({ "at": cover, "map": "/maps/map" }))
+        .unwrap());
+    d.run("page.set-map", &json!({ "at": first, "map": null }))
+        .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Take Map off Page"));
+    d.run("page.set-map", &json!({ "at": cover, "map": "/maps/map" }))
+        .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Put Map on Page"));
+    assert_eq!(pages(&d)[0].1.as_deref(), Some("Map 01"));
+    assert!(d
+        .run("page.set-map", &json!({ "at": "/maps/map", "map": null }))
+        .is_err());
+}

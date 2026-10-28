@@ -7,7 +7,8 @@
 //! `every-layout.campaign` is the same map once per page layout (epic 32) and once as a square
 //! and a 4:3 map, with more places so
 //! the key fills its columns: export it as one PDF to see every layout side by side. Write it
-//! again with `just fixtures every-layout`.
+//! again with `just fixtures every-layout`. `booklet.campaign` is the same as a spine booklet
+//! (`just fixtures booklet`).
 //!
 //! Built through the commands the app runs, as `sallow_fen.rs` is. When a kind lands (roads and
 //! rivers, epic 29; locations' areas, epic 28) or cells paint terrain ids (epic 26), add it here and write
@@ -240,6 +241,18 @@ fn build_layouts(d: &mut Doc) {
     }
 }
 
+/// Every layout as a spine booklet (epic 32 story 4): a cover, a page per map, the back.
+fn build_booklet(d: &mut Doc) {
+    build_layouts(d);
+    set(
+        d,
+        "/campaign/campaign",
+        "name",
+        json!("Every Layout Booklet"),
+    );
+    run(d, "booklet.set", json!({ "booklet": "spine" }));
+}
+
 fn fixture() -> PathBuf {
     common::fixture("one-of-everything")
 }
@@ -326,4 +339,10 @@ fn every_layout_holds_the_same_map_once_per_layout_and_shape() {
 fn every_layout_fixture_is_current() {
     let text = saved_text_of(build_layouts, "every-layout.campaign");
     common::check_or_write("every-layout", &text);
+}
+
+#[test]
+fn booklet_fixture_is_current() {
+    let text = saved_text_of(build_booklet, "booklet.campaign");
+    common::check_or_write("booklet", &text);
 }

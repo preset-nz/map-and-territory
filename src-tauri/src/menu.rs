@@ -29,10 +29,11 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 29] = [
+const WEBVIEW: [&str; 30] = [
     "file.export-map-png",
     "file.export-pdf",
     "file.export-campaign-pdf",
+    "pages.add",
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
@@ -126,6 +127,11 @@ pub fn commands() -> Vec<Command> {
             .menu(MenuName::File)
             .section(1)
             .submenu("Export"),
+        // Map > Add Pages (epic 32): the model's `pages.add`, by its id; the webview enables it
+        // in a booklet. No chord.
+        Command::item("pages.add", "Add Pages")
+            .domain("Map")
+            .section(0),
         Command::item(NEW_MAP, "New Map")
             .domain("Map")
             .section(0)

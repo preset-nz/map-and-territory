@@ -70,7 +70,7 @@ test:
 # Licence check against the committed lock. Reads files only, no network.
 # Re-resolve with `preset-compliance licences scan` after changing dependencies.
 # Writes the window-test campaigns again from the commands that build them: the names given
-# (`one-of-everything`, `every-layout`, `orlo`, `sallow-fen`), or every one.
+# (`one-of-everything`, `every-layout`, `booklet`, `orlo`, `sallow-fen`), or every one.
 [group('dev')]
 fixtures *names='all':
     FIXTURES="$(echo {{names}} | tr ' ' ',')" cargo test -q -p map-and-territory-model --tests

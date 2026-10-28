@@ -97,7 +97,8 @@ export function scopeOf(
 function useSelectedId(): string | null {
   const mirror = useMirror();
   const selected = selection.use();
-  if (selected.kind === 'layer' || selected.kind === 'map') return selected.id;
+  if (selected.kind === 'layer' || selected.kind === 'map' || selected.kind === 'page')
+    return selected.id;
   if (selected.kind === 'campaign') return mirror.nodeAt(CAMPAIGN_PATH)?.id ?? null;
   return null;
 }

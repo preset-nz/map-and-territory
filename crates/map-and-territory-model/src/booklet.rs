@@ -5,7 +5,7 @@
 //!
 //! Commands: `booklet.set` turns a booklet type on or off (on, a campaign with no pages yet
 //! gets a cover, a page per map and a back, padded to the type); `pages.add` adds the type's
-//! step of blank pages before the back. Which map a page shows is the generic reference edit.
+//! step of blank pages before the back; `page.set-map` puts a map on a page, or takes it off.
 
 use rhizome_core::{Edit, Node, NodeId, Ref, Value};
 use rhizome_pom::{payload, Commands, Document, Error, Outcome};
@@ -136,6 +136,36 @@ fn build(tx: &mut Edit<'_>, pages: NodeId) -> rhizome_core::Result<()> {
 }
 
 #[derive(Deserialize)]
+struct MapArgs {
+    at: String,
+    /// The map's path; none takes the page's map off.
+    map: Option<String>,
+}
+
+/// The page at `at` and the map `map` names, checked: a page, a map, on no other page.
+fn page_and_map(d: &Doc, a: &MapArgs) -> Result<(NodeId, Option<NodeId>), Error> {
+    let page = match d.tree().at(a.at.as_str()) {
+        Some(n) if n.type_name() == "page" => n,
+        _ => return Err(Error::Payload(format!("{} isn't a page", a.at))),
+    };
+    let Some(path) = &a.map else {
+        return Ok((page.id(), None));
+    };
+    let map = match d.tree().at(path.as_str()) {
+        Some(n) if n.type_name() == "map" => n,
+        _ => return Err(Error::Payload(format!("{path} isn't a map"))),
+    };
+    let elsewhere = map
+        .referrers()
+        .into_iter()
+        .any(|(r, key)| key == MAP && r.type_name() == "page" && r.id() != page.id());
+    if elsewhere {
+        return Err(Error::Payload("that map is on another page".into()));
+    }
+    Ok((page.id(), Some(map.id())))
+}
+
+#[derive(Deserialize)]
 struct SetArgs {
     booklet: String,
 }
@@ -213,6 +243,29 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
                     }
                     let n = page_ids(tx, pages).len();
                     pad(tx, pages, padded(n + step, step))
+                })?
+                .1,
+            ))
+        },
+    );
+    c.add(
+        "page.set-map",
+        |_| "Set Page Map".into(),
+        |d: &Doc, p: &serde_json::Value| {
+            payload::<MapArgs>(p).is_ok_and(|a| page_and_map(d, &a).is_ok())
+        },
+        |d: &mut Doc, p: &serde_json::Value| {
+            let a: MapArgs = payload(p)?;
+            let (page, map) = page_and_map(d, &a)?;
+            let label = if map.is_some() {
+                "Put Map on Page"
+            } else {
+                "Take Map off Page"
+            };
+            Ok(Outcome::from(
+                d.edit(label, |tx| match map {
+                    Some(m) => tx.set_ref(page, MAP, Ref::here(m)),
+                    None => tx.clear_ref(page, MAP),
                 })?
                 .1,
             ))

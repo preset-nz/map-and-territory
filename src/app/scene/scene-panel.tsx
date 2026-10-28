@@ -1,18 +1,33 @@
-import { useChildren, useNode, useNodeAt } from '@preset.nz/pom';
+import { useChildren, useMirror, useNode, useNodeAt } from '@preset.nz/pom';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
   cn,
   Icons,
 } from '@preset.nz/ux-kit';
-import { type KeyboardEvent, useState } from 'react';
+import { type KeyboardEvent, useState, useSyncExternalStore } from 'react';
 import { useRun } from '../document';
 import { type Selected, selection } from '../selection';
 import { CAMPAIGN_PATH } from './frame';
 import { useMapIds } from './maps';
-import { actionsFor, displayName, furnitureTopFirst, layersTopFirst, type TreeRow } from './tree';
+import {
+  actionsFor,
+  displayName,
+  furnitureTopFirst,
+  isBooklet,
+  layersTopFirst,
+  mapsOffPages,
+  pageMap,
+  type TreeRow,
+} from './tree';
+
+const PAGES_PATH = '/pages';
 
 const isSelected = (s: Selected, kind: Selected['kind'], id?: string) =>
   s.kind === kind && (id === undefined || ('id' in s && s.id === id));
@@ -40,9 +55,11 @@ export function ScenePanel() {
             heading
           />
         )}
-        {maps.map((id) => (
-          <MapItem key={id} id={id} selected={selected} />
-        ))}
+        {isBooklet(campaign) ? (
+          <Pages maps={maps} selected={selected} />
+        ) : (
+          maps.map((id) => <MapItem key={id} id={id} selected={selected} />)
+        )}
         {maps.length === 0 && (
           <p className="px-3 py-2 text-muted-foreground text-xs">No maps yet. Map ▸ New Map.</p>
         )}
@@ -51,7 +68,89 @@ export function ScenePanel() {
   );
 }
 
-function MapItem({ id, selected }: { id: string; selected: Selected }) {
+/**
+ * A booklet's pages, cover first and back last, each with its map under it (epic 32 story 4).
+ * The maps on no page follow under their own heading, so every map stays in reach.
+ */
+function Pages({ maps, selected }: { maps: readonly string[]; selected: Selected }) {
+  const pages = useNodeAt(PAGES_PATH);
+  const ids = useChildren(pages?.id, 'pages');
+  const mirror = useMirror();
+  // which maps are free changes with any page's map, not only with the page list
+  useSyncExternalStore(mirror.subscribe, () => mirror.seq);
+  const rows = ids.map((id) => mirror.node(id) as TreeRow | undefined);
+  const free = mapsOffPages(maps, rows);
+  return (
+    <>
+      {ids.map((id) => (
+        <PageItem key={id} id={id} free={free} selected={selected} />
+      ))}
+      {free.length > 0 && (
+        // biome-ignore lint/a11y/useSemanticElements: a group inside a tree
+        <div
+          role="group"
+          aria-label="Not on a page"
+          className="mt-2 border-sidebar-border border-t pt-1"
+        >
+          <p className="px-2 py-1 text-muted-foreground text-xs">Not on a page</p>
+          {free.map((id) => (
+            <MapItem key={id} id={id} selected={selected} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function PageItem({
+  id,
+  free,
+  selected,
+}: {
+  id: string;
+  free: readonly string[];
+  selected: Selected;
+}) {
+  const row = useNode(id);
+  const run = useRun();
+  const mirror = useMirror();
+  if (!row) return null;
+  const map = pageMap(row as TreeRow);
+  const setMap = (path: string | null) => run('page.set-map', { at: row.path, map: path });
+  return (
+    <>
+      <Item
+        row={row}
+        depth={0}
+        selected={isSelected(selected, 'page', id)}
+        onSelect={() => selection.selectPage(id)}
+        icon={<Icons.File />}
+        menu={
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>Map</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {free.map((m) => {
+                const r = mirror.node(m) as TreeRow | undefined;
+                return r ? (
+                  <ContextMenuItem key={m} onClick={() => setMap(r.path)}>
+                    {displayName(r)}
+                  </ContextMenuItem>
+                ) : null;
+              })}
+              {free.length > 0 && <ContextMenuSeparator />}
+              <ContextMenuItem disabled={map === null} onClick={() => setMap(null)}>
+                No Map
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        }
+      />
+      {map && <MapItem id={map} selected={selected} depth={1} />}
+    </>
+  );
+}
+
+function MapItem({ id, selected, depth = 0 }: { id: string; selected: Selected; depth?: number }) {
   const row = useNode(id);
   const layers = useChildren(id, 'layers');
   const furniture = useChildren(id, 'furniture');
@@ -61,7 +160,7 @@ function MapItem({ id, selected }: { id: string; selected: Selected }) {
     <>
       <Item
         row={row}
-        depth={0}
+        depth={depth}
         selected={isSelected(selected, 'map', id)}
         onSelect={() => selection.selectMap(id)}
         icon={<Icons.MapTrifold />}
@@ -78,13 +177,19 @@ function MapItem({ id, selected }: { id: string; selected: Selected }) {
           className="mb-0.5 border-sidebar-border border-b pb-0.5"
         >
           {furnitureTopFirst({ ...row, orders: { furniture: [...furniture] } }).map((nodeId) => (
-            <LayerItem key={nodeId} id={nodeId} selected={selected} icon={<Icons.TextT />} />
+            <LayerItem
+              key={nodeId}
+              id={nodeId}
+              selected={selected}
+              icon={<Icons.TextT />}
+              depth={depth + 1}
+            />
           ))}
         </div>
       )}
       {open &&
         layersTopFirst({ ...row, orders: { layers: [...layers] } }).map((layerId) => (
-          <LayerItem key={layerId} id={layerId} selected={selected} />
+          <LayerItem key={layerId} id={layerId} selected={selected} depth={depth + 1} />
         ))}
     </>
   );
@@ -95,10 +200,12 @@ function LayerItem({
   id,
   selected,
   icon = <Icons.Stack />,
+  depth = 1,
 }: {
   id: string;
   selected: Selected;
   icon?: React.ReactNode;
+  depth?: number;
 }) {
   const row = useNode(id);
   if (!row) return null;
@@ -106,29 +213,39 @@ function LayerItem({
     <>
       <Item
         row={row}
-        depth={1}
+        depth={depth}
         selected={isSelected(selected, 'layer', id)}
         onSelect={() => selection.selectLayer(id)}
         icon={row.type === 'locations' ? <Icons.MapPinArea /> : icon}
       />
-      {row.type === 'locations' && <LocationItems layerId={id} selected={selected} />}
+      {row.type === 'locations' && (
+        <LocationItems layerId={id} selected={selected} depth={depth + 1} />
+      )}
     </>
   );
 }
 
 /** A locations layer's places, under it in its order (epic 28); each selects as a layer does. */
-function LocationItems({ layerId, selected }: { layerId: string; selected: Selected }) {
+function LocationItems({
+  layerId,
+  selected,
+  depth,
+}: {
+  layerId: string;
+  selected: Selected;
+  depth: number;
+}) {
   const ids = useChildren(layerId, 'locations');
-  return ids.map((id) => <LocationItem key={id} id={id} selected={selected} />);
+  return ids.map((id) => <LocationItem key={id} id={id} selected={selected} depth={depth} />);
 }
 
-function LocationItem({ id, selected }: { id: string; selected: Selected }) {
+function LocationItem({ id, selected, depth }: { id: string; selected: Selected; depth: number }) {
   const row = useNode(id);
   if (!row) return null;
   return (
     <Item
       row={row}
-      depth={2}
+      depth={depth}
       selected={isSelected(selected, 'layer', id)}
       onSelect={() => selection.selectLayer(id)}
       icon={<Icons.MapPin />}
@@ -146,6 +263,8 @@ interface ItemProps {
   onToggleExpanded?: () => void;
   /** The campaign: the panel's heading, set apart from its maps. */
   heading?: boolean;
+  /** More context-menu items, after Delete. */
+  menu?: React.ReactNode;
 }
 
 function Item({
@@ -157,6 +276,7 @@ function Item({
   expanded,
   onToggleExpanded,
   heading,
+  menu,
 }: ItemProps) {
   const run = useRun();
   const actions = actionsFor(row);
@@ -270,6 +390,8 @@ function Item({
         >
           Delete
         </ContextMenuItem>
+        {menu && <ContextMenuSeparator />}
+        {menu}
       </ContextMenuContent>
     </ContextMenu>
   );

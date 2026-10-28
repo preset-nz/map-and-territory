@@ -7,6 +7,27 @@ export interface TreeRow {
   type: string;
   values?: Record<string, unknown>;
   orders?: Record<string, string[]>;
+  refs?: Record<string, { node?: string; file?: string }>;
+}
+
+/** Whether the campaign is a booklet of pages rather than a collection of maps (epic 32). */
+export function isBooklet(campaign: TreeRow | undefined): boolean {
+  const b = campaign?.values?.booklet;
+  return typeof b === 'string' && b !== 'none';
+}
+
+/** The map a page shows, by id; null for a blank page. */
+export function pageMap(page: TreeRow | undefined): string | null {
+  return page?.refs?.map?.node ?? null;
+}
+
+/** The maps on no page, in `maps` order: what a page can take. */
+export function mapsOffPages(
+  maps: readonly string[],
+  pages: readonly (TreeRow | undefined)[],
+): string[] {
+  const on = new Set(pages.map(pageMap).filter((m): m is string => m !== null));
+  return maps.filter((m) => !on.has(m));
 }
 
 const TITLES: Record<string, string> = {
@@ -17,6 +38,7 @@ const TITLES: Record<string, string> = {
   'hex-noise': 'Hex Noise',
   freeform: 'Freeform',
   outline: 'Outline',
+  page: 'Page',
   cartouche: 'Title',
   compass: 'Compass',
 };
@@ -58,8 +80,10 @@ export function actionsFor(row: TreeRow): RowActions {
   const v = row.values?.visible;
   const visible = typeof v === 'boolean' ? v : undefined;
   if (row.type === 'campaign') return { rename: true, duplicate: false, delete: false };
-  // a location is listed in its layer's order, which a duplicate wouldn't join (epic 28)
-  if (row.type === 'location') return { rename: true, duplicate: false, delete: true };
+  // a location is listed in its layer's order, which a duplicate wouldn't join (epic 28); a
+  // page's copy wouldn't join `pages` either, and its map is on one page only (epic 32)
+  if (row.type === 'location' || row.type === 'page')
+    return { rename: true, duplicate: false, delete: true };
   const anchor = ANCHORS.has(row.type);
   return {
     rename: 'name' in (row.values ?? {}),
