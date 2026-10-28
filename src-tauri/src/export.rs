@@ -6,7 +6,7 @@ use tauri::{AppHandle, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::document::DocumentHost;
-use crate::pdf::{build_pdf, PdfLayout};
+use crate::pdf::{build_pdf, MapLayout, MapSheet, PdfLayout};
 
 /// `path` with `ext` added when the user typed a name without an extension.
 fn with_ext(path: PathBuf, ext: &str) -> PathBuf {
@@ -92,7 +92,7 @@ pub fn export_write_file(request: tauri::ipc::Request<'_>) -> Result<(), String>
 /// Builds the PDF from the request body (the PNG) and writes it to the path in the `path`
 /// header (percent-encoded). The `layout` header is `pageW,pageH,x,y,w,h` in points, measured
 /// from the page's top-left. With a `map` header (the map's path, percent-encoded), that map's
-/// key follows on its own pages.
+/// key goes under it or after it, by the map's layout.
 #[tauri::command]
 pub fn export_write_pdf(
     request: tauri::ipc::Request<'_>,
@@ -109,11 +109,16 @@ pub fn export_write_pdf(
             .ok_or_else(|| format!("missing {name} header"))
     };
     let layout = PdfLayout::parse(header("layout")?)?;
-    let key = match request.headers().get("map").and_then(|v| v.to_str().ok()) {
-        Some(map) => document.key(&percent_decode(map)?),
-        None => None,
+    let (key, map_layout) = match request.headers().get("map").and_then(|v| v.to_str().ok()) {
+        Some(map) => document.sheet(&percent_decode(map)?),
+        None => (None, MapLayout::MapTop),
     };
-    let pdf = build_pdf(png, &layout, key.as_ref())?;
+    let pdf = build_pdf(&[MapSheet {
+        png,
+        layout,
+        key: key.as_ref(),
+        map_layout,
+    }])?;
     write_file(Path::new(&percent_decode(header("path")?)?), "pdf", &pdf).map(|_| ())
 }
 

@@ -77,6 +77,9 @@ const LOCATION_MARKER_LABELS: &[(&str, &str)] =
     &[("number", "Number"), ("dot", "Dot"), ("none", "None")];
 /// How a location's name sits on the map (Georg, 2026-10-28: all four, plain first).
 pub const LABEL_STYLES: &[&str] = &["plain", "outline", "glow", "label"];
+/// How a map's page is laid out (epic 32): the map on top with its key under it, or the key on
+/// pages of its own after the map. More from Georg as we go.
+pub const MAP_LAYOUTS: &[&str] = &["map-top", "key-after"];
 /// What kind of place a location is: for filtering, and for the legend later.
 pub const LOCATION_CATEGORIES: &[&str] = &[
     "settlement",
@@ -308,6 +311,9 @@ pub fn declare(k: &mut Kinds) {
                 "Description",
                 "Notes about this map, such as the region it covers.",
             )
+            .choice("layout", MAP_LAYOUTS, "map-top")
+            .described("Layout", "How the map's page prints: the map on top with its key under it, or the key on pages of its own after the map.")
+            .choice_labels(&[("map-top", "Map on top, key below"), ("key-after", "Key on its own pages")])
             .bool("visible", true)
             .described("Visible", "Whether the map is shown.")
             // The sheet style (map furniture §3): furniture left on `map` follows these.
