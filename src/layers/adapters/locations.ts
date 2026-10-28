@@ -8,8 +8,8 @@ import type { Layout } from '@/lib/hex/types';
 import { faceCaps, faceFont } from '@/render/faces';
 
 export type LocationMarker = 'number' | 'dot' | 'none';
-/** How a name sits on the map: plain ink, a glow of paper behind it, or on a paper label. */
-export type LabelStyle = 'plain' | 'glow' | 'label';
+/** How a name sits on the map: plain ink, outlined, a glow of paper behind it, or on a label. */
+export type LabelStyle = 'plain' | 'outline' | 'glow' | 'label';
 
 /** One place, as the projection gives it. */
 export interface PlacedLocation {
@@ -42,6 +42,8 @@ const NOTE_SIZE = 0.36;
 /** The glow's blur, and the label's padding, as fractions of the hex size. */
 const GLOW = 0.35;
 const PAD = 0.12;
+/** The outline's width either side of a letter, as a fraction of the hex size. */
+const OUTLINE = 0.12;
 /** How faint a hidden place draws. */
 export const HIDDEN_ALPHA = 0.45;
 
@@ -52,22 +54,29 @@ function layoutOf(env: RenderEnv): Layout {
 }
 
 /**
- * A name in the layer's style: plain ink; over a glow of the paper's colour, laid down a few
- * times so it carries over dark ground; or on a paper label behind it.
+ * A name of `px` letters in the layer's style: plain ink; outlined in the paper's colour; over
+ * a glow of it, laid down a few times so it carries over dark ground; or on a paper label.
  */
 function styledText(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
   y: number,
+  px: number,
   style: LabelStyle,
   s: number,
   paper: string,
   ink: string,
 ) {
-  if (style === 'label') {
+  if (style === 'outline') {
+    ctx.strokeStyle = paper;
+    ctx.lineWidth = s * OUTLINE * 2;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(text, x, y);
+  } else if (style === 'label') {
     const w = ctx.measureText(text).width;
-    const h = parseFloat(ctx.font) || s * NAME_SIZE;
+    // the letters' size, not the font string's leading weight, sets the label's height
+    const h = px;
     const left = ctx.textAlign === 'center' ? x - w / 2 : x;
     ctx.fillStyle = paper;
     ctx.fillRect(left - s * PAD, y - h * 0.6, w + s * PAD * 2, h * 1.2);
@@ -138,10 +147,20 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
         ctx.font = faceFont(face, s * NAME_SIZE);
         const note = loc.note?.trim();
         const y = note ? c.y - s * NAME_SIZE * 0.4 : c.y;
-        styledText(ctx, caps ? loc.name.toUpperCase() : loc.name, x, y, style, s, paper, ink);
+        styledText(
+          ctx,
+          caps ? loc.name.toUpperCase() : loc.name,
+          x,
+          y,
+          s * NAME_SIZE,
+          style,
+          s,
+          paper,
+          ink,
+        );
         if (note) {
           ctx.font = faceFont(face, s * NOTE_SIZE);
-          styledText(ctx, note, x, c.y + s * NAME_SIZE * 0.55, style, s, paper, ink);
+          styledText(ctx, note, x, c.y + s * NAME_SIZE * 0.55, s * NOTE_SIZE, style, s, paper, ink);
         }
       }
       ctx.restore();

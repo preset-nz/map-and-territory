@@ -34,12 +34,17 @@ class MockContext {
   setLineDash(d: number[]) {
     this.dash = d;
   }
-  strokeText() {}
+  strokes = 0;
+  strokeText() {
+    this.strokes++;
+  }
   measureText(text: string) {
     return { width: text.length * 5 };
   }
-  fillRect() {
+  rectHeights: number[] = [];
+  fillRect(_x: number, _y: number, _w: number, h: number) {
     this.rects++;
+    this.rectHeights.push(h);
   }
   fillText(text: string, x: number, y: number) {
     if (this.shadowBlur > 0) {
@@ -125,12 +130,17 @@ describe('the locations adapter', () => {
     expect(LocationsAdapter.getInvalidationKey(moved)).not.toBe(key);
   });
 
-  it('prints names plain by default, over a glow, or on a paper label', () => {
+  it('prints names plain by default, outlined, over a glow, or on a paper label', () => {
     const plain = draw();
     expect(plain.glows + plain.rects).toBe(0);
     const glow = draw({ ...state, labelStyle: 'glow' });
     expect(glow.glows).toBe(9);
     expect(glow.texts.filter((t) => t.text === 'Reedwall Keep')).toHaveLength(1);
-    expect(draw({ ...state, labelStyle: 'label' }).rects).toBe(3);
+    const label = draw({ ...state, labelStyle: 'label' });
+    expect(label.rects).toBe(3);
+    // as tall as the letters with a little room, not the font string's weight (600 px)
+    expect(Math.max(...label.rectHeights)).toBeLessThan(20);
+    expect(plain.strokes).toBe(0);
+    expect(draw({ ...state, labelStyle: 'outline' }).strokes).toBe(3);
   });
 });
