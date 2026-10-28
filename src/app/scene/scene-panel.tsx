@@ -19,7 +19,9 @@ const isSelected = (s: Selected, kind: Selected['kind'], id?: string) =>
 
 /**
  * The campaign, its maps and each map's furniture and layers, top first (epic 16 story 2,
- * epic 23 story 1). Furniture is drawn over the grid, so it lists above the layers.
+ * epic 23 story 1). Furniture is drawn over the grid, so it lists above the layers. The
+ * campaign is the panel's heading: there is one per window, so its maps aren't indented under
+ * it (Georg, 2026-10-28).
  */
 export function ScenePanel() {
   const campaign = useNodeAt(CAMPAIGN_PATH);
@@ -27,10 +29,7 @@ export function ScenePanel() {
   const selected = selection.use();
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="px-3 pt-3 pb-1 font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        Scene
-      </div>
-      <div role="tree" aria-label="Scene" className="min-h-0 flex-1 overflow-y-auto px-1 pb-2">
+      <div role="tree" aria-label="Scene" className="min-h-0 flex-1 overflow-y-auto px-1 pt-2 pb-2">
         {campaign && (
           <Item
             row={campaign}
@@ -38,6 +37,7 @@ export function ScenePanel() {
             selected={isSelected(selected, 'campaign')}
             onSelect={selection.selectCampaign}
             icon={<Icons.BookOpen />}
+            heading
           />
         )}
         {maps.map((id) => (
@@ -61,7 +61,7 @@ function MapItem({ id, selected }: { id: string; selected: Selected }) {
     <>
       <Item
         row={row}
-        depth={1}
+        depth={0}
         selected={isSelected(selected, 'map', id)}
         onSelect={() => selection.selectMap(id)}
         icon={<Icons.MapTrifold />}
@@ -105,7 +105,7 @@ function LayerItem({
   return (
     <Item
       row={row}
-      depth={2}
+      depth={1}
       selected={isSelected(selected, 'layer', id)}
       onSelect={() => selection.selectLayer(id)}
       icon={icon}
@@ -121,9 +121,20 @@ interface ItemProps {
   icon: React.ReactNode;
   expanded?: boolean;
   onToggleExpanded?: () => void;
+  /** The campaign: the panel's heading, set apart from its maps. */
+  heading?: boolean;
 }
 
-function Item({ row, depth, selected, onSelect, icon, expanded, onToggleExpanded }: ItemProps) {
+function Item({
+  row,
+  depth,
+  selected,
+  onSelect,
+  icon,
+  expanded,
+  onToggleExpanded,
+  heading,
+}: ItemProps) {
   const run = useRun();
   const actions = actionsFor(row);
   const [renaming, setRenaming] = useState(false);
@@ -161,6 +172,7 @@ function Item({ row, depth, selected, onSelect, icon, expanded, onToggleExpanded
             style={{ paddingLeft: 4 + depth * 12 }}
             className={cn(
               'group flex h-7 cursor-default items-center gap-1.5 rounded-sm pr-1 text-sm',
+              heading && 'mb-1 font-semibold',
               selected
                 ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                 : 'hover:bg-sidebar-accent/50',
