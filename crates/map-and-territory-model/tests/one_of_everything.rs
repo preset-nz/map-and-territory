@@ -8,7 +8,9 @@
 //! and a 4:3 map, with more places so
 //! the key fills its columns: export it as one PDF to see every layout side by side. Write it
 //! again with `just fixtures every-layout`. `booklet.campaign` is the same as a spine booklet
-//! (`just fixtures booklet`).
+//! (`just fixtures booklet`). `map-shapes.campaign` is the map once per aspect and
+//! orientation, a square once, on the campaign's portrait page: turn the page to landscape and
+//! every map should keep its own shape (`just fixtures map-shapes`).
 //!
 //! Built through the commands the app runs, as `sallow_fen.rs` is. When a kind lands (roads and
 //! rivers, epic 29; locations' areas, epic 28) or cells paint terrain ids (epic 26), add it here and write
@@ -253,6 +255,38 @@ fn build_booklet(d: &mut Doc) {
     run(d, "booklet.set", json!({ "booklet": "spine" }));
 }
 
+/// The map once per aspect and orientation, named for its shape, the key under it.
+fn build_shapes(d: &mut Doc) {
+    build(d);
+    set(d, "/campaign/campaign", "name", json!("Map Shapes"));
+    let shapes = [
+        ("16:10", "landscape"),
+        ("16:10", "portrait"),
+        ("16:9", "landscape"),
+        ("16:9", "portrait"),
+        ("4:3", "landscape"),
+        ("4:3", "portrait"),
+        ("square", "landscape"),
+    ];
+    for (i, (aspect, orientation)) in shapes.iter().enumerate() {
+        let at = if i == 0 {
+            newest(d, "/maps", "maps")
+        } else {
+            let last = newest(d, "/maps", "maps");
+            run(d, "edit.duplicate", json!({ "at": last }));
+            newest(d, "/maps", "maps")
+        };
+        let name = if *aspect == "square" {
+            "Square".to_string()
+        } else {
+            format!("{aspect} {orientation}")
+        };
+        set(d, &at, "name", json!(name));
+        set(d, &format!("{at}/paper"), "aspect", json!(aspect));
+        set(d, &format!("{at}/paper"), "orientation", json!(orientation));
+    }
+}
+
 fn fixture() -> PathBuf {
     common::fixture("one-of-everything")
 }
@@ -339,6 +373,12 @@ fn every_layout_holds_the_same_map_once_per_layout_and_shape() {
 fn every_layout_fixture_is_current() {
     let text = saved_text_of(build_layouts, "every-layout.campaign");
     common::check_or_write("every-layout", &text);
+}
+
+#[test]
+fn map_shapes_fixture_is_current() {
+    let text = saved_text_of(build_shapes, "map-shapes.campaign");
+    common::check_or_write("map-shapes", &text);
 }
 
 #[test]

@@ -3,7 +3,7 @@
 //!
 //! `FIXTURES=<name>[,<name>…]` writes those fixtures instead of checking them, and
 //! `FIXTURES=all` writes every one: `just fixtures every-layout`, or `just fixtures` for all.
-//! The names are the files' stems: `one-of-everything`, `every-layout`, `booklet`, `orlo`, `sallow-fen`.
+//! The names are the files' stems: `one-of-everything`, `every-layout`, `booklet`, `map-shapes`, `orlo`, `sallow-fen`.
 
 use std::path::{Path, PathBuf};
 

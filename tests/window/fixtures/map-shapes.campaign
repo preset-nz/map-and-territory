@@ -1,0 +1,3415 @@
+{
+  "rhizome": 1,
+  "nodes": [
+    {
+      "path": "/",
+      "id": "00000000000000000000000001",
+      "type": "root"
+    },
+    {
+      "path": "/campaign",
+      "id": "00000000000000000000000003",
+      "type": "category"
+    },
+    {
+      "path": "/campaign/campaign",
+      "id": "00000000000000000000000007",
+      "type": "campaign",
+      "values": {
+        "name": "Map Shapes"
+      },
+      "refs": {
+        "palette": {
+          "node": "00000000000000000000000008",
+          "path": "/themes/doom-forge"
+        }
+      }
+    },
+    {
+      "path": "/maps",
+      "id": "00000000000000000000000004",
+      "type": "category",
+      "orders": {
+        "maps": [
+          "00000000000000000000000009",
+          "0000000000000000000000000R",
+          "00000000000000000000000017",
+          "0000000000000000000000001P",
+          "00000000000000000000000025",
+          "0000000000000000000000002M",
+          "00000000000000000000000033"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map",
+      "id": "00000000000000000000000009",
+      "type": "map",
+      "values": {
+        "name": "16:10 landscape"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000P",
+          "0000000000000000000000000Q"
+        ],
+        "layers": [
+          "0000000000000000000000000A",
+          "0000000000000000000000000C",
+          "0000000000000000000000000D",
+          "0000000000000000000000000J",
+          "0000000000000000000000000K",
+          "0000000000000000000000000B"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/cartouche",
+      "id": "0000000000000000000000000P",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map/compass",
+      "id": "0000000000000000000000000Q",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map/freeform",
+      "id": "0000000000000000000000000D",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000000E",
+          "0000000000000000000000000F",
+          "0000000000000000000000000G",
+          "0000000000000000000000000H"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/freeform/-1_-1",
+      "id": "0000000000000000000000000E",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/freeform/-1_0",
+      "id": "0000000000000000000000000F",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/freeform/0_-1",
+      "id": "0000000000000000000000000G",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/freeform/0_0",
+      "id": "0000000000000000000000000H",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/hex-noise",
+      "id": "0000000000000000000000000C",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map/hexgrid",
+      "id": "0000000000000000000000000B",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map/locations",
+      "id": "0000000000000000000000000K",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000000M",
+          "0000000000000000000000000N"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/locations/location",
+      "id": "0000000000000000000000000M",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map/locations/location-2",
+      "id": "0000000000000000000000000N",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map/outline",
+      "id": "0000000000000000000000000J",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/paper",
+      "id": "0000000000000000000000000A",
+      "type": "paper",
+      "values": {
+        "aspect": "16:10",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/maps/map-2",
+      "id": "0000000000000000000000000R",
+      "type": "map",
+      "values": {
+        "name": "16:10 portrait"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000S",
+          "0000000000000000000000000T"
+        ],
+        "layers": [
+          "00000000000000000000000016",
+          "00000000000000000000000010",
+          "0000000000000000000000000V",
+          "00000000000000000000000015",
+          "00000000000000000000000012",
+          "00000000000000000000000011"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/cartouche",
+      "id": "0000000000000000000000000S",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-2/compass",
+      "id": "0000000000000000000000000T",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform",
+      "id": "0000000000000000000000000V",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000000W",
+          "0000000000000000000000000X",
+          "0000000000000000000000000Y",
+          "0000000000000000000000000Z"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/-1_-1",
+      "id": "0000000000000000000000000W",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/-1_0",
+      "id": "0000000000000000000000000X",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/0_-1",
+      "id": "0000000000000000000000000Y",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/0_0",
+      "id": "0000000000000000000000000Z",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/hex-noise",
+      "id": "00000000000000000000000010",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-2/hexgrid",
+      "id": "00000000000000000000000011",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-2/locations",
+      "id": "00000000000000000000000012",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "00000000000000000000000013",
+          "00000000000000000000000014"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/locations/location",
+      "id": "00000000000000000000000013",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-2/locations/location-2",
+      "id": "00000000000000000000000014",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-2/outline",
+      "id": "00000000000000000000000015",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/paper",
+      "id": "00000000000000000000000016",
+      "type": "paper",
+      "values": {
+        "aspect": "16:10",
+        "orientation": "portrait"
+      }
+    },
+    {
+      "path": "/maps/map-3",
+      "id": "00000000000000000000000017",
+      "type": "map",
+      "values": {
+        "name": "16:9 landscape"
+      },
+      "orders": {
+        "furniture": [
+          "00000000000000000000000018",
+          "00000000000000000000000019"
+        ],
+        "layers": [
+          "0000000000000000000000001N",
+          "0000000000000000000000001F",
+          "0000000000000000000000001A",
+          "0000000000000000000000001M",
+          "0000000000000000000000001H",
+          "0000000000000000000000001G"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-3/cartouche",
+      "id": "00000000000000000000000018",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-3/compass",
+      "id": "00000000000000000000000019",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-3/freeform",
+      "id": "0000000000000000000000001A",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000001B",
+          "0000000000000000000000001C",
+          "0000000000000000000000001D",
+          "0000000000000000000000001E"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-3/freeform/-1_-1",
+      "id": "0000000000000000000000001B",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-3/freeform/-1_0",
+      "id": "0000000000000000000000001C",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-3/freeform/0_-1",
+      "id": "0000000000000000000000001D",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-3/freeform/0_0",
+      "id": "0000000000000000000000001E",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-3/hex-noise",
+      "id": "0000000000000000000000001F",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-3/hexgrid",
+      "id": "0000000000000000000000001G",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-3/locations",
+      "id": "0000000000000000000000001H",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000001J",
+          "0000000000000000000000001K"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-3/locations/location",
+      "id": "0000000000000000000000001J",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-3/locations/location-2",
+      "id": "0000000000000000000000001K",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-3/outline",
+      "id": "0000000000000000000000001M",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-3/paper",
+      "id": "0000000000000000000000001N",
+      "type": "paper",
+      "values": {
+        "aspect": "16:9",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/maps/map-4",
+      "id": "0000000000000000000000001P",
+      "type": "map",
+      "values": {
+        "name": "16:9 portrait"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000001Q",
+          "0000000000000000000000001R"
+        ],
+        "layers": [
+          "00000000000000000000000024",
+          "0000000000000000000000001Y",
+          "0000000000000000000000001S",
+          "00000000000000000000000023",
+          "00000000000000000000000020",
+          "0000000000000000000000001Z"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-4/cartouche",
+      "id": "0000000000000000000000001Q",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-4/compass",
+      "id": "0000000000000000000000001R",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-4/freeform",
+      "id": "0000000000000000000000001S",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000001T",
+          "0000000000000000000000001V",
+          "0000000000000000000000001W",
+          "0000000000000000000000001X"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-4/freeform/-1_-1",
+      "id": "0000000000000000000000001T",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-4/freeform/-1_0",
+      "id": "0000000000000000000000001V",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-4/freeform/0_-1",
+      "id": "0000000000000000000000001W",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-4/freeform/0_0",
+      "id": "0000000000000000000000001X",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-4/hex-noise",
+      "id": "0000000000000000000000001Y",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-4/hexgrid",
+      "id": "0000000000000000000000001Z",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-4/locations",
+      "id": "00000000000000000000000020",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "00000000000000000000000021",
+          "00000000000000000000000022"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-4/locations/location",
+      "id": "00000000000000000000000021",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-4/locations/location-2",
+      "id": "00000000000000000000000022",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-4/outline",
+      "id": "00000000000000000000000023",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-4/paper",
+      "id": "00000000000000000000000024",
+      "type": "paper",
+      "values": {
+        "aspect": "16:9",
+        "orientation": "portrait"
+      }
+    },
+    {
+      "path": "/maps/map-5",
+      "id": "00000000000000000000000025",
+      "type": "map",
+      "values": {
+        "name": "4:3 landscape"
+      },
+      "orders": {
+        "furniture": [
+          "00000000000000000000000026",
+          "00000000000000000000000027"
+        ],
+        "layers": [
+          "0000000000000000000000002K",
+          "0000000000000000000000002D",
+          "00000000000000000000000028",
+          "0000000000000000000000002J",
+          "0000000000000000000000002F",
+          "0000000000000000000000002E"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-5/cartouche",
+      "id": "00000000000000000000000026",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-5/compass",
+      "id": "00000000000000000000000027",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-5/freeform",
+      "id": "00000000000000000000000028",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "00000000000000000000000029",
+          "0000000000000000000000002A",
+          "0000000000000000000000002B",
+          "0000000000000000000000002C"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-5/freeform/-1_-1",
+      "id": "00000000000000000000000029",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-5/freeform/-1_0",
+      "id": "0000000000000000000000002A",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-5/freeform/0_-1",
+      "id": "0000000000000000000000002B",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-5/freeform/0_0",
+      "id": "0000000000000000000000002C",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-5/hex-noise",
+      "id": "0000000000000000000000002D",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-5/hexgrid",
+      "id": "0000000000000000000000002E",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-5/locations",
+      "id": "0000000000000000000000002F",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000002G",
+          "0000000000000000000000002H"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-5/locations/location",
+      "id": "0000000000000000000000002G",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-5/locations/location-2",
+      "id": "0000000000000000000000002H",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-5/outline",
+      "id": "0000000000000000000000002J",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-5/paper",
+      "id": "0000000000000000000000002K",
+      "type": "paper",
+      "values": {
+        "aspect": "4:3",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/maps/map-6",
+      "id": "0000000000000000000000002M",
+      "type": "map",
+      "values": {
+        "name": "4:3 portrait"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000002N",
+          "0000000000000000000000002P"
+        ],
+        "layers": [
+          "00000000000000000000000032",
+          "0000000000000000000000002W",
+          "0000000000000000000000002Q",
+          "00000000000000000000000031",
+          "0000000000000000000000002Y",
+          "0000000000000000000000002X"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/cartouche",
+      "id": "0000000000000000000000002N",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-6/compass",
+      "id": "0000000000000000000000002P",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform",
+      "id": "0000000000000000000000002Q",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000002R",
+          "0000000000000000000000002S",
+          "0000000000000000000000002T",
+          "0000000000000000000000002V"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/-1_-1",
+      "id": "0000000000000000000000002R",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/-1_0",
+      "id": "0000000000000000000000002S",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/0_-1",
+      "id": "0000000000000000000000002T",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/freeform/0_0",
+      "id": "0000000000000000000000002V",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-6/hex-noise",
+      "id": "0000000000000000000000002W",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-6/hexgrid",
+      "id": "0000000000000000000000002X",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-6/locations",
+      "id": "0000000000000000000000002Y",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000002Z",
+          "00000000000000000000000030"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location",
+      "id": "0000000000000000000000002Z",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-6/locations/location-2",
+      "id": "00000000000000000000000030",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-6/outline",
+      "id": "00000000000000000000000031",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-6/paper",
+      "id": "00000000000000000000000032",
+      "type": "paper",
+      "values": {
+        "aspect": "4:3",
+        "orientation": "portrait"
+      }
+    },
+    {
+      "path": "/maps/map-7",
+      "id": "00000000000000000000000033",
+      "type": "map",
+      "values": {
+        "name": "Square"
+      },
+      "orders": {
+        "furniture": [
+          "00000000000000000000000034",
+          "00000000000000000000000035"
+        ],
+        "layers": [
+          "0000000000000000000000003H",
+          "0000000000000000000000003B",
+          "00000000000000000000000036",
+          "0000000000000000000000003G",
+          "0000000000000000000000003D",
+          "0000000000000000000000003C"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/cartouche",
+      "id": "00000000000000000000000034",
+      "type": "cartouche",
+      "values": {
+        "name": "Title 01"
+      }
+    },
+    {
+      "path": "/maps/map-7/compass",
+      "id": "00000000000000000000000035",
+      "type": "compass",
+      "values": {
+        "labels": "cardinal",
+        "name": "Compass 01",
+        "style": "rose"
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform",
+      "id": "00000000000000000000000036",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain"
+      },
+      "orders": {
+        "chunks": [
+          "00000000000000000000000037",
+          "00000000000000000000000038",
+          "00000000000000000000000039",
+          "0000000000000000000000003A"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/-1_-1",
+      "id": "00000000000000000000000037",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*169 1*4 2*3 0*9 1*4 2*3 0*8 1*4 2*4 0*8 1*4 2*4 0*7 1*4 2*4 3 0*7 1*4 2*4 3",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/-1_0",
+      "id": "00000000000000000000000038",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*4 2*4 3*2 0*6 1*4 2*4 3*2 0*5 1*4 2*4 3*3 0*5 1*4 2*4 3*3 0*4 1*4 2*4 3*4 0*4 1*4 2*4 3*4 0*3 1*4 2*4 3*4 4 0*144",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/0_-1",
+      "id": "00000000000000000000000039",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*160 1 2*4 3*4 4*4 0*3 1 2*4 3*4 4*4 0*3 2*4 3*4 4*4 0*4 2*4 3*4 4*4 0*4 2*3 3*4 4*4 0*5 2*3 3*4 4*4 0*5",
+          "palette": [
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/freeform/0_0",
+      "id": "0000000000000000000000003A",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*2 2*4 3*4 0*6 1*2 2*4 3*4 0*6 1 2*4 3*4 0*7 1 2*4 3*4 0*7 2*4 3*4 0*8 2*4 3*4 0*8 2*3 3*4 0*153",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-7/hex-noise",
+      "id": "0000000000000000000000003B",
+      "type": "hex-noise",
+      "values": {
+        "name": "Noise",
+        "opacity": 0.5
+      }
+    },
+    {
+      "path": "/maps/map-7/hexgrid",
+      "id": "0000000000000000000000003C",
+      "type": "hexgrid"
+    },
+    {
+      "path": "/maps/map-7/locations",
+      "id": "0000000000000000000000003D",
+      "type": "locations",
+      "values": {
+        "name": "Locations"
+      },
+      "orders": {
+        "locations": [
+          "0000000000000000000000003E",
+          "0000000000000000000000003F"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location",
+      "id": "0000000000000000000000003E",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": -6,
+            "r": 0
+          }
+        ],
+        "name": "Keep"
+      }
+    },
+    {
+      "path": "/maps/map-7/locations/location-2",
+      "id": "0000000000000000000000003F",
+      "type": "location",
+      "values": {
+        "hexes": [
+          {
+            "q": 6,
+            "r": 0
+          }
+        ],
+        "hidden": true,
+        "name": "Secret"
+      }
+    },
+    {
+      "path": "/maps/map-7/outline",
+      "id": "0000000000000000000000003G",
+      "type": "outline",
+      "values": {
+        "name": "Lines",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 4,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": -1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 1,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 2,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 3,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 4,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 6,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 7,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 8,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 9,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 10,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 11,
+                "r": -6
+              },
+              {
+                "corner": 4,
+                "q": 12,
+                "r": -6
+              },
+              {
+                "corner": 5,
+                "q": 12,
+                "r": -6
+              }
+            ]
+          },
+          {
+            "closed": true,
+            "corners": [
+              {
+                "corner": 0,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 3,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 4,
+                "q": 0,
+                "r": 0
+              },
+              {
+                "corner": 5,
+                "q": 0,
+                "r": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-7/paper",
+      "id": "0000000000000000000000003H",
+      "type": "paper",
+      "values": {
+        "aspect": "square",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/pages",
+      "id": "00000000000000000000000005",
+      "type": "category"
+    },
+    {
+      "path": "/presets",
+      "id": "00000000000000000000000002",
+      "type": "category"
+    },
+    {
+      "path": "/themes",
+      "id": "00000000000000000000000006",
+      "type": "category"
+    },
+    {
+      "path": "/themes/doom-forge",
+      "id": "00000000000000000000000008",
+      "type": "palette",
+      "values": {
+        "accent": [
+          0.047058823529411764,
+          0.047058823529411764,
+          0.047058823529411764,
+          1.0
+        ],
+        "background": [
+          0.9725490196078431,
+          0.9725490196078431,
+          1.0,
+          1.0
+        ],
+        "description": "Apocalyptic metal and dying embers",
+        "gridLine": [
+          0.2,
+          0.2,
+          0.2,
+          1.0
+        ],
+        "name": "Doom Forge",
+        "primary": [
+          1.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "secondary": [
+          1.0,
+          0.0784313725490196,
+          0.5764705882352941,
+          1.0
+        ],
+        "terrains": [
+          {
+            "baseType": "water",
+            "colour": [
+              0.5450980392156862,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "description": "Stagnant pools of corrupted water",
+            "id": "blood-mires",
+            "name": "Blood Mires",
+            "traits": [
+              "corrupted",
+              "local"
+            ]
+          },
+          {
+            "baseType": "plains",
+            "colour": [
+              0.8470588235294118,
+              0.8470588235294118,
+              0.8470588235294118,
+              1.0
+            ],
+            "description": "Vast plains littered with ancient bones",
+            "id": "bone-fields",
+            "name": "Bone Fields",
+            "traits": [
+              "ruined",
+              "sprawling"
+            ]
+          },
+          {
+            "baseType": "forest",
+            "colour": [
+              0.4117647058823529,
+              0.4117647058823529,
+              0.4117647058823529,
+              1.0
+            ],
+            "description": "Skeletal trees in perpetual smolder",
+            "id": "ash-thickets",
+            "name": "Ash Thickets",
+            "traits": [
+              "burning",
+              "sparse"
+            ]
+          },
+          {
+            "baseType": "hills",
+            "colour": [
+              0.047058823529411764,
+              0.047058823529411764,
+              0.047058823529411764,
+              1.0
+            ],
+            "description": "Hills of twisted metal and machinery",
+            "id": "iron-graves",
+            "name": "Iron Graves",
+            "traits": [
+              "artificial",
+              "ruined"
+            ]
+          },
+          {
+            "baseType": "mountains",
+            "colour": [
+              1.0,
+              1.0,
+              0.0,
+              1.0
+            ],
+            "description": "Jagged peaks wreathed in flame",
+            "id": "doom-crags",
+            "name": "Doom Crags",
+            "traits": [
+              "unstable",
+              "burning"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
