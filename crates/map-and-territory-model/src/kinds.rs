@@ -725,6 +725,8 @@ pub fn declare(k: &mut Kinds) {
             )
             .bool("backing", true)
             .described("Backing", "A plain disc in the paper's colour behind the compass, so busy terrain doesn't show through it.")
+            .bool("ring", true)
+            .described("Ring", "A line round the disc, drawn in the compass's hand.")
             .choice("face", FURNITURE_FACES, "map")
             .described("Face", "The lettering of the labels. Map follows the map's face.")
             .choice_labels(&[("map", "Map")])

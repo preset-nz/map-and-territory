@@ -125,6 +125,58 @@ export function handOutline(corners: Pt[], hand: Hand, seed: string): Pt[] {
   return out;
 }
 
+/**
+ * A circle of radius `r` about `c` in `hand`, as a closed outline: clean is a fine polygon,
+ * drawn and scratched push it in and out by eased noise through knots `knot` apart round it,
+ * meeting itself where it starts.
+ */
+export function handRing(c: Pt, r: number, hand: Hand, seed: string): Pt[] {
+  const around = 2 * Math.PI * r;
+  if (hand === 'clean') {
+    const n = Math.max(24, Math.ceil(around / 4));
+    return Array.from({ length: n }, (_, i) => {
+      const a = (i / n) * 2 * Math.PI;
+      return { x: c.x + r * Math.sin(a), y: c.y - r * Math.cos(a) };
+    });
+  }
+  const spec = HANDS[hand];
+  const rng = createRNG(seed);
+  const knots = Math.max(3, Math.ceil(around / spec.knot));
+  const offs = Array.from({ length: knots }, () => (rng.float() * 2 - 1) * spec.amp);
+  const steps = knots * STEPS_PER_KNOT;
+  const out: Pt[] = [];
+  for (let j = 0; j < steps; j++) {
+    const t = (j / steps) * knots;
+    const k = Math.floor(t);
+    const off = offs[k] + (offs[(k + 1) % knots] - offs[k]) * ease(t - k);
+    const a = (j / steps) * 2 * Math.PI;
+    out.push({ x: c.x + (r + off) * Math.sin(a), y: c.y - (r + off) * Math.cos(a) });
+  }
+  return out;
+}
+
+/**
+ * Strokes the circle of radius `r` about `c` in `hand` at `width`. Scratched goes round again,
+ * thinner, with a wobble of its own.
+ */
+export function strokeRing(ctx: Pen, c: Pt, r: number, hand: Hand, seed: string, width: number) {
+  ctx.lineWidth = width;
+  trace(ctx, handRing(c, r, hand, seed));
+  ctx.closePath();
+  ctx.stroke();
+  if (hand !== 'clean' && HANDS[hand].twice) {
+    ctx.lineWidth = width * SECOND_STROKE;
+    trace(ctx, handRing(c, r, hand, `${seed}:again`));
+    ctx.closePath();
+    ctx.stroke();
+  }
+}
+
+/** How far a stroke in `hand` can stray past where it is drawn: its wobble and overshoot. */
+export function handStray(hand: Hand): number {
+  return hand === 'clean' ? 0 : HANDS[hand].amp + HANDS[hand].overshoot;
+}
+
 /** How far a line of text leans in `hand`, in radians; clean is upright. */
 export function handTilt(hand: Hand, seed: string): number {
   if (hand === 'clean') return 0;

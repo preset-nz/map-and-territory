@@ -6,8 +6,8 @@ import {
   BACKING,
   type CompassStyle,
   compassShape,
-  OUTLINE,
-  OUTLINE_MIN,
+  markWidth,
+  outlineWidth,
   styleOf,
   turn,
 } from '@/layers/adapters/compass-shapes';
@@ -18,10 +18,12 @@ import {
   type Hand,
   handEdge,
   handOf,
+  handStray,
   handTilt,
   type Pt,
   strokeByHand,
   strokeEdge,
+  strokeRing,
 } from '@/render/hand';
 
 // Label measurements, as fractions of `size` (the examples page draws them at 120 px).
@@ -54,6 +56,8 @@ export interface CompassState {
   anchor?: Anchor;
   inset?: number;
   backing?: boolean;
+  /** A line round the backing disc, drawn in the compass's hand. */
+  ring?: boolean;
   /** `map` is resolved by the projection, so the adapter sees a face id. */
   face?: string;
   /** `map` is resolved by the projection; anything else draws clean. */
@@ -92,13 +96,23 @@ export interface Label {
 }
 
 /**
+ * How far the ink of the points reaches past their radius: half the line it is drawn with
+ * (mark's square ends stick out by that), and in a hand the wobble and the overshoot.
+ */
+export function inkPast(s: CompassState): number {
+  const size = sizeOf(s);
+  const line = styleOf(s.style) === 'mark' ? markWidth(size) : outlineWidth(size);
+  return line / 2 + handStray(handOf(s.hand));
+}
+
+/**
  * The words, upright, at the turned points (disco-02, Drawing): north and south `GAP_NS` past
- * the points' reach, east and west set out by half their width so they clear the points.
+ * the points' ink, east and west set out by half their width so they clear the points.
  * Placed about `c`.
  */
 export function labelsOf(ctx: Measure, s: CompassState, c: Pt): Label[] {
   const size = sizeOf(s);
-  const r = size / 2;
+  const r = size / 2 + inkPast(s);
   const face = s.face ?? 'condensed';
   const caps = faceCaps(face);
   const out: Label[] = [];
@@ -123,7 +137,7 @@ export function labelsOf(ctx: Measure, s: CompassState, c: Pt): Label[] {
  * `labels` were placed about the origin.
  */
 export function reachOf(s: CompassState, labels: Label[]): number {
-  let reach = (BACKING * sizeOf(s)) / 2;
+  let reach = (BACKING * sizeOf(s)) / 2 + outlineWidth(sizeOf(s)) / 2;
   for (const l of labels) {
     reach = Math.max(reach, Math.hypot(l.x, l.y) + Math.hypot(l.w, l.size) / 2);
   }
@@ -162,11 +176,13 @@ function drawShape(ctx: Ctx, s: CompassState, c: Pt, hand: Hand, seed: string) {
   ctx.strokeStyle = ink;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
-  const outline = Math.max(OUTLINE_MIN, size * OUTLINE);
+  const outline = outlineWidth(size);
   for (const [name, side] of Object.entries(shape.sides)) {
     strokeEdge(ctx, side.a, side.b, hand, `${seed}:${name}`, outline);
   }
-  ctx.lineCap = hand === 'clean' ? 'square' : 'round';
+  // square ends in every hand: a mark is chiselled, not dabbed
+  ctx.lineCap = 'square';
+  ctx.lineJoin = 'miter';
   for (const st of shape.strokes) {
     strokeByHand(ctx, st.a, st.b, hand, `${seed}:${st.name}`, st.width);
   }
@@ -187,6 +203,12 @@ export const CompassAdapter: LayerAdapter<CompassState> = {
       ctx.beginPath();
       ctx.arc(c.x, c.y, (BACKING * sizeOf(state)) / 2, 0, 2 * Math.PI);
       ctx.fill();
+    }
+    if (state.ring !== false) {
+      const size = sizeOf(state);
+      ctx.strokeStyle = state.ink || '#000000';
+      ctx.lineJoin = 'round';
+      strokeRing(ctx, c, (BACKING * size) / 2, hand, `${seed}:ring`, outlineWidth(size));
     }
     drawShape(ctx, state, c, hand, seed);
     ctx.fillStyle = state.ink || '#000000';
@@ -221,6 +243,7 @@ export const CompassAdapter: LayerAdapter<CompassState> = {
       s.anchor ?? 'top-right',
       s.inset ?? 24,
       s.backing !== false,
+      s.ring !== false,
       s.face ?? 'condensed',
       handOf(s.hand),
       s.seed ?? '',
@@ -247,6 +270,7 @@ export const CompassType = {
     anchor: 'top-right',
     inset: 24,
     backing: true,
+    ring: true,
     face: 'map',
     hand: 'map',
   } satisfies CompassState,

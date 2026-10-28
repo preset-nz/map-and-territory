@@ -47,6 +47,12 @@ export interface CompassShape {
   strokes: Stroke[];
 }
 
+/** `mark`'s stroke width at `size`. */
+export const markWidth = (size: number) => Math.max(MARK_MIN_WIDTH, size * MARK_WIDTH);
+
+/** The outline's width at `size`, round each half and the backing's ring. */
+export const outlineWidth = (size: number) => Math.max(OUTLINE_MIN, size * OUTLINE);
+
 export const styleOf = (v: unknown): CompassStyle => (v === 'arrow' || v === 'cross' ? v : 'mark');
 
 /**
@@ -134,7 +140,7 @@ function star(c: Pt, r: number, north: number, n: number, waist: number): Compas
 }
 
 function mark(c: Pt, r: number, north: number, size: number): CompassShape {
-  const width = Math.max(MARK_MIN_WIDTH, size * MARK_WIDTH);
+  const width = markWidth(size);
   return {
     sides: {},
     halves: [],

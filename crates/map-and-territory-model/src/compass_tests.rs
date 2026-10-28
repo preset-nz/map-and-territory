@@ -82,6 +82,7 @@ fn the_compass_has_its_defaults_and_ranges() {
     assert_eq!(value(&d, "anchor"), choice("top-right"));
     assert_eq!(value(&d, "inset"), Some(Value::Float(24.0)));
     assert_eq!(value(&d, "backing"), Some(Value::Bool(true)));
+    assert_eq!(value(&d, "ring"), Some(Value::Bool(true)));
     assert_eq!(value(&d, "face"), choice("map"));
     assert_eq!(value(&d, "hand"), choice("map"));
     assert_eq!(value(&d, "visible"), Some(Value::Bool(true)));

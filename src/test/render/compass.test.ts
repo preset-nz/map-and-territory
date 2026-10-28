@@ -3,6 +3,7 @@ import {
   CompassAdapter,
   type CompassState,
   GAP_NS,
+  inkPast,
   LETTER_SIZE,
   WORD_SIZE,
 } from '@/layers/adapters/compass';
@@ -136,7 +137,7 @@ describe('the compass adapter', () => {
     const c = centre(ctx);
     const n = ctx.texts.find((t) => t.text === 'N');
     expect(n?.x).toBeCloseTo(c.x);
-    expect(n?.y).toBeCloseTo(c.y - 60 - GAP_NS * 120);
+    expect(n?.y).toBeCloseTo(c.y - 60 - inkPast(base) - GAP_NS * 120);
     expect(n?.style).toBe('#222222');
   });
 
@@ -151,6 +152,7 @@ describe('the compass adapter', () => {
     const c = centre(draw({}));
     const r = (BACKING * 120) / 2;
     expect(c.x).toBeLessThanOrEqual(1200 - 24 - r);
+    expect(c.x).toBeGreaterThan(1200 - 24 - r - 10);
     expect(c.y).toBeGreaterThanOrEqual(24 + r);
     expect(c.r).toBeCloseTo(r);
     expect(centre(draw({ north: 37 }))).toEqual(c);
@@ -177,16 +179,16 @@ describe('the compass adapter', () => {
   });
 
   it('draws an arrow as two halves and a mark as two strokes', () => {
-    const arrow = draw({ style: 'arrow' }).paths;
+    const arrow = draw({ style: 'arrow', ring: false }).paths;
     expect(arrow.filter((p) => p.op === 'fill').map((p) => p.style)).toEqual([
       '#222222',
       '#eeeeee',
     ]);
-    const mark = draw({ style: 'mark' }).paths;
+    const mark = draw({ style: 'mark', ring: false }).paths;
     expect(mark.filter((p) => p.op === 'fill')).toEqual([]);
     expect(mark.filter((p) => p.op === 'stroke')).toHaveLength(2);
     // scratched goes over each stroke again
-    expect(draw({ style: 'mark', hand: 'scratched' }).paths).toHaveLength(4);
+    expect(draw({ style: 'mark', hand: 'scratched', ring: false }).paths).toHaveLength(4);
   });
 
   it('sizes a letter and a longer word as fractions of the size', () => {
@@ -199,6 +201,31 @@ describe('the compass adapter', () => {
   });
 });
 
+describe('the ring and the words in a hand', () => {
+  it('rings the disc in the ink, round twice when scratched, and not when off', () => {
+    const rings = (s: Partial<CompassState>) =>
+      draw({ style: 'mark', ...s }).paths.filter((p) => p.op === 'stroke' && p.pts.length > 100);
+    expect(rings({})).toHaveLength(1);
+    expect(rings({})[0].style).toBe('#222222');
+    expect(rings({ hand: 'scratched' })).toHaveLength(2);
+    expect(rings({ ring: false })).toEqual([]);
+  });
+
+  it('keeps N clear of the stem’s wobble and overshoot', () => {
+    for (const hand of ['clean', 'drawn', 'scratched'] as const) {
+      const ctx = draw({ style: 'mark', hand, resolvedLabels: ['N', '', '', ''] });
+      const c = centre(ctx);
+      const top = Math.min(
+        ...ctx.paths.filter((p) => p.pts.length <= 100).flatMap((p) => p.pts.map(([, y]) => y)),
+      );
+      const n = ctx.texts[0];
+      // the letter's lower edge sits above the highest ink of the stem
+      expect(n.y + (LETTER_SIZE * 120) / 2, hand).toBeLessThan(top);
+      expect(c).toBeDefined();
+    }
+  });
+});
+
 describe('the compass by hand', () => {
   const pts = (s: Partial<CompassState>) => draw(s).paths.map((p) => p.pts);
 
@@ -206,7 +233,7 @@ describe('the compass by hand', () => {
     expect(pts({ hand: 'drawn', seed: 'a' })).toEqual(pts({ hand: 'drawn', seed: 'a' }));
     expect(pts({ hand: 'drawn', seed: 'a' })).not.toEqual(pts({ hand: 'drawn', seed: 'b' }));
     // clean: each half is its three sides' ends, exact
-    expect(pts({ hand: 'clean' })[0]).toHaveLength(6);
+    expect(pts({ hand: 'clean', ring: false })[0]).toHaveLength(6);
   });
 
   it('fills both halves of a point along the same wobbled spine', () => {
@@ -238,6 +265,7 @@ describe('the compass invalidation key', () => {
       { anchor: 'top-left' },
       { inset: 0 },
       { backing: false },
+      { ring: false },
       { face: 'marker' },
       { hand: 'drawn' },
       { seed: 'c2' },
