@@ -18,3 +18,9 @@ preset-docs = { version = "0.1", features = ["rhizome"] }
 
 # Not a member of the root workspace.
 [workspace]
+
+# The model crate builds against the unreleased rhizome in the packages repo (the app's root
+# Cargo.toml patches the same); this crate has its own workspace, so it patches them too.
+[patch.crates-io]
+rhizome-core = { path = "../../../../packages/rhizome/crates/rhizome-core" }
+rhizome-pom = { path = "../../../../packages/rhizome/crates/rhizome-pom" }

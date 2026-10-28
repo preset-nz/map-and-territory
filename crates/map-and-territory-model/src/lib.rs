@@ -3,12 +3,13 @@
 //!
 //! Headless on purpose: this crate never depends on Tauri, so a CLI or Python module can
 //! link it. The app's document host (`src-tauri/src/document.rs`) carries it to the
-//! webview. `Context = ()` and `Projection = ()`: M&T has no sidecar, and nothing in Rust
-//! draws.
+//! webview. `Context = ()`: M&T has no sidecar. Nothing in Rust draws; `Projection` is
+//! [`Derived`], the values the window reads from the mirror instead of working out again.
 
 mod booklet;
 mod commands;
 mod compass;
+mod derived;
 mod freeform;
 mod kinds;
 pub mod locations;
@@ -19,10 +20,14 @@ mod settings_2025;
 pub mod texture;
 mod voxels;
 
+pub use derived::Derived;
+
 #[cfg(test)]
 mod booklet_tests;
 #[cfg(test)]
 mod compass_tests;
+#[cfg(test)]
+mod derived_tests;
 #[cfg(test)]
 mod freeform_tests;
 #[cfg(test)]
@@ -42,7 +47,7 @@ mod tests;
 #[cfg(test)]
 mod texture_tests;
 
-use rhizome_core::{Edit, Value};
+use rhizome_core::{Changeset, Edit, Tree, Value};
 use rhizome_pom::{Commands, Kinds, ObjectModel};
 
 /// The extension of a campaign file.
@@ -55,7 +60,7 @@ pub struct MapAndTerritory;
 impl ObjectModel for MapAndTerritory {
     const NAME: &'static str = "Map & Territory";
     const EXTENSION: &'static str = EXTENSION;
-    type Projection = ();
+    type Projection = Derived;
     type Context = ();
 
     fn kinds(k: &mut Kinds, _: &()) {
@@ -68,6 +73,14 @@ impl ObjectModel for MapAndTerritory {
         let campaign = tx.add("/campaign", "campaign", "campaign")?;
         tx.set_value(campaign, "name", Value::Text("Untitled Campaign".into()))?;
         palette::seed(tx, campaign)
+    }
+
+    fn project(tree: &Tree, into: &mut Derived, _: Option<&Changeset>) {
+        *into = Derived::of(tree);
+    }
+
+    fn mirrored(derived: &Derived) -> Option<serde_json::Value> {
+        serde_json::to_value(derived).ok()
     }
 
     fn commands(c: &mut Commands<Self>) {

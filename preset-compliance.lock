@@ -19,11 +19,11 @@ sha256 = "bef9ce83ac110738b8639ebbb8f3030f03a5e66a4f64737c682a9de79f5e8587"
 [[inputs]]
 path = "docs/gen/Cargo.lock"
 ecosystem = "cargo"
-sha256 = "ee72cda74e7a14ca5c1a8c3f4abb56261246f4aac00d49a2e775f54636eda512"
+sha256 = "9c5198bbd66f0bde26cec16154c65e407f051c2cfb6c3215062cf8af6e263ba2"
 
 [[inputs]]
 path = "docs/gen/Cargo.toml"
-sha256 = "6105ea2aa7b5bbc3ce9dfe2dc851d915c8a09c340fbca324be0046733a1e75ce"
+sha256 = "6221600602541754de809962b17d7281275b08f1c28b4757c07664d8cfe5df98"
 
 [[inputs]]
 path = "pnpm-lock.yaml"
@@ -2094,23 +2094,7 @@ scope = "shipped"
 ecosystem = "cargo"
 name = "rhizome-core"
 version = "0.1.7"
-source = "registry"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "cargo"
-name = "rhizome-core"
-version = "0.1.7"
 source = "path"
-declared = "MIT"
-scope = "shipped"
-
-[[packages]]
-ecosystem = "cargo"
-name = "rhizome-pom"
-version = "0.1.7"
-source = "registry"
 declared = "MIT"
 scope = "shipped"
 

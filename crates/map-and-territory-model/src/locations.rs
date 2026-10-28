@@ -5,8 +5,8 @@
 //! it is never stored and reordering renumbers.
 //!
 //! The key ([`key`]) lists a map's places by number for a print ([`Key::printable`] leaves
-//! out the hidden). The frame projection numbers them the same way for the window
-//! (`locationNumbers`, `frame.ts`): keep the two in step.
+//! out the hidden). [`places`] numbers them, once: the key reads it, and so does the
+//! `Derived` projection the window gets (`derived.rs`).
 //!
 //! Commands: `locations.add` puts a location on a hex; `locations.hex` grows a location into
 //! a hex or shrinks it out of one, so a place can cover an area; `locations.move` shifts all
@@ -66,42 +66,71 @@ fn text(n: &Node<'_>, key: &str) -> String {
     }
 }
 
-/// The key of the map at `map`, or None when there is no map there. Numbers run from the top
-/// of the stack down, across the numbered locations layers, each layer's places in its
-/// `locations` order; places in a layer that isn't numbered follow, unnumbered.
-pub fn key(d: &Doc, map: &str) -> Option<Key> {
-    let map = d.tree().at(map).filter(|n| n.type_name() == "map")?;
-    let layers: Vec<Node<'_>> = map
+/// One place with the layer it is in and its number.
+pub struct Placed<'a> {
+    pub layer: Node<'a>,
+    pub place: Node<'a>,
+    /// None in a layer that isn't numbered.
+    pub number: Option<u32>,
+}
+
+/// A map's places in key order. Numbers run from the top of the stack down, across the
+/// numbered locations layers, each layer's places in its `locations` order; places in a layer
+/// that isn't numbered follow, unnumbered. The one place this rule is written.
+pub fn places<'a>(map: &Node<'a>) -> Vec<Placed<'a>> {
+    let layers: Vec<Node<'a>> = map
         .order("layers")
         .into_iter()
         .rev()
         .filter(|n| n.type_name() == "locations")
         .collect();
     let numbered = |l: &Node<'_>| !matches!(l.value("numbered"), Some(Value::Bool(false)));
-    let off =
-        |n: &Node<'_>, key: &str, on: bool| matches!(n.value(key), Some(Value::Bool(b)) if b != on);
     let mut next = 1;
-    let mut entries = Vec::new();
+    let mut out = Vec::new();
     for pass in [true, false] {
         for layer in layers.iter().filter(|l| numbered(l) == pass) {
             for place in layer.order(LOCATIONS) {
-                let category = text(&place, "category");
-                entries.push(KeyEntry {
+                out.push(Placed {
+                    layer: *layer,
+                    place,
                     number: pass.then(|| {
                         next += 1;
                         next - 1
                     }),
+                });
+            }
+        }
+    }
+    out
+}
+
+/// The key of the map at `map`, or None when there is no map there.
+pub fn key(d: &Doc, map: &str) -> Option<Key> {
+    let map = d.tree().at(map).filter(|n| n.type_name() == "map")?;
+    let off =
+        |n: &Node<'_>, key: &str, on: bool| matches!(n.value(key), Some(Value::Bool(b)) if b != on);
+    let entries = places(&map)
+        .into_iter()
+        .map(
+            |Placed {
+                 layer,
+                 place,
+                 number,
+             }| {
+                let category = text(&place, "category");
+                KeyEntry {
+                    number,
                     name: text(&place, "name"),
                     category: LOCATION_CATEGORY_LABELS
                         .iter()
                         .find(|(id, _)| *id == category)
                         .map_or(category.clone(), |(_, label)| (*label).to_string()),
                     description: text(&place, "description"),
-                    hidden: off(&place, "hidden", false) || off(layer, "visible", true),
-                });
-            }
-        }
-    }
+                    hidden: off(&place, "hidden", false) || off(&layer, "visible", true),
+                }
+            },
+        )
+        .collect();
     Some(Key {
         map: text(&map, "name"),
         entries,

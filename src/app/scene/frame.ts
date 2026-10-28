@@ -27,7 +27,22 @@ export interface FrameRow {
 export interface RowSource {
   node(id: string): FrameRow | undefined;
   nodeAt(path: string): FrameRow | undefined;
+  /** What Rust derived from the same tree (`Derived`, `derived.rs`), once the mirror has it. */
+  readonly projection?: unknown;
 }
+
+/**
+ * What the frame reads of the mirrored `Derived`, by node id: each location's number. The rule
+ * is Rust's (`locations::places`); the frame only looks it up.
+ */
+interface FrameProjection {
+  numbers?: Record<string, number>;
+}
+
+const projectionOf = (rows: RowSource): FrameProjection => {
+  const p = rows.projection;
+  return typeof p === 'object' && p !== null ? (p as FrameProjection) : {};
+};
 
 /** The part of the registry schema the frame reads: which values are colours. */
 export interface FrameSchema {
@@ -317,8 +332,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
 
   /**
    * A locations layer's adapter state (epic 28): its values plus each place in its `locations`
-   * order, numbered from `first` when the layer is numbered, with the map's face, the grid's ink
-   * and the paper's colour. Two states: `areas` (the tints and edges, at the layer's place in
+   * order, each with its number from the projection (Rust's; none in a layer that isn't
+   * numbered), with the map's face, the grid's ink and the paper's colour. Two states: `areas` (the tints and edges, at the layer's place in
    * the stack) and `marks` (markers and names, drawn after the grid so no line crosses a name).
    * Kept while the row, its locations and those are unchanged.
    */
@@ -331,14 +346,14 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     rows: RowSource,
     row: FrameRow,
     map: FrameRow,
-    first: number,
+    numbers: Record<string, number> | undefined,
     ink: string,
     paper: string,
   ): LocationsPasses => {
     const children = locationRows(rows, row);
     const base = stateOf(row);
     const face = sheetStyle(base.face, map.values?.face, 'condensed');
-    const key = JSON.stringify([first, ink, paper, face]);
+    const key = JSON.stringify([children.map((c) => numbers?.[c.id] ?? null), ink, paper, face]);
     const known = locationsStates.get(row);
     if (
       known &&
@@ -348,9 +363,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     ) {
       return known.state;
     }
-    const numbered = base.numbered !== false;
     const layerMarker = (base.marker as LocationMarker | undefined) ?? 'number';
-    const locations: PlacedLocation[] = children.map((c, i) => {
+    const locations: PlacedLocation[] = children.map((c) => {
       const v = c.values ?? {};
       const own = v.marker as string | undefined;
       return {
@@ -358,7 +372,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         name: typeof v.name === 'string' ? v.name : '',
         note: typeof v.note === 'string' ? v.note : '',
         hexes: Array.isArray(v.hexes) ? (v.hexes as { q: number; r: number }[]) : [],
-        number: numbered ? first + i : null,
+        number: numbers?.[c.id] ?? null,
         marker: own === 'number' || own === 'dot' || own === 'none' ? own : layerMarker,
         hidden: v.hidden === true,
         size: typeof v.size === 'number' ? v.size : 1,
@@ -387,14 +401,14 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       const paperColour =
         (paperRow ? (stateOf(paperRow).color as string | undefined) : undefined) ??
         DEFAULT_PAPER.color;
-      const numbers = locationNumbers(rows, order);
+      const derived = projectionOf(rows);
       // each locations layer's markers and names, drawn after the grid (epic 28)
       const marks: SceneLayer[] = [];
       for (const id of order) {
         const row = rows.node(id);
         if (!row) continue;
         if (row.type === 'locations') {
-          const passes = locationsState(rows, row, map, numbers.get(id) ?? 1, ink, paperColour);
+          const passes = locationsState(rows, row, map, derived.numbers, ink, paperColour);
           const visible = passes.areas.visible !== false;
           layers.push({ id, type: row.type, visible, state: passes.areas });
           marks.push({ id: `${id}${MARKS}`, type: row.type, visible, state: passes.marks });
@@ -474,22 +488,6 @@ function locationRows(rows: RowSource, layer: FrameRow): FrameRow[] {
   return (layer.orders?.locations ?? [])
     .map((id) => rows.node(id))
     .filter((c): c is FrameRow => c !== undefined);
-}
-
-/**
- * Where each locations layer's numbering starts (epic 28): the map's numbered locations layers
- * count on from each other, top of the stack first, so the key reads down the scene panel.
- */
-export function locationNumbers(rows: RowSource, layerIds: readonly string[]): Map<string, number> {
-  const out = new Map<string, number>();
-  let next = 1;
-  for (const id of [...layerIds].reverse()) {
-    const row = rows.node(id);
-    if (row?.type !== 'locations') continue;
-    out.set(id, next);
-    if (row.values?.numbered !== false) next += row.orders?.locations?.length ?? 0;
-  }
-  return out;
 }
 
 interface TerrainEntry {

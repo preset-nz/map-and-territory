@@ -2,7 +2,6 @@ import {
   createFrameBuilder,
   type FrameRow,
   type FrameSchema,
-  locationNumbers,
   MARKS,
   type RowSource,
 } from '@/app/scene/frame';
@@ -19,9 +18,15 @@ const schema: FrameSchema = {
 
 type Row = FrameRow & { path: string; parent?: string };
 
-function source(rows: Record<string, Row>): RowSource & { node(id: string): Row | undefined } {
+/** What Rust's `Derived` says for `doc()`: the upper layer `b` numbers first. */
+const NUMBERS: Record<string, number> = { b1: 1, a1: 2, a2: 3 };
+
+function source(
+  rows: Record<string, Row>,
+  projection: unknown = { numbers: NUMBERS },
+): RowSource & { node(id: string): Row | undefined } {
   const byPath = new Map(Object.values(rows).map((r) => [r.path, r]));
-  return { node: (id) => rows[id], nodeAt: (p) => byPath.get(p) };
+  return { node: (id) => rows[id], nodeAt: (p) => byPath.get(p), projection };
 }
 
 const loc = (id: string, parent: string, name: string, extra: Record<string, unknown> = {}) => ({
@@ -83,14 +88,33 @@ const placed = (rows: Record<string, Row>, layer: string): PlacedLocation[] => {
 };
 
 describe('location numbers', () => {
-  it('count down the stack, top layer first, skipping an unnumbered layer', () => {
-    expect([...locationNumbers(source(doc()), ['p', 'a', 'b', 'g'])]).toEqual([
-      ['b', 1],
-      ['a', 2],
-    ]);
+  it('come from the projection, not from the rows', () => {
     const rows = doc();
-    rows.b = { ...rows.b, values: { ...rows.b.values, numbered: false } };
-    expect(locationNumbers(source(rows), ['p', 'a', 'b', 'g']).get('a')).toBe(1);
+    const numbers = (projection: unknown) =>
+      createFrameBuilder(schema)
+        .build(source(rows, projection), 'm', { w: 800, h: 600 }, 1)
+        .layers.filter((l) => l.type === 'locations' && !l.id.endsWith(MARKS))
+        .flatMap((l) => (l.state as { locations: PlacedLocation[] }).locations)
+        .map((p) => [p.id, p.number]);
+    expect(numbers({ numbers: { a1: 7, a2: 8, b1: 9 } })).toEqual([
+      ['a1', 7],
+      ['a2', 8],
+      ['b1', 9],
+    ]);
+    // before the mirror has a projection there are no numbers to show
+    expect(numbers(null).map(([, n]) => n)).toEqual([null, null, null]);
+  });
+
+  it('remake a layer’s state when the projection renumbers it', () => {
+    const rows = doc();
+    const builder = createFrameBuilder(schema);
+    const state = (projection: unknown) =>
+      builder
+        .build(source(rows, projection), 'm', { w: 800, h: 600 }, 1)
+        .layers.find((l) => l.id === 'a')?.state;
+    const first = state({ numbers: NUMBERS });
+    expect(state({ numbers: { ...NUMBERS } })).toBe(first);
+    expect(state({ numbers: { ...NUMBERS, a1: 5 } })).not.toBe(first);
   });
 
   it('reach the adapter with each place’s name, hex, marker and hidden', () => {
@@ -106,7 +130,6 @@ describe('location numbers', () => {
       marker: 'dot',
       note: 'deep in spring',
     });
-    expect(placed(doc({ numbered: false }), 'a')[0].number).toBeNull();
   });
 
   it('prints in the grid’s ink on the paper’s colour, in the map’s face', () => {
