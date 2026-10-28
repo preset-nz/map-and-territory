@@ -1,6 +1,6 @@
 import { act, fireEvent, render, renderHook } from '@testing-library/react';
 import { createElement } from 'react';
-import { AppFrame, useInspectorPanel, useScenePanel } from '@/app/frame';
+import { AppFrame, useFooterHeight, useInspectorPanel, useScenePanel } from '@/app/frame';
 
 describe('the app frame', () => {
   beforeEach(() => localStorage.clear());
@@ -77,5 +77,36 @@ describe('the app frame', () => {
     const second = renderHook(() => useScenePanel());
     expect(second.result.current.open).toBe(false);
     expect(second.result.current.width).toBe(320);
+  });
+
+  it('keeps the palette strip’s height per viewer, never below its least', () => {
+    const first = renderHook(() => useFooterHeight('palette-strip'));
+    expect(first.result.current.height).toBe(180);
+    act(() => first.result.current.setHeight(260.4));
+    expect(first.result.current.height).toBe(260);
+    act(() => first.result.current.setHeight(10));
+    expect(first.result.current.height).toBe(72);
+    act(() => first.result.current.setHeight(300));
+    const second = renderHook(() => useFooterHeight('palette-strip'));
+    expect(second.result.current.height).toBe(300);
+  });
+
+  it('drags the footer taller by its top edge', () => {
+    const { result } = renderHook(() => useScenePanel());
+    const inspector = renderHook(() => useInspectorPanel());
+    const view = render(
+      createElement(AppFrame, {
+        panel: result.current,
+        inspectorPanel: inspector.result.current,
+        inspector: createElement('p', null, 'the inspector'),
+        inspectorFooter: createElement('p', null, 'the strip'),
+        scene: createElement('p', null, 'the scene'),
+        canvas: createElement('canvas'),
+      }),
+    );
+    const edge = view.getByLabelText('Resize Palette');
+    fireEvent.keyDown(edge, { key: 'ArrowUp' });
+    expect(edge.getAttribute('aria-valuenow')).toBe('196');
+    expect(view.getByText('the strip')).toBeTruthy();
   });
 });

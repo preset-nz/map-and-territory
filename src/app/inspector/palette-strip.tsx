@@ -37,7 +37,7 @@ export function PaletteStrip() {
   const name = mapPaletteName(mirror, mapId) ?? 'Default';
   const current = pickedSwatch(swatches, picked);
   return (
-    <section aria-label="Palette" className="shrink-0 border-t border-border px-3 py-2">
+    <section aria-label="Palette" className="px-3 py-2">
       <h2 className="mb-1.5 truncate text-xs text-muted-foreground">{name}</h2>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-1">
         {swatches.map((s) => (

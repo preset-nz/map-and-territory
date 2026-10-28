@@ -38,6 +38,77 @@ export function useSidePanel(name: string) {
   );
 }
 
+const DEFAULT_FOOTER = 180;
+const MIN_FOOTER = 72;
+
+/** The inspector footer's height (the palette strip), per viewer, dragged by its top edge. */
+export function useFooterHeight(name: string) {
+  const key = `map-and-territory.${name}`;
+  const [height, setHeight] = useState(() => {
+    try {
+      const v = Number(localStorage.getItem(key));
+      return Number.isFinite(v) && v >= MIN_FOOTER ? v : DEFAULT_FOOTER;
+    } catch {
+      return DEFAULT_FOOTER;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, String(height));
+    } catch {
+      // per-viewer convenience only
+    }
+  }, [key, height]);
+  return { height, setHeight: (h: number) => setHeight(Math.max(MIN_FOOTER, Math.round(h))) };
+}
+
+/**
+ * Under the inspector, outside its scroll: a footer whose top edge drags its height, so the
+ * palette strip can grow (Georg, 2026-10-28). Arrow keys on the edge step it by 16 px.
+ */
+function InspectorFooter({ children }: { children: ReactNode }) {
+  const { height, setHeight } = useFooterHeight('palette-strip');
+  const startDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    const startY = e.clientY;
+    const start = height;
+    const move = (ev: PointerEvent) => setHeight(start + startY - ev.clientY);
+    const end = () => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', end);
+      el.removeEventListener('pointercancel', end);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    setHeight(height + (e.key === 'ArrowUp' ? 16 : -16));
+  };
+  return (
+    <div
+      className="relative flex shrink-0 flex-col border-sidebar-border border-t"
+      style={{ height }}
+    >
+      {/* biome-ignore lint/a11y/useSemanticElements: a focusable, keyboard-operable splitter (WAI-ARIA window splitter); <hr> is not focusable */}
+      <div
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize Palette"
+        aria-valuenow={height}
+        tabIndex={0}
+        onPointerDown={startDrag}
+        onKeyDown={onKey}
+        className="absolute inset-x-0 -top-0.5 z-10 h-1 cursor-row-resize touch-none hover:bg-primary/30 focus-visible:bg-primary/40 focus-visible:outline-none"
+      />
+      <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+    </div>
+  );
+}
+
 export const useScenePanel = () => useSidePanel('scene-panel');
 export const useInspectorPanel = () => useSidePanel('inspector-panel');
 
@@ -101,7 +172,7 @@ export function AppFrame({
           onWidthChange={inspectorPanel.setWidth}
         >
           <SidePanelContent>{inspector}</SidePanelContent>
-          {inspectorFooter}
+          {inspectorFooter && <InspectorFooter>{inspectorFooter}</InspectorFooter>}
         </SidePanel>
       </div>
       <StatusBar>{status}</StatusBar>

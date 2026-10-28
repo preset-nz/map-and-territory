@@ -47,6 +47,8 @@ function useSelectNewMapsAndLayers() {
 export default function App() {
   const panel = useScenePanel();
   const inspectorPanel = useInspectorPanel();
+  // the strip shows the active map's palette, so there is no footer without a map
+  const activeMap = useActiveMapId();
 
   // The command table arrives from Rust; app-kit forwards the ones Rust doesn't handle here.
   // It also follows the history and routes Cmd+Z inside text fields.
@@ -98,7 +100,7 @@ export default function App() {
       inspectorPanel={inspectorPanel}
       inspectorShortcut={shortcut('view.toggle-right-panel')}
       inspector={<Inspector />}
-      inspectorFooter={<PaletteStrip />}
+      inspectorFooter={activeMap ? <PaletteStrip /> : null}
       scene={<ScenePanel />}
       toolbar={<CommandToolbar commands={commands} layout={TOOLBAR} run={run} />}
       canvas={<CanvasHost onPointer={onPointer} />}
