@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { orientedAspect } from '@/app/scene/frame';
 import { computePaperRect, paperSize, paperView } from '@/render/geometry';
 
 describe('computePaperRect', () => {
@@ -58,5 +59,17 @@ describe('paperView', () => {
 
   it('has no fit when the canvas has no room for the paper', () => {
     expect(paperView({ w: 10, h: 10 }, '4:3').fit).toBe(0);
+  });
+});
+
+describe('the paper’s orientation (epic 32)', () => {
+  it('stands a paper up by swapping its sides, and leaves a square alone', () => {
+    expect(orientedAspect('16:9', 'portrait')).toBe('9:16');
+    expect(orientedAspect('16:10', 'landscape')).toBe('16:10');
+    expect(orientedAspect('square', 'portrait')).toBe('square');
+    expect(orientedAspect('nonsense', 'portrait')).toBe('10:16');
+    const up = paperSize('9:16');
+    const down = paperSize('16:9');
+    expect([up.w, up.h]).toEqual([down.h, down.w]);
   });
 });

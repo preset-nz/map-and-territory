@@ -12,7 +12,7 @@ pub const FURNITURE: &str = "furniture";
 /// The scene panel's map order, on the `/maps` category.
 pub const MAPS: &str = "maps";
 
-pub const ASPECTS: &[&str] = &["square", "4:3", "16:10"];
+pub const ASPECTS: &[&str] = &["square", "4:3", "16:10", "16:9"];
 pub const ORIENTATIONS: &[&str] = &["pointy", "flat"];
 pub const PAGE_SIZES: &[&str] = &["a5", "a4"];
 pub const PAGE_ORIENTATIONS: &[&str] = &["portrait", "landscape"];
@@ -349,7 +349,10 @@ pub fn declare(k: &mut Kinds) {
             .in_categories(&["maps"])
             .choice("aspect", ASPECTS, "16:10")
             .described("Aspect", "The shape of the sheet, as width to height.")
-            .choice_labels(&[("square", "Square"), ("4:3", "4:3"), ("16:10", "16:10")])
+            .choice_labels(&[("square", "Square"), ("4:3", "4:3"), ("16:10", "16:10"), ("16:9", "16:9")])
+            .choice("orientation", &["landscape", "portrait"], "landscape")
+            .described("Orientation", "Lying down, wider than tall, or standing up, taller than wide. A square has none.")
+            .choice_labels(&[("landscape", "Landscape"), ("portrait", "Portrait")])
             .colour("color", WHITE)
             .described("Colour", "The colour of the paper.")
             .choice("textureBlend", &["normal", "multiply"], "multiply")

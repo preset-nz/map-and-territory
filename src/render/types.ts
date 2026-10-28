@@ -7,7 +7,8 @@ export interface Camera {
 }
 
 export interface PaperSpec {
-  aspect: 'square' | '4:3' | '16:10';
+  /** `square` or `W:H`, orientation applied (`PaperAspect`). */
+  aspect: string;
   color: string;
 }
 

@@ -420,7 +420,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         }
         if (row.type === 'paper') {
           paper = {
-            aspect: (state.aspect as PaperSpec['aspect']) ?? DEFAULT_PAPER.aspect,
+            aspect: orientedAspect(state.aspect, state.orientation),
             color: (state.color as string) ?? DEFAULT_PAPER.color,
           };
         }
@@ -438,6 +438,18 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       return { size, pixelRatio, paper, camera, layers, palette };
     },
   };
+}
+
+/**
+ * The paper's aspect with its orientation applied: `16:10` standing up is `10:16`. A square
+ * has none; an unknown aspect is the default.
+ */
+export function orientedAspect(aspect: unknown, orientation: unknown): string {
+  const a =
+    typeof aspect === 'string' && /^(square|\d+:\d+)$/.test(aspect) ? aspect : DEFAULT_PAPER.aspect;
+  if (orientation !== 'portrait' || a === 'square') return a;
+  const [w, h] = a.split(':');
+  return `${h}:${w}`;
 }
 
 /** The suffix on the id of a locations layer's second scene layer, its markers and names. */

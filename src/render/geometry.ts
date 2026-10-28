@@ -1,4 +1,8 @@
-export type PaperAspect = 'square' | '4:3' | '16:10';
+/**
+ * The paper's shape: `square`, or width to height as `W:H` (`16:10`, and `10:16` for the same
+ * paper standing up). The frame projection turns the paper's aspect and orientation into it.
+ */
+export type PaperAspect = string;
 
 export interface PaperRect {
   x: number;
@@ -21,15 +25,9 @@ export function resolveAspectRatio(aspect: PaperAspect): {
   aw: number;
   ah: number;
 } {
-  switch (aspect) {
-    case 'square':
-      return { aw: 1, ah: 1 };
-    case '4:3':
-      return { aw: 4, ah: 3 };
-    case '16:10':
-    default:
-      return { aw: 16, ah: 10 };
-  }
+  if (aspect === 'square') return { aw: 1, ah: 1 };
+  const [aw, ah] = aspect.split(':').map(Number);
+  return aw > 0 && ah > 0 ? { aw, ah } : { aw: 16, ah: 10 };
 }
 
 /**
