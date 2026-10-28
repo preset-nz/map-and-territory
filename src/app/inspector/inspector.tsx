@@ -1,5 +1,6 @@
 // The right panel: a facets panel over the selected node's kind (epic 03). Edits are
-// `value.set` through the channel; a slider or number drag is one gesture, so one undo step.
+// `value.set` through the channel, apart from file fields and the few values a model command
+// owns (`valueCommand`); a slider or number drag is one gesture, so one undo step.
 
 import { useDocument } from '@preset.nz/app-kit';
 import {

@@ -56,3 +56,35 @@ describe('the texture field in the inspector scope', () => {
     });
   });
 });
+
+describe('the compass style in the inspector scope', () => {
+  const compass = [
+    { key: 'style', kind: 'choice', choices: ['mark', 'arrow', 'cross'] },
+    { key: 'labels', kind: 'choice', choices: ['cardinal', 'north-only', 'none'] },
+  ];
+
+  function compassSetup() {
+    const channel = { run: vi.fn(async () => 'nothing') } as unknown as Channel;
+    const mirror = { node: () => ({ path: '/maps/map/compass', values: {} }) } as unknown as Mirror;
+    return { scope: scopeOf('compass', compass, []), ctx: { channel, mirror }, channel };
+  }
+
+  it('runs compass.set-style, so the labels reset in the same step', async () => {
+    const { scope, ctx, channel } = compassSetup();
+    await scope.write?.('style', 'cross', { id: 'k' }, ctx);
+    expect(channel.run).toHaveBeenLastCalledWith('compass.set-style', {
+      at: '/maps/map/compass',
+      style: 'cross',
+    });
+  });
+
+  it('leaves the labels on value.set', async () => {
+    const { scope, ctx, channel } = compassSetup();
+    await scope.write?.('labels', 'none', { id: 'k' }, ctx);
+    expect(channel.run).toHaveBeenLastCalledWith('value.set', {
+      at: '/maps/map/compass',
+      key: 'labels',
+      value: 'none',
+    });
+  });
+});
