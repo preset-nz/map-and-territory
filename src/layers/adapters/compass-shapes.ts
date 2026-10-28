@@ -7,8 +7,6 @@ import type { Pt } from '@/render/hand';
 
 export type CompassStyle = 'mark' | 'arrow' | 'cross';
 
-/** The backing disc's radius. */
-export const BACKING = 1.32;
 /** `arrow`: the base corners' half-width and depth below the centre, and the notch's. */
 export const ARROW = { halfWidth: 0.3, base: 0.75, notch: 0.42 };
 /** `cross`: four points, each this wide at its base. */

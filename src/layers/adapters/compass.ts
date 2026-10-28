@@ -3,7 +3,6 @@
 // map's `furniture`. The shapes are in `compass-shapes.ts`; the frame projection resolves the
 // words (overrides, the set, the style's one way), so the adapter draws what it is given.
 import {
-  BACKING,
   type CompassStyle,
   compassShape,
   markWidth,
@@ -26,7 +25,7 @@ import {
   strokeRing,
 } from '@/render/hand';
 
-// Label measurements, as fractions of `size` (the examples page draws them at 120 px).
+// Label measurements, as fractions of the points' size (the examples page draws them at 120 px).
 /** A letter's size, and a longer word's. */
 export const LETTER_SIZE = 14 / 120;
 export const WORD_SIZE = 11 / 120;
@@ -52,7 +51,10 @@ export interface CompassState {
   labelW?: string;
   /** Degrees clockwise from up. */
   north?: number;
+  /** The disc's diameter, in paper px. */
   size?: number;
+  /** How far the points reach, as a share of the disc's radius. */
+  points?: number;
   anchor?: Anchor;
   inset?: number;
   backing?: boolean;
@@ -75,10 +77,19 @@ export interface CompassState {
 type Ctx = CanvasRenderingContext2D;
 type Measure = Pick<CanvasRenderingContext2D, 'font' | 'measureText'>;
 
-const DEFAULT_SIZE = 120;
+/** At the defaults the points are 120 px across, as on the examples page. */
+const DEFAULT_SIZE = 160;
+const DEFAULT_POINTS = 0.75;
 
-const sizeOf = (s: CompassState) =>
+/** The disc's diameter. */
+const discOf = (s: CompassState) =>
   Number.isFinite(s.size) && (s.size as number) > 0 ? (s.size as number) : DEFAULT_SIZE;
+
+const shareOf = (s: CompassState) =>
+  Number.isFinite(s.points) && (s.points as number) > 0 ? (s.points as number) : DEFAULT_POINTS;
+
+/** The points' diameter: the disc's, times their share. Lines and words scale with it. */
+const sizeOf = (s: CompassState) => discOf(s) * shareOf(s);
 
 const northOf = (s: CompassState) =>
   Number.isFinite(s.north) ? ((s.north as number) / 180) * Math.PI : 0;
@@ -131,13 +142,13 @@ export function labelsOf(ctx: Measure, s: CompassState, c: Pt): Label[] {
 }
 
 /**
- * How far the compass reaches from its centre in any direction: the backing disc, drawn or not,
+ * How far the compass reaches from its centre in any direction: the disc, drawn or not,
  * and every word however north turns it. The disc counts even when off, and the reach doesn't
  * depend on `north`, so neither switching the backing nor turning north moves the compass.
  * `labels` were placed about the origin.
  */
 export function reachOf(s: CompassState, labels: Label[]): number {
-  let reach = (BACKING * sizeOf(s)) / 2 + outlineWidth(sizeOf(s)) / 2;
+  let reach = discOf(s) / 2 + outlineWidth(sizeOf(s)) / 2;
   for (const l of labels) {
     reach = Math.max(reach, Math.hypot(l.x, l.y) + Math.hypot(l.w, l.size) / 2);
   }
@@ -201,14 +212,13 @@ export const CompassAdapter: LayerAdapter<CompassState> = {
     if (state.backing !== false) {
       ctx.fillStyle = state.paper || '#ffffff';
       ctx.beginPath();
-      ctx.arc(c.x, c.y, (BACKING * sizeOf(state)) / 2, 0, 2 * Math.PI);
+      ctx.arc(c.x, c.y, discOf(state) / 2, 0, 2 * Math.PI);
       ctx.fill();
     }
     if (state.ring !== false) {
-      const size = sizeOf(state);
       ctx.strokeStyle = state.ink || '#000000';
       ctx.lineJoin = 'round';
-      strokeRing(ctx, c, (BACKING * size) / 2, hand, `${seed}:ring`, outlineWidth(size));
+      strokeRing(ctx, c, discOf(state) / 2, hand, `${seed}:ring`, outlineWidth(sizeOf(state)));
     }
     drawShape(ctx, state, c, hand, seed);
     ctx.fillStyle = state.ink || '#000000';
@@ -239,7 +249,8 @@ export const CompassAdapter: LayerAdapter<CompassState> = {
       s.labels ?? '',
       s.resolvedLabels ?? [],
       s.north ?? 0,
-      sizeOf(s),
+      discOf(s),
+      shareOf(s),
       s.anchor ?? 'top-right',
       s.inset ?? 24,
       s.backing !== false,
@@ -267,6 +278,7 @@ export const CompassType = {
     labelW: '',
     north: 0,
     size: DEFAULT_SIZE,
+    points: DEFAULT_POINTS,
     anchor: 'top-right',
     inset: 24,
     backing: true,

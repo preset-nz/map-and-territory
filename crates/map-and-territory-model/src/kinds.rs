@@ -704,9 +704,13 @@ pub fn declare(k: &mut Kinds) {
                     .unit("°"),
             )
             .value(
-                ValueSpec::float("size", 16.0..=400.0, 120.0)
-                    .described("Size", "How far the points reach across; the labels sit outside them.")
+                ValueSpec::float("size", 16.0..=400.0, 160.0)
+                    .described("Size", "How wide the compass is: the disc behind it, edge to edge.")
                     .unit("px"),
+            )
+            .value(
+                ValueSpec::float("points", 0.2..=1.2, 0.75)
+                    .described("Points", "How far the points reach within the disc: 1 reaches its edge, more runs past it. The labels sit just outside the points."),
             )
             .choice("anchor", ANCHORS, "top-right")
             .described("Anchor", "Which corner or edge of the paper the compass sits at.")

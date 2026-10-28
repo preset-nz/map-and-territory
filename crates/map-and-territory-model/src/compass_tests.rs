@@ -78,7 +78,8 @@ fn the_compass_has_its_defaults_and_ranges() {
         assert_eq!(value(&d, key), text(""), "{key}");
     }
     assert_eq!(value(&d, "north"), Some(Value::Float(0.0)));
-    assert_eq!(value(&d, "size"), Some(Value::Float(120.0)));
+    assert_eq!(value(&d, "size"), Some(Value::Float(160.0)));
+    assert_eq!(value(&d, "points"), Some(Value::Float(0.75)));
     assert_eq!(value(&d, "anchor"), choice("top-right"));
     assert_eq!(value(&d, "inset"), Some(Value::Float(24.0)));
     assert_eq!(value(&d, "backing"), Some(Value::Bool(true)));
@@ -95,6 +96,8 @@ fn the_compass_has_its_defaults_and_ranges() {
         ("north", json!(180.0)),
         ("size", json!(16.0)),
         ("size", json!(400.0)),
+        ("points", json!(0.2)),
+        ("points", json!(1.2)),
         ("hand", json!("scratched")),
         ("face", json!("marker")),
     ] {
@@ -107,6 +110,7 @@ fn the_compass_has_its_defaults_and_ranges() {
         ("north", json!(181.0)),
         ("size", json!(15.0)),
         ("size", json!(401.0)),
+        ("points", json!(0.1)),
     ] {
         assert!(set(&mut d, key, v.clone()).is_err(), "{key} {v}");
     }

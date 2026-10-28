@@ -7,7 +7,6 @@ import {
   LETTER_SIZE,
   WORD_SIZE,
 } from '@/layers/adapters/compass';
-import { BACKING } from '@/layers/adapters/compass-shapes';
 import type { RenderEnv } from '@/layers/types';
 
 // The mock measures every character as half the font's px size, and records paths in paper
@@ -97,7 +96,9 @@ const base: CompassState = {
   style: 'cross',
   labels: 'cardinal',
   north: 0,
-  size: 120,
+  // a 160 px disc with the points at three quarters: 120 px across, as on the examples page
+  size: 160,
+  points: 0.75,
   anchor: 'top-right',
   inset: 24,
   backing: true,
@@ -150,7 +151,7 @@ describe('the compass adapter', () => {
 
   it('sits top-right, inset from the paper, and stays put when north turns', () => {
     const c = centre(draw({}));
-    const r = (BACKING * 120) / 2;
+    const r = 160 / 2;
     expect(c.x).toBeLessThanOrEqual(1200 - 24 - r);
     expect(c.x).toBeGreaterThan(1200 - 24 - r - 10);
     expect(c.y).toBeGreaterThanOrEqual(24 + r);
@@ -159,6 +160,18 @@ describe('the compass adapter', () => {
     const bl = centre(draw({ anchor: 'bottom-left' }));
     expect(bl.x).toBeCloseTo(1200 - c.x);
     expect(bl.y).toBeCloseTo(750 - c.y);
+  });
+
+  it('sizes the disc by Size and the points within it by Points', () => {
+    const disc = centre(draw({ points: 0.5 }));
+    expect(disc.r).toBeCloseTo(80);
+    // half the disc's radius: the stem reaches 40 above the centre, and N follows it in
+    const n = (s: Partial<CompassState>) => {
+      const ctx = draw({ hand: 'clean', ...s });
+      return centre(ctx).y - (ctx.texts.find((t) => t.text === 'N')?.y ?? 0);
+    };
+    expect(n({ points: 0.5 })).toBeLessThan(n({ points: 0.75 }));
+    expect(n({ points: 0.5 })).toBeGreaterThan(40);
   });
 
   it('draws the backing disc in the paper, clean, and none when off', () => {
@@ -193,7 +206,7 @@ describe('the compass adapter', () => {
 
   it('sizes a letter and a longer word as fractions of the size', () => {
     const font = (word: string) => {
-      const ctx = draw({ size: 240, resolvedLabels: [word, '', '', ''] });
+      const ctx = draw({ size: 320, resolvedLabels: [word, '', '', ''] });
       return ctx.font;
     };
     expect(font('N')).toContain(`${LETTER_SIZE * 240}px`);
@@ -262,6 +275,7 @@ describe('the compass invalidation key', () => {
       { resolvedLabels: ['Throne', 'E', 'S', 'W'] },
       { north: 20 },
       { size: 80 },
+      { points: 0.5 },
       { anchor: 'top-left' },
       { inset: 0 },
       { backing: false },
