@@ -4,6 +4,10 @@
 //! that order, counted across the map's numbered locations layers by the frame projection, so
 //! it is never stored and reordering renumbers.
 //!
+//! The key ([`key`]) lists a map's places by number for an export's second page. The frame
+//! projection numbers them the same way for the window (`locationNumbers`, `frame.ts`): keep
+//! the two in step.
+//!
 //! Commands: `locations.add` puts a location on a hex; `locations.hex` grows a location into
 //! a hex or shrinks it out of one, so a place can cover an area. Renaming, editing, moving and
 //! deleting are the generic `value.set`, `node.rename` and `edit.delete`.
@@ -14,6 +18,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use super::commands::next_name;
+use super::kinds::LOCATION_CATEGORY_LABELS;
 use super::MapAndTerritory;
 
 type Doc = Document<MapAndTerritory>;
@@ -22,6 +27,73 @@ type Doc = Document<MapAndTerritory>;
 pub const LOCATIONS: &str = "locations";
 /// The base of a location's auto name ("Location 01").
 pub const LOCATION_BASE: &str = "Location";
+
+/// One place in a map's key.
+#[derive(Debug, Clone, PartialEq)]
+pub struct KeyEntry {
+    /// None in a layer that isn't numbered.
+    pub number: Option<u32>,
+    pub name: String,
+    /// The category's name ("Shrine").
+    pub category: String,
+    pub description: String,
+    pub hidden: bool,
+}
+
+/// A map's key: every place, numbered layers first in their numbering, then the rest.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Key {
+    /// The map's name, for the page's heading.
+    pub map: String,
+    pub entries: Vec<KeyEntry>,
+}
+
+fn text(n: &Node<'_>, key: &str) -> String {
+    match n.value(key) {
+        Some(Value::Text(t) | Value::Choice(t)) => t,
+        _ => String::new(),
+    }
+}
+
+/// The key of the map at `map`, or None when there is no map there. Numbers run from the top
+/// of the stack down, across the numbered locations layers, each layer's places in its
+/// `locations` order; places in a layer that isn't numbered follow, unnumbered.
+pub fn key(d: &Doc, map: &str) -> Option<Key> {
+    let map = d.tree().at(map).filter(|n| n.type_name() == "map")?;
+    let layers: Vec<Node<'_>> = map
+        .order("layers")
+        .into_iter()
+        .rev()
+        .filter(|n| n.type_name() == "locations")
+        .collect();
+    let numbered = |l: &Node<'_>| !matches!(l.value("numbered"), Some(Value::Bool(false)));
+    let mut next = 1;
+    let mut entries = Vec::new();
+    for pass in [true, false] {
+        for layer in layers.iter().filter(|l| numbered(l) == pass) {
+            for place in layer.order(LOCATIONS) {
+                let category = text(&place, "category");
+                entries.push(KeyEntry {
+                    number: pass.then(|| {
+                        next += 1;
+                        next - 1
+                    }),
+                    name: text(&place, "name"),
+                    category: LOCATION_CATEGORY_LABELS
+                        .iter()
+                        .find(|(id, _)| *id == category)
+                        .map_or(category.clone(), |(_, label)| (*label).to_string()),
+                    description: text(&place, "description"),
+                    hidden: matches!(place.value("hidden"), Some(Value::Bool(true))),
+                });
+            }
+        }
+    }
+    Some(Key {
+        map: text(&map, "name"),
+        entries,
+    })
+}
 
 #[derive(Deserialize)]
 struct AddArgs {

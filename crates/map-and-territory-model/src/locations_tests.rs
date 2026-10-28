@@ -4,7 +4,7 @@ use rhizome_core::{IdSource, Value};
 use rhizome_pom::{Document, MemoryStore};
 use serde_json::json;
 
-use super::locations::LOCATIONS;
+use super::locations::{key, KeyEntry, LOCATIONS};
 use super::MapAndTerritory;
 
 type Doc = Document<MapAndTerritory>;
@@ -183,4 +183,94 @@ fn a_location_keeps_its_last_hex() {
         .is_enabled("locations.hex", &json!({ "at": LAYER, "q": 0, "r": 0 }))
         .unwrap());
     assert_eq!(hexes(&d, &at), json!([{ "q": 2, "r": 3 }]));
+}
+
+fn place(d: &mut Doc, layer: &str, name: &str, values: &[(&str, serde_json::Value)]) {
+    d.run(
+        "locations.add",
+        &json!({ "at": layer, "q": 0, "r": 0, "name": name }),
+    )
+    .unwrap();
+    let at = d
+        .tree()
+        .at(layer)
+        .unwrap()
+        .order(LOCATIONS)
+        .last()
+        .unwrap()
+        .path()
+        .to_string();
+    for (k, v) in values {
+        d.run("value.set", &json!({ "at": at, "key": k, "value": v }))
+            .unwrap();
+    }
+}
+
+#[test]
+fn the_key_numbers_from_the_top_layer_and_lists_the_unnumbered_last() {
+    let mut d = doc();
+    // a second and a third layer, each added above the first
+    d.run("node.add", &json!({ "parent": MAP, "type": "locations" }))
+        .unwrap();
+    d.run("node.add", &json!({ "parent": MAP, "type": "locations" }))
+        .unwrap();
+    let layers: Vec<String> = d
+        .tree()
+        .at(MAP)
+        .unwrap()
+        .order("layers")
+        .iter()
+        .filter(|n| n.type_name() == "locations")
+        .map(|n| n.path().to_string())
+        .collect();
+    let [low, mid, top] = &layers[..] else {
+        panic!("{layers:?}")
+    };
+    place(
+        &mut d,
+        low,
+        "Reedwall Keep",
+        &[("description", json!("Held by the Vane."))],
+    );
+    place(
+        &mut d,
+        low,
+        "Sunken Chapel",
+        &[("hidden", json!(true)), ("category", json!("shrine"))],
+    );
+    place(&mut d, top, "Gallows Ford", &[]);
+    place(&mut d, mid, "Old Road", &[]);
+    d.run(
+        "value.set",
+        &json!({ "at": mid, "key": "numbered", "value": false }),
+    )
+    .unwrap();
+
+    let k = key(&d, MAP).unwrap();
+    let rows: Vec<(Option<u32>, &str)> = k
+        .entries
+        .iter()
+        .map(|e| (e.number, e.name.as_str()))
+        .collect();
+    assert_eq!(
+        rows,
+        [
+            (Some(1), "Gallows Ford"),
+            (Some(2), "Reedwall Keep"),
+            (Some(3), "Sunken Chapel"),
+            (None, "Old Road"),
+        ]
+    );
+    assert_eq!(
+        k.entries[2],
+        KeyEntry {
+            number: Some(3),
+            name: "Sunken Chapel".into(),
+            category: "Shrine".into(),
+            description: String::new(),
+            hidden: true,
+        }
+    );
+    assert_eq!(k.entries[1].description, "Held by the Vane.");
+    assert!(key(&d, LAYER).is_none());
 }

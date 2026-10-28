@@ -88,6 +88,17 @@ pub const LOCATION_CATEGORIES: &[&str] = &[
     "landmark",
     "other",
 ];
+/// Each location category's name, for the inspector and the key.
+pub const LOCATION_CATEGORY_LABELS: &[(&str, &str)] = &[
+    ("settlement", "Settlement"),
+    ("stronghold", "Stronghold"),
+    ("dungeon", "Dungeon"),
+    ("ruin", "Ruin"),
+    ("lair", "Lair"),
+    ("shrine", "Shrine"),
+    ("landmark", "Landmark"),
+    ("other", "Other"),
+];
 
 pub const CARTOUCHE: LayerKind = LayerKind {
     id: "cartouche",
@@ -810,16 +821,7 @@ pub fn declare(k: &mut Kinds) {
             )
             .choice("category", LOCATION_CATEGORIES, "landmark")
             .described("Category", "What kind of place it is.")
-            .choice_labels(&[
-                ("settlement", "Settlement"),
-                ("stronghold", "Stronghold"),
-                ("dungeon", "Dungeon"),
-                ("ruin", "Ruin"),
-                ("lair", "Lair"),
-                ("shrine", "Shrine"),
-                ("landmark", "Landmark"),
-                ("other", "Other"),
-            ])
+            .choice_labels(LOCATION_CATEGORY_LABELS)
             .shaped(
                 "hexes",
                 Shape::list(Shape::record([("q", Shape::Int), ("r", Shape::Int)])),

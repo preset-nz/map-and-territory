@@ -10,7 +10,7 @@ mod commands;
 mod compass;
 mod freeform;
 mod kinds;
-mod locations;
+pub mod locations;
 mod outline;
 mod palette;
 mod settings_2025;
