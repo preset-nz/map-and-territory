@@ -98,6 +98,23 @@ export function locationAt(frame: SceneFrame, hex: { q: number; r: number }): st
   return null;
 }
 
+/** The selected place's path, which a shift-click grows or shrinks; null with none selected. */
+export function reshapeTarget(
+  rows: Pick<ReturnType<typeof useMirror>, 'node'>,
+  selected: ReturnType<typeof selection.get>,
+): string | null {
+  if (selected.kind !== 'layer') return null;
+  const row = rows.node(selected.id) as { type: string; path?: string } | undefined;
+  return row?.type === 'location' ? (row.path ?? null) : null;
+}
+
+type Hex = { q: number; r: number };
+
+/** A place's hexes moved by the step from `from` to `to`, so an area keeps its shape. */
+export function movedHexes(hexes: readonly Hex[], from: Hex, to: Hex): Hex[] {
+  return hexes.map((h) => ({ q: h.q + to.q - from.q, r: h.r + to.r - from.r }));
+}
+
 /** The path of the node of `type` a command added, from its commit. */
 export function addedPath(ran: unknown, type: string): string | null {
   const changes = (ran as { committed?: { changes?: unknown[] } })?.committed?.changes ?? [];
@@ -148,7 +165,15 @@ export function useToolPointer(): OnPointer {
   const channel = useChannel();
   const stroke = useRef<Stroke | null>(null);
   // a place being dragged: one undo step from pointer-down to pointer-up
-  const drag = useRef<{ token: Promise<number>; at: string; q: number; r: number } | null>(null);
+  // its hexes and the hex it was picked up on, as they were on pointer-down
+  const drag = useRef<{
+    token: Promise<number>;
+    at: string;
+    hexes: Hex[];
+    from: Hex;
+    q: number;
+    r: number;
+  } | null>(null);
 
   // leaving the outline tool drops its preview
   useEffect(
@@ -190,18 +215,37 @@ export function useToolPointer(): OnPointer {
         if (kind === 'move' && moving && (moving.q !== q || moving.r !== r)) {
           // drag a place to another hex: every step is in the one gesture
           drag.current = { ...moving, q, r };
+          const value = movedHexes(moving.hexes, moving.from, { q, r });
           channel
-            .run('value.set', { at: moving.at, key: 'hexes', value: [{ q, r }] })
+            .run('value.set', { at: moving.at, key: 'hexes', value })
             .catch((err) => console.error('[location]', err));
           return;
         }
         if (kind !== 'down' || e.button !== 0) return;
+        if (e.shiftKey) {
+          // shift-click grows the selected place into a hex, or shrinks it out of one
+          const at = reshapeTarget(mirror, selection.get());
+          if (at) {
+            channel
+              .run('locations.hex', { at, q, r })
+              .catch((err) => console.error('[location]', err));
+          }
+          return;
+        }
         // a click on a place selects it, ready to drag; elsewhere it adds one
         const placed = locationAt(frame, hit.hex);
-        const placedAt = placed ? mirror.node(placed)?.path : undefined;
-        if (placed && placedAt) {
+        const row = placed ? mirror.node(placed) : undefined;
+        if (placed && row?.path) {
           selection.selectLayer(placed);
-          drag.current = { token: channel.begin('Move Location'), at: placedAt, q, r };
+          const hexes = (Array.isArray(row.values?.hexes) ? row.values.hexes : []) as Hex[];
+          drag.current = {
+            token: channel.begin('Move Location'),
+            at: row.path,
+            hexes,
+            from: { q, r },
+            q,
+            r,
+          };
           return;
         }
         const mapId = activeMapId(selection.get(), mirror);

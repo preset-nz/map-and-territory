@@ -129,3 +129,58 @@ fn hidden_and_the_words_are_plain_values() {
         )
         .is_err());
 }
+
+fn hexes(d: &Doc, at: &str) -> serde_json::Value {
+    match d.tree().at(at).unwrap().value("hexes") {
+        Some(Value::Shaped(v)) => v,
+        other => panic!("hexes is {other:?}"),
+    }
+}
+
+#[test]
+fn a_location_grows_into_an_area_and_shrinks_back() {
+    let mut d = doc();
+    d.run(
+        "locations.add",
+        &json!({ "at": LAYER, "q": 0, "r": 0, "name": "The Mire" }),
+    )
+    .unwrap();
+    let at = d.tree().at(LAYER).unwrap().order(LOCATIONS)[0]
+        .path()
+        .to_string();
+    d.run("locations.hex", &json!({ "at": at, "q": 1, "r": 0 }))
+        .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Grow Location"));
+    d.run("locations.hex", &json!({ "at": at, "q": 1, "r": -1 }))
+        .unwrap();
+    assert_eq!(
+        hexes(&d, &at),
+        json!([{ "q": 0, "r": 0 }, { "q": 1, "r": 0 }, { "q": 1, "r": -1 }])
+    );
+    d.run("locations.hex", &json!({ "at": at, "q": 0, "r": 0 }))
+        .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Shrink Location"));
+    assert_eq!(
+        hexes(&d, &at),
+        json!([{ "q": 1, "r": 0 }, { "q": 1, "r": -1 }])
+    );
+    d.undo().unwrap();
+    assert_eq!(hexes(&d, &at)[0], json!({ "q": 0, "r": 0 }));
+}
+
+#[test]
+fn a_location_keeps_its_last_hex() {
+    let mut d = doc();
+    d.run("locations.add", &json!({ "at": LAYER, "q": 2, "r": 3 }))
+        .unwrap();
+    let at = d.tree().at(LAYER).unwrap().order(LOCATIONS)[0]
+        .path()
+        .to_string();
+    let last = json!({ "at": at, "q": 2, "r": 3 });
+    assert!(!d.is_enabled("locations.hex", &last).unwrap());
+    assert!(d.run("locations.hex", &last).is_err());
+    assert!(!d
+        .is_enabled("locations.hex", &json!({ "at": LAYER, "q": 0, "r": 0 }))
+        .unwrap());
+    assert_eq!(hexes(&d, &at), json!([{ "q": 2, "r": 3 }]));
+}

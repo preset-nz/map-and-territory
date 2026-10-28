@@ -2,9 +2,11 @@
 // the grid's ink, plain or over a glow or label of the paper's colour (`labelStyle`). The frame
 // projection resolves numbers, the face, the ink and the paper; the adapter draws what it is
 // given. Hidden places draw faint with a dashed ring (the window only, until player copies).
+// A place on more than one hex is an area: a tint over its hexes inside a dashed edge, with
+// its marker and name at their middle. Areas draw first, so no tint covers another's name.
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
-import { toPoint } from '@/lib/hex/layout';
-import type { Layout } from '@/lib/hex/types';
+import { corners, fromPoint, toPoint } from '@/lib/hex/layout';
+import type { Axial, Layout, Point } from '@/lib/hex/types';
 import { faceCaps, faceFont } from '@/render/faces';
 
 export type LocationMarker = 'number' | 'dot' | 'none';
@@ -44,6 +46,8 @@ const GLOW = 0.35;
 const PAD = 0.12;
 /** The outline's width either side of a letter, as a fraction of the hex size. */
 const OUTLINE = 0.12;
+/** An area's tint, as a strength of the ink. */
+export const AREA_TINT = 0.1;
 /** How faint a hidden place draws. */
 export const HIDDEN_ALPHA = 0.45;
 
@@ -92,6 +96,69 @@ function styledText(
   ctx.fillText(text, x, y);
 }
 
+/**
+ * The edges round the outside of `hexes`: each hex side whose neighbour across it is not in
+ * the set, as corner pairs. The neighbour is the hex centre mirrored through the side's
+ * middle, so it holds for pointy and flat grids alike.
+ */
+export function areaEdges(hexes: readonly Axial[], layout: Layout): [Point, Point][] {
+  const inside = new Set(hexes.map((h) => `${h.q},${h.r}`));
+  const edges: [Point, Point][] = [];
+  for (const h of hexes) {
+    const c = toPoint(h, layout);
+    const pts = corners(c, layout);
+    for (let i = 0; i < 6; i++) {
+      const a = pts[i];
+      const b = pts[(i + 1) % 6];
+      const n = fromPoint({ x: a.x + b.x - c.x, y: a.y + b.y - c.y }, layout);
+      if (!inside.has(`${n.q},${n.r}`)) edges.push([a, b]);
+    }
+  }
+  return edges;
+}
+
+/** An area's tint over its hexes, in one path so the seams don't show, and its dashed edge. */
+function drawArea(
+  ctx: CanvasRenderingContext2D,
+  hexes: readonly Axial[],
+  layout: Layout,
+  ink: string,
+) {
+  const s = layout.size;
+  ctx.save();
+  ctx.beginPath();
+  for (const h of hexes) {
+    const pts = corners(toPoint(h, layout), layout);
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (const p of pts.slice(1)) ctx.lineTo(p.x, p.y);
+    ctx.closePath();
+  }
+  ctx.globalAlpha *= AREA_TINT;
+  ctx.fillStyle = ink;
+  ctx.fill();
+  ctx.restore();
+  ctx.beginPath();
+  for (const [a, b] of areaEdges(hexes, layout)) {
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+  }
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(1, s * 0.06);
+  ctx.lineCap = 'round';
+  ctx.setLineDash([s * 0.2, s * 0.14]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+/** Where a place's marker sits: its hex, or the middle of an area's hexes. */
+function anchorOf(hexes: readonly Axial[], layout: Layout): Point {
+  const pts = hexes.map((h) => toPoint(h, layout));
+  return {
+    x: pts.reduce((t, p) => t + p.x, 0) / pts.length,
+    y: pts.reduce((t, p) => t + p.y, 0) / pts.length,
+  };
+}
+
 export const LocationsAdapter: LayerAdapter<LocationsState> = {
   title: 'Locations',
   drawMain(ctx, state, env) {
@@ -101,10 +168,17 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
     const paper = state.paper || '#ffffff';
     const face = state.face ?? 'condensed';
     const caps = faceCaps(face);
-    for (const loc of state.locations ?? []) {
-      const hex = loc.hexes[0];
-      if (!hex) continue;
-      const c = toPoint(hex, layout);
+    const places = (state.locations ?? []).filter((loc) => loc.hexes.length > 0);
+    for (const loc of places) {
+      if (loc.hexes.length < 2) continue;
+      ctx.save();
+      if (loc.hidden) ctx.globalAlpha *= HIDDEN_ALPHA;
+      drawArea(ctx, loc.hexes, layout, ink);
+      ctx.restore();
+    }
+    for (const loc of places) {
+      const area = loc.hexes.length > 1;
+      const c = anchorOf(loc.hexes, layout);
       ctx.save();
       if (loc.hidden) ctx.globalAlpha *= HIDDEN_ALPHA;
       ctx.fillStyle = ink;
@@ -140,13 +214,16 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
         reach = s * (loc.hidden ? RING : DOT);
       }
       if (state.showLabels !== false && loc.name) {
-        const x = loc.marker === 'none' ? c.x : c.x + reach + s * 0.15;
-        ctx.textAlign = loc.marker === 'none' ? 'center' : 'left';
+        // a point's name sits beside its marker; an area's is centred, under the marker
+        const beside = !area && loc.marker !== 'none';
+        const x = beside ? c.x + reach + s * 0.15 : c.x;
+        ctx.textAlign = beside ? 'left' : 'center';
         ctx.textBaseline = 'middle';
         const style = state.labelStyle ?? 'plain';
         ctx.font = faceFont(face, s * NAME_SIZE);
         const note = loc.note?.trim();
-        const y = note ? c.y - s * NAME_SIZE * 0.4 : c.y;
+        const middle = area && reach > 0 ? c.y + reach + s * NAME_SIZE * 0.7 : c.y;
+        const y = note ? middle - s * NAME_SIZE * 0.4 : middle;
         styledText(
           ctx,
           caps ? loc.name.toUpperCase() : loc.name,
@@ -160,7 +237,17 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
         );
         if (note) {
           ctx.font = faceFont(face, s * NOTE_SIZE);
-          styledText(ctx, note, x, c.y + s * NAME_SIZE * 0.55, s * NOTE_SIZE, style, s, paper, ink);
+          styledText(
+            ctx,
+            note,
+            x,
+            middle + s * NAME_SIZE * 0.55,
+            s * NOTE_SIZE,
+            style,
+            s,
+            paper,
+            ink,
+          );
         }
       }
       ctx.restore();

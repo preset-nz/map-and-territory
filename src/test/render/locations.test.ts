@@ -1,4 +1,10 @@
-import { HIDDEN_ALPHA, LocationsAdapter, type LocationsState } from '@/layers/adapters/locations';
+import {
+  AREA_TINT,
+  areaEdges,
+  HIDDEN_ALPHA,
+  LocationsAdapter,
+  type LocationsState,
+} from '@/layers/adapters/locations';
 import type { RenderEnv } from '@/layers/types';
 
 /** Records the text drawn, with the alpha and line dash it was drawn under. */
@@ -25,9 +31,19 @@ class MockContext {
   restore() {
     [this.globalAlpha, this.shadowBlur] = this.stack.pop() ?? [1, 0];
   }
+  lineCap = 'butt';
+  segments = 0;
+  fills: number[] = [];
   beginPath() {}
   arc() {}
-  fill() {}
+  moveTo() {}
+  lineTo() {
+    this.segments++;
+  }
+  closePath() {}
+  fill() {
+    this.fills.push(this.globalAlpha);
+  }
   stroke() {
     this.dashes.push(this.dash);
   }
@@ -142,5 +158,67 @@ describe('the locations adapter', () => {
     expect(Math.max(...label.rectHeights)).toBeLessThan(20);
     expect(plain.strokes).toBe(0);
     expect(draw({ ...state, labelStyle: 'outline' }).strokes).toBe(3);
+  });
+
+  it('tints an area, dashes its edge and centres its name under the marker', () => {
+    const mire: LocationsState = {
+      ...state,
+      locations: [
+        {
+          id: 'm',
+          name: 'The Mire',
+          hexes: [
+            { q: 0, r: 0 },
+            { q: 1, r: 0 },
+            { q: 2, r: 0 },
+          ],
+          number: 4,
+          marker: 'number',
+          hidden: false,
+        },
+      ],
+    };
+    const ctx = draw(mire);
+    expect(ctx.fills).toContain(AREA_TINT);
+    expect(ctx.dashes.some((d) => d.length > 0)).toBe(true);
+    const four = ctx.texts.find((t) => t.text === '4');
+    const name = ctx.texts.find((t) => t.text === 'The Mire');
+    // the middle hex of the three is 1,0: √3 × 20 right of the paper's centre
+    expect(four?.x).toBeCloseTo(400 + Math.sqrt(3) * 20);
+    expect(name?.x).toBeCloseTo(four?.x ?? 0);
+    expect(name?.y).toBeGreaterThan(four?.y ?? 0);
+  });
+});
+
+describe('an area’s edge', () => {
+  const at = (orientation: 'pointy' | 'flat') => ({
+    size: 10,
+    orientation,
+    origin: { x: 0, y: 0 },
+  });
+
+  it('runs round the outside of a line of three hexes only', () => {
+    const line = [
+      { q: 0, r: 0 },
+      { q: 1, r: 0 },
+      { q: 2, r: 0 },
+    ];
+    // 18 sides, 2 shared by each of the two neighbouring pairs
+    expect(areaEdges(line, at('pointy'))).toHaveLength(14);
+    expect(areaEdges(line, at('flat'))).toHaveLength(14);
+  });
+
+  it('runs inside a ring round its hole too', () => {
+    const ring = [
+      { q: 1, r: 0 },
+      { q: 1, r: -1 },
+      { q: 0, r: -1 },
+      { q: -1, r: 0 },
+      { q: -1, r: 1 },
+      { q: 0, r: 1 },
+    ];
+    // 36 sides less 6 shared pairs: 12 outside, 6 round the hole
+    for (const o of ['pointy', 'flat'] as const) expect(areaEdges(ring, at(o))).toHaveLength(24);
+    expect(areaEdges([{ q: 0, r: 0 }], at('flat'))).toHaveLength(6);
   });
 });
