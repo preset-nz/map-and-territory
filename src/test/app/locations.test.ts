@@ -6,7 +6,7 @@ import {
   type RowSource,
 } from '@/app/scene/frame';
 import { activeMapId } from '@/app/selection';
-import { addedPath, locationsTarget } from '@/app/tools/pointer-tools';
+import { addedPath, locationAt, locationsTarget } from '@/app/tools/pointer-tools';
 import type { PlacedLocation } from '@/layers/adapters/locations';
 
 const schema: FrameSchema = {
@@ -148,5 +148,18 @@ describe('the location tool', () => {
 
   it('keeps the map active with a location selected', () => {
     expect(activeMapId({ kind: 'layer', id: 'a1' }, source(doc()))).toBe('m');
+  });
+
+  it('finds the place on a hex, the topmost layer’s first, and none in a hidden layer', () => {
+    const rows = doc();
+    rows.b1 = { ...rows.b1, values: { ...rows.b1.values, hexes: [{ q: 0, r: 0 }] } };
+    const builder = createFrameBuilder(schema);
+    const frame = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
+    // a1, a2 and b1 all sit on 0,0: b is above a, and within a layer the later one is on top
+    expect(locationAt(frame, { q: 0, r: 0 })).toBe('b1');
+    expect(locationAt(frame, { q: 5, r: 5 })).toBeNull();
+    rows.b = { ...rows.b, values: { ...rows.b.values, visible: false } };
+    const hidden = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
+    expect(locationAt(hidden, { q: 0, r: 0 })).toBe('a2');
   });
 });

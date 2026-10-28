@@ -2,6 +2,7 @@
 // selected freeform layer; the other tools arrive with their layers.
 import { useMirror } from '@preset.nz/pom';
 import { useCallback, useEffect, useRef } from 'react';
+import type { PlacedLocation } from '@/layers/adapters/locations';
 import { floodFill } from '@/lib/flood-fill';
 import type { SceneFrame } from '@/render/types';
 import type { OnPointer } from '../canvas-host';
@@ -85,6 +86,18 @@ export function locationsTarget(
   return null;
 }
 
+/** The place drawn on hex `(q, r)`, topmost first, from the frame the pointer hit. */
+export function locationAt(frame: SceneFrame, hex: { q: number; r: number }): string | null {
+  for (const layer of [...frame.layers].reverse()) {
+    if (layer.type !== 'locations' || !layer.visible) continue;
+    const places = (layer.state as { locations?: PlacedLocation[] }).locations ?? [];
+    for (const p of [...places].reverse()) {
+      if (p.hexes.some((h) => h.q === hex.q && h.r === hex.r)) return p.id;
+    }
+  }
+  return null;
+}
+
 /** The path of the node of `type` a command added, from its commit. */
 export function addedPath(ran: unknown, type: string): string | null {
   const changes = (ran as { committed?: { changes?: unknown[] } })?.committed?.changes ?? [];
@@ -134,6 +147,8 @@ export function useToolPointer(): OnPointer {
   const mirror = useMirror();
   const channel = useChannel();
   const stroke = useRef<Stroke | null>(null);
+  // a place being dragged: one undo step from pointer-down to pointer-up
+  const drag = useRef<{ token: Promise<number>; at: string; q: number; r: number } | null>(null);
 
   // leaving the outline tool drops its preview
   useEffect(
@@ -150,6 +165,11 @@ export function useToolPointer(): OnPointer {
       if (kind === 'up' || kind === 'cancel') {
         stroke.current?.end();
         stroke.current = null;
+        if (drag.current) {
+          const { token } = drag.current;
+          drag.current = null;
+          token.then((t) => channel.end(t)).catch((err) => console.error('[location]', err));
+        }
         return;
       }
       if (tool === 'outline') {
@@ -164,8 +184,26 @@ export function useToolPointer(): OnPointer {
         return;
       }
       if (tool === 'location') {
-        if (kind !== 'down' || e.button !== 0 || !hit?.hex) return;
+        if (!hit?.hex) return;
         const { q, r } = hit.hex;
+        const moving = drag.current;
+        if (kind === 'move' && moving && (moving.q !== q || moving.r !== r)) {
+          // drag a place to another hex: every step is in the one gesture
+          drag.current = { ...moving, q, r };
+          channel
+            .run('value.set', { at: moving.at, key: 'hexes', value: [{ q, r }] })
+            .catch((err) => console.error('[location]', err));
+          return;
+        }
+        if (kind !== 'down' || e.button !== 0) return;
+        // a click on a place selects it, ready to drag; elsewhere it adds one
+        const placed = locationAt(frame, hit.hex);
+        const placedAt = placed ? mirror.node(placed)?.path : undefined;
+        if (placed && placedAt) {
+          selection.selectLayer(placed);
+          drag.current = { token: channel.begin('Move Location'), at: placedAt, q, r };
+          return;
+        }
         const mapId = activeMapId(selection.get(), mirror);
         const at = locationsTarget(mirror, selection.get(), mapId);
         const map = mapId ? mirror.node(mapId)?.path : undefined;
