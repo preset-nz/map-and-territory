@@ -16,7 +16,7 @@ The whole document: its maps, its settings and the notes that go with them.
 | Name | text | empty | What you call the campaign. |
 | Description | text | empty | Notes about the campaign, such as its setting or premise. |
 | Page size | A5 (`a5`), A4 (`a4`) | A5 (`a5`) | The paper every map in the campaign is exported onto. A4 is A5 enlarged, so the map looks the same. |
-| Page orientation | Portrait (`portrait`), Landscape (`landscape`) | Portrait (`portrait`) | Whether the page is taller than it is wide, or wider than it is tall. |
+| Page orientation | Portrait (`portrait`), Landscape (`landscape`) | Portrait (`portrait`) | Whether the page is taller than it is wide, or wider than it is tall. A map alone on its page turns with it; a map with its key lies across the page. |
 | Page margin | 0 mm to 40 mm | 10 mm | The plain white border around everything on a printed page. |
 | Booklet | None, a collection of maps (`none`), Spine booklet (`spine`), Stapled pages (`stapled`) | None, a collection of maps (`none`) | A loose collection of maps, each printed on its own pages, or a booklet of pages: cover, pages, back. |
 | Double-sided | on or off | on | Stapled pages printed on both sides, so pages are added in twos. |
@@ -34,4 +34,4 @@ Name it after the game or the setting, and use the description for whatever you 
 
 The page settings say what paper the campaign prints on. Every map in the campaign is exported onto the same page, which keeps a printed set looking like one book.
 
-Page size is A5 or A4. A4 is A5 enlarged, so the map has the same hexes and the same look, only bigger. Orientation turns the page between portrait and landscape. Margin is the plain white border between the page edge and the map, from 0 to 40 mm; the paper colour and texture stay inside the map. A new campaign is A5 portrait with a 10 mm margin, and so is any campaign saved before these settings existed.
+Page size is A5 or A4. A4 is A5 enlarged, so the map has the same hexes and the same look, only bigger. Orientation turns the page between portrait and landscape, and every map with it: a map alone on its page stands up on a portrait page and lies down on a landscape one, and a map with its key always lies across the page so the key has room. Margin is the plain white border between the page edge and everything on it, from 0 to 40 mm; the paper colour and texture stay inside the map. A new campaign is A5 portrait with a 10 mm margin, and so is any campaign saved before these settings existed.

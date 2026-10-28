@@ -469,10 +469,17 @@ pub fn lay_out(page: PageSpec, aspect: f64, layout: MapLayout, key: Option<&Key>
     }
 }
 
-/// The paper's width over height as a map's paper layer says it: its `aspect` choice turned by
-/// its `orientation` (a square has none). Matches the window's `orientedAspect` and
-/// `resolveAspectRatio`.
-fn paper_aspect(paper: Option<&Node<'_>>) -> f64 {
+/// Whether a map stands up, taller than wide (Georg, 2026-10-29): a map with its key on the
+/// page lies across it, so the key has room; a map alone turns with the page. Nothing on the
+/// map says so, so turning the campaign's page turns every map at once. The window's frame
+/// projection asks the same (`mapStandsUp`, `src/app/scene/frame.ts`): keep the two in step.
+pub fn map_stands_up(layout: MapLayout, page: &PageSpec) -> bool {
+    layout == MapLayout::Alone && !page.landscape
+}
+
+/// The paper's width over height: its `aspect` choice, turned over when the map stands up (a
+/// square has no way up). Matches the window's `orientedAspect` and `resolveAspectRatio`.
+fn paper_aspect(paper: Option<&Node<'_>>, stands_up: bool) -> f64 {
     let choice = |key: &str| match paper.and_then(|p| p.value(key)) {
         Some(Value::Choice(c)) => Some(c),
         _ => None,
@@ -487,7 +494,7 @@ fn paper_aspect(paper: Option<&Node<'_>>) -> f64 {
             .filter(|(a, b)| *a > 0.0 && *b > 0.0)
             .unwrap_or((16.0, 10.0))
     };
-    if choice("orientation").as_deref() == Some("portrait") {
+    if stands_up {
         ah / aw
     } else {
         aw / ah
@@ -506,10 +513,7 @@ pub fn sheet(d: &Doc, map_path: &str) -> Option<Sheet> {
         _ => MapLayout::default(),
     };
     let key = locations::key(d, map_path);
-    Some(lay_out(
-        PageSpec::read(d),
-        paper_aspect(paper.as_ref()),
-        layout,
-        key.as_ref(),
-    ))
+    let page = PageSpec::read(d);
+    let aspect = paper_aspect(paper.as_ref(), map_stands_up(layout, &page));
+    Some(lay_out(page, aspect, layout, key.as_ref()))
 }

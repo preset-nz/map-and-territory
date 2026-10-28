@@ -14,7 +14,6 @@ The sheet the map is drawn on: a flat colour at the bottom of every map.
 | Control | Range | Default | What it does |
 |---|---|---|---|
 | Aspect | Square (`square`), 4:3 (`4:3`), 16:10 (`16:10`), 16:9 (`16:9`) | 16:10 (`16:10`) | The shape of the sheet, as width to height. |
-| Orientation | Landscape (`landscape`), Portrait (`portrait`) | Landscape (`landscape`) | Lying down, wider than tall, or standing up, taller than wide. A square has none. |
 | Colour | colour | #ffffff | The colour of the paper. |
 | Mix with paper | Image only (`normal`), Multiply (`multiply`) | Multiply (`multiply`) | How the image mixes with the paper colour: image only, or multiplied over the colour so the paper shows through its light parts. |
 | Texture fit | Cover (`cover`), Fit (`contain`), Repeat (`repeat`) | Cover (`cover`) | Cover fills the sheet and crops the edges, fit keeps the whole image inside, repeat tiles it. |

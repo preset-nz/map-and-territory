@@ -420,7 +420,10 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         }
         if (row.type === 'paper') {
           paper = {
-            aspect: orientedAspect(state.aspect, state.orientation),
+            aspect: orientedAspect(
+              state.aspect,
+              mapStandsUp(map.values?.layout, rows.nodeAt(CAMPAIGN_PATH)?.values?.pageOrientation),
+            ),
             color: (state.color as string) ?? DEFAULT_PAPER.color,
           };
         }
@@ -441,13 +444,24 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
 }
 
 /**
- * The paper's aspect with its orientation applied: `16:10` standing up is `10:16`. A square
- * has none; an unknown aspect is the default.
+ * Whether the map stands up, taller than wide (Georg, 2026-10-29): a map alone on its page
+ * turns with the campaign's page; a map with its key lies across it. The model crate asks the
+ * same for the print (`map_stands_up`, `print.rs`): keep the two in step.
  */
-export function orientedAspect(aspect: unknown, orientation: unknown): string {
+export function mapStandsUp(layout: unknown, pageOrientation: unknown): boolean {
+  const alone = layout === 'map-full' || layout === 'key-after';
+  // the campaign's page is portrait unless it says otherwise
+  return alone && pageOrientation !== 'landscape';
+}
+
+/**
+ * The paper's aspect, turned over when the map stands up: `16:10` standing up is `10:16`. A
+ * square has no way up; an unknown aspect is the default.
+ */
+export function orientedAspect(aspect: unknown, standsUp: boolean): string {
   const a =
     typeof aspect === 'string' && /^(square|\d+:\d+)$/.test(aspect) ? aspect : DEFAULT_PAPER.aspect;
-  if (orientation !== 'portrait' || a === 'square') return a;
+  if (!standsUp || a === 'square') return a;
   const [w, h] = a.split(':');
   return `${h}:${w}`;
 }
