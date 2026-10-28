@@ -85,7 +85,28 @@ export function fileRefCommand(type: string, key: string): string | undefined {
  */
 const PLACEHOLDERS: Record<string, string> = {
   'cartouche.title': "The map's name",
+  'compass.labelN': 'N',
+  'compass.labelE': 'E',
+  'compass.labelS': 'S',
+  'compass.labelW': 'W',
 };
+
+/**
+ * Values whose change runs a command of the model's rather than `value.set`, keyed `type.key`.
+ * The command takes `{ at, <key>: value }`: a compass's style resets its labels in the same
+ * step (epic 24).
+ */
+const VALUE_COMMANDS: Record<string, string> = {
+  'compass.style': 'compass.set-style',
+};
+
+/** The command a change to a value runs, when it isn't a plain `value.set`. */
+export function valueCommand(type: string, key: string): string | undefined {
+  return VALUE_COMMANDS[`${type}.${key}`];
+}
+
+/** A compass's words for E, S and W: only a cardinal set on a style that points four ways. */
+const COMPASS_SIDE_WORDS = new Set(['labelE', 'labelS', 'labelW']);
 
 /** An image layer's values that place its image. */
 const IMAGE_PLACING = new Set(['fit', 'scale', 'offsetX', 'offsetY', 'rotation']);
@@ -103,6 +124,17 @@ function disabledWhen(
   if (type === 'image' && IMAGE_PLACING.has(key)) {
     // nothing to fit, scale, move or turn until an image is set
     return { path: 'file', equals: null };
+  }
+  if (type === 'compass' && COMPASS_SIDE_WORDS.has(key)) {
+    // a set without the direction, or a style that points one way, never prints it
+    return [
+      { path: 'labels', notEquals: 'cardinal' },
+      { path: 'style', equals: 'mark' },
+      { path: 'style', equals: 'arrow' },
+    ];
+  }
+  if (type === 'compass' && key === 'labelN') {
+    return { path: 'labels', equals: 'none' };
   }
   if (type === 'hexgrid' && key === 'color') {
     // the palette's line colour wins while it is on

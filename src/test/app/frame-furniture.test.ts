@@ -4,6 +4,7 @@ import {
   type FrameSchema,
   MUTED_INK_ALPHA,
   type RowSource,
+  resolveCompassLabels,
   UNTITLED_MAP,
   withAlpha,
 } from '@/app/scene/frame';
@@ -186,5 +187,56 @@ describe('withAlpha', () => {
     expect(withAlpha('#112233', 0.5)).toBe('#11223380');
     expect(withAlpha('#11223380', 0.5)).toBe('#11223340');
     expect(withAlpha('red', 0.5)).toBe('red');
+  });
+});
+
+describe('the compass words', () => {
+  const words = (v: Record<string, unknown>) => resolveCompassLabels({ style: 'cross', ...v });
+
+  it('prints nothing at E for north-only, even with an east word typed', () => {
+    expect(words({ labels: 'north-only', labelE: 'Dawn' })).toEqual(['N', '', '', '']);
+  });
+
+  it('prints a typed north word instead of N, and N again once it is cleared', () => {
+    expect(words({ labels: 'cardinal', labelN: 'Throne' })).toEqual(['Throne', 'E', 'S', 'W']);
+    expect(words({ labels: 'cardinal', labelN: '  ' })).toEqual(['N', 'E', 'S', 'W']);
+    expect(words({ labels: 'cardinal', labelN: '' })).toEqual(['N', 'E', 'S', 'W']);
+  });
+
+  it('prints only north on a style that points one way, and nothing for none', () => {
+    for (const style of ['mark', 'arrow']) {
+      expect(words({ style, labels: 'cardinal', labelW: 'Dusk' })).toEqual(['N', '', '', '']);
+    }
+    expect(words({ labels: 'none', labelN: 'Throne' })).toEqual(['', '', '', '']);
+  });
+
+  it('reach the compass state with the map’s sheet style and the node’s id', () => {
+    const rows = doc();
+    rows.m = {
+      ...rows.m,
+      values: { ...rows.m.values, hand: 'scratched' },
+      orders: { ...rows.m.orders, furniture: ['t', 'k'] },
+    };
+    rows.k = {
+      id: 'k',
+      type: 'compass',
+      path: '/maps/map/compass',
+      values: { style: 'mark', labels: 'north-only', labelN: 'Throne', face: 'map', hand: 'map' },
+    };
+    const b = createFrameBuilder(schema);
+    const state = () =>
+      build(rows, b).layers.find((l) => l.type === 'compass')?.state as Record<string, unknown>;
+    const s = state();
+    expect(s).toMatchObject({
+      resolvedLabels: ['Throne', '', '', ''],
+      hand: 'scratched',
+      face: 'condensed',
+      seed: 'k',
+      ink: '#0000ff',
+    });
+    // the same rows give the same state, so nothing is posted
+    expect(state()).toBe(s);
+    rows.k = { ...rows.k, values: { ...rows.k.values, labelN: '' } };
+    expect(state().resolvedLabels).toEqual(['N', '', '', '']);
   });
 });

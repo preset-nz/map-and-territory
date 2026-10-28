@@ -7,6 +7,7 @@
 //! draws.
 
 mod commands;
+mod compass;
 mod freeform;
 mod kinds;
 mod outline;
@@ -15,6 +16,8 @@ mod settings_2025;
 pub mod texture;
 mod voxels;
 
+#[cfg(test)]
+mod compass_tests;
 #[cfg(test)]
 mod freeform_tests;
 #[cfg(test)]
@@ -58,6 +61,7 @@ impl ObjectModel for MapAndTerritory {
 
     fn commands(c: &mut Commands<Self>) {
         commands::declare(c);
+        compass::declare(c);
         palette::declare(c);
     }
 }

@@ -25,7 +25,12 @@ export interface SceneCommandState {
 }
 
 const ANCHORS = new Set(['paper', 'hexgrid']);
-const KIND_TITLE: Record<string, string> = { map: 'Map', campaign: 'Campaign', cartouche: 'Title' };
+const KIND_TITLE: Record<string, string> = {
+  map: 'Map',
+  campaign: 'Campaign',
+  cartouche: 'Title',
+  compass: 'Compass',
+};
 
 /** What the selection allows, read from the document rows. Pure, for tests. */
 export function sceneCommandState(selected: Selected, rows: Rows): SceneCommandState {
@@ -104,6 +109,10 @@ export function useSceneBindings(): Record<string, Binding> {
       'layer.add-title': {
         enabled: s.mapPath !== null,
         run: () => s.mapPath && run('node.add', { parent: s.mapPath, type: 'cartouche' }),
+      },
+      'layer.add-compass': {
+        enabled: s.mapPath !== null,
+        run: () => s.mapPath && run('node.add', { parent: s.mapPath, type: 'compass' }),
       },
       'edit.move-earlier': move('edit.move-earlier', s.canMove.forward),
       'edit.move-later': move('edit.move-later', s.canMove.backward),

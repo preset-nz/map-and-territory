@@ -45,9 +45,9 @@ fn map_of<'a>(d: &'a Doc, at: &str) -> Option<rhizome_core::Node<'a>> {
 /// `node.add`, in one place so `enabled` and `run` agree.
 ///
 /// A `map` under `/maps`, or a layer kind (`hex-noise`, `freeform`, `outline`, `image`) or a
-/// furniture kind (`cartouche`) under a map. `paper` and `hexgrid` are refused on their own (a
-/// map brings them). The built-in's `preset` argument isn't taken, because no layer kind has
-/// presets.
+/// furniture kind (`cartouche`, `compass`) under a map. `paper` and `hexgrid` are refused on
+/// their own (a map brings them). The built-in's `preset` argument isn't taken, because no layer
+/// kind has presets.
 fn check(d: &Doc, a: &AddArgs) -> Result<(), String> {
     if let Some(kind) = furniture_kind(&a.type_name) {
         map_of(d, &a.parent).ok_or_else(|| format!("a {} goes under a map", kind.id))?;

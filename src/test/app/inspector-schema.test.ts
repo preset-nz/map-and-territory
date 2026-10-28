@@ -6,6 +6,7 @@ import {
   readRefs,
   readValues,
   schemaFor,
+  valueCommand,
   writeValue,
 } from '@/app/inspector/schema';
 
@@ -306,5 +307,32 @@ describe('the inspector schema', () => {
     expect(byId('noiseScale').disabledWhen).toEqual(moot);
     expect(byId('joinCorners').disabledWhen).toEqual(moot);
     expect(byId('lineStyle').disabledWhen).toBeUndefined();
+  });
+
+  it("runs the compass's style through compass.set-style, and every other value as value.set", () => {
+    expect(valueCommand('compass', 'style')).toBe('compass.set-style');
+    expect(valueCommand('compass', 'labels')).toBeUndefined();
+    expect(valueCommand('cartouche', 'style')).toBeUndefined();
+  });
+
+  it("greys a compass's words it won't print, and shows each word's letter as its placeholder", () => {
+    const values = ['style', 'labels', 'labelN', 'labelE', 'labelS', 'labelW'].map((key) => ({
+      key,
+      kind: key.startsWith('label') && key !== 'labels' ? 'text' : 'choice',
+    }));
+    const rows = schemaFor(values, [], 'compass').groups[0]?.rows ?? [];
+    const byId = (id: string) =>
+      rows.find((r) => (r as { id: string }).id === id) as never as Record<string, unknown>;
+    expect(byId('labelN').disabledWhen).toEqual({ path: 'labels', equals: 'none' });
+    expect(byId('labelN').placeholder).toBe('N');
+    for (const id of ['labelE', 'labelS', 'labelW']) {
+      expect(byId(id).disabledWhen).toEqual([
+        { path: 'labels', notEquals: 'cardinal' },
+        { path: 'style', equals: 'mark' },
+        { path: 'style', equals: 'arrow' },
+      ]);
+    }
+    expect(byId('labelW').placeholder).toBe('W');
+    expect(byId('style').disabledWhen).toBeUndefined();
   });
 });

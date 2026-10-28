@@ -1,4 +1,5 @@
 import { CartoucheType } from '@/layers/adapters/cartouche';
+import { CompassType } from '@/layers/adapters/compass';
 import { FreeformType } from '@/layers/adapters/freeform-hex';
 import { HexNoiseType } from '@/layers/adapters/hex-noise';
 import { HexgridType } from '@/layers/adapters/hexgrid';
@@ -20,6 +21,7 @@ export const BUILTIN_LAYER_TYPES = [
   OutlineType,
   ImageType,
   CartoucheType,
+  CompassType,
 ] as unknown as LayerType[];
 
 export function registerBuiltinLayers() {

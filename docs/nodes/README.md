@@ -22,6 +22,7 @@ title: Map & Territory nodes
 ## Furniture
 
 - [Title](cartouche.md): The map's title in a box, with an optional subtitle and credit line, printed over the grid.
+- [Compass](compass.md): A compass that shows where north is, printed over the grid.
 
 ## Generator
 

@@ -93,6 +93,16 @@ export function handLine(a: Pt, b: Pt, hand: Hand, seed: string): Pt[] {
 }
 
 /**
+ * A side of a shape from `a` to `b` in `hand`: wobbled like a stroke but held at both ends, so
+ * shapes that share the side meet along it. Clean is the two ends.
+ */
+export function handEdge(a: Pt, b: Pt, hand: Hand, seed: string): Pt[] {
+  if (hand === 'clean') return [a, b];
+  const len = Math.hypot(b.x - a.x, b.y - a.y);
+  return wobble(a, b, 0, len, HANDS[hand], createRNG(seed), true);
+}
+
+/**
  * A closed outline through `corners` in `hand`: each corner nudged by up to the hand's
  * amplitude, each side wobbled between them. Clean is the corners as given.
  */
@@ -145,6 +155,28 @@ export function strokeByHand(ctx: Pen, a: Pt, b: Pt, hand: Hand, seed: string, w
     trace(ctx, handLine(a, b, hand, `${seed}:again`));
     ctx.stroke();
   }
+}
+
+/**
+ * Strokes the side `a`→`b` in `hand` at `width`, held at both ends (`handEdge`). Scratched goes
+ * over it again, thinner, with a wobble of its own.
+ */
+export function strokeEdge(ctx: Pen, a: Pt, b: Pt, hand: Hand, seed: string, width: number) {
+  ctx.lineWidth = width;
+  trace(ctx, handEdge(a, b, hand, seed));
+  ctx.stroke();
+  if (hand !== 'clean' && HANDS[hand].twice) {
+    ctx.lineWidth = width * SECOND_STROKE;
+    trace(ctx, handEdge(a, b, hand, `${seed}:again`));
+    ctx.stroke();
+  }
+}
+
+/** Fills the closed outline through `pts` as given, in the context's fill style. */
+export function fillOutline(ctx: Pen, pts: Pt[]) {
+  trace(ctx, pts);
+  ctx.closePath();
+  ctx.fill();
 }
 
 /** Fills the outline through `corners` in `hand`, in the context's fill style. */

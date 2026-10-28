@@ -22,6 +22,7 @@ import {
   readValues,
   schemaFor,
   type ValueInfo,
+  valueCommand,
   writeValue,
 } from './schema';
 
@@ -72,9 +73,11 @@ export function scopeOf(
           (e) => ({ error: messageOf(e) }),
         );
       }
+      const written = writeValue(byKey.get(key), value);
+      const own = valueCommand(type, key);
       ctx.channel
-        .run('value.set', { at, key, value: writeValue(byKey.get(key), value) })
-        .catch((e) => console.error('[inspector] value.set refused', e));
+        .run(own ?? 'value.set', own ? { at, [key]: written } : { at, key, value: written })
+        .catch((e) => console.error(`[inspector] ${own ?? 'value.set'} refused`, e));
     },
     gesture: {
       begin: (key, t, ctx: Ctx) => {

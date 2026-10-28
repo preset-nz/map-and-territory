@@ -76,6 +76,31 @@ export function resolveTitle(title: unknown, mapName: unknown): { text: string; 
   return { text: UNTITLED_MAP, muted: true };
 }
 
+/** A compass label set's words, north, east, south, west; a direction it leaves out is blank. */
+const COMPASS_SETS: Record<string, readonly string[]> = {
+  cardinal: ['N', 'E', 'S', 'W'],
+  'north-only': ['N', '', '', ''],
+  none: ['', '', '', ''],
+};
+/** Compass styles that point one way, so show only the north word of any set (disco-02). */
+const ONE_WAY = new Set(['mark', 'arrow']);
+const COMPASS_WORDS = ['labelN', 'labelE', 'labelS', 'labelW'] as const;
+
+/**
+ * A compass's words (map furniture §4, epic 24): north, east, south and west, each the node's
+ * override when not blank, else the set's word. A direction the set or the style leaves out is
+ * blank, override or not.
+ */
+export function resolveCompassLabels(values: Record<string, unknown>): string[] {
+  const set = COMPASS_SETS[String(values.labels)] ?? COMPASS_SETS['north-only'];
+  const oneWay = ONE_WAY.has(String(values.style ?? 'mark'));
+  return COMPASS_WORDS.map((key, i) => {
+    if (set[i] === '' || (oneWay && i > 0)) return '';
+    const own = values[key];
+    return typeof own === 'string' && own.trim() !== '' ? own : set[i];
+  });
+}
+
 /**
  * A furniture value that may follow the map's sheet style (map furniture §3): `map` (or unset)
  * takes the map's, and a map without one takes `fallback`.
@@ -254,8 +279,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
 
   /**
    * A furniture node's adapter state: its values plus what the projection resolves (the title's
-   * words, `map` face and hand from the map's sheet style, the node's id as its seed, the grid's
-   * ink, the paper's colour). Kept while the row and all of those are
+   * and the compass's words, `map` face and hand from the map's sheet style, the node's id as
+   * its seed, the grid's ink, the paper's colour). Kept while the row and all of those are
    * unchanged, so a pointer move posts nothing.
    */
   const furnitureStates = new WeakMap<FrameRow, { key: string; state: Record<string, unknown> }>();
@@ -269,14 +294,16 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     const resolved =
       row.type === 'cartouche' ? resolveTitle(base.title, map.values?.name) : undefined;
     const titleInk = resolved?.muted ? withAlpha(ink, MUTED_INK_ALPHA) : ink;
+    const labels = row.type === 'compass' ? resolveCompassLabels(base) : undefined;
     const face = sheetStyle(base.face, map.values?.face, 'condensed');
     const hand = sheetStyle(base.hand, map.values?.hand, 'clean');
-    const key = JSON.stringify([resolved?.text, titleInk, ink, paper, face, hand]);
+    const key = JSON.stringify([resolved?.text, labels, titleInk, ink, paper, face, hand]);
     const known = furnitureStates.get(row);
     if (known && known.key === key) return known.state;
     const state = {
       ...base,
       ...(resolved ? { resolvedTitle: resolved.text, titleInk, titleMuted: resolved.muted } : {}),
+      ...(labels ? { resolvedLabels: labels } : {}),
       face,
       hand,
       seed: row.id,

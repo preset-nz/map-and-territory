@@ -71,8 +71,26 @@ pub const CARTOUCHE: LayerKind = LayerKind {
     id: "cartouche",
     base: "Title",
 };
+pub const COMPASS: LayerKind = LayerKind {
+    id: "compass",
+    base: "Compass",
+};
 /// Every furniture kind: each lives in a map's `furniture`, never in `layers`.
-pub const FURNITURE_KINDS: [&LayerKind; 1] = [&CARTOUCHE];
+pub const FURNITURE_KINDS: [&LayerKind; 2] = [&CARTOUCHE, &COMPASS];
+
+/// The compass styles in the MVP (epic 24): `rose` comes in story 2, the rest of disco-02 later.
+pub const COMPASS_STYLES: &[&str] = &["mark", "arrow", "cross"];
+/// The compass label sets; `traveller` is left for later (epic 24, The cut).
+pub const COMPASS_LABELS: &[&str] = &["cardinal", "north-only", "none"];
+
+/// The label set a compass style starts with (disco-02, Styles): a style that points one way
+/// shows only north.
+pub fn compass_default_labels(style: &str) -> &'static str {
+    match style {
+        "cross" | "rose" => "cardinal",
+        _ => "north-only",
+    }
+}
 
 pub const FRAMES: &[&str] = &["none", "rule", "double", "plate"];
 pub const ALIGNS: &[&str] = &["left", "centre", "right"];
@@ -650,6 +668,69 @@ pub fn declare(k: &mut Kinds) {
             .choice_labels(FACE_LABELS)
             .choice("hand", FURNITURE_HANDS, "map")
             .described("Hand", "How the frame is drawn and the lines lean. Map follows the map's hand.")
+            .choice_labels(&[("map", "Map")])
+            .choice_labels(HAND_LABELS),
+    );
+
+    // The compass (epic 24 story 1, disco-02). Like the title, it draws in the grid's ink on the
+    // paper's colour; the frame projection resolves its words. `compass.set-style` changes
+    // `style` and resets `labels` in one step.
+    k.kind(
+        furniture(COMPASS.id, COMPASS.base)
+            .label("Compass")
+            .summary("A compass that shows where north is, printed over the grid.")
+            .category("furniture")
+            .choice("style", COMPASS_STYLES, "mark")
+            .described("Style", "How the compass is drawn: a plain cross with a crossbar, a split arrow, or four split points. Changing it also sets Labels to the style's own.")
+            .choice_labels(&[("mark", "Mark"), ("arrow", "Arrow"), ("cross", "Cross")])
+            .choice("labels", COMPASS_LABELS, compass_default_labels("mark"))
+            .described("Labels", "Which directions are named: all four, north only, or none. Mark and Arrow point one way, so they only ever name north.")
+            .choice_labels(&[
+                ("cardinal", "N, E, S, W"),
+                ("north-only", "North only"),
+                ("none", "None"),
+            ])
+            .text("labelN", "")
+            .described("North word", "A word to print for north instead of N. Blank prints N.")
+            .text("labelE", "")
+            .described("East word", "A word to print for east instead of E. Blank prints E.")
+            .text("labelS", "")
+            .described("South word", "A word to print for south instead of S. Blank prints S.")
+            .text("labelW", "")
+            .described("West word", "A word to print for west instead of W. Blank prints W.")
+            .value(
+                ValueSpec::float("north", -180.0..=180.0, 0.0)
+                    .described("North", "Where north points, turned clockwise from straight up. The labels stay upright.")
+                    .unit("°"),
+            )
+            .value(
+                ValueSpec::float("size", 16.0..=400.0, 120.0)
+                    .described("Size", "How far the points reach across; the labels sit outside them.")
+                    .unit("px"),
+            )
+            .choice("anchor", ANCHORS, "top-right")
+            .described("Anchor", "Which corner or edge of the paper the compass sits at.")
+            .choice_labels(&[
+                ("top-left", "Top left"),
+                ("top-centre", "Top centre"),
+                ("top-right", "Top right"),
+                ("bottom-left", "Bottom left"),
+                ("bottom-centre", "Bottom centre"),
+                ("bottom-right", "Bottom right"),
+            ])
+            .value(
+                ValueSpec::float("inset", 0.0..=200.0, 24.0)
+                    .described("Inset", "How far the compass sits in from the paper's edges.")
+                    .unit("px"),
+            )
+            .bool("backing", true)
+            .described("Backing", "A plain disc in the paper's colour behind the compass, so busy terrain doesn't show through it.")
+            .choice("face", FURNITURE_FACES, "map")
+            .described("Face", "The lettering of the labels. Map follows the map's face.")
+            .choice_labels(&[("map", "Map")])
+            .choice_labels(FACE_LABELS)
+            .choice("hand", FURNITURE_HANDS, "map")
+            .described("Hand", "How the compass is drawn and its labels lean. Map follows the map's hand.")
             .choice_labels(&[("map", "Map")])
             .choice_labels(HAND_LABELS),
     );
