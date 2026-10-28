@@ -9,7 +9,9 @@
 use rhizome_core::{Node, Value};
 use rhizome_pom::Document;
 
-use super::kinds::{DEFAULT_PAGE_MARGIN_MM, DEFAULT_PAGE_ORIENTATION, DEFAULT_PAGE_SIZE};
+use super::kinds::{
+    DEFAULT_ASPECT, DEFAULT_PAGE_MARGIN_MM, DEFAULT_PAGE_ORIENTATION, DEFAULT_PAGE_SIZE,
+};
 use super::locations::{self, Key, KeyEntry};
 use super::{MapAndTerritory, CAMPAIGN};
 
@@ -469,38 +471,59 @@ pub fn lay_out(page: PageSpec, aspect: f64, layout: MapLayout, key: Option<&Key>
     }
 }
 
-/// The paper's width over height as a map's paper layer says it: its `aspect` choice turned by
-/// its `orientation` (a square has none). Matches the window's `orientedAspect` and
-/// `resolveAspectRatio`.
-fn paper_aspect(paper: Option<&Node<'_>>) -> f64 {
+/// A map's paper layer.
+pub fn paper_of<'a>(map: &Node<'a>) -> Option<Node<'a>> {
+    map.order("layers")
+        .into_iter()
+        .find(|n| n.type_name() == "paper")
+}
+
+/// The shape a map is drawn at, as width and height: its paper's `aspect`, turned over by its
+/// `orientation` (a square has no way up). The window reads this from the projection
+/// (`derived.rs`) and the print from [`sheet`]; nothing else works it out.
+fn drawn(paper: Option<&Node<'_>>) -> (u32, u32) {
     let choice = |key: &str| match paper.and_then(|p| p.value(key)) {
         Some(Value::Choice(c)) => Some(c),
         _ => None,
     };
-    let aspect = choice("aspect").unwrap_or_else(|| "16:10".into());
-    let (aw, ah) = if aspect == "square" {
-        (1.0, 1.0)
+    let aspect = choice("aspect").unwrap_or_else(|| DEFAULT_ASPECT.into());
+    let parse = |a: &str| {
+        a.split_once(':')
+            .and_then(|(w, h)| Some((w.parse::<u32>().ok()?, h.parse::<u32>().ok()?)))
+            .filter(|(w, h)| *w > 0 && *h > 0)
+    };
+    let (w, h) = if aspect == "square" {
+        (1, 1)
     } else {
-        aspect
-            .split_once(':')
-            .and_then(|(a, b)| Some((a.parse::<f64>().ok()?, b.parse::<f64>().ok()?)))
-            .filter(|(a, b)| *a > 0.0 && *b > 0.0)
-            .unwrap_or((16.0, 10.0))
+        parse(&aspect)
+            .or_else(|| parse(DEFAULT_ASPECT))
+            .unwrap_or((1, 1))
     };
     if choice("orientation").as_deref() == Some("portrait") {
-        ah / aw
+        (h, w)
     } else {
-        aw / ah
+        (w, h)
     }
+}
+
+/// The drawn shape as the window's paper takes it: `square`, or `W:H` with the way up applied.
+pub fn drawn_aspect(paper: Option<&Node<'_>>) -> String {
+    match drawn(paper) {
+        (1, 1) => "square".into(),
+        (w, h) => format!("{w}:{h}"),
+    }
+}
+
+/// The drawn shape's width over height.
+fn paper_aspect(paper: Option<&Node<'_>>) -> f64 {
+    let (w, h) = drawn(paper);
+    f64::from(w) / f64::from(h)
 }
 
 /// The map at `map_path` on the campaign's page, or None when there is no map there.
 pub fn sheet(d: &Doc, map_path: &str) -> Option<Sheet> {
     let map = d.tree().at(map_path).filter(|n| n.type_name() == "map")?;
-    let paper = map
-        .order("layers")
-        .into_iter()
-        .find(|n| n.type_name() == "paper");
+    let paper = paper_of(&map);
     let layout = match map.value("layout") {
         Some(Value::Choice(c)) => MapLayout::parse(&c).unwrap_or_default(),
         _ => MapLayout::default(),

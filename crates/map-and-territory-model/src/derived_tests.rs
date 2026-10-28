@@ -126,3 +126,21 @@ fn it_is_mirrored_as_json_by_id_and_changes_with_the_tree() {
     d.undo().unwrap();
     assert_eq!(d.projection(), &Derived::of(d.tree()));
 }
+
+#[test]
+fn a_maps_drawn_aspect_is_its_paper_turned_by_its_orientation() {
+    let mut d = doc();
+    let id = d.tree().at(MAP).unwrap().id().to_string();
+    let aspect = |d: &Doc| Derived::of(d.tree()).aspects.get(&id).cloned();
+    assert_eq!(aspect(&d).as_deref(), Some("16:10"));
+    let paper = format!("{MAP}/paper");
+    set(&mut d, &paper, "orientation", json!("portrait"));
+    assert_eq!(aspect(&d).as_deref(), Some("10:16"));
+    set(&mut d, &paper, "aspect", json!("16:9"));
+    assert_eq!(aspect(&d).as_deref(), Some("9:16"));
+    set(&mut d, &paper, "aspect", json!("square"));
+    assert_eq!(aspect(&d).as_deref(), Some("square"));
+    // the mirrored projection carries it, as the window reads it
+    let mirrored = MapAndTerritory::mirrored(&Derived::of(d.tree())).unwrap();
+    assert_eq!(mirrored["aspects"][&id], json!("square"));
+}

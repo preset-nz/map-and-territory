@@ -13,6 +13,8 @@ pub const FURNITURE: &str = "furniture";
 pub const MAPS: &str = "maps";
 
 pub const ASPECTS: &[&str] = &["square", "4:3", "16:10", "16:9"];
+/// A paper's aspect when it says none.
+pub const DEFAULT_ASPECT: &str = "16:10";
 pub const ORIENTATIONS: &[&str] = &["pointy", "flat"];
 pub const PAGE_SIZES: &[&str] = &["a5", "a4"];
 pub const PAGE_ORIENTATIONS: &[&str] = &["portrait", "landscape"];
@@ -364,7 +366,7 @@ pub fn declare(k: &mut Kinds) {
             .group("layer")
             .category("background")
             .in_categories(&["maps"])
-            .choice("aspect", ASPECTS, "16:10")
+            .choice("aspect", ASPECTS, DEFAULT_ASPECT)
             .described("Aspect", "The shape of the sheet, as width to height.")
             .choice_labels(&[("square", "Square"), ("4:3", "4:3"), ("16:10", "16:10"), ("16:9", "16:9")])
             .choice("orientation", &["landscape", "portrait"], "landscape")

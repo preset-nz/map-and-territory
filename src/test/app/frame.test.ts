@@ -29,9 +29,13 @@ const schema: FrameSchema = {
   ],
 };
 
-function source(rows: Record<string, FrameRow & { path: string }>): RowSource {
+function source(
+  rows: Record<string, FrameRow & { path: string }>,
+  // the drawn shape is Rust's (`print::drawn_aspect`), mirrored with the rows
+  projection: unknown = { aspects: { m1: '4:3' } },
+): RowSource {
   const byPath = new Map(Object.values(rows).map((r) => [r.path, r]));
-  return { node: (id) => rows[id], nodeAt: (p) => byPath.get(p) };
+  return { node: (id) => rows[id], nodeAt: (p) => byPath.get(p), projection };
 }
 
 function doc(overrides: Partial<Record<string, Partial<FrameRow>>> = {}) {
@@ -76,6 +80,14 @@ describe('frame from the mirror', () => {
     const frame = createFrameBuilder(schema).build(source(doc()), 'm1', SIZE, 2);
     expect(frame.layers.map((l) => l.type)).toEqual(['paper', 'hexgrid']);
     expect(frame.paper).toEqual({ aspect: '4:3', color: '#ffffff' });
+    // the paper's own values don't decide the shape: the projection does
+    const standing = createFrameBuilder(schema).build(
+      source(doc(), { aspects: { m1: '3:4' } }),
+      'm1',
+      SIZE,
+      2,
+    );
+    expect(standing.paper.aspect).toBe('3:4');
     expect(frame.layers[1].state).toMatchObject({ size: 24, color: '#00000080' });
     expect(frame.camera).toEqual({ x: 0, y: 0, zoom: 1 });
     expect(frame.pixelRatio).toBe(2);

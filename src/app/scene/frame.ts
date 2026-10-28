@@ -32,11 +32,13 @@ export interface RowSource {
 }
 
 /**
- * What the frame reads of the mirrored `Derived`, by node id: each location's number. The rule
- * is Rust's (`locations::places`); the frame only looks it up.
+ * What the frame reads of the mirrored `Derived`, by node id: each location's number and each
+ * map's drawn shape. The rules are Rust's (`locations::places`, `print::drawn_aspect`); the
+ * frame only looks them up.
  */
 interface FrameProjection {
   numbers?: Record<string, number>;
+  aspects?: Record<string, string>;
 }
 
 const projectionOf = (rows: RowSource): FrameProjection => {
@@ -434,7 +436,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         }
         if (row.type === 'paper') {
           paper = {
-            aspect: orientedAspect(state.aspect, state.orientation),
+            // before the mirror has the projection, the default shape for one frame
+            aspect: derived.aspects?.[map.id] ?? DEFAULT_PAPER.aspect,
             color: (state.color as string) ?? DEFAULT_PAPER.color,
           };
         }
@@ -452,18 +455,6 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       return { size, pixelRatio, paper, camera, layers, palette };
     },
   };
-}
-
-/**
- * The paper's aspect with its orientation applied: `16:10` standing up is `10:16`. A square
- * has none; an unknown aspect is the default.
- */
-export function orientedAspect(aspect: unknown, orientation: unknown): string {
-  const a =
-    typeof aspect === 'string' && /^(square|\d+:\d+)$/.test(aspect) ? aspect : DEFAULT_PAPER.aspect;
-  if (orientation !== 'portrait' || a === 'square') return a;
-  const [w, h] = a.split(':');
-  return `${h}:${w}`;
 }
 
 /** The suffix on the id of a locations layer's second scene layer, its markers and names. */
