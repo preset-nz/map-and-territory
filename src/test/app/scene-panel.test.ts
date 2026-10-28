@@ -11,7 +11,7 @@ import { createElement } from 'react';
 import { ChannelProvider } from '@/app/document';
 import { sceneCommandState } from '@/app/scene/commands';
 import { ScenePanel } from '@/app/scene/scene-panel';
-import { actionsFor, displayName, layersTopFirst } from '@/app/scene/tree';
+import { actionsFor, displayName, furnitureTopFirst, layersTopFirst } from '@/app/scene/tree';
 import { selection } from '@/app/selection';
 
 const row = (id: string, path: string, type: string, extra: Partial<Row> = {}): Row => ({
@@ -47,6 +47,25 @@ const doc = (): Row[] => [
   }),
 ];
 
+/** The same map with two titles in its `furniture`, the newer last. */
+const withTitles = (): Row[] =>
+  doc()
+    .map((r) =>
+      r.id === 'm'
+        ? { ...r, orders: { layers: ['p', 'f', 'n', 'g'], furniture: ['t1', 't2'] } }
+        : r,
+    )
+    .concat([
+      row('t1', '/maps/map/cartouche', 'cartouche', {
+        parent: 'm',
+        values: { name: 'Title 01', visible: true },
+      }),
+      row('t2', '/maps/map/cartouche-2', 'cartouche', {
+        parent: 'm',
+        values: { name: 'Title 02', visible: true },
+      }),
+    ]);
+
 function source(rows: Row[]) {
   return {
     node: (id: string) => rows.find((r) => r.id === id),
@@ -63,6 +82,18 @@ describe('scene tree logic', () => {
 
   it('lists layers top first', () => {
     expect(layersTopFirst(doc()[2])).toEqual(['g', 'n', 'f', 'p']);
+  });
+
+  it('lists furniture top first, and none for a map without the order', () => {
+    expect(furnitureTopFirst(withTitles().find((r) => r.id === 'm'))).toEqual(['t2', 't1']);
+    expect(furnitureTopFirst(doc()[2])).toEqual([]);
+  });
+
+  it('names a title by its name and offers it what a layer has', () => {
+    const t = withTitles().find((r) => r.id === 't1') as Row;
+    expect(displayName(t)).toBe('Title 01');
+    expect(displayName({ ...t, values: {} })).toBe('Title');
+    expect(actionsFor(t)).toEqual({ rename: true, visible: true, duplicate: true, delete: true });
   });
 
   it('offers only show and hide on the grid, and nothing on the paper', () => {
@@ -103,6 +134,14 @@ describe('scene command state', () => {
     expect(grid.layerPath).toBeNull();
   });
 
+  it('never moves a title or adds a layer above it, and calls it a Title', () => {
+    const s = sceneCommandState({ kind: 'layer', id: 't1' }, source(withTitles()));
+    expect(s.target).toEqual({ path: '/maps/map/cartouche', title: 'Title', anchor: false });
+    expect(s.mapPath).toBe('/maps/map');
+    expect(s.layerPath).toBeNull();
+    expect(s.canMove).toEqual({ forward: false, backward: false });
+  });
+
   it('adds layers to the active map, above nothing when a map is selected', () => {
     const s = sceneCommandState({ kind: 'map', id: 'm' }, rows);
     expect(s.mapPath).toBe('/maps/map');
@@ -112,7 +151,7 @@ describe('scene command state', () => {
 });
 
 describe('the scene panel', () => {
-  function mount() {
+  function mount(rows: Row[] = doc()) {
     const ran: { id: string; payload: unknown }[] = [];
     const backend: PomBackend = {
       connect: async () => null,
@@ -120,7 +159,7 @@ describe('the scene panel', () => {
         seq: 0,
         generation: 0,
         schema: { categories: [], types: [] },
-        rows: doc(),
+        rows,
       }),
       status: async () => ({
         title: 'Untitled',
@@ -173,6 +212,36 @@ describe('the scene panel', () => {
 
     fireEvent.click(view.getByText('Freeform 01'));
     expect(selection.get()).toEqual({ kind: 'layer', id: 'f' });
+  });
+
+  it('lists the furniture in its own section above the layers, and selects it', async () => {
+    const { view, mirror } = mount(withTitles());
+    await act(async () => {
+      await mirror.start();
+    });
+    const items = view.getAllByRole('treeitem').map((el) => el.textContent);
+    expect(items).toEqual([
+      'Westmarch',
+      'Map 01',
+      'Title 02',
+      'Title 01',
+      'Hex Grid',
+      'Hex Noise 01',
+      'Freeform 01',
+      'Paper',
+    ]);
+    const group = view.getByRole('group', { name: 'Furniture' });
+    expect(group.textContent).toBe('Title 02Title 01');
+    fireEvent.click(view.getByText('Title 01'));
+    expect(selection.get()).toEqual({ kind: 'layer', id: 't1' });
+  });
+
+  it('has no furniture section on a map without furniture', async () => {
+    const { view, mirror } = mount();
+    await act(async () => {
+      await mirror.start();
+    });
+    expect(view.queryByRole('group', { name: 'Furniture' })).toBeNull();
   });
 
   it('shows a hidden layer with the eye, as one command', async () => {

@@ -82,6 +82,16 @@ export class RenderService {
       // flush queued messages in order
       for (const { msg: m, transfer } of this.queue) this.worker?.postMessage(m, transfer);
       this.queue = [];
+    } else if (msg?.type === 'faces') {
+      // The worker's face probe (epic 23 story 1): a failure means furniture draws in the
+      // platform's fallback faces, measured right but not in the map's lettering.
+      if (!msg.available) {
+        console.warn('[render] the worker has no FontFace or fonts; furniture uses fallback faces');
+      } else if (msg.failed.length > 0) {
+        console.warn('[render] faces failed to load:', msg.failed.join('; '));
+      } else {
+        console.info('[render] faces loaded:', msg.loaded.join(', '));
+      }
     } else if (msg?.type === 'exported' || msg?.type === 'export-error') {
       const waiting = this.exports.get(msg.id);
       if (!waiting) return;

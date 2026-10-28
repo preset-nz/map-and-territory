@@ -18,6 +18,8 @@ mod voxels;
 #[cfg(test)]
 mod freeform_tests;
 #[cfg(test)]
+mod furniture_tests;
+#[cfg(test)]
 mod layer_tests;
 #[cfg(test)]
 mod outline_tests;

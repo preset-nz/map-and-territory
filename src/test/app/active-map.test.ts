@@ -1,4 +1,4 @@
-import { addedMap } from '@/app/scene/active-map';
+import { addedChild, addedMap } from '@/app/scene/active-map';
 import type { FrameRow, RowSource } from '@/app/scene/frame';
 import { activeMapId } from '@/app/selection';
 
@@ -41,5 +41,17 @@ describe('a map that has just been added', () => {
     expect(addedMap(['a', 'b'], ['a'])).toBeNull();
     expect(addedMap(['a', 'b'], ['b', 'a'])).toBeNull();
     expect(addedMap(['a'], ['x', 'y'])).toBeNull();
+  });
+});
+
+describe('a child that has just been added', () => {
+  it('is found in the same owner’s list', () => {
+    expect(addedChild({ owner: 'a', ids: [] }, { owner: 'a', ids: ['t'] })).toBe('t');
+  });
+
+  it('is nothing on the first reading or when the owner changes', () => {
+    expect(addedChild(null, { owner: 'a', ids: ['t'] })).toBeNull();
+    // map a has no titles, map b has one: switching to b adds nothing
+    expect(addedChild({ owner: 'a', ids: [] }, { owner: 'b', ids: ['t'] })).toBeNull();
   });
 });

@@ -6,7 +6,7 @@ import { CanvasHost } from './app/canvas-host';
 import { useExportBindings } from './app/export/bindings';
 import { AppFrame, useInspectorPanel, useScenePanel } from './app/frame';
 import { Inspector } from './app/inspector/inspector';
-import { addedMap } from './app/scene/active-map';
+import { addedChild, type Reading } from './app/scene/active-map';
 import { useSceneBindings } from './app/scene/commands';
 import { useMapIds } from './app/scene/maps';
 import { ScenePanel } from './app/scene/scene-panel';
@@ -17,20 +17,31 @@ import { BrushPicker } from './app/tools/brush-picker';
 import { useToolPointer } from './app/tools/pointer-tools';
 import { camera, ZOOM_STEP } from './app/view/camera';
 
-/** Selects whatever has just been added to `ids` (one more, and new), through `select`. */
-function useSelectAdded(ids: readonly string[], select: (id: string) => void) {
-  const before = useRef<readonly string[] | null>(null);
+/**
+ * Selects whatever has just been added to `owner`'s `ids` (one more, and new), through
+ * `select`. A change of owner is a new baseline, not an add.
+ */
+function useSelectAdded(
+  owner: string | null,
+  ids: readonly string[],
+  select: (id: string) => void,
+) {
+  const before = useRef<Reading | null>(null);
   useEffect(() => {
-    const added = before.current === null ? null : addedMap(before.current, ids);
-    before.current = ids;
+    const now = { owner, ids };
+    const added = addedChild(before.current, now);
+    before.current = now;
     if (added) select(added);
-  }, [ids, select]);
+  }, [owner, ids, select]);
 }
 
-/** A map or layer that has just been added becomes the selection, as in 2025. */
+/** A map, layer or title that has just been added becomes the selection, as in 2025. */
 function useSelectNewMapsAndLayers() {
-  useSelectAdded(useMapIds(), selection.selectMap);
-  useSelectAdded(useChildren(useActiveMapId(), 'layers'), selection.selectLayer);
+  const mapId = useActiveMapId();
+  useSelectAdded(null, useMapIds(), selection.selectMap);
+  useSelectAdded(mapId, useChildren(mapId, 'layers'), selection.selectLayer);
+  // furniture selects as a layer does, so the inspector shows the new title
+  useSelectAdded(mapId, useChildren(mapId, 'furniture'), selection.selectLayer);
 }
 
 export default function App() {

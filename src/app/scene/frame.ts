@@ -39,6 +39,43 @@ const IDENTITY_CAMERA = { x: 0, y: 0, zoom: 1 };
 const DEFAULT_PAPER: PaperSpec = { aspect: '16:10', color: '#ffffff' };
 const TERRAINS: TerrainCategory[] = ['water', 'plains', 'forest', 'hills', 'mountains'];
 
+/** What a title prints when neither it nor its map has a name (disco-03, Values). */
+export const UNTITLED_MAP = 'Untitled map';
+/** The muted ink "Untitled map" prints in: the ink at this alpha, so it reads as a stand-in. */
+export const MUTED_INK_ALPHA = 0.45;
+
+/** A CSS hex colour at `alpha` times its own alpha; anything else is returned as it is. */
+export function withAlpha(css: string, alpha: number): string {
+  const m = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(css);
+  if (!m) return css;
+  const a = (m[2] ? Number.parseInt(m[2], 16) / 255 : 1) * alpha;
+  const aa = Math.round(Math.min(1, Math.max(0, a)) * 255)
+    .toString(16)
+    .padStart(2, '0');
+  return `#${m[1]}${aa}`;
+}
+
+/**
+ * The grid's ink as the hexgrid adapter draws it: the palette's grid line while the grid
+ * follows the palette, else its own colour. Furniture prints in it until palette roles exist
+ * (epic 23, "Ink").
+ */
+export function gridInk(grid: Record<string, unknown> | undefined, palette: MapPalette): string {
+  const line = palette.grid.line || '#000000';
+  if (!grid || grid.usePaletteColor) return line;
+  return typeof grid.color === 'string' && grid.color.length > 0 ? grid.color : line;
+}
+
+/**
+ * A title's words (map furniture §4): its `title` when not blank, else the map's `name`, else
+ * "Untitled map", muted. Resolved here, not in Rust, until `furniture::resolve` exists.
+ */
+export function resolveTitle(title: unknown, mapName: unknown): { text: string; muted: boolean } {
+  if (typeof title === 'string' && title.trim() !== '') return { text: title, muted: false };
+  if (typeof mapName === 'string' && mapName.trim() !== '') return { text: mapName, muted: false };
+  return { text: UNTITLED_MAP, muted: true };
+}
+
 /** Each kind's colour-valued keys, from the schema the view carries. */
 export function colourKeys(schema: FrameSchema | null | undefined): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
@@ -206,6 +243,35 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     return DefaultPalette;
   };
 
+  /**
+   * A furniture node's adapter state: its values plus what the projection resolves (the title's
+   * words, the grid's ink, the paper's colour). Kept while the row and all of those are
+   * unchanged, so a pointer move posts nothing.
+   */
+  const furnitureStates = new WeakMap<FrameRow, { key: string; state: Record<string, unknown> }>();
+  const furnitureState = (
+    row: FrameRow,
+    map: FrameRow,
+    ink: string,
+    paper: string,
+  ): Record<string, unknown> => {
+    const base = stateOf(row);
+    const resolved =
+      row.type === 'cartouche' ? resolveTitle(base.title, map.values?.name) : undefined;
+    const titleInk = resolved?.muted ? withAlpha(ink, MUTED_INK_ALPHA) : ink;
+    const key = JSON.stringify([resolved?.text, titleInk, ink, paper]);
+    const known = furnitureStates.get(row);
+    if (known && known.key === key) return known.state;
+    const state = {
+      ...base,
+      ...(resolved ? { resolvedTitle: resolved.text, titleInk } : {}),
+      ink,
+      paper,
+    };
+    furnitureStates.set(row, { key, state });
+    return state;
+  };
+
   return {
     build(rows, mapId, size, pixelRatio, preview, camera = IDENTITY_CAMERA) {
       const map = mapId ? rows.node(mapId) : undefined;
@@ -213,6 +279,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         return { size, pixelRatio, paper: DEFAULT_PAPER, camera, layers: [] };
       }
       let paper = DEFAULT_PAPER;
+      let grid: Record<string, unknown> | undefined;
       const layers: SceneLayer[] = [];
       for (const id of map.orders?.layers ?? []) {
         const row = rows.node(id);
@@ -235,6 +302,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
             hoverCorner: preview.hover,
           };
         }
+        if (row.type === 'hexgrid') grid = state;
         if (row.type === 'paper') {
           paper = {
             aspect: (state.aspect as PaperSpec['aspect']) ?? DEFAULT_PAPER.aspect,
@@ -243,14 +311,17 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         }
         layers.push({ id, type: row.type, visible: state.visible !== false, state });
       }
-      return {
-        size,
-        pixelRatio,
-        paper,
-        camera,
-        layers,
-        palette: resolvePalette(rows, map),
-      };
+      const palette = resolvePalette(rows, map);
+      // Furniture after the grid, so no grid line crosses it (map furniture §1). One array: the
+      // backend draws it in order and knows nothing of the two orders.
+      const ink = gridInk(grid, palette);
+      for (const id of map.orders?.furniture ?? []) {
+        const row = rows.node(id);
+        if (!row) continue;
+        const state = furnitureState(row, map, ink, paper.color);
+        layers.push({ id, type: row.type, visible: state.visible !== false, state });
+      }
+      return { size, pixelRatio, paper, camera, layers, palette };
     },
   };
 }

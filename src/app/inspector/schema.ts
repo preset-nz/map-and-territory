@@ -78,6 +78,15 @@ export function fileRefCommand(type: string, key: string): string | undefined {
   return FILE_REFS[`${type}.${key}`]?.command;
 }
 
+/**
+ * What an empty override field says will print (map furniture §4), keyed `type.key`. facets'
+ * placeholder is a fixed string on the schema, which is built once per kind, so it names the
+ * source rather than showing the map's name itself.
+ */
+const PLACEHOLDERS: Record<string, string> = {
+  'cartouche.title': "The map's name",
+};
+
 /** An image layer's values that place its image. */
 const IMAGE_PLACING = new Set(['fit', 'scale', 'offsetX', 'offsetY', 'rotation']);
 
@@ -208,6 +217,8 @@ export function schemaFor(
   for (const f of rows) {
     const when = disabledWhen(type, 'path' in f && f.path ? f.path : '', values);
     if (when) f.disabledWhen = when;
+    const placeholder = PLACEHOLDERS[`${type}.${f.id}`];
+    if (placeholder && f.kind === 'text') f.placeholder = placeholder;
   }
   return { version: 1, groups: [{ id: 'values', rows }] };
 }

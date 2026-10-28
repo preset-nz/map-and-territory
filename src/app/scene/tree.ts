@@ -17,7 +17,11 @@ const TITLES: Record<string, string> = {
   'hex-noise': 'Hex Noise',
   freeform: 'Freeform',
   outline: 'Outline',
+  cartouche: 'Title',
 };
+
+/** Furniture kinds: in the map's `furniture`, drawn after `layers` (map furniture §1). */
+export const FURNITURE_KINDS = new Set(['cartouche']);
 
 const ANCHORS = new Set(['paper', 'hexgrid']);
 
@@ -30,6 +34,14 @@ export function displayName(row: TreeRow): string {
 /** A map's layers as the panel lists them: top first, the reverse of the stored z-order. */
 export function layersTopFirst(map: TreeRow | undefined): string[] {
   return [...(map?.orders?.layers ?? [])].reverse();
+}
+
+/**
+ * A map's furniture as the panel lists it: top first, above the layers. rhizome keeps no empty
+ * order, so a map without furniture has no `furniture` at all.
+ */
+export function furnitureTopFirst(map: TreeRow | undefined): string[] {
+  return [...(map?.orders?.furniture ?? [])].reverse();
 }
 
 export interface RowActions {

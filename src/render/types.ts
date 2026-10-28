@@ -19,6 +19,7 @@ export interface SceneLayer<State = unknown> {
 }
 
 import type { MapPalette } from '@/palettes/types';
+import type { FacesReport } from '@/render/faces';
 
 export interface SceneFrame {
   size: { w: number; h: number };
@@ -58,6 +59,8 @@ export interface RenderBackend {
 export type RenderMessage =
   | { type: 'init'; canvas: OffscreenCanvas; pixelRatio: number }
   | { type: 'inited' }
+  /** Once, after init: which faces the worker loaded (epic 23 story 1's WKWebView probe). */
+  | ({ type: 'faces' } & FacesReport)
   | { type: 'resize'; size: { w: number; h: number }; pixelRatio: number }
   | { type: 'render'; frame: WireFrame }
   | { type: 'texture'; id: string; bitmap: ImageBitmap }

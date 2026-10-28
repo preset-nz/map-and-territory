@@ -99,3 +99,19 @@ steps = [
   { expect = "File > Export > Map as PNG…", enabled = true },
   { expect = "File > Export > PDF…", enabled = true },
 ]
+
+[[test]]
+name = "a title needs a map and is added in one named step"
+covers = "epic 23 story 1"
+steps = [
+  { expect = "Layer > Add Title", enabled = false },
+  { menu = "Map > New Map" },
+  { expect = "Layer > Add Title", enabled = true },
+  { menu = "Layer > Add Title" },
+  { expect = "Edit > #1", title = "Undo Add Title" },
+  # the new title is selected, and it can't move among the layers
+  { expect = "Layer > Bring Forward", enabled = false },
+  { expect = "Layer > Send Backward", enabled = false },
+  { menu = "Edit > Duplicate" },
+  { expect = "Edit > #1", title = "Undo Duplicate" },
+]

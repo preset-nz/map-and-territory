@@ -19,6 +19,10 @@ title: Map & Territory nodes
 - [Campaign](campaign.md): The whole document: its maps, its palettes and the notes that go with them.
 - [Map](map.md): One hexmap in the campaign: a paper, a hex grid and the layers between them.
 
+## Furniture
+
+- [Title](cartouche.md): The map's title in a box, with an optional subtitle and credit line, printed over the grid.
+
 ## Generator
 
 - [Hex Noise](hex-noise.md): Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour.

@@ -4,6 +4,7 @@ import { registerBuiltinLayers } from '@/layers/builtin';
 import { Canvas2DBackend } from '@/render/backends/canvas2d';
 import { createDeltaDecoder } from '@/render/delta';
 import { renderExportPng } from '@/render/export';
+import { loadFaces } from '@/render/faces';
 import type { RenderMessage, SceneFrame } from '@/render/types';
 
 let backend: Canvas2DBackend | null = null;
@@ -13,6 +14,42 @@ const decoder = createDeltaDecoder();
 // the newest frame not yet drawn: a burst of pointer moves draws once
 let pending: SceneFrame | null = null;
 let scheduled = false;
+// settles (never rejects) once every face has loaded or failed; an export waits for it
+let facesReady: Promise<void> = Promise.resolve();
+
+type Post = (m: RenderMessage, transfer?: Transferable[]) => void;
+const post: Post = (m, transfer) =>
+  (self as unknown as { postMessage: Post }).postMessage(m, transfer ?? []);
+
+/** Draw the last frame again, as soon as the queue allows. */
+function redraw() {
+  if (!lastFrame) return;
+  pending = pending ?? lastFrame;
+  if (!scheduled) {
+    scheduled = true;
+    setTimeout(drawPending, 0);
+  }
+}
+
+/**
+ * The faces into this worker's `fonts` (epic 23). Text measured before they arrive is measured
+ * in the fallback, so when they land the cached prefix is dropped and the frame drawn again.
+ * The report goes back to the page once, as the probe for whether WKWebView's worker has
+ * `fonts` at all.
+ */
+function startFaces() {
+  facesReady = loadFaces(self as unknown as Parameters<typeof loadFaces>[0])
+    .then((report) => {
+      post({ type: 'faces', ...report });
+      if (report.loaded.length > 0) {
+        backend?.dropCache();
+        redraw();
+      }
+    })
+    .catch((e) => {
+      post({ type: 'faces', available: false, loaded: [], failed: [String(e)] });
+    });
+}
 
 function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
   registerBuiltinLayers();
@@ -27,9 +64,8 @@ function handleInit(msg: Extract<RenderMessage, { type: 'init' }>) {
 
   backend.init(msg.canvas, msg.pixelRatio);
   // Acknowledge initialization to the main thread
-  (self as unknown as { postMessage: (m: RenderMessage) => void }).postMessage({
-    type: 'inited',
-  });
+  post({ type: 'inited' });
+  startFaces();
 }
 
 function handleResize(msg: Extract<RenderMessage, { type: 'resize' }>) {
@@ -104,20 +140,13 @@ function handleRender(msg: Extract<RenderMessage, { type: 'render' }>) {
 function handleTexture(msg: Extract<RenderMessage, { type: 'texture' }>) {
   backend?.setTexture(msg.id, msg.bitmap);
   // draw again with what is already known; the layer's state did not change
-  if (lastFrame) {
-    pending = pending ?? lastFrame;
-    if (!scheduled) {
-      scheduled = true;
-      setTimeout(drawPending, 0);
-    }
-  }
+  redraw();
 }
 
-type Post = (m: RenderMessage, transfer?: Transferable[]) => void;
-
 async function handleExport(msg: Extract<RenderMessage, { type: 'export' }>) {
-  const post = (self as unknown as { postMessage: Post }).postMessage.bind(self);
   try {
+    // the export measures its text in the faces, never in a fallback that is about to change
+    await facesReady;
     if (!backend) throw new Error('the renderer is not ready');
     const png = await renderExportPng(backend, msg);
     post({ type: 'exported', id: msg.id, png }, [png]);

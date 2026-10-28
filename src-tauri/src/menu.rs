@@ -27,13 +27,14 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 22] = [
+const WEBVIEW: [&str; 23] = [
     "file.export-map-png",
     "file.export-pdf",
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
     "layer.add-image",
+    "layer.add-title",
     "edit.move-earlier",
     "edit.move-later",
     "edit.move-to-front",
@@ -118,6 +119,9 @@ pub fn commands() -> Vec<Command> {
         layer("layer.add-freeform", "Add Freeform Layer", 0),
         layer("layer.add-outline", "Add Outline Layer", 0),
         layer("layer.add-image", "Add Image Layer", 0),
+        // The first furniture kind (epic 23): added on top of the grid, in the map's
+        // `furniture`. No chord, like the layer Add items.
+        layer("layer.add-title", "Add Title", 0),
         // Bring Forward is up the stack (menu standard: Opt+Up). Ids are POM's move ids.
         layer("edit.move-earlier", "Bring Forward", 1).accelerator(shortcut::MOVE_EARLIER),
         layer("edit.move-later", "Send Backward", 1).accelerator(shortcut::MOVE_LATER),

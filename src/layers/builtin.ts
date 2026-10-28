@@ -1,3 +1,4 @@
+import { CartoucheType } from '@/layers/adapters/cartouche';
 import { FreeformType } from '@/layers/adapters/freeform-hex';
 import { HexNoiseType } from '@/layers/adapters/hex-noise';
 import { HexgridType } from '@/layers/adapters/hexgrid';
@@ -7,7 +8,10 @@ import { PaperType } from '@/layers/adapters/paper';
 import { registerLayerType } from '@/layers/registry';
 import type { LayerType } from '@/layers/types';
 
-/** Every layer kind the document has, by its kind name in `crates/map-and-territory-model/src/kinds.rs`. */
+/**
+ * Every layer and furniture kind the document has, by its kind name in
+ * `crates/map-and-territory-model/src/kinds.rs`.
+ */
 export const BUILTIN_LAYER_TYPES = [
   PaperType,
   HexgridType,
@@ -15,6 +19,7 @@ export const BUILTIN_LAYER_TYPES = [
   FreeformType,
   OutlineType,
   ImageType,
+  CartoucheType,
 ] as unknown as LayerType[];
 
 export function registerBuiltinLayers() {

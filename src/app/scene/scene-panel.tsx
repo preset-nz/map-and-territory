@@ -12,12 +12,15 @@ import { useRun } from '../document';
 import { type Selected, selection } from '../selection';
 import { CAMPAIGN_PATH } from './frame';
 import { useMapIds } from './maps';
-import { actionsFor, displayName, layersTopFirst, type TreeRow } from './tree';
+import { actionsFor, displayName, furnitureTopFirst, layersTopFirst, type TreeRow } from './tree';
 
 const isSelected = (s: Selected, kind: Selected['kind'], id?: string) =>
   s.kind === kind && (id === undefined || ('id' in s && s.id === id));
 
-/** The campaign, its maps and each map's layers, top first (epic 16, story 2). */
+/**
+ * The campaign, its maps and each map's furniture and layers, top first (epic 16 story 2,
+ * epic 23 story 1). Furniture is drawn over the grid, so it lists above the layers.
+ */
 export function ScenePanel() {
   const campaign = useNodeAt(CAMPAIGN_PATH);
   const maps = useMapIds();
@@ -51,6 +54,7 @@ export function ScenePanel() {
 function MapItem({ id, selected }: { id: string; selected: Selected }) {
   const row = useNode(id);
   const layers = useChildren(id, 'layers');
+  const furniture = useChildren(id, 'furniture');
   const [open, setOpen] = useState(true);
   if (!row) return null;
   return (
@@ -64,6 +68,20 @@ function MapItem({ id, selected }: { id: string; selected: Selected }) {
         expanded={open}
         onToggleExpanded={() => setOpen((o) => !o)}
       />
+      {open && furniture.length > 0 && (
+        // Its own section: a rule under it parts it from the layers. A group of tree items is
+        // ARIA's tree pattern, not a form's fieldset.
+        // biome-ignore lint/a11y/useSemanticElements: a group inside a tree
+        <div
+          role="group"
+          aria-label="Furniture"
+          className="mb-0.5 border-sidebar-border border-b pb-0.5"
+        >
+          {furnitureTopFirst({ ...row, orders: { furniture: [...furniture] } }).map((nodeId) => (
+            <LayerItem key={nodeId} id={nodeId} selected={selected} icon={<Icons.TextT />} />
+          ))}
+        </div>
+      )}
       {open &&
         layersTopFirst({ ...row, orders: { layers: [...layers] } }).map((layerId) => (
           <LayerItem key={layerId} id={layerId} selected={selected} />
@@ -72,7 +90,16 @@ function MapItem({ id, selected }: { id: string; selected: Selected }) {
   );
 }
 
-function LayerItem({ id, selected }: { id: string; selected: Selected }) {
+/** A layer or a piece of furniture: both select as a layer, so the inspector and Edit follow. */
+function LayerItem({
+  id,
+  selected,
+  icon = <Icons.Stack />,
+}: {
+  id: string;
+  selected: Selected;
+  icon?: React.ReactNode;
+}) {
   const row = useNode(id);
   if (!row) return null;
   return (
@@ -81,7 +108,7 @@ function LayerItem({ id, selected }: { id: string; selected: Selected }) {
       depth={2}
       selected={isSelected(selected, 'layer', id)}
       onSelect={() => selection.selectLayer(id)}
-      icon={<Icons.Stack />}
+      icon={icon}
     />
   );
 }

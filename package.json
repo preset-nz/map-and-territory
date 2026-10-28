@@ -14,6 +14,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@fontsource/im-fell-english": "^5.3.0",
+    "@fontsource/permanent-marker": "^5.3.0",
+    "@fontsource/unifrakturmaguntia": "^5.3.0",
     "@preset.nz/app-kit": "link:../../packages/app-kit",
     "@preset.nz/facets": "link:../../packages/facets",
     "@preset.nz/math": "^0.1.0",

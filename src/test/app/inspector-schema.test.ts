@@ -60,6 +60,37 @@ describe('the inspector schema', () => {
     ]);
   });
 
+  it("gives the title's override field the source as its placeholder, and only that field", () => {
+    const rows = schemaFor(
+      [
+        { key: 'name', kind: 'text' },
+        { key: 'title', kind: 'text' },
+        { key: 'subtitle', kind: 'text' },
+        {
+          key: 'face',
+          kind: 'choice',
+          choices: ['condensed', 'serif'],
+          choice_labels: { condensed: 'Condensed', serif: 'Serif' },
+        },
+      ],
+      [],
+      'cartouche',
+    ).groups[0]?.rows as { id: string; placeholder?: string; options?: unknown }[];
+    expect(rows.map((r) => [r.id, r.placeholder])).toEqual([
+      ['name', undefined],
+      ['title', "The map's name"],
+      ['subtitle', undefined],
+      ['face', undefined],
+    ]);
+    expect(rows[3]?.options).toEqual([
+      { value: 'condensed', label: 'Condensed' },
+      { value: 'serif', label: 'Serif' },
+    ]);
+    // another kind's `title` has none
+    const other = schemaFor([{ key: 'title', kind: 'text' }], [], 'map').groups[0]?.rows[0];
+    expect((other as { placeholder?: string }).placeholder).toBeUndefined();
+  });
+
   it('round-trips a colour between rhizome and CSS', () => {
     expect(parseColour('#ff8000')).toEqual([1, 128 / 255, 0, 1]);
     expect(parseColour('#ff800080')?.[3]).toBeCloseTo(128 / 255);

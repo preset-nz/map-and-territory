@@ -6,6 +6,9 @@ use rhizome_pom::Kinds;
 
 /// Where the pinned anchors sit: the map's z-order, index 0 at the bottom.
 pub const LAYERS: &str = "layers";
+/// The map's furniture (title, compass), drawn after `layers` so no grid line crosses it
+/// (map furniture §1). rhizome keeps no empty order, so a map without furniture has none.
+pub const FURNITURE: &str = "furniture";
 /// The scene panel's map order, on the `/maps` category.
 pub const MAPS: &str = "maps";
 
@@ -64,6 +67,27 @@ pub const IMAGE: LayerKind = LayerKind {
 };
 pub const LAYER_KINDS: [&LayerKind; 4] = [&HEX_NOISE, &FREEFORM, &OUTLINE, &IMAGE];
 
+pub const CARTOUCHE: LayerKind = LayerKind {
+    id: "cartouche",
+    base: "Title",
+};
+/// Every furniture kind: each lives in a map's `furniture`, never in `layers`.
+pub const FURNITURE_KINDS: [&LayerKind; 1] = [&CARTOUCHE];
+
+pub const FRAMES: &[&str] = &["none", "rule"];
+pub const ALIGNS: &[&str] = &["left", "centre", "right"];
+pub const ANCHORS: &[&str] = &[
+    "top-left",
+    "top-centre",
+    "top-right",
+    "bottom-left",
+    "bottom-centre",
+    "bottom-right",
+];
+/// The faces (map furniture §5). Story 2 of epic 23 adds `map`, the sheet style's, and makes it
+/// the default; until then a title picks its own.
+pub const FACES: &[&str] = &["condensed", "serif", "blackletter", "marker"];
+
 fn rgb(r: u8, g: u8, b: u8) -> [f64; 4] {
     [
         f64::from(r) / 255.0,
@@ -75,11 +99,31 @@ fn rgb(r: u8, g: u8, b: u8) -> [f64; 4] {
 
 /// The values every layer kind starts with. In `maps` with the anchors, so a map can hold them.
 fn layer(id: &str, name: &str) -> NodeType {
+    common(
+        id,
+        name,
+        "layer",
+        "What the layer is called in the layer list.",
+    )
+}
+
+/// The values every furniture kind starts with: the layer's common values (map furniture §3).
+fn furniture(id: &str, name: &str) -> NodeType {
+    common(
+        id,
+        name,
+        "furniture",
+        "What it is called in the scene list.",
+    )
+}
+
+/// The common values, in `maps`. The group tag is what the map's order check reads.
+fn common(id: &str, name: &str, group: &str, name_help: &str) -> NodeType {
     NodeType::new(id)
         .in_categories(&["maps"])
-        .group("layer")
+        .group(group)
         .text("name", name)
-        .described("Name", "What the layer is called in the layer list.")
+        .described("Name", name_help)
         .bool("visible", true)
         .described("Visible", "Whether the layer is drawn.")
         .float("opacity", 0.0..=1.0, 1.0)
@@ -203,7 +247,7 @@ pub fn declare(k: &mut Kinds) {
             .check(|map| {
                 let count = |t: &str| map.children().filter(|c| c.type_name() == t).count();
                 match (count("paper"), count("hexgrid")) {
-                    (1, 1) => Ok(()),
+                    (1, 1) => check_orders(map),
                     _ => Err("a map has exactly one paper and one hexgrid".into()),
                 }
             }),
@@ -530,6 +574,58 @@ pub fn declare(k: &mut Kinds) {
             .reference("file"),
     );
 
+    // The title cartouche (epic 23 story 1, disco-03). Draws in the grid's ink on the paper's
+    // colour, which the frame projection resolves; no colour of its own (map furniture §3).
+    k.kind(
+        furniture(CARTOUCHE.id, CARTOUCHE.base)
+            .label("Title")
+            .summary("The map's title in a box, with an optional subtitle and credit line, printed over the grid.")
+            .category("furniture")
+            .text("title", "")
+            .described("Title", "The words printed as the title. Blank prints the map's name, so renaming the map changes it.")
+            .text("subtitle", "")
+            .described("Subtitle", "A second line under the title, in an italic serif at half its size. Blank leaves it out.")
+            .text("credit", "")
+            .described("Credit", "A small third line in a typewriter face, such as who surveyed the map and when. Blank leaves it out.")
+            .choice("frame", FRAMES, "rule")
+            .described("Frame", "What is drawn around the lines: nothing, or a single ruled box.")
+            .choice_labels(&[("none", "None"), ("rule", "Rule")])
+            .choice("align", ALIGNS, "centre")
+            .described("Align", "Where the lines sit within the box.")
+            .choice_labels(&[("left", "Left"), ("centre", "Centre"), ("right", "Right")])
+            .value(
+                ValueSpec::float("titleSize", 12.0..=120.0, 30.0)
+                    .soft_max()
+                    .described("Title size", "How tall the title is. The subtitle is half of it and the credit a third.")
+                    .unit("px"),
+            )
+            .choice("anchor", ANCHORS, "top-left")
+            .described("Anchor", "Which corner or edge of the paper the title sits at.")
+            .choice_labels(&[
+                ("top-left", "Top left"),
+                ("top-centre", "Top centre"),
+                ("top-right", "Top right"),
+                ("bottom-left", "Bottom left"),
+                ("bottom-centre", "Bottom centre"),
+                ("bottom-right", "Bottom right"),
+            ])
+            .value(
+                ValueSpec::float("inset", 0.0..=200.0, 24.0)
+                    .described("Inset", "How far the title sits in from the paper's edges.")
+                    .unit("px"),
+            )
+            .bool("backing", true)
+            .described("Backing", "A plain plate in the paper's colour behind the title, so busy terrain doesn't show through it.")
+            .choice("face", FACES, "condensed")
+            .described("Face", "The lettering of the title: a condensed sans in capitals, an old atlas serif, blackletter, or a marker in capitals.")
+            .choice_labels(&[
+                ("condensed", "Condensed"),
+                ("serif", "Serif"),
+                ("blackletter", "Blackletter"),
+                ("marker", "Marker"),
+            ]),
+    );
+
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
     // `<cq>_<cr>` (floor of q and r over 16); `voxels` is a palette and run-length cells, row-major.
     k.kind(
@@ -570,6 +666,20 @@ pub fn declare(k: &mut Kinds) {
     )
     .presets(super::palette::PaletteAggregate)
     .catalogue(super::palette::catalogue());
+}
+
+/// Each of a map's orders holds only its own family: layer kinds and the anchors in `layers`,
+/// furniture in `furniture` (map furniture §1). On the map's check, so no edit, raw or by
+/// command, can move a title under the grid or a layer over it.
+fn check_orders(map: &rhizome_core::Node<'_>) -> Result<(), String> {
+    for (order, group) in [(LAYERS, "layer"), (FURNITURE, "furniture")] {
+        for n in map.order(order) {
+            if n.node_type().and_then(|t| t.group_tag()) != Some(group) {
+                return Err(format!("a {} can't go in `{order}`", n.type_name()));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// The common layer blend modes (design: Values, "every layer kind except `paper`").

@@ -28,7 +28,7 @@ sha256 = "6105ea2aa7b5bbc3ce9dfe2dc851d915c8a09c340fbca324be0046733a1e75ce"
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "796efb9fd7e4324c398ca7108ed6d3dd7e063b4ded1c88686bcb7ebb8d4e6fa8"
+sha256 = "63edbb12a3f9baac3c922ad7d66d4f41c8bc104a3a4dde4bbf0fdc9ccabc80c8"
 
 [[inputs]]
 path = "src-tauri/Cargo.toml"
@@ -4097,6 +4097,38 @@ version = "0.28.2"
 source = "registry"
 declared = "MIT"
 scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@fontsource/barlow-condensed"
+version = "5.3.0"
+source = "registry"
+declared = "OFL-1.1"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@fontsource/im-fell-english"
+version = "5.3.0"
+source = "registry"
+declared = "OFL-1.1"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@fontsource/permanent-marker"
+version = "5.3.0"
+source = "registry"
+declared = "Apache-2.0"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@fontsource/unifrakturmaguntia"
+version = "5.3.0"
+source = "registry"
+declared = "OFL-1.1"
+scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"

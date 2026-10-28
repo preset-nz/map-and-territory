@@ -6,7 +6,7 @@ import { useMemo, useSyncExternalStore } from 'react';
 import { useRun } from '../document';
 import { activeMapId, type Selected, selection } from '../selection';
 import type { RowSource } from './frame';
-import type { TreeRow } from './tree';
+import { FURNITURE_KINDS, type TreeRow } from './tree';
 
 type Rows = { node(id: string): (TreeRow & { parent?: string | null }) | undefined } & RowSource;
 
@@ -18,13 +18,14 @@ export interface SceneCommandState {
   /**
    * The selected layer's path, when a layer is selected: an added layer goes above it. Null for
    * the grid, since nothing goes above it: the layer then lands just below it, at the map's top.
+   * Null for furniture too, which isn't in `layers`.
    */
   layerPath: string | null;
   canMove: { forward: boolean; backward: boolean };
 }
 
 const ANCHORS = new Set(['paper', 'hexgrid']);
-const KIND_TITLE: Record<string, string> = { map: 'Map', campaign: 'Campaign' };
+const KIND_TITLE: Record<string, string> = { map: 'Map', campaign: 'Campaign', cartouche: 'Title' };
 
 /** What the selection allows, read from the document rows. Pure, for tests. */
 export function sceneCommandState(selected: Selected, rows: Rows): SceneCommandState {
@@ -47,7 +48,8 @@ export function sceneCommandState(selected: Selected, rows: Rows): SceneCommandS
   return {
     target: row ? { path: row.path, title: KIND_TITLE[row.type] ?? 'Layer', anchor } : null,
     mapPath: map?.path ?? null,
-    layerPath: isLayer && row.type !== 'hexgrid' ? row.path : null,
+    layerPath:
+      isLayer && row.type !== 'hexgrid' && !FURNITURE_KINDS.has(row.type) ? row.path : null,
     canMove: { forward, backward },
   };
 }
@@ -98,6 +100,11 @@ export function useSceneBindings(): Record<string, Binding> {
       'layer.add-freeform': { enabled: s.mapPath !== null, run: add('freeform') },
       'layer.add-outline': { enabled: s.mapPath !== null, run: add('outline') },
       'layer.add-image': { enabled: s.mapPath !== null, run: add('image') },
+      // furniture always lands on top of the map's `furniture`, whatever is selected
+      'layer.add-title': {
+        enabled: s.mapPath !== null,
+        run: () => s.mapPath && run('node.add', { parent: s.mapPath, type: 'cartouche' }),
+      },
       'edit.move-earlier': move('edit.move-earlier', s.canMove.forward),
       'edit.move-later': move('edit.move-later', s.canMove.backward),
       'edit.move-to-front': move('edit.move-to-front', s.canMove.forward),
