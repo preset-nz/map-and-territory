@@ -6,6 +6,7 @@
 //! webview. `Context = ()` and `Projection = ()`: M&T has no sidecar, and nothing in Rust
 //! draws.
 
+mod booklet;
 mod commands;
 mod compass;
 mod freeform;
@@ -17,6 +18,8 @@ mod settings_2025;
 pub mod texture;
 mod voxels;
 
+#[cfg(test)]
+mod booklet_tests;
 #[cfg(test)]
 mod compass_tests;
 #[cfg(test)]
@@ -63,6 +66,7 @@ impl ObjectModel for MapAndTerritory {
     }
 
     fn commands(c: &mut Commands<Self>) {
+        booklet::declare(c);
         commands::declare(c);
         compass::declare(c);
         locations::declare(c);

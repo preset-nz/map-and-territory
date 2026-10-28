@@ -253,6 +253,7 @@ fn terrain() -> Shape {
 pub fn declare(k: &mut Kinds) {
     k.category("campaign", Origin::Loaded)
         .category("maps", Origin::Loaded)
+        .category("pages", Origin::Loaded)
         .category("themes", Origin::Loaded);
 
     k.kind(
@@ -289,6 +290,11 @@ pub fn declare(k: &mut Kinds) {
                     )
                     .unit("mm"),
             )
+            .choice("booklet", super::booklet::BOOKLETS, "none")
+            .described("Booklet", "A loose collection of maps, each printed on its own pages, or a booklet of pages: cover, pages, back.")
+            .choice_labels(&[("none", "None, a collection of maps"), ("spine", "Spine booklet"), ("stapled", "Stapled pages")])
+            .bool("doubleSided", true)
+            .described("Double-sided", "Stapled pages printed on both sides, so pages are added in twos.")
             // A reference has no words of its own; `.described` would land on the value above.
             .reference("palette"),
     )
@@ -846,6 +852,20 @@ pub fn declare(k: &mut Kinds) {
                 "A secret for the map's owner: dashed and faint in the window, left out of an export.",
             )
             .check(super::locations::check_location),
+    );
+
+    // A booklet's page (epic 32 story 3), in `/pages` and its `pages` order; it shows at most
+    // one map, which is on no other page.
+    k.kind(
+        NodeType::new("page")
+            .label("Page")
+            .summary("One page of a booklet: the cover, the back, or a page between that may show a map.")
+            .group("document")
+            .in_categories(&["pages"])
+            .text("name", "Page")
+            .described("Name", "What you call the page.")
+            .reference(super::booklet::MAP)
+            .check(super::booklet::check_page),
     );
 
     // One 16x16 block of a freeform layer's voxel grid, present only where painted. Named
