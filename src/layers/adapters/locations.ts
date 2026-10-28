@@ -25,6 +25,8 @@ export interface PlacedLocation {
   number: number | null;
   marker: LocationMarker;
   hidden: boolean;
+  /** Its marker and name against the layer's size; 1 when unset. */
+  size?: number;
 }
 
 export interface LocationsState {
@@ -37,6 +39,8 @@ export interface LocationsState {
   pass?: 'areas' | 'marks';
   showLabels?: boolean;
   labelStyle?: LabelStyle;
+  /** How big markers and names are against the hex; 1 when unset. */
+  size?: number;
   /** `map` is resolved by the projection, so the adapter sees a face id. */
   face?: string;
   ink?: string;
@@ -171,7 +175,6 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
   title: 'Locations',
   drawMain(ctx, state, env) {
     const layout = layoutOf(env);
-    const s = layout.size;
     const ink = state.ink || '#000000';
     const paper = state.paper || '#ffffff';
     const face = state.face ?? 'condensed';
@@ -187,6 +190,8 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
     for (const loc of state.pass === 'areas' ? [] : places) {
       const area = loc.hexes.length > 1;
       const c = anchorOf(loc.hexes, layout);
+      // markers and names scale with the hex, the layer's size and the place's own
+      const s = layout.size * (state.size ?? 1) * (loc.size ?? 1);
       ctx.save();
       if (loc.hidden) ctx.globalAlpha *= HIDDEN_ALPHA;
       ctx.fillStyle = ink;
@@ -268,6 +273,7 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
       s.locations ?? [],
       s.showLabels !== false,
       s.labelStyle ?? 'plain',
+      s.size ?? 1,
       s.face ?? 'condensed',
       s.ink ?? '',
       s.paper ?? '',

@@ -794,6 +794,8 @@ pub fn declare(k: &mut Kinds) {
                 ("glow", "Glow"),
                 ("label", "Label"),
             ])
+            .float("size", 0.5..=4.0, 1.0)
+            .described("Size", "How big the markers and names are; 1 fits a hex.")
             .bool("numbered", true)
             .described("Numbered", "Count this layer's locations in the map's numbering. Off, they keep their names but take no number.")
             .choice("face", FURNITURE_FACES, "map")
@@ -822,6 +824,8 @@ pub fn declare(k: &mut Kinds) {
             .choice("category", LOCATION_CATEGORIES, "landmark")
             .described("Category", "What kind of place it is.")
             .choice_labels(LOCATION_CATEGORY_LABELS)
+            .float("size", 0.5..=3.0, 1.0)
+            .described("Size", "Its marker and name against the layer's size: 2 for a city among villages.")
             .shaped(
                 "hexes",
                 Shape::list(Shape::record([("q", Shape::Int), ("r", Shape::Int)])),

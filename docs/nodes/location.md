@@ -16,6 +16,7 @@ One named place on the map: a hex, its name and what is there.
 | Note | text | empty | A short second line printed under the name: "ford, deep in spring". |
 | Description | text | empty | Who holds it, what waits there: for the key and for you. |
 | Category | Settlement (`settlement`), Stronghold (`stronghold`), Dungeon (`dungeon`), Ruin (`ruin`), Lair (`lair`), Shrine (`shrine`), Landmark (`landmark`), Other (`other`) | Landmark (`landmark`) | What kind of place it is. |
+| Size | 0.5 to 3 | 1 | Its marker and name against the layer's size: 2 for a city among villages. |
 | Hexes | structured | empty | Where it is: one hex for a place, several for an area. |
 | Hidden | on or off | off | A secret for the map's owner: dashed and faint in the window, left out of an export. |
 <!-- generated:end -->

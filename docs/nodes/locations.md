@@ -20,6 +20,7 @@ Named places on the map, numbered for the key: keeps, wells, fords, lairs.
 | Marker | Number (`number`), Dot (`dot`), None (`none`) | Number (`number`) | How each location is marked: its number in a ring, a dot, or nothing but its name. |
 | Names | on or off | on | Print each location's name beside its marker. |
 | Name style | Plain (`plain`), Outline (`outline`), Glow (`glow`), Label (`label`) | Plain (`plain`) | How a name sits on the map: plain ink, outlined in the paper's colour, a soft glow of paper behind it so it reads over dark ground, or on a small paper label. |
+| Size | 0.5 to 4 | 1 | How big the markers and names are; 1 fits a hex. |
 | Numbered | on or off | on | Count this layer's locations in the map's numbering. Off, they keep their names but take no number. |
 | Face | Map (`map`), Condensed (`condensed`), Serif (`serif`), Blackletter (`blackletter`), Marker (`marker`) | Map (`map`) | The lettering of the names and numbers. Map follows the map's face. |
 <!-- generated:end -->

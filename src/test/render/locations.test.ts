@@ -194,6 +194,18 @@ describe('the locations adapter', () => {
     expect(marks.fills).not.toContain(AREA_TINT);
     expect(marks.texts.map((t) => t.text)).toEqual(['4', 'The Mire']);
   });
+
+  it('grows markers and names with the layer’s size and a place’s own', () => {
+    const offset = (st: LocationsState) =>
+      (draw(st).texts.find((t) => t.text === 'Reedwall Keep')?.x ?? 0) - 400;
+    const one = offset(state);
+    expect(offset({ ...state, size: 2 })).toBeCloseTo(one * 2);
+    const big = state.locations?.map((l, i) => (i ? l : { ...l, size: 1.5 }));
+    expect(offset({ ...state, size: 2, locations: big })).toBeCloseTo(one * 3);
+    expect(LocationsAdapter.getInvalidationKey({ ...state, size: 2 })).not.toBe(
+      LocationsAdapter.getInvalidationKey(state),
+    );
+  });
 });
 
 describe('an area’s edge', () => {

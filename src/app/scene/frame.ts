@@ -361,6 +361,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         number: numbered ? first + i : null,
         marker: own === 'number' || own === 'dot' || own === 'none' ? own : layerMarker,
         hidden: v.hidden === true,
+        size: typeof v.size === 'number' ? v.size : 1,
       };
     });
     const both = { ...base, locations, face, ink, paper };
