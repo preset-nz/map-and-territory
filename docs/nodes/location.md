@@ -24,4 +24,6 @@ One named place on the map: a hex, its name and what is there.
 
 A location is one place in a locations layer. Its name prints beside its marker; the note prints as a short second line under it ("ford, deep in spring"). The description is for the key and for you. Category says what kind of place it is.
 
+A place can cover an area, a marsh or a forest. Select it, then shift-click hexes with Add Location to grow it into them, or shift-click one of its own to take it out. An area draws a faint tint inside a dashed edge, with its marker and name in the middle.
+
 Hidden makes it a secret: it draws faint, with a dashed ring, so you can see it while you run the game.

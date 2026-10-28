@@ -27,7 +27,7 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 26] = [
+const WEBVIEW: [&str; 28] = [
     "file.export-map-png",
     "file.export-pdf",
     "layer.add-hex-noise",
@@ -54,6 +54,8 @@ const WEBVIEW: [&str; 26] = [
     "tool.select",
     "tool.outline",
     "tool.location",
+    "tool.location-move",
+    "tool.location-delete",
 ];
 
 /// The app's own commands, in menu order. Domain menus sit after View in the order they are
@@ -66,6 +68,9 @@ pub fn commands() -> Vec<Command> {
             .section(0)
             .accelerator(key)
     };
+    // the bare digits run out: the location tools after Add sit behind its toolbar flyout,
+    // without a chord, in their own section
+    let tool_bare = |id, label| Command::toggle(id, label).domain("Tool").section(1);
     vec![
         // View > Show Left Panel: the family's bracket pattern (menu standard decision 14).
         // app-kit 0.1.2 has no built-in panel toggle; the tick is the webview's to report.
@@ -140,7 +145,9 @@ pub fn commands() -> Vec<Command> {
         tool("tool.fill", "Fill", "3"),
         tool("tool.select", "Select", "4"),
         tool("tool.outline", "Outline", "5"),
-        tool("tool.location", "Location", "6"),
+        tool("tool.location", "Add Location", "6").section(1),
+        tool_bare("tool.location-move", "Move Location"),
+        tool_bare("tool.location-delete", "Delete Location"),
     ]
 }
 

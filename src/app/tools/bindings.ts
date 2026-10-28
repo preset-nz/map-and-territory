@@ -6,7 +6,7 @@ import { Icons } from '@preset.nz/ux-kit';
 import { createElement, useMemo } from 'react';
 import { useRun } from '../document';
 import { MAPS_PATH } from '../scene/frame';
-import { TOOL_COMMANDS, type ToolId, tools } from './tools';
+import { LOCATION_TOOLS, TOOL_COMMANDS, type ToolId, tools } from './tools';
 
 const ICONS: Record<ToolId, keyof typeof Icons> = {
   paint: 'PaintBrush',
@@ -14,7 +14,9 @@ const ICONS: Record<ToolId, keyof typeof Icons> = {
   fill: 'PaintBucket',
   select: 'Cursor',
   outline: 'Polygon',
-  location: 'MapPin',
+  location: 'MapPinPlus',
+  'location-move': 'ArrowsOutCardinal',
+  'location-delete': 'Trash',
 };
 
 const icon = (name: keyof typeof Icons) =>
@@ -75,7 +77,10 @@ export const TOOLBAR = {
       'layer.add-image',
       'layer.add-locations',
     ],
-    Object.keys(TOOL_COMMANDS),
+    [
+      ...Object.keys(TOOL_COMMANDS).filter((id) => !LOCATION_TOOLS.includes(id)),
+      { id: 'tool.locations', label: 'Location Tools', items: LOCATION_TOOLS },
+    ],
   ],
   trailing: ['view.toggle-right-panel'],
 };

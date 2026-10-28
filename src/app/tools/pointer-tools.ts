@@ -184,6 +184,79 @@ export function useToolPointer(): OnPointer {
     [],
   );
 
+  /**
+   * The Select tool and the location tools (epic 28). Select picks a place; Add puts one on
+   * a hex, and with a place selected a shift-click grows it into a hex or shrinks it out of
+   * one; Move drags a place, one undo step; Delete takes the place clicked.
+   */
+  const locationEvent = useCallback(
+    (
+      tool: ReturnType<typeof tools.get>,
+      kind: 'down' | 'move',
+      hit: PointerHit | null,
+      frame: SceneFrame,
+      e: { button: number; shiftKey: boolean },
+    ) => {
+      if (!hit?.hex) return;
+      const { q, r } = hit.hex;
+      const fail = (err: unknown) => console.error('[location]', err);
+      const moving = drag.current;
+      if (kind === 'move') {
+        if (!moving || (moving.q === q && moving.r === r)) return;
+        // drag a place to another hex: every step is in the one gesture
+        drag.current = { ...moving, q, r };
+        const value = movedHexes(moving.hexes, moving.from, { q, r });
+        channel.run('value.set', { at: moving.at, key: 'hexes', value }).catch(fail);
+        return;
+      }
+      if (e.button !== 0) return;
+      if (tool === 'location' && e.shiftKey) {
+        const at = reshapeTarget(mirror, selection.get());
+        if (at) channel.run('locations.hex', { at, q, r }).catch(fail);
+        return;
+      }
+      const placed = locationAt(frame, hit.hex);
+      const row = placed ? mirror.node(placed) : undefined;
+      if (placed && row?.path) {
+        if (tool === 'location-delete') {
+          channel.run('edit.delete', { at: row.path }).catch(fail);
+          if (selection.get().kind === 'layer' && (selection.get() as { id: string }).id === placed)
+            selection.clear();
+          return;
+        }
+        // Select, Add and Move pick a place up; only Move drags it
+        selection.selectLayer(placed);
+        if (tool !== 'location-move') return;
+        const hexes = (Array.isArray(row.values?.hexes) ? row.values.hexes : []) as Hex[];
+        drag.current = {
+          token: channel.begin('Move Location'),
+          at: row.path,
+          hexes,
+          from: { q, r },
+          q,
+          r,
+        };
+        return;
+      }
+      if (tool !== 'location') return;
+      const mapId = activeMapId(selection.get(), mirror);
+      const at = locationsTarget(mirror, selection.get(), mapId);
+      const map = mapId ? mirror.node(mapId)?.path : undefined;
+      // with no locations layer on the map, the first click makes one (its own undo step)
+      const ready: Promise<string | null> = at
+        ? Promise.resolve(at)
+        : map
+          ? channel
+              .run('node.add', { parent: map, type: 'locations' })
+              .then((ran) => addedPath(ran, 'locations'))
+          : Promise.resolve(null);
+      ready
+        .then((layer) => (layer ? channel.run('locations.add', { at: layer, q, r }) : null))
+        .catch(fail);
+    },
+    [mirror, channel],
+  );
+
   return useCallback<OnPointer>(
     (kind, hit, frame, e) => {
       const tool = tools.get();
@@ -208,60 +281,8 @@ export function useToolPointer(): OnPointer {
         );
         return;
       }
-      if (tool === 'location') {
-        if (!hit?.hex) return;
-        const { q, r } = hit.hex;
-        const moving = drag.current;
-        if (kind === 'move' && moving && (moving.q !== q || moving.r !== r)) {
-          // drag a place to another hex: every step is in the one gesture
-          drag.current = { ...moving, q, r };
-          const value = movedHexes(moving.hexes, moving.from, { q, r });
-          channel
-            .run('value.set', { at: moving.at, key: 'hexes', value })
-            .catch((err) => console.error('[location]', err));
-          return;
-        }
-        if (kind !== 'down' || e.button !== 0) return;
-        if (e.shiftKey) {
-          // shift-click grows the selected place into a hex, or shrinks it out of one
-          const at = reshapeTarget(mirror, selection.get());
-          if (at) {
-            channel
-              .run('locations.hex', { at, q, r })
-              .catch((err) => console.error('[location]', err));
-          }
-          return;
-        }
-        // a click on a place selects it, ready to drag; elsewhere it adds one
-        const placed = locationAt(frame, hit.hex);
-        const row = placed ? mirror.node(placed) : undefined;
-        if (placed && row?.path) {
-          selection.selectLayer(placed);
-          const hexes = (Array.isArray(row.values?.hexes) ? row.values.hexes : []) as Hex[];
-          drag.current = {
-            token: channel.begin('Move Location'),
-            at: row.path,
-            hexes,
-            from: { q, r },
-            q,
-            r,
-          };
-          return;
-        }
-        const mapId = activeMapId(selection.get(), mirror);
-        const at = locationsTarget(mirror, selection.get(), mapId);
-        const map = mapId ? mirror.node(mapId)?.path : undefined;
-        // with no locations layer on the map, the first click makes one (its own undo step)
-        const ready: Promise<string | null> = at
-          ? Promise.resolve(at)
-          : map
-            ? channel
-                .run('node.add', { parent: map, type: 'locations' })
-                .then((ran) => addedPath(ran, 'locations'))
-            : Promise.resolve(null);
-        ready
-          .then((layer) => (layer ? channel.run('locations.add', { at: layer, q, r }) : null))
-          .catch((err) => console.error('[location]', err));
+      if (tool === 'select' || tool.startsWith('location')) {
+        locationEvent(tool, kind, hit, frame, e);
         return;
       }
       if (tool !== 'paint' && tool !== 'erase' && tool !== 'fill') return;
@@ -294,6 +315,6 @@ export function useToolPointer(): OnPointer {
       if (!stroke.current || !hex) return;
       stroke.current.add(tool === 'paint' ? { ...hex, terrainId: brush.get() } : hex);
     },
-    [mirror, channel],
+    [mirror, channel, locationEvent],
   );
 }

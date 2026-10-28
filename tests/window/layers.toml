@@ -82,9 +82,14 @@ steps = [
   { menu = "Tool > Outline" },
   { expect = "Tool > Outline", checked = true },
   { expect = "Tool > Paint", checked = false },
-  { menu = "Tool > Location" },
-  { expect = "Tool > Location", checked = true },
+  { menu = "Tool > Add Location" },
+  { expect = "Tool > Add Location", checked = true },
   { expect = "Tool > Outline", checked = false },
+  { menu = "Tool > Move Location" },
+  { expect = "Tool > Move Location", checked = true },
+  { expect = "Tool > Add Location", checked = false },
+  { menu = "Tool > Delete Location" },
+  { expect = "Tool > Delete Location", checked = true },
 ]
 
 [[test]]
