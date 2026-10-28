@@ -611,7 +611,7 @@ pub fn declare(k: &mut Kinds) {
             .text("credit", "")
             .described("Credit", "A small third line in a typewriter face, such as who surveyed the map and when. Blank leaves it out.")
             .choice("frame", FRAMES, "rule")
-            .described("Frame", "What is drawn around the lines: nothing, a ruled box, a double rule with corner blocks, or a solid plate with the lines reversed out of it.")
+            .described("Frame", "What is drawn around the lines: nothing, a ruled box, a double rule, or a solid plate with the lines reversed out of it.")
             .choice_labels(&[
                 ("none", "None"),
                 ("rule", "Rule"),

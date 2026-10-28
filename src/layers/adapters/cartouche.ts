@@ -36,8 +36,6 @@ export const CAPS_TRACKING = 0.06;
 export const INNER_RULE = 0.5;
 /** `double`: the space between the two rules. */
 export const DOUBLE_GAP = 0.15;
-/** `double`: the side of a corner block, centred on the outer rule's corner. */
-export const CORNER_BLOCK = 0.22;
 /** The alpha "Untitled map" prints at, so it reads as a stand-in (disco-03, Values). */
 export const MUTED_INK_ALPHA = 0.45;
 
@@ -231,7 +229,7 @@ function fillBox(ctx: Ctx, x: number, y: number, w: number, h: number, hand: Han
   else fillByHand(ctx, rectCorners(x, y, w, h), hand, seed);
 }
 
-/** The frame (map furniture §5): a rule, a double rule with corner blocks, or a solid plate. */
+/** The frame (map furniture §5): a rule, a double rule, or a solid plate. */
 function drawFrame(ctx: Ctx, s: CartoucheState, box: CartoucheBox, size: number) {
   const frame = frameOf(s);
   const hand = handOf(s.hand);
@@ -250,11 +248,6 @@ function drawFrame(ctx: Ctx, s: CartoucheState, box: CartoucheBox, size: number)
     ruleBox(ctx, box, lw / 2, lw, hand, `${seed}:outer`);
     const inner = INNER_RULE * lw;
     ruleBox(ctx, box, lw + DOUBLE_GAP * size + inner / 2, inner, hand, `${seed}:inner`);
-    const b = CORNER_BLOCK * size;
-    const corners = rectCorners(box.x + lw / 2, box.y + lw / 2, box.w - lw, box.h - lw);
-    for (const [i, c] of corners.entries()) {
-      fillBox(ctx, c.x - b / 2, c.y - b / 2, b, b, hand, `${seed}:block${i}`);
-    }
   }
 }
 

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   CartoucheAdapter,
   type CartoucheState,
-  CORNER_BLOCK,
   DOUBLE_GAP,
   INNER_RULE,
   LINE_GAP,
@@ -242,16 +241,14 @@ describe('the cartouche adapter', () => {
 describe('the double frame', () => {
   const room = (DOUBLE_GAP + INNER_RULE * RULE_WIDTH) * 30;
 
-  it('draws two rules and four corner blocks, and grows to keep the lines clear of them', () => {
+  it('draws two rules and nothing else, and grows to keep the lines clear of them', () => {
     const ctx = draw({ frame: 'double' });
     expect(ctx.strokes).toHaveLength(2);
     const [outer, inner] = ctx.strokes;
     expect(inner.x).toBeGreaterThan(outer.x);
     expect(inner.w).toBeLessThan(outer.w);
-    // the backing, then the four blocks in the ink
-    const blocks = ctx.fills.slice(1);
-    expect(blocks).toHaveLength(4);
-    for (const b of blocks) expect(b).toMatchObject({ w: CORNER_BLOCK * 30, style: '#222222' });
+    // the backing is the only fill: no corner blocks (Georg, 2026-10-28)
+    expect(ctx.fills).toHaveLength(1);
     expect(ctx.fills[0].w).toBeCloseTo(BOX_W + 2 * room);
     expect(ctx.fills[0].h).toBeCloseTo(BOX_H + 2 * room);
     // left-aligned text starts inside the inner rule
