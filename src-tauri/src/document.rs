@@ -137,7 +137,7 @@ impl DocumentHost {
         self.pom.read(|d| {
             let layout = match d.tree().at(map).and_then(|n| n.value("layout")) {
                 Some(rhizome_core::Value::Choice(c)) => crate::pdf::MapLayout::parse(&c),
-                _ => crate::pdf::MapLayout::MapTop,
+                _ => crate::pdf::MapLayout::Top(1),
             };
             (map_and_territory_model::locations::key(d, map), layout)
         })

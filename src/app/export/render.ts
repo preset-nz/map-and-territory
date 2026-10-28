@@ -6,7 +6,7 @@ import { type PaperAspect, paperSize } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
 import { readCampaignPage } from '../scene/campaign-page';
 import { MAPS_PATH, type RowSource } from '../scene/frame';
-import { layoutPage, type PageLayout, type PageSize, paperAspectRatio } from './layout';
+import { layoutPage, mapAlign, type PageLayout, type PageSize, paperAspectRatio } from './layout';
 
 /** The longest side the export draws, in pixels. A4 at 300 dpi is about 2480 × 3508. */
 export const MAX_EXPORT_SIDE = 8192;
@@ -71,11 +71,18 @@ export async function renderMapForExport(
  * The active map, ready to export: its frame (no camera, no tool preview) and the paper's
  * logical size. Registered by the canvas host while it is mounted; null without a canvas.
  */
+/** A map ready to draw for an export: its id, its frame and its paper's logical size. */
+export interface Drawable {
+  mapId: string;
+  frame: SceneFrame;
+  logical: { w: number; h: number };
+}
+
 export interface MapExporter {
   /** null when there is no active map to draw. */
-  current(): { frame: SceneFrame; logical: { w: number; h: number } } | null;
+  current(): Drawable | null;
   /** Any map by id, the same way; null when it has nothing to draw. */
-  of(mapId: string): { frame: SceneFrame; logical: { w: number; h: number } } | null;
+  of(mapId: string): Drawable | null;
   /** Settles once the textures the frame names are loaded (or failed). */
   prepare(frame: SceneFrame): Promise<void>;
   target: ExportTarget;
@@ -144,10 +151,7 @@ export async function exportCampaignMaps(
   return out;
 }
 
-async function exportOne(
-  rows: RowSource,
-  current: { frame: SceneFrame; logical: { w: number; h: number } } | null,
-): Promise<ExportedPage | null> {
+async function exportOne(rows: RowSource, current: Drawable | null): Promise<ExportedPage | null> {
   if (!exporter || !current) return null;
   const page = readCampaignPage(rows);
   const layout = layoutPage({
@@ -155,6 +159,7 @@ async function exportOne(
     orientation: page.orientation,
     marginMm: page.marginMm,
     aspect: paperAspectRatio(current.frame.paper.aspect),
+    align: mapAlign(rows.node(current.mapId)?.values?.layout),
   });
   const exported = await renderMapForExport(
     exporter.target,

@@ -93,7 +93,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         const size = { w: lastSize.w, h: lastSize.h };
         const frame = builder.build(mirror, mapId, size, lastSize.dpr);
         if (frame.layers.length === 0) return null;
-        return exportFrame(frame);
+        return { mapId, ...exportFrame(frame) };
       },
       prepare: (frame) => textures.ready(frame),
     };

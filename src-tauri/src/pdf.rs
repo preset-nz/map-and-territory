@@ -182,21 +182,29 @@ fn wrap(text: &str, size: f64, width: f64) -> Vec<String> {
     lines
 }
 
-/// How a map's page is laid out (story 1 of epic 32): its key in the space under the map, or
-/// on pages of its own after it.
+/// How a map's page is laid out (epic 32, from Georg's sketch): where the map sits and where
+/// its key goes. The map keeps its own shape; the layout gives it its place and size (the
+/// webview places it, `layoutPage` in `src/app/export/layout.ts`), and the key fills the rest.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MapLayout {
-    MapTop,
-    KeyAfter,
+    /// The map at the top, the key under it in this many columns.
+    Top(usize),
+    /// The key at the top, the map at the foot.
+    Bottom,
+    /// The map alone, as large as the page allows; the key on pages of its own.
+    Alone,
 }
 
 impl MapLayout {
-    /// The map's `layout` value; anything else is the default, `map-top`.
+    /// The map's `layout` value; anything unknown is the default, `map-top`. `key-after` was
+    /// story 1's name for the map alone.
     pub fn parse(s: &str) -> Self {
-        if s == "key-after" {
-            Self::KeyAfter
-        } else {
-            Self::MapTop
+        match s {
+            "map-top-2col" => Self::Top(2),
+            "map-top-3col" => Self::Top(3),
+            "map-bottom" => Self::Bottom,
+            "map-full" | "key-after" => Self::Alone,
+            _ => Self::Top(1),
         }
     }
 }
@@ -209,25 +217,43 @@ pub struct MapSheet<'a> {
     pub map_layout: MapLayout,
 }
 
-/// Space between the map and a key set under it, in points.
+/// Space between the map and its key, in points.
 const UNDER_MAP: f64 = 14.0;
+/// Space between key columns, in points.
+const COLUMN_GAP: f64 = 14.0;
 
-/// The key as content streams. With `under` (a y in PDF's bottom-up points) the first one goes
-/// on the map's own page from there, when the heading and the first place fit; the rest are
-/// pages of their own, a new one when the next place would cross the bottom margin. Empty
-/// when no place prints.
-fn key_pages(key: &Key, layout: &PdfLayout, under: Option<f64>) -> (Option<String>, Vec<String>) {
+/// Where the key may go on a page: between two heights in PDF's bottom-up points.
+#[derive(Debug, Clone, Copy)]
+struct Band {
+    top: f64,
+    bottom: f64,
+}
+
+/// The key as content streams. With `first`, it starts on the map's own page in that band, when
+/// the heading and the first place fit there; it runs on to pages of its own, filling `cols`
+/// columns top to bottom, left to right, before a new page. Empty when no place prints.
+fn key_pages(
+    key: &Key,
+    layout: &PdfLayout,
+    first: Option<Band>,
+    cols: usize,
+) -> (Option<String>, Vec<String>) {
     let entries: Vec<_> = key.entries.iter().filter(|e| !e.hidden).collect();
     if entries.is_empty() {
         return (None, Vec::new());
     }
     // the map's own margins, so the key lines up with it
     let margin = layout.x.max(18.0);
+    let cols = cols.max(1);
     let width = layout.page_w - 2.0 * margin;
-    let (top, bottom) = (layout.page_h - margin, margin);
+    let col_w = (width - COLUMN_GAP * (cols - 1) as f64) / cols as f64;
+    let full = Band {
+        top: layout.page_h - margin,
+        bottom: margin,
+    };
     let indent = text_width("000 ", KEY_NAME);
     let body_of = |e: &&map_and_territory_model::locations::KeyEntry| -> Vec<String> {
-        wrap(e.description.trim(), KEY_TEXT, width - indent)
+        wrap(e.description.trim(), KEY_TEXT, col_w - indent)
             .into_iter()
             .filter(|l| !l.is_empty())
             .collect()
@@ -235,8 +261,8 @@ fn key_pages(key: &Key, layout: &PdfLayout, under: Option<f64>) -> (Option<Strin
     let height_of =
         |body: &[String]| KEY_GAP + KEY_NAME * 1.25 + body.len() as f64 * KEY_TEXT * 1.3;
     let heading = KEY_TITLE * 1.8;
-    let under = under.filter(|y| y - heading - height_of(&body_of(&entries[0])) >= bottom);
-    let on_map_page = under.is_some();
+    let first = first.filter(|b| b.top - heading - height_of(&body_of(&entries[0])) >= b.bottom);
+    let on_map_page = first.is_some();
     let line = |page: &mut String, font: &str, size: f64, x: f64, y: f64, text: &str| {
         page.push_str(&format!(
             "BT /{font} {} Tf {} {} Td {} Tj ET\n",
@@ -248,8 +274,10 @@ fn key_pages(key: &Key, layout: &PdfLayout, under: Option<f64>) -> (Option<Strin
     };
     let mut pages = Vec::new();
     let mut page = String::new();
-    let mut y = under.unwrap_or(top);
-    let mut on_page = 0;
+    let mut band = first.unwrap_or(full);
+    let mut y = band.top;
+    let mut col = 0;
+    let mut in_col = 0;
     let title = if key.map.trim().is_empty() {
         "Key".to_string()
     } else {
@@ -258,33 +286,48 @@ fn key_pages(key: &Key, layout: &PdfLayout, under: Option<f64>) -> (Option<Strin
     y -= KEY_TITLE;
     line(&mut page, "F2", KEY_TITLE, margin, y, &title);
     y -= KEY_TITLE * 0.8;
+    // the columns start under the heading on its page
+    let mut col_top = y;
     for e in &entries {
         let body = body_of(e);
-        if y - height_of(&body) < bottom && on_page > 0 {
-            pages.push(std::mem::take(&mut page));
-            y = top;
-            on_page = 0;
+        if y - height_of(&body) < band.bottom && in_col > 0 {
+            col += 1;
+            in_col = 0;
+            if col == cols {
+                pages.push(std::mem::take(&mut page));
+                band = full;
+                col = 0;
+                col_top = band.top;
+            }
+            y = col_top;
         }
-        on_page += 1;
+        in_col += 1;
+        let x = margin + col as f64 * (col_w + COLUMN_GAP);
         y -= KEY_GAP + KEY_NAME;
         if let Some(n) = e.number {
-            line(&mut page, "F2", KEY_NAME, margin, y, &n.to_string());
+            line(&mut page, "F2", KEY_NAME, x, y, &n.to_string());
         }
         let name = if e.name.trim().is_empty() {
             "Untitled"
         } else {
             e.name.trim()
         };
-        line(&mut page, "F2", KEY_NAME, margin + indent, y, name);
-        // bold sets about a tenth wider than the estimate; the category in grey after it
-        let after = margin + indent + text_width(name, KEY_NAME) * 1.1 + KEY_NAME * 0.6;
+        line(&mut page, "F2", KEY_NAME, x + indent, y, name);
+        // bold sets about a tenth wider than the estimate; the category in grey after it,
+        // under the name when the column is too narrow for both
+        let after = x + indent + text_width(name, KEY_NAME) * 1.1 + KEY_NAME * 0.6;
         page.push_str("0.4 g\n");
-        line(&mut page, "F1", KEY_TEXT, after, y, &e.category);
+        if after + text_width(&e.category, KEY_TEXT) <= x + col_w {
+            line(&mut page, "F1", KEY_TEXT, after, y, &e.category);
+        } else {
+            y -= KEY_TEXT * 1.2;
+            line(&mut page, "F1", KEY_TEXT, x + indent, y, &e.category);
+        }
         page.push_str("0 g\n");
         y -= KEY_NAME * 0.25;
         for l in body {
             y -= KEY_TEXT * 1.3;
-            line(&mut page, "F1", KEY_TEXT, margin + indent, y, &l);
+            line(&mut page, "F1", KEY_TEXT, x + indent, y, &l);
         }
     }
     pages.push(page);
@@ -331,11 +374,29 @@ pub fn build_pdf(sheets: &[MapSheet<'_>]) -> Result<Vec<u8>, String> {
         let l = &sheet.layout;
         let (iw, ih, rgb) = decode_rgb(sheet.png)?;
         images.push((iw, ih, deflate(&rgb)?));
-        let under =
-            (sheet.map_layout == MapLayout::MapTop).then_some(l.page_h - (l.y + l.h) - UNDER_MAP);
+        // PDF's y axis is bottom-up; the layout's is top-down
+        let (map_top, map_bottom) = (l.page_h - l.y, l.page_h - (l.y + l.h));
+        let margin = l.x.max(18.0);
+        let (band, cols) = match sheet.map_layout {
+            MapLayout::Top(cols) => (
+                Some(Band {
+                    top: map_bottom - UNDER_MAP,
+                    bottom: margin,
+                }),
+                cols,
+            ),
+            MapLayout::Bottom => (
+                Some(Band {
+                    top: l.page_h - margin,
+                    bottom: map_top + UNDER_MAP,
+                }),
+                1,
+            ),
+            MapLayout::Alone => (None, 1),
+        };
         let (on_map, after) = sheet
             .key
-            .map(|k| key_pages(k, l, under))
+            .map(|k| key_pages(k, l, band, cols))
             .unwrap_or_default();
         let mut content = map_content(l);
         content.push_str(&on_map.unwrap_or_default());
@@ -491,7 +552,7 @@ mod tests {
 
     #[test]
     fn header_media_box_and_placement() {
-        let pdf = pdf_of(&tiny_png(), None, MapLayout::KeyAfter).unwrap();
+        let pdf = pdf_of(&tiny_png(), None, MapLayout::Alone).unwrap();
         let s = text(&pdf);
         assert!(s.starts_with("%PDF-1.4\n"));
         assert!(s.ends_with("%%EOF\n"));
@@ -519,13 +580,13 @@ mod tests {
     #[ignore = "writes the test PDF to $OUT_PDF"]
     fn write_a_pdf() {
         let out = std::env::var("OUT_PDF").expect("OUT_PDF");
-        let pdf = pdf_of(&tiny_png(), Some(&the_key()), MapLayout::MapTop).unwrap();
+        let pdf = pdf_of(&tiny_png(), Some(&many(24)), MapLayout::Top(3)).unwrap();
         std::fs::write(out, pdf).unwrap();
     }
 
     #[test]
     fn a_black_border_sits_inside_the_map_after_the_image() {
-        let pdf = pdf_of(&tiny_png(), None, MapLayout::KeyAfter).unwrap();
+        let pdf = pdf_of(&tiny_png(), None, MapLayout::Alone).unwrap();
         let s = text(&pdf);
         let image_at = s.find("/Im0 Do").unwrap();
         let rule_at = s.find("0 0 0 RG\n").expect("a black stroke");
@@ -560,7 +621,7 @@ mod tests {
 
     #[test]
     fn xref_offsets_point_at_their_objects_and_the_trailer_is_valid() {
-        let pdf = pdf_of(&tiny_png(), None, MapLayout::KeyAfter).unwrap();
+        let pdf = pdf_of(&tiny_png(), None, MapLayout::Alone).unwrap();
         let s = text(&pdf);
         let start: usize = s
             .rsplit("startxref\n")
@@ -591,7 +652,7 @@ mod tests {
         assert_eq!((w, h), (2, 1));
         assert_eq!(rgb, vec![255, 0, 0, 255, 255, 255]);
         // the stream round-trips through flate
-        let pdf = pdf_of(&tiny_png(), None, MapLayout::KeyAfter).unwrap();
+        let pdf = pdf_of(&tiny_png(), None, MapLayout::Alone).unwrap();
         let key = b"stream\n";
         let image_obj = pdf
             .windows(15)
@@ -623,7 +684,7 @@ mod tests {
 
     #[test]
     fn bad_png_is_an_error() {
-        assert!(pdf_of(b"nope", None, MapLayout::KeyAfter).is_err());
+        assert!(pdf_of(b"nope", None, MapLayout::Alone).is_err());
     }
 
     fn the_key() -> Key {
@@ -652,7 +713,7 @@ mod tests {
 
     #[test]
     fn the_key_follows_the_map_on_a_second_page_in_order_without_the_hidden() {
-        let pdf = pdf_of(&tiny_png(), Some(&the_key()), MapLayout::KeyAfter).unwrap();
+        let pdf = pdf_of(&tiny_png(), Some(&the_key()), MapLayout::Alone).unwrap();
         let s = text(&pdf);
         assert_eq!(page_count(&s), 2);
         assert!(s.contains("/Kids [6 0 R 8 0 R]"));
@@ -671,7 +732,7 @@ mod tests {
             map: "Empty".into(),
             entries: vec![],
         };
-        let s = text(&pdf_of(&tiny_png(), Some(&none), MapLayout::KeyAfter).unwrap());
+        let s = text(&pdf_of(&tiny_png(), Some(&none), MapLayout::Alone).unwrap());
         assert_eq!(page_count(&s), 1);
     }
 
@@ -687,7 +748,7 @@ mod tests {
                 hidden: false,
             })
             .collect();
-        let pdf = pdf_of(&tiny_png(), Some(&key), MapLayout::KeyAfter).unwrap();
+        let pdf = pdf_of(&tiny_png(), Some(&key), MapLayout::Alone).unwrap();
         let s = text(&pdf);
         let pages = page_count(&s);
         assert!(pages > 3, "{pages} pages");
@@ -721,7 +782,7 @@ mod tests {
     #[test]
     fn map_top_sets_the_key_under_the_map_on_its_own_page() {
         let key = the_key();
-        let s = text(&pdf_of(&tiny_png(), Some(&key), MapLayout::MapTop).unwrap());
+        let s = text(&pdf_of(&tiny_png(), Some(&key), MapLayout::Top(1)).unwrap());
         assert_eq!(page_count(&s), 1);
         // the heading is on the map's page, below the map's bottom edge
         let l = layout();
@@ -741,13 +802,14 @@ mod tests {
                 png: &tiny_png(),
                 layout: full,
                 key: Some(&key),
-                map_layout: MapLayout::MapTop,
+                map_layout: MapLayout::Top(1),
             }])
             .unwrap(),
         );
         assert_eq!(page_count(&s), 2);
-        assert_eq!(MapLayout::parse("key-after"), MapLayout::KeyAfter);
-        assert_eq!(MapLayout::parse("anything"), MapLayout::MapTop);
+        assert_eq!(MapLayout::parse("key-after"), MapLayout::Alone);
+        assert_eq!(MapLayout::parse("map-top-3col"), MapLayout::Top(3));
+        assert_eq!(MapLayout::parse("anything"), MapLayout::Top(1));
     }
 
     #[test]
@@ -758,7 +820,7 @@ mod tests {
             png: &png,
             layout: layout(),
             key,
-            map_layout: MapLayout::KeyAfter,
+            map_layout: MapLayout::Alone,
         };
         let s = text(&build_pdf(&[sheet(Some(&key)), sheet(None)]).unwrap());
         // two images, map 1, its key page, map 2
@@ -767,5 +829,75 @@ mod tests {
         assert!(s.contains("/XObject << /Im0 5 0 R >>"));
         assert!(s.contains("/XObject << /Im0 6 0 R >>"));
         assert!(build_pdf(&[]).is_err());
+    }
+
+    /// Where each `(text) Tj` is set: its x and y.
+    fn placed(s: &str, t: &str) -> (f64, f64) {
+        let at = s
+            .find(&format!("({t}) Tj"))
+            .unwrap_or_else(|| panic!("{t}"));
+        let td: Vec<f64> = s[..at]
+            .rsplit(" Tf ")
+            .next()
+            .unwrap()
+            .split_whitespace()
+            .take(2)
+            .map(|n| n.parse().unwrap())
+            .collect();
+        (td[0], td[1])
+    }
+
+    fn many(n: u32) -> Key {
+        Key {
+            map: "Fen".into(),
+            entries: (1..=n)
+                .map(|n| KeyEntry {
+                    number: Some(n),
+                    name: format!("Place {n}"),
+                    category: "Ruin".into(),
+                    description: "What waits there.".into(),
+                    hidden: false,
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn a_key_in_three_columns_fills_each_before_the_next() {
+        let key = many(30);
+        let s = text(&pdf_of(&tiny_png(), Some(&key), MapLayout::Top(3)).unwrap());
+        let xs: Vec<f64> = (1..=30)
+            .map(|n| placed(&s, &format!("Place {n}")).0)
+            .collect();
+        let mut columns = xs.clone();
+        columns.dedup();
+        assert!(columns.len() >= 3, "{columns:?}");
+        // left to right, never back, until a new page starts at the first column again
+        assert!(xs[0] < xs[29] || page_count(&s) > 1);
+        let (_, first_y) = placed(&s, "Place 1");
+        let l = layout();
+        assert!(first_y < l.page_h - (l.y + l.h));
+    }
+
+    #[test]
+    fn map_bottom_sets_the_key_above_the_map() {
+        let l = PdfLayout {
+            y: 595.28 - 28.346 - 255.118,
+            ..layout()
+        };
+        let png = tiny_png();
+        let key = the_key();
+        let s = text(
+            &build_pdf(&[MapSheet {
+                png: &png,
+                layout: l,
+                key: Some(&key),
+                map_layout: MapLayout::Bottom,
+            }])
+            .unwrap(),
+        );
+        assert_eq!(page_count(&s), 1);
+        let (_, y) = placed(&s, "Gallows Ford");
+        assert!(y > l.page_h - l.y + UNDER_MAP, "{y}");
     }
 }

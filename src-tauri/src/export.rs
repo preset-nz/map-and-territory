@@ -147,7 +147,7 @@ pub fn export_write_pdf(
         .iter()
         .map(|(_, _, map)| match map {
             Some(m) => document.sheet(m),
-            None => (None, MapLayout::MapTop),
+            None => (None, MapLayout::Top(1)),
         })
         .collect();
     let sheets: Vec<MapSheet<'_>> = parts

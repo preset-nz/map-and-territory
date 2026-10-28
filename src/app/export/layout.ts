@@ -29,7 +29,19 @@ export interface PageLayoutInput {
   marginMm: number;
   /** The map's width over its height. */
   aspect: number;
+  /** Where the map sits in the page's height: the map's layout (epic 32). Top when unset. */
+  align?: MapAlign;
   dpi?: number;
+}
+
+/** Where a layout puts the map: at the top, at the foot, or centred alone on the page. */
+export type MapAlign = 'top' | 'bottom' | 'centre';
+
+/** A map's `layout` value as where the map sits (the key's place is Rust's, `pdf.rs`). */
+export function mapAlign(layout: unknown): MapAlign {
+  if (layout === 'map-bottom') return 'bottom';
+  if (layout === 'map-full' || layout === 'key-after') return 'centre';
+  return 'top';
 }
 
 export interface PageLayout {
@@ -57,9 +69,9 @@ export function mmToPx(mm: number, dpi: number = DEFAULT_DPI): number {
 }
 
 /**
- * Places the map on the page. The map is as wide as the page inside the margins and sits at the
- * top margin; if that is taller than the page inside the margins, it fits the height and is
- * centred across. A margin too large for the page leaves a zero-size map at the centre.
+ * Places the map on the page. The map keeps its shape and is as wide as the page inside the
+ * margins, at the top margin, the bottom one or centred, by `align`; if that is taller than the
+ * page inside the margins, it fits the height and is centred across. A margin too large for the page leaves a zero-size map at the centre.
  *
  * Pixels: the page size is `mmToPx` of its mm size. The map's pixel rect rounds its edges
  * (left, top, right, bottom), then takes the size as right minus left, so rounding never pushes
@@ -70,6 +82,7 @@ export function layoutPage({
   orientation,
   marginMm,
   aspect,
+  align = 'top',
   dpi = DEFAULT_DPI,
 }: PageLayoutInput): PageLayout {
   const portrait = PAGE_MM[size];
@@ -86,7 +99,13 @@ export function layoutPage({
     h = availH;
     w = h * ratio;
   }
-  const mapMm: Rect = { x: margin + (availW - w) / 2, y: margin, w, h };
+  const y =
+    align === 'bottom'
+      ? margin + availH - h
+      : align === 'centre'
+        ? margin + (availH - h) / 2
+        : margin;
+  const mapMm: Rect = { x: margin + (availW - w) / 2, y, w, h };
 
   const left = mmToPx(mapMm.x, dpi);
   const top = mmToPx(mapMm.y, dpi);

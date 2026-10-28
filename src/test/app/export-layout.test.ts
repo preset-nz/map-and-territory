@@ -1,4 +1,4 @@
-import { layoutPage, mmToPt, mmToPx, paperAspectRatio } from '@/app/export/layout';
+import { layoutPage, mapAlign, mmToPt, mmToPx, paperAspectRatio } from '@/app/export/layout';
 
 const ASPECTS = ['square', '4:3', '16:10'] as const;
 
@@ -23,6 +23,25 @@ describe('page layout', () => {
     expect(l.mapMm.y).toBe(10);
     expect(l.mapMm.w).toBeCloseTo(190);
     expect(l.mapMm.h).toBeCloseTo(118.75);
+  });
+
+  it('puts the map at the foot or centres it alone, by its layout (epic 32)', () => {
+    const at = (layout: string) =>
+      layoutPage({
+        size: 'a4',
+        orientation: 'portrait',
+        marginMm: 10,
+        aspect: 16 / 9,
+        align: mapAlign(layout),
+      }).mapMm;
+    const h = 190 / (16 / 9);
+    expect(at('map-top').y).toBe(10);
+    expect(at('map-top-3col').y).toBe(10);
+    expect(at('map-bottom').y).toBeCloseTo(297 - 10 - h);
+    expect(at('map-full').y).toBeCloseTo((297 - h) / 2);
+    expect(at('key-after').y).toBeCloseTo((297 - h) / 2);
+    // the shape is the map's whatever the layout
+    expect(at('map-bottom').h).toBeCloseTo(h);
   });
 
   it.each(['a5', 'a4'] as const)('keeps every paper aspect on the page (%s)', (size) => {

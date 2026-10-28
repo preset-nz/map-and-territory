@@ -15,7 +15,7 @@ One hexmap in the campaign: a paper, a hex grid and the layers between them.
 |---|---|---|---|
 | Name | text | empty | What you call the map. |
 | Description | text | empty | Notes about this map, such as the region it covers. |
-| Layout | Map on top, key below (`map-top`), Key on its own pages (`key-after`) | Map on top, key below (`map-top`) | How the map's page prints: the map on top with its key under it, or the key on pages of its own after the map. |
+| Layout | Map on top, key below (`map-top`), Map on top, key in two columns (`map-top-2col`), Map on top, key in three columns (`map-top-3col`), Key on top, map below (`map-bottom`), Map alone, key on its own pages (`map-full`) | Map on top, key below (`map-top`) | Where the map sits on its page and where its key goes. The map keeps its shape; a long key runs on to more pages. |
 | Visible | on or off | on | Whether the map is shown. |
 | Face | Condensed (`condensed`), Serif (`serif`), Blackletter (`blackletter`), Marker (`marker`) | Condensed (`condensed`) | The lettering of every title left on Map: a condensed sans in capitals, an old atlas serif, blackletter, or a marker in capitals. |
 | Hand | Clean (`clean`), Drawn (`drawn`), Scratched (`scratched`) | Clean (`clean`) | How every title left on Map is drawn: ruled, pen-drawn, or scratched in and gone over twice. |
