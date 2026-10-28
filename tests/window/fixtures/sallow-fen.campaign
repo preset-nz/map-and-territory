@@ -1,0 +1,1353 @@
+{
+  "rhizome": 1,
+  "nodes": [
+    {
+      "path": "/",
+      "id": "00000000000000000000000001",
+      "type": "root"
+    },
+    {
+      "path": "/campaign",
+      "id": "00000000000000000000000003",
+      "type": "category"
+    },
+    {
+      "path": "/campaign/campaign",
+      "id": "00000000000000000000000006",
+      "type": "campaign",
+      "values": {
+        "name": "The Sallow Fen",
+        "pageOrientation": "landscape"
+      },
+      "refs": {
+        "palette": {
+          "node": "00000000000000000000000007",
+          "path": "/themes/doom-forge"
+        }
+      }
+    },
+    {
+      "path": "/maps",
+      "id": "00000000000000000000000004",
+      "type": "category",
+      "orders": {
+        "maps": [
+          "00000000000000000000000008",
+          "0000000000000000000000000M"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map",
+      "id": "00000000000000000000000008",
+      "type": "map",
+      "values": {
+        "name": "The Sallow Fen"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000J",
+          "0000000000000000000000000K"
+        ],
+        "layers": [
+          "00000000000000000000000009",
+          "0000000000000000000000000B",
+          "0000000000000000000000000G",
+          "0000000000000000000000000H",
+          "0000000000000000000000000A"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/cartouche",
+      "id": "0000000000000000000000000J",
+      "type": "cartouche",
+      "values": {
+        "credit": "Surveyed in the year 1347",
+        "face": "serif",
+        "frame": "double",
+        "inset": 28.0,
+        "name": "Title 01",
+        "subtitle": "Marches of the Drowned Bishop",
+        "titleSize": 46.0
+      }
+    },
+    {
+      "path": "/maps/map/compass",
+      "id": "0000000000000000000000000K",
+      "type": "compass",
+      "values": {
+        "anchor": "bottom-right",
+        "labels": "north-only",
+        "name": "Compass 01",
+        "style": "arrow"
+      }
+    },
+    {
+      "path": "/maps/map/freeform",
+      "id": "0000000000000000000000000B",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain",
+        "opacity": 0.6
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000000C",
+          "0000000000000000000000000D",
+          "0000000000000000000000000E",
+          "0000000000000000000000000F"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/freeform/-1_-1",
+      "id": "0000000000000000000000000C",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*154 1 2 3*4 0*9 1 2*2 3*4 0*9 1 2*2 3*4 0*8 4*2 1 2*2 3 2*2 0*8 4*2 1*3 2 1*2 0*7 5*2 4*3 1*2 4*2 0*7 5*2 4*7",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "water"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/freeform/-1_0",
+      "id": "0000000000000000000000000D",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*2 2*8 0*6 1 2*9 0*5 2*4 3*3 2*4 0*5 2*2 3*6 2*3 0*4 2 3*2 4*4 3*2 2*3 0*4 3*2 4*5 3*2 2*3 0*3 2 3*2 4*3 3*3 2*4 0*3 2 3*6 2*6 0*128",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/freeform/0_-1",
+      "id": "0000000000000000000000000E",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*144 1 2*2 3 4*4 3*2 2*4 3 0 1 2*2 3*2 4 3*3 2*5 0*2 2*2 3*2 4*2 3*2 2*5 3 0*2 3*2 4*5 3*2 2*2 3*2 0*3 4*8 3*3 4*2 0*3 4*12 0*4 5*4 4*8 0*4",
+          "palette": [
+            {
+              "terrainId": "mountains"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "water"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/freeform/0_0",
+      "id": "0000000000000000000000000F",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*3 2*8 0*5 1 2*5 3*3 2*2 0*5 2*4 3*2 4*3 3 0*6 2*2 3*2 4 5*3 4*2 0*6 2 3 4*2 5*5 0*7 3*2 4 5*6 0*7 3*2 4 5*5 0*8 2 3 4 5*4 4 0*136",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map/hexgrid",
+      "id": "0000000000000000000000000A",
+      "type": "hexgrid",
+      "values": {
+        "alpha": 0.45,
+        "cornerJitter": 0.6,
+        "inkNoise": 0.3,
+        "misregistration": 1.0,
+        "size": 38.0,
+        "widthNoise": 0.35
+      }
+    },
+    {
+      "path": "/maps/map/outline",
+      "id": "0000000000000000000000000G",
+      "type": "outline",
+      "values": {
+        "name": "Edge of the Fen",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 2,
+                "q": 6,
+                "r": -7
+              },
+              {
+                "corner": 1,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": -5
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": -5
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": -4
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": -4
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": -3
+              },
+              {
+                "corner": 2,
+                "q": 4,
+                "r": -3
+              },
+              {
+                "corner": 1,
+                "q": 3,
+                "r": -2
+              },
+              {
+                "corner": 2,
+                "q": 4,
+                "r": -2
+              },
+              {
+                "corner": 1,
+                "q": 3,
+                "r": -1
+              },
+              {
+                "corner": 2,
+                "q": 3,
+                "r": -1
+              },
+              {
+                "corner": 1,
+                "q": 2,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 3,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 2,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 2,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": 1,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": 2,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": 1,
+                "r": 3
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 3
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 4
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 4
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 5
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 5
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 6
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 6
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 7
+              }
+            ]
+          }
+        ],
+        "strokeColor": [
+          0.11372549019607843,
+          0.12941176470588237,
+          0.10980392156862745,
+          1.0
+        ],
+        "strokeWidth": 3.0
+      }
+    },
+    {
+      "path": "/maps/map/outline-2",
+      "id": "0000000000000000000000000H",
+      "type": "outline",
+      "values": {
+        "name": "Old Road",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 1,
+                "q": -11,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -10,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -10,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -9,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -9,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -8,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -8,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -7,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -7,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -6,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -6,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -5,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -5,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -4,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -4,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -3,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -3,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -2,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": -2,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": -1,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": -1,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": 1,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 2,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 2,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 3,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 3,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 4,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 5,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 6,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 6,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 7,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 7,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 8,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 8,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 9,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 9,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 10,
+                "r": 0
+              }
+            ]
+          }
+        ],
+        "strokeColor": [
+          0.11372549019607843,
+          0.12941176470588237,
+          0.10980392156862745,
+          1.0
+        ],
+        "strokePattern": "dashed",
+        "strokeWidth": 2.0
+      }
+    },
+    {
+      "path": "/maps/map/paper",
+      "id": "00000000000000000000000009",
+      "type": "paper",
+      "values": {
+        "color": [
+          0.9137254901960784,
+          0.9254901960784314,
+          0.8941176470588236,
+          1.0
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2",
+      "id": "0000000000000000000000000M",
+      "type": "map",
+      "values": {
+        "face": "marker",
+        "hand": "scratched",
+        "name": "The Sallow Fen, grimdark"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000N",
+          "0000000000000000000000000P"
+        ],
+        "layers": [
+          "0000000000000000000000000Z",
+          "0000000000000000000000000Q",
+          "0000000000000000000000000X",
+          "0000000000000000000000000Y",
+          "0000000000000000000000000W"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/cartouche",
+      "id": "0000000000000000000000000N",
+      "type": "cartouche",
+      "values": {
+        "credit": "Surveyed in the year 1347",
+        "face": "map",
+        "frame": "plate",
+        "inset": 28.0,
+        "name": "Title 01",
+        "subtitle": "Marches of the Drowned Bishop",
+        "title": "The Sallow Fen",
+        "titleSize": 46.0
+      }
+    },
+    {
+      "path": "/maps/map-2/compass",
+      "id": "0000000000000000000000000P",
+      "type": "compass",
+      "values": {
+        "anchor": "bottom-right",
+        "labels": "north-only",
+        "name": "Compass 01",
+        "style": "mark"
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform",
+      "id": "0000000000000000000000000Q",
+      "type": "freeform",
+      "values": {
+        "name": "Terrain",
+        "opacity": 0.6
+      },
+      "orders": {
+        "chunks": [
+          "0000000000000000000000000R",
+          "0000000000000000000000000S",
+          "0000000000000000000000000T",
+          "0000000000000000000000000V"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/-1_-1",
+      "id": "0000000000000000000000000R",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*154 1 2 3*4 0*9 1 2*2 3*4 0*9 1 2*2 3*4 0*8 4*2 1 2*2 3 2*2 0*8 4*2 1*3 2 1*2 0*7 5*2 4*3 1*2 4*2 0*7 5*2 4*7",
+          "palette": [
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "water"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/-1_0",
+      "id": "0000000000000000000000000S",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*6 1*2 2*8 0*6 1 2*9 0*5 2*4 3*3 2*4 0*5 2*2 3*6 2*3 0*4 2 3*2 4*4 3*2 2*3 0*4 3*2 4*5 3*2 2*3 0*3 2 3*2 4*3 3*3 2*4 0*3 2 3*6 2*6 0*128",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/0_-1",
+      "id": "0000000000000000000000000T",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "0*144 1 2*2 3 4*4 3*2 2*4 3 0 1 2*2 3*2 4 3*3 2*5 0*2 2*2 3*2 4*2 3*2 2*5 3 0*2 3*2 4*5 3*2 2*2 3*2 0*3 4*8 3*3 4*2 0*3 4*12 0*4 5*4 4*8 0*4",
+          "palette": [
+            {
+              "terrainId": "mountains"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "water"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/freeform/0_0",
+      "id": "0000000000000000000000000V",
+      "type": "chunk",
+      "values": {
+        "voxels": {
+          "cells": "1*3 2*8 0*5 1 2*5 3*3 2*2 0*5 2*4 3*2 4*3 3 0*6 2*2 3*2 4 5*3 4*2 0*6 2 3 4*2 5*5 0*7 3*2 4 5*6 0*7 3*2 4 5*5 0*8 2 3 4 5*4 4 0*136",
+          "palette": [
+            {
+              "terrainId": "water"
+            },
+            {
+              "terrainId": "plains"
+            },
+            {
+              "terrainId": "forest"
+            },
+            {
+              "terrainId": "hills"
+            },
+            {
+              "terrainId": "mountains"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/maps/map-2/hexgrid",
+      "id": "0000000000000000000000000W",
+      "type": "hexgrid",
+      "values": {
+        "alpha": 0.45,
+        "cornerJitter": 0.6,
+        "inkNoise": 0.3,
+        "misregistration": 1.0,
+        "size": 38.0,
+        "widthNoise": 0.35
+      }
+    },
+    {
+      "path": "/maps/map-2/outline",
+      "id": "0000000000000000000000000X",
+      "type": "outline",
+      "values": {
+        "name": "Edge of the Fen",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 2,
+                "q": 6,
+                "r": -7
+              },
+              {
+                "corner": 1,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": -6
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": -5
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": -5
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": -4
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": -4
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": -3
+              },
+              {
+                "corner": 2,
+                "q": 4,
+                "r": -3
+              },
+              {
+                "corner": 1,
+                "q": 3,
+                "r": -2
+              },
+              {
+                "corner": 2,
+                "q": 4,
+                "r": -2
+              },
+              {
+                "corner": 1,
+                "q": 3,
+                "r": -1
+              },
+              {
+                "corner": 2,
+                "q": 3,
+                "r": -1
+              },
+              {
+                "corner": 1,
+                "q": 2,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 3,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 2,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 2,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": 1,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": 2,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": 1,
+                "r": 3
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 3
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 4
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 4
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 5
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 5
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 6
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 6
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 7
+              }
+            ]
+          }
+        ],
+        "strokeColor": [
+          0.11372549019607843,
+          0.12941176470588237,
+          0.10980392156862745,
+          1.0
+        ],
+        "strokeWidth": 3.0
+      }
+    },
+    {
+      "path": "/maps/map-2/outline-2",
+      "id": "0000000000000000000000000Y",
+      "type": "outline",
+      "values": {
+        "name": "Old Road",
+        "paths": [
+          {
+            "closed": false,
+            "corners": [
+              {
+                "corner": 1,
+                "q": -11,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -10,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -10,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -9,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -9,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -8,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -8,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -7,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -7,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -6,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -6,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -5,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -5,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -4,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -4,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -3,
+                "r": 2
+              },
+              {
+                "corner": 1,
+                "q": -3,
+                "r": 2
+              },
+              {
+                "corner": 2,
+                "q": -2,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": -2,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": -1,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": -1,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 0,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": 0,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 1,
+                "r": 1
+              },
+              {
+                "corner": 1,
+                "q": 1,
+                "r": 1
+              },
+              {
+                "corner": 2,
+                "q": 2,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 2,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 3,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 3,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 4,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 4,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 5,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 5,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 6,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 6,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 7,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 7,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 8,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 8,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 9,
+                "r": 0
+              },
+              {
+                "corner": 1,
+                "q": 9,
+                "r": 0
+              },
+              {
+                "corner": 2,
+                "q": 10,
+                "r": 0
+              }
+            ]
+          }
+        ],
+        "strokeColor": [
+          0.11372549019607843,
+          0.12941176470588237,
+          0.10980392156862745,
+          1.0
+        ],
+        "strokePattern": "dashed",
+        "strokeWidth": 2.0
+      }
+    },
+    {
+      "path": "/maps/map-2/paper",
+      "id": "0000000000000000000000000Z",
+      "type": "paper",
+      "values": {
+        "color": [
+          0.9137254901960784,
+          0.9254901960784314,
+          0.8941176470588236,
+          1.0
+        ]
+      }
+    },
+    {
+      "path": "/presets",
+      "id": "00000000000000000000000002",
+      "type": "category"
+    },
+    {
+      "path": "/themes",
+      "id": "00000000000000000000000005",
+      "type": "category"
+    },
+    {
+      "path": "/themes/doom-forge",
+      "id": "00000000000000000000000007",
+      "type": "palette",
+      "values": {
+        "accent": [
+          0.047058823529411764,
+          0.047058823529411764,
+          0.047058823529411764,
+          1.0
+        ],
+        "background": [
+          0.9725490196078431,
+          0.9725490196078431,
+          1.0,
+          1.0
+        ],
+        "description": "Apocalyptic metal and dying embers",
+        "gridLine": [
+          0.2,
+          0.2,
+          0.2,
+          1.0
+        ],
+        "name": "Doom Forge",
+        "primary": [
+          1.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "secondary": [
+          1.0,
+          0.0784313725490196,
+          0.5764705882352941,
+          1.0
+        ],
+        "terrains": [
+          {
+            "baseType": "water",
+            "colour": [
+              0.5450980392156862,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "description": "Stagnant pools of corrupted water",
+            "id": "blood-mires",
+            "name": "Blood Mires",
+            "traits": [
+              "corrupted",
+              "local"
+            ]
+          },
+          {
+            "baseType": "plains",
+            "colour": [
+              0.8470588235294118,
+              0.8470588235294118,
+              0.8470588235294118,
+              1.0
+            ],
+            "description": "Vast plains littered with ancient bones",
+            "id": "bone-fields",
+            "name": "Bone Fields",
+            "traits": [
+              "ruined",
+              "sprawling"
+            ]
+          },
+          {
+            "baseType": "forest",
+            "colour": [
+              0.4117647058823529,
+              0.4117647058823529,
+              0.4117647058823529,
+              1.0
+            ],
+            "description": "Skeletal trees in perpetual smolder",
+            "id": "ash-thickets",
+            "name": "Ash Thickets",
+            "traits": [
+              "burning",
+              "sparse"
+            ]
+          },
+          {
+            "baseType": "hills",
+            "colour": [
+              0.047058823529411764,
+              0.047058823529411764,
+              0.047058823529411764,
+              1.0
+            ],
+            "description": "Hills of twisted metal and machinery",
+            "id": "iron-graves",
+            "name": "Iron Graves",
+            "traits": [
+              "artificial",
+              "ruined"
+            ]
+          },
+          {
+            "baseType": "mountains",
+            "colour": [
+              1.0,
+              1.0,
+              0.0,
+              1.0
+            ],
+            "description": "Jagged peaks wreathed in flame",
+            "id": "doom-crags",
+            "name": "Doom Crags",
+            "traits": [
+              "unstable",
+              "burning"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

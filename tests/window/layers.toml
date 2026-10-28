@@ -90,6 +90,15 @@ steps = [
 ]
 
 [[test]]
+name = "the Sallow Fen campaign opens"
+covers = "guidance mvp-zine-page, target map"
+steps = [
+  { open = "fixtures/sallow-fen.campaign" },
+  { window_title = "sallow-fen.campaign" },
+  { expect = "Edit > #1", title = "Undo", enabled = false },
+]
+
+[[test]]
 name = "export needs a map"
 covers = "export 2.1"
 steps = [
