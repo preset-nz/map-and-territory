@@ -108,13 +108,6 @@ export function reshapeTarget(
   return row?.type === 'location' ? (row.path ?? null) : null;
 }
 
-type Hex = { q: number; r: number };
-
-/** A place's hexes moved by the step from `from` to `to`, so an area keeps its shape. */
-export function movedHexes(hexes: readonly Hex[], from: Hex, to: Hex): Hex[] {
-  return hexes.map((h) => ({ q: h.q + to.q - from.q, r: h.r + to.r - from.r }));
-}
-
 /** The path of the node of `type` a command added, from its commit. */
 export function addedPath(ran: unknown, type: string): string | null {
   const changes = (ran as { committed?: { changes?: unknown[] } })?.committed?.changes ?? [];
@@ -164,13 +157,11 @@ export function useToolPointer(): OnPointer {
   const mirror = useMirror();
   const channel = useChannel();
   const stroke = useRef<Stroke | null>(null);
-  // a place being dragged: one undo step from pointer-down to pointer-up
-  // its hexes and the hex it was picked up on, as they were on pointer-down
+  // a place being dragged: one undo step from pointer-down to pointer-up; the hex under the
+  // pointer at the last step
   const drag = useRef<{
     token: Promise<number>;
     at: string;
-    hexes: Hex[];
-    from: Hex;
     q: number;
     r: number;
   } | null>(null);
@@ -205,8 +196,9 @@ export function useToolPointer(): OnPointer {
         if (!moving || (moving.q === q && moving.r === r)) return;
         // drag a place to another hex: every step is in the one gesture
         drag.current = { ...moving, q, r };
-        const value = movedHexes(moving.hexes, moving.from, { q, r });
-        channel.run('value.set', { at: moving.at, key: 'hexes', value }).catch(fail);
+        channel
+          .run('locations.move', { at: moving.at, dq: q - moving.q, dr: r - moving.r })
+          .catch(fail);
         return;
       }
       if (e.button !== 0) return;
@@ -227,15 +219,7 @@ export function useToolPointer(): OnPointer {
         // Select, Add and Move pick a place up; only Move drags it
         selection.selectLayer(placed);
         if (tool !== 'location-move') return;
-        const hexes = (Array.isArray(row.values?.hexes) ? row.values.hexes : []) as Hex[];
-        drag.current = {
-          token: channel.begin('Move Location'),
-          at: row.path,
-          hexes,
-          from: { q, r },
-          q,
-          r,
-        };
+        drag.current = { token: channel.begin('Move Location'), at: row.path, q, r };
         return;
       }
       if (tool !== 'location') return;

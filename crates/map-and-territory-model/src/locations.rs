@@ -9,8 +9,10 @@
 //! the two in step.
 //!
 //! Commands: `locations.add` puts a location on a hex; `locations.hex` grows a location into
-//! a hex or shrinks it out of one, so a place can cover an area. Renaming, editing, moving and
-//! deleting are the generic `value.set`, `node.rename` and `edit.delete`.
+//! a hex or shrinks it out of one, so a place can cover an area; `locations.move` shifts all
+//! its hexes by a step, so an area keeps its shape. Renaming, editing and deleting are the
+//! generic `value.set`, `node.rename` and `edit.delete`. The location's check keeps its hexes
+//! non-empty and distinct however they are set.
 
 use rhizome_core::{Edit, Node, NodeId, Value};
 use rhizome_pom::{payload, Commands, Document, Error, Outcome};
@@ -115,12 +117,51 @@ struct HexArgs {
     r: i64,
 }
 
-/// A location lives only under a locations layer.
+#[derive(Deserialize)]
+struct MoveArgs {
+    at: String,
+    /// The step, in axial hexes.
+    dq: i64,
+    dr: i64,
+}
+
+/// A location lives only under a locations layer, on at least one hex, each hex once.
 pub fn check_location(n: &Node<'_>) -> Result<(), String> {
     match n.parent() {
-        Some(p) if p.type_name() == "locations" => Ok(()),
-        _ => Err("a location goes in a locations layer".into()),
+        Some(p) if p.type_name() == "locations" => {}
+        _ => return Err("a location goes in a locations layer".into()),
     }
+    let hexes = hexes_of(n);
+    if hexes.is_empty() {
+        return Err("a location is on at least one hex".into());
+    }
+    let mut seen = hexes.clone();
+    seen.sort_unstable();
+    seen.dedup();
+    if seen.len() != hexes.len() {
+        return Err("a location covers each hex once".into());
+    }
+    Ok(())
+}
+
+/// A location's hexes, in stored order.
+fn hexes_of(n: &Node<'_>) -> Vec<(i64, i64)> {
+    match n.value("hexes") {
+        Some(Value::Shaped(v)) => v
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|h| Some((h.get("q")?.as_i64()?, h.get("r")?.as_i64()?)))
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+fn hexes_value(hexes: &[(i64, i64)]) -> Value {
+    Value::Shaped(json!(hexes
+        .iter()
+        .map(|&(q, r)| json!({ "q": q, "r": r }))
+        .collect::<Vec<_>>()))
 }
 
 fn locations_id(d: &Doc, at: &str) -> Result<NodeId, Error> {
@@ -136,16 +177,7 @@ fn location(d: &Doc, at: &str) -> Result<(NodeId, Vec<(i64, i64)>), Error> {
         Some(n) if n.type_name() == "location" => n,
         _ => return Err(Error::Payload(format!("{at} isn't a location"))),
     };
-    let hexes = match n.value("hexes") {
-        Some(Value::Shaped(v)) => v
-            .as_array()
-            .into_iter()
-            .flatten()
-            .filter_map(|h| Some((h.get("q")?.as_i64()?, h.get("r")?.as_i64()?)))
-            .collect(),
-        _ => Vec::new(),
-    };
-    Ok((n.id(), hexes))
+    Ok((n.id(), hexes_of(&n)))
 }
 
 /// `hexes` with `(q, r)` toggled: taken out when it is there, else appended. `None` when that
@@ -216,13 +248,31 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
             } else {
                 "Shrink Location"
             };
-            let value = json!(next
-                .iter()
-                .map(|&(q, r)| json!({ "q": q, "r": r }))
-                .collect::<Vec<_>>());
             Ok(Outcome::from(
-                d.edit(label, |tx| tx.set_value(id, "hexes", Value::Shaped(value)))?
+                d.edit(label, |tx| tx.set_value(id, "hexes", hexes_value(&next)))?
                     .1,
+            ))
+        },
+    );
+    c.add(
+        "locations.move",
+        |_| "Move Location".into(),
+        |d: &Doc, p: &serde_json::Value| {
+            payload::<MoveArgs>(p)
+                .is_ok_and(|a| (a.dq, a.dr) != (0, 0) && location(d, &a.at).is_ok())
+        },
+        |d: &mut Doc, p: &serde_json::Value| {
+            let a: MoveArgs = payload(p)?;
+            if (a.dq, a.dr) == (0, 0) {
+                return Err(Error::Payload("a move goes somewhere".into()));
+            }
+            let (id, hexes) = location(d, &a.at)?;
+            let moved: Vec<(i64, i64)> = hexes.iter().map(|&(q, r)| (q + a.dq, r + a.dr)).collect();
+            Ok(Outcome::from(
+                d.edit("Move Location", |tx| {
+                    tx.set_value(id, "hexes", hexes_value(&moved))
+                })?
+                .1,
             ))
         },
     );

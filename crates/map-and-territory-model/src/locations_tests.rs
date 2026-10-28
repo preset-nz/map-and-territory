@@ -284,3 +284,50 @@ fn the_key_numbers_from_the_top_layer_and_lists_the_unnumbered_last() {
     assert_eq!((k.entries[0].number, k.entries[0].hidden), (Some(1), true));
     assert!(!k.entries[1].hidden);
 }
+
+#[test]
+fn move_shifts_an_area_whole_in_one_undo_step() {
+    let mut d = doc();
+    d.run(
+        "locations.add",
+        &json!({ "at": LAYER, "q": 0, "r": 0, "name": "The Mire" }),
+    )
+    .unwrap();
+    let at = d.tree().at(LAYER).unwrap().order(LOCATIONS)[0]
+        .path()
+        .to_string();
+    d.run("locations.hex", &json!({ "at": at, "q": 1, "r": -1 }))
+        .unwrap();
+    assert!(!d
+        .is_enabled("locations.move", &json!({ "at": at, "dq": 0, "dr": 0 }))
+        .unwrap());
+    d.run("locations.move", &json!({ "at": at, "dq": 2, "dr": 1 }))
+        .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Move Location"));
+    assert_eq!(
+        hexes(&d, &at),
+        json!([{ "q": 2, "r": 1 }, { "q": 3, "r": 0 }])
+    );
+    assert!(d
+        .run("locations.move", &json!({ "at": LAYER, "dq": 1, "dr": 0 }))
+        .is_err());
+}
+
+#[test]
+fn a_location_keeps_one_hex_at_least_and_each_once() {
+    let mut d = doc();
+    d.run("locations.add", &json!({ "at": LAYER, "q": 0, "r": 0 }))
+        .unwrap();
+    let at = d.tree().at(LAYER).unwrap().order(LOCATIONS)[0]
+        .path()
+        .to_string();
+    let set = |d: &mut Doc, v: serde_json::Value| {
+        d.run(
+            "value.set",
+            &json!({ "at": at, "key": "hexes", "value": v }),
+        )
+    };
+    assert!(set(&mut d, json!([])).is_err());
+    assert!(set(&mut d, json!([{ "q": 1, "r": 1 }, { "q": 1, "r": 1 }])).is_err());
+    set(&mut d, json!([{ "q": 1, "r": 1 }])).unwrap();
+}

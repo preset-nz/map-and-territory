@@ -7,13 +7,7 @@ import {
   type RowSource,
 } from '@/app/scene/frame';
 import { activeMapId } from '@/app/selection';
-import {
-  addedPath,
-  locationAt,
-  locationsTarget,
-  movedHexes,
-  reshapeTarget,
-} from '@/app/tools/pointer-tools';
+import { addedPath, locationAt, locationsTarget, reshapeTarget } from '@/app/tools/pointer-tools';
 import type { PlacedLocation } from '@/layers/adapters/locations';
 
 const schema: FrameSchema = {
@@ -192,18 +186,5 @@ describe('the location tool', () => {
     expect(reshapeTarget(rows, { kind: 'layer', id: 'a2' })).toBe('/maps/map/a/a2');
     expect(reshapeTarget(rows, { kind: 'layer', id: 'a' })).toBeNull();
     expect(reshapeTarget(rows, { kind: 'none' })).toBeNull();
-  });
-
-  it('moves an area whole, keeping its shape', () => {
-    const mire = [
-      { q: 0, r: 0 },
-      { q: 1, r: 0 },
-      { q: 1, r: -1 },
-    ];
-    expect(movedHexes(mire, { q: 1, r: 0 }, { q: 3, r: 1 })).toEqual([
-      { q: 2, r: 1 },
-      { q: 3, r: 1 },
-      { q: 3, r: 0 },
-    ]);
   });
 });
