@@ -4,6 +4,10 @@
 //! map. Open it to see a new
 //! kind or a palette change against all the rest at once.
 //!
+//! `every-layout.campaign` is the same map once per page layout (epic 32), with more places so
+//! the key fills its columns: export it as one PDF to see every layout side by side. Write it
+//! again with `LAYOUTS_WRITE=1`.
+//!
 //! Built through the commands the app runs, as `sallow_fen.rs` is. When a kind lands (roads and
 //! rivers, epic 29; locations' areas, epic 28) or cells paint terrain ids (epic 26), add it here and write
 //! the file again with `EVERYTHING_WRITE=1 cargo test -p map-and-territory-model --test
@@ -137,17 +141,110 @@ fn build(d: &mut Doc) {
     );
 }
 
+/// Each page layout, in the map kind's order, and what its map is called.
+const LAYOUTS: [(&str, &str); 5] = [
+    ("map-top", "Map on top, key below"),
+    ("map-top-2col", "Key in two columns"),
+    ("map-top-3col", "Key in three columns"),
+    ("map-bottom", "Key on top, map below"),
+    ("map-full", "Map alone"),
+];
+
+/// Places for the key, with a line each.
+const PLACES: [(&str, &str); 10] = [
+    (
+        "Reedwall Keep",
+        "Held by the Vane since the flood, three towers and a drowned gate.",
+    ),
+    (
+        "Weeping Well",
+        "Its water tastes of salt; the village will not drink from it.",
+    ),
+    (
+        "Gallows Ford",
+        "Knee-deep in summer, a swim in spring. A rope still hangs.",
+    ),
+    ("Old Mill", "The wheel turns with no stream under it."),
+    (
+        "Crow Hill",
+        "A beacon stands ready; nobody remembers who lights it.",
+    ),
+    (
+        "Saltmarsh Inn",
+        "Warm beds, thin walls, a landlord who sells to both sides.",
+    ),
+    (
+        "Barrow of Kings",
+        "Seven mounds, one opened, one that hums at night.",
+    ),
+    ("Ferryman's Hut", "The fare is a coin and a secret."),
+    (
+        "Blackwater",
+        "Deep, cold and full of eels as long as a man.",
+    ),
+    (
+        "Standing Stones",
+        "Count them twice: the number is never the same.",
+    ),
+];
+
+/// The one-of-everything map with ten more places, once per layout.
+fn build_layouts(d: &mut Doc) {
+    build(d);
+    set(d, "/campaign/campaign", "name", json!("Every Layout"));
+    let m = newest(d, "/maps", "maps");
+    let places = d.tree().at(m.as_str()).unwrap().order("layers")[4]
+        .path()
+        .to_string();
+    for (i, (name, line)) in PLACES.iter().enumerate() {
+        // two rows of five, four columns apart, so no name runs into the next
+        let i = i as i64;
+        let (q, r) = axial(
+            (i / 2) * 4 - 9 + (i % 2) * 2,
+            if i % 2 == 0 { -3 } else { 3 },
+        );
+        run(
+            d,
+            "locations.add",
+            json!({ "at": places, "q": q, "r": r, "name": name }),
+        );
+        let at = newest(d, &places, "locations");
+        set(d, &at, "description", json!(line));
+    }
+    for (i, (layout, name)) in LAYOUTS.iter().enumerate() {
+        let at = if i == 0 {
+            m.clone()
+        } else {
+            // a copy lands just after its source, so copy the last one to keep the order
+            let last = newest(d, "/maps", "maps");
+            run(d, "edit.duplicate", json!({ "at": last }));
+            newest(d, "/maps", "maps")
+        };
+        set(d, &at, "name", json!(name));
+        set(d, &at, "layout", json!(layout));
+    }
+}
+
 fn fixture() -> PathBuf {
+    fixture_at("one-of-everything.campaign")
+}
+
+fn fixture_at(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../tests/window/fixtures/one-of-everything.campaign")
+        .join("../../tests/window/fixtures")
+        .join(name)
 }
 
 fn saved_text() -> String {
-    let dir = std::env::temp_dir().join(format!("one-of-everything-{}", std::process::id()));
+    saved_text_of(build, "one-of-everything.campaign")
+}
+
+fn saved_text_of(build: fn(&mut Doc), name: &str) -> String {
+    let dir = std::env::temp_dir().join(format!("{name}-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let mut file: Doc = Document::new_with_ids(FileStore, IdSource::sequential()).unwrap();
     build(&mut file);
-    let path = dir.join("one-of-everything.campaign");
+    let path = dir.join(name);
     file.save_as(&path).unwrap();
     let text = std::fs::read_to_string(&path).unwrap();
     std::fs::remove_dir_all(&dir).ok();
@@ -198,4 +295,41 @@ fn the_fixture_is_current() {
 fn the_fixture_opens() {
     let (d, _): (Doc, _) = Document::open(FileStore, fixture()).unwrap();
     assert!(!d.is_unsaved());
+}
+
+#[test]
+fn every_layout_holds_the_same_map_once_per_layout() {
+    let mut d: Doc =
+        Document::new_with_ids(MemoryStore::default(), IdSource::sequential()).unwrap();
+    build_layouts(&mut d);
+    let maps = d.tree().at("/maps").unwrap().order("maps");
+    let layouts: Vec<String> = maps
+        .iter()
+        .map(|m| match m.value("layout") {
+            Some(rhizome_core::Value::Choice(c)) => c,
+            other => panic!("layout is {other:?}"),
+        })
+        .collect();
+    assert_eq!(layouts, LAYOUTS.map(|(l, _)| l.to_string()));
+    // every copy keeps the twelve places
+    for m in &maps {
+        let places = &m.order("layers")[4];
+        assert_eq!(places.type_name(), "locations");
+        assert_eq!(places.order("locations").len(), 12);
+    }
+}
+
+#[test]
+fn every_layout_fixture_is_current() {
+    let text = saved_text_of(build_layouts, "every-layout.campaign");
+    let path = fixture_at("every-layout.campaign");
+    if std::env::var_os("LAYOUTS_WRITE").is_some() {
+        std::fs::write(&path, &text).unwrap();
+        return;
+    }
+    let on_disk = std::fs::read_to_string(&path).unwrap_or_default();
+    assert!(
+        on_disk == text,
+        "tests/window/fixtures/every-layout.campaign is stale: write it again with LAYOUTS_WRITE=1"
+    );
 }

@@ -147,3 +147,12 @@ steps = [
   { menu = "Edit > Duplicate" },
   { expect = "Edit > #1", title = "Undo Duplicate" },
 ]
+
+[[test]]
+name = "every layout opens, ready for the campaign PDF"
+covers = "epic 32, layouts fixture"
+steps = [
+  { open = "fixtures/every-layout.campaign" },
+  { window_title = "every-layout.campaign" },
+  { expect = "File > Export > Campaign as PDF…", enabled = true },
+]
