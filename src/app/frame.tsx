@@ -49,6 +49,8 @@ interface AppFrameProps {
   /** The inspector toggle's shortcut, from the command table. */
   inspectorShortcut?: string;
   inspector: ReactNode;
+  /** Under the inspector, outside its scroll: the palette strip (epic 30). */
+  inspectorFooter?: ReactNode;
   /** The panel toggle's shortcut, from the command table. */
   panelShortcut?: string;
   scene: ReactNode;
@@ -65,6 +67,7 @@ export function AppFrame({
   inspectorPanel,
   inspectorShortcut,
   inspector,
+  inspectorFooter,
   scene,
   toolbar,
   canvas,
@@ -98,6 +101,7 @@ export function AppFrame({
           onWidthChange={inspectorPanel.setWidth}
         >
           <SidePanelContent>{inspector}</SidePanelContent>
+          {inspectorFooter}
         </SidePanel>
       </div>
       <StatusBar>{status}</StatusBar>

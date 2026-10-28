@@ -369,6 +369,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
 }
 
 interface TerrainEntry {
+  id?: string;
+  traits?: unknown[];
   baseType?: string;
   name?: string;
   colour?: unknown;
@@ -391,28 +393,73 @@ function paletteFromRow(row: FrameRow, keys: Set<string> | undefined): MapPalett
   return { terrain, grid: { line: line ?? DefaultPalette.grid.line } };
 }
 
+/** The theme a map draws with, by the cascade (map, then campaign); none for the code fallback. */
+export function mapTheme(rows: RowSource, mapId: string | null): FrameRow | undefined {
+  const map = mapId ? rows.node(mapId) : undefined;
+  for (const follower of [map, rows.nodeAt(CAMPAIGN_PATH)]) {
+    const id = follower?.refs?.palette?.node;
+    const theme = id ? rows.node(id) : undefined;
+    if (theme) return theme;
+  }
+  return undefined;
+}
+
 /** A map's palette by the cascade (map, then campaign, then the fallback), unmemoised: for UI. */
 export function mapPalette(
   rows: RowSource,
   mapId: string | null,
   schema: FrameSchema | null | undefined,
 ): MapPalette {
-  const map = mapId ? rows.node(mapId) : undefined;
-  for (const follower of [map, rows.nodeAt(CAMPAIGN_PATH)]) {
-    const id = follower?.refs?.palette?.node;
-    const theme = id ? rows.node(id) : undefined;
-    if (theme) return paletteFromRow(theme, colourKeys(schema).get(theme.type));
-  }
-  return DefaultPalette;
+  const theme = mapTheme(rows, mapId);
+  return theme ? paletteFromRow(theme, colourKeys(schema).get(theme.type)) : DefaultPalette;
 }
 
 /** The name of the theme a map draws with, by the same cascade; null for the code fallback. */
 export function mapPaletteName(rows: RowSource, mapId: string | null): string | null {
-  const map = mapId ? rows.node(mapId) : undefined;
-  for (const follower of [map, rows.nodeAt(CAMPAIGN_PATH)]) {
-    const id = follower?.refs?.palette?.node;
-    const theme = id ? rows.node(id) : undefined;
-    if (theme) return typeof theme.values?.name === 'string' ? theme.values.name : null;
+  const theme = mapTheme(rows, mapId);
+  if (!theme) return null;
+  return typeof theme.values?.name === 'string' ? theme.values.name : null;
+}
+
+/** One of a palette's terrains as the palette strip shows it. */
+export interface TerrainSwatch {
+  id: string;
+  name: string;
+  baseType: TerrainCategory;
+  traits: string[];
+  fill: string;
+}
+
+/**
+ * Every terrain of the palette a map draws with, in palette order (epic 30): what it is called,
+ * what it is underneath and how it looks. The code fallback gives its five, one per base type.
+ * A terrain with an unknown base type or no colour is left out, as the renderer leaves it out.
+ */
+export function mapTerrains(rows: RowSource, mapId: string | null): TerrainSwatch[] {
+  const theme = mapTheme(rows, mapId);
+  if (!theme) {
+    return TERRAINS.map((t) => ({
+      id: t,
+      name: DefaultPalette.terrain[t].label ?? t,
+      baseType: t,
+      traits: [],
+      fill: DefaultPalette.terrain[t].fill,
+    }));
   }
-  return null;
+  const out: TerrainSwatch[] = [];
+  for (const [i, t] of ((theme.values?.terrains as TerrainEntry[] | undefined) ?? []).entries()) {
+    const base = t.baseType as TerrainCategory | undefined;
+    const fill = cssColour(t.colour);
+    if (!base || !TERRAINS.includes(base) || !fill) continue;
+    out.push({
+      id: t.id || `${i}`,
+      name: t.name || base,
+      baseType: base,
+      traits: Array.isArray(t.traits)
+        ? t.traits.filter((x): x is string => typeof x === 'string')
+        : [],
+      fill,
+    });
+  }
+  return out;
 }
