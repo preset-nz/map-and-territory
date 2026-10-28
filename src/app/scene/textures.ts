@@ -16,6 +16,11 @@ export interface TextureLoaderDeps {
 export interface TextureLoader {
   /** Starts loading every texture the frame names that is not yet known. */
   want(frame: SceneFrame): void;
+  /**
+   * Loads what the frame names and settles once each has been handed over or failed: an
+   * export of a map that isn't on screen waits for it (epic 32).
+   */
+  ready(frame: SceneFrame): Promise<void>;
   status(path: string): TextureStatus | undefined;
   /** Forget a path so the next `want` tries again (the file may have come back). */
   retry(path: string): void;
@@ -41,12 +46,13 @@ export function texturePaths(frame: SceneFrame): string[] {
 
 export function createTextureLoader(deps: TextureLoaderDeps): TextureLoader {
   const known = new Map<string, TextureStatus>();
-  return {
+  const pending = new Map<string, Promise<void>>();
+  const loader: TextureLoader = {
     want(frame) {
       for (const path of texturePaths(frame)) {
         if (known.has(path)) continue;
         known.set(path, 'loading');
-        deps
+        const done = deps
           .load(path)
           .then((bytes) => deps.decode(bytes))
           .then((bitmap) => {
@@ -57,8 +63,14 @@ export function createTextureLoader(deps: TextureLoaderDeps): TextureLoader {
           .catch((e) => {
             known.set(path, 'missing');
             console.warn('[textures] could not load', path, e);
-          });
+          })
+          .finally(() => pending.delete(path));
+        pending.set(path, done);
       }
+    },
+    async ready(frame) {
+      loader.want(frame);
+      await Promise.all(texturePaths(frame).map((p) => pending.get(p)));
     },
     status: (path) => known.get(path),
     retry(path) {
@@ -74,6 +86,7 @@ export function createTextureLoader(deps: TextureLoaderDeps): TextureLoader {
       return any;
     },
   };
+  return loader;
 }
 
 /** The loader over Tauri: bytes from Rust, decoded in the webview. */

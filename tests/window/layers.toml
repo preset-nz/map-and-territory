@@ -124,10 +124,12 @@ name = "export needs a map"
 covers = "export 2.1"
 steps = [
   { expect = "File > Export > Map as PNG…", enabled = false },
-  { expect = "File > Export > PDF…", enabled = false },
+  { expect = "File > Export > Map as PDF…", enabled = false },
+  { expect = "File > Export > Campaign as PDF…", enabled = false },
   { menu = "Map > New Map" },
   { expect = "File > Export > Map as PNG…", enabled = true },
-  { expect = "File > Export > PDF…", enabled = true },
+  { expect = "File > Export > Map as PDF…", enabled = true },
+  { expect = "File > Export > Campaign as PDF…", enabled = true },
 ]
 
 [[test]]

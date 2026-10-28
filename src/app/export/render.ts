@@ -5,7 +5,7 @@ import type { LocationsState } from '@/layers/adapters/locations';
 import { type PaperAspect, paperSize } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
 import { readCampaignPage } from '../scene/campaign-page';
-import type { RowSource } from '../scene/frame';
+import { MAPS_PATH, type RowSource } from '../scene/frame';
 import { layoutPage, type PageLayout, type PageSize, paperAspectRatio } from './layout';
 
 /** The longest side the export draws, in pixels. A4 at 300 dpi is about 2480 × 3508. */
@@ -74,6 +74,10 @@ export async function renderMapForExport(
 export interface MapExporter {
   /** null when there is no active map to draw. */
   current(): { frame: SceneFrame; logical: { w: number; h: number } } | null;
+  /** Any map by id, the same way; null when it has nothing to draw. */
+  of(mapId: string): { frame: SceneFrame; logical: { w: number; h: number } } | null;
+  /** Settles once the textures the frame names are loaded (or failed). */
+  prepare(frame: SceneFrame): Promise<void>;
   target: ExportTarget;
 }
 
@@ -116,7 +120,34 @@ export function mapExporter(): MapExporter | null {
  * The export commands call this: the PNG writes it alone, the PDF places it on the page.
  */
 export async function exportActiveMap(rows: RowSource): Promise<ExportedPage | null> {
-  const current = exporter?.current();
+  return exportOne(rows, exporter?.current() ?? null);
+}
+
+/**
+ * Every map of the campaign in `maps` order, each drawn at its size on the campaign's page,
+ * with its path for its key and layout (epic 32 story 2). Maps with nothing to draw are left
+ * out; empty with no canvas.
+ */
+export async function exportCampaignMaps(
+  rows: RowSource,
+): Promise<{ page: ExportedPage; mapPath: string }[]> {
+  const out: { page: ExportedPage; mapPath: string }[] = [];
+  for (const id of rows.nodeAt(MAPS_PATH)?.orders?.maps ?? []) {
+    const path = (rows.node(id) as { path?: string } | undefined)?.path;
+    const current = exporter?.of(id) ?? null;
+    if (!path || !current) continue;
+    // a map that isn't on screen may not have its textures in the worker yet
+    await exporter?.prepare(current.frame);
+    const page = await exportOne(rows, current);
+    if (page) out.push({ page, mapPath: path });
+  }
+  return out;
+}
+
+async function exportOne(
+  rows: RowSource,
+  current: { frame: SceneFrame; logical: { w: number; h: number } } | null,
+): Promise<ExportedPage | null> {
   if (!exporter || !current) return null;
   const page = readCampaignPage(rows);
   const layout = layoutPage({

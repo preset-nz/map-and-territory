@@ -18,8 +18,10 @@ pub const MENU_CONFIG: &str = include_str!("../menu.toml");
 /// File > Export > Map as PNG…, the default export (menu standard: Shift+Cmd+E).
 pub const EXPORT_MAP_PNG: &str = "file.export-map-png";
 
-/// File > Export > PDF…, with no accelerator: the PNG item has the default's chord.
+/// File > Export > Map as PDF…, with no accelerator: the PNG item has the default's chord.
 pub const EXPORT_PDF: &str = "file.export-pdf";
+/// File > Export > Campaign as PDF…: every map in one PDF (epic 32), no accelerator.
+pub const EXPORT_CAMPAIGN_PDF: &str = "file.export-campaign-pdf";
 
 /// Menu > Map > New Map.
 pub const NEW_MAP: &str = "map-new";
@@ -27,9 +29,10 @@ pub const NEW_MAP: &str = "map-new";
 /// Commands the webview runs: they need its selection, so Rust forwards them untouched
 /// (`on_command` returns false for them).
 #[cfg(test)]
-const WEBVIEW: [&str; 28] = [
+const WEBVIEW: [&str; 29] = [
     "file.export-map-png",
     "file.export-pdf",
+    "file.export-campaign-pdf",
     "layer.add-hex-noise",
     "layer.add-freeform",
     "layer.add-outline",
@@ -108,14 +111,18 @@ pub fn commands() -> Vec<Command> {
             .accelerator("CmdOrCtrl+Backspace")
             .menu(MenuName::Edit)
             .section(1),
-        // File > Export ▸ (menu standard rule: `<Format>…`, the default gets Shift+Cmd+E). PDF…
-        // has no chord. The webview enables both with an active map.
+        // File > Export ▸ (menu standard rule: `<Format>…`, the default gets Shift+Cmd+E). The
+        // PDFs have no chord. The webview enables them with an active map.
         Command::item(EXPORT_MAP_PNG, "Map as PNG…")
             .accelerator("CmdOrCtrl+Shift+E")
             .menu(MenuName::File)
             .section(1)
             .submenu("Export"),
-        Command::item(EXPORT_PDF, "PDF…")
+        Command::item(EXPORT_PDF, "Map as PDF…")
+            .menu(MenuName::File)
+            .section(1)
+            .submenu("Export"),
+        Command::item(EXPORT_CAMPAIGN_PDF, "Campaign as PDF…")
             .menu(MenuName::File)
             .section(1)
             .submenu("Export"),

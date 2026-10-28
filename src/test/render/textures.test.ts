@@ -39,6 +39,32 @@ describe('texture loader', () => {
     expect(loader.status('a.png')).toBe('ready');
   });
 
+  it('settles ready once every named texture is handed over or has failed', async () => {
+    let release = () => {};
+    const send = vi.fn();
+    const load = vi.fn((path: string) =>
+      path === 'slow.png'
+        ? new Promise<ArrayBuffer>((r) => {
+            release = () => r(new ArrayBuffer(1));
+          })
+        : Promise.reject(new Error('gone')),
+    );
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const loader = createTextureLoader({ load, decode: async () => ({}) as ImageBitmap, send });
+    let settled = false;
+    const ready = loader.ready(frame('slow.png', 'gone.png')).then(() => {
+      settled = true;
+    });
+    await tick();
+    expect(settled).toBe(false);
+    release();
+    await ready;
+    expect(send).toHaveBeenCalledWith('slow.png', expect.anything());
+    // known already: nothing to wait for
+    await loader.ready(frame('slow.png'));
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
   it('marks a failed path missing and tries again after retry', async () => {
     const load = vi
       .fn()

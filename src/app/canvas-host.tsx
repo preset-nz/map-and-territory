@@ -81,16 +81,21 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     };
     // The export draws the active map at Fit: the same frame without the camera or the tool
     // preview, on the map's paper size, whatever the window (epic 07 stories 3 and 6).
+    // Any map of the campaign can be drawn the same way, for the campaign's PDF (epic 32).
     const exporter: MapExporter = {
       target: svc,
       current() {
         const mapId = activeMapId(selection.get(), mirror);
-        if (!mapId || lastSize.w < 1 || lastSize.h < 1) return null;
+        return mapId ? exporter.of(mapId) : null;
+      },
+      of(mapId) {
+        if (lastSize.w < 1 || lastSize.h < 1) return null;
         const size = { w: lastSize.w, h: lastSize.h };
         const frame = builder.build(mirror, mapId, size, lastSize.dpr);
         if (frame.layers.length === 0) return null;
         return exportFrame(frame);
       },
+      prepare: (frame) => textures.ready(frame),
     };
     setMapExporter(exporter);
 

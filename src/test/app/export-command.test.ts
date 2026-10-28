@@ -1,5 +1,11 @@
-import { EXPORT_PDF, EXPORT_PNG, exportBindings } from '@/app/export/bindings';
-import { type ExportDeps, exportFileName, exportMap, pdfPlacement } from '@/app/export/command';
+import { EXPORT_CAMPAIGN_PDF, EXPORT_PDF, EXPORT_PNG, exportBindings } from '@/app/export/bindings';
+import {
+  type ExportDeps,
+  exportCampaign,
+  exportFileName,
+  exportMap,
+  pdfPlacement,
+} from '@/app/export/command';
 import { crc32 } from '@/app/export/png';
 
 const u32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
@@ -44,7 +50,7 @@ function deps(over: Partial<ExportDeps> = {}) {
 describe('the Export bindings', () => {
   it('are enabled with an active map and disabled without one', () => {
     const run = vi.fn();
-    for (const id of [EXPORT_PNG, EXPORT_PDF]) {
+    for (const id of [EXPORT_PNG, EXPORT_PDF, EXPORT_CAMPAIGN_PDF]) {
       expect(exportBindings('m1', run)[id].enabled).toBe(true);
       expect(exportBindings(null, run)[id].enabled).toBe(false);
     }
@@ -52,7 +58,9 @@ describe('the Export bindings', () => {
     expect(run).toHaveBeenLastCalledWith('png');
     exportBindings('m1', run)[EXPORT_PDF].run?.();
     expect(run).toHaveBeenLastCalledWith('pdf');
-    expect(run).toHaveBeenCalledTimes(2);
+    exportBindings('m1', run)[EXPORT_CAMPAIGN_PDF].run?.();
+    expect(run).toHaveBeenLastCalledWith('campaign');
+    expect(run).toHaveBeenCalledTimes(3);
   });
 });
 
@@ -128,11 +136,9 @@ describe('Export ▸ PDF…', () => {
     expect(await exportMap('pdf', d)).toBe('saved');
     expect(d.chooseFile).toHaveBeenCalledWith('Ashfall.pdf', '/Users/g/Campaigns', 'pdf');
     expect(d.writeFile).not.toHaveBeenCalled();
-    const [path, png, placement, map] = d.writePdf.mock.calls[0] as unknown as [
+    const [path, [{ png, placement, mapPath: map }]] = d.writePdf.mock.calls[0] as unknown as [
       string,
-      Uint8Array,
-      ReturnType<typeof pdfPlacement>,
-      string,
+      { png: Uint8Array; placement: ReturnType<typeof pdfPlacement>; mapPath: string }[],
     ];
     expect(path).toBe('/Users/g/Campaigns/Ashfall.pdf');
     // Rust puts this map's key after it
@@ -161,5 +167,37 @@ describe('Export ▸ PDF…', () => {
     });
     expect(await exportMap('pdf', bad)).toBe('failed');
     expect(bad.notify).toHaveBeenCalledWith(expect.stringContaining('disk full'), 'error');
+  });
+});
+
+describe('Export ▸ Campaign as PDF…', () => {
+  const page = { png: PNG, size: { w: 1, h: 1 }, clamped: false, page: PAGE };
+  const campaign = (maps: { page: typeof page; mapPath: string }[]) => ({
+    campaignName: 'Doom of the Fen',
+    documentPath: vi.fn(async () => '/Users/g/Campaigns/doom.campaign' as string | null),
+    chooseFile: vi.fn(async () => '/Users/g/Campaigns/Doom.pdf' as string | null),
+    render: vi.fn(async () => maps),
+    writePdf: vi.fn(async () => {}),
+    notify: vi.fn(),
+  });
+
+  it('hands Rust every map in order, each with its path, as one PDF', async () => {
+    const d = campaign([
+      { page, mapPath: '/maps/fen' },
+      { page, mapPath: '/maps/orlo' },
+    ]);
+    expect(await exportCampaign(d)).toBe('saved');
+    expect(d.chooseFile).toHaveBeenCalledWith('Doom of the Fen.pdf', '/Users/g/Campaigns', 'pdf');
+    const [path, sheets] = d.writePdf.mock.calls[0] as unknown as [string, { mapPath: string }[]];
+    expect(path).toBe('/Users/g/Campaigns/Doom.pdf');
+    expect(sheets.map((s) => s.mapPath)).toEqual(['/maps/fen', '/maps/orlo']);
+    expect(d.notify).toHaveBeenCalledWith('Exported 2 maps as PDF.', 'info');
+  });
+
+  it('writes nothing for a campaign with no map, and names an unnamed one Campaign', async () => {
+    const d = { ...campaign([]), campaignName: '  ' };
+    expect(await exportCampaign(d)).toBe('failed');
+    expect(d.chooseFile).toHaveBeenCalledWith('Campaign.pdf', '/Users/g/Campaigns', 'pdf');
+    expect(d.writePdf).not.toHaveBeenCalled();
   });
 });

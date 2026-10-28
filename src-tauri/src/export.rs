@@ -89,37 +89,79 @@ pub fn export_write_file(request: tauri::ipc::Request<'_>) -> Result<(), String>
     write_file(Path::new(&percent_decode(header)?), "png", bytes).map(|_| ())
 }
 
-/// Builds the PDF from the request body (the PNG) and writes it to the path in the `path`
-/// header (percent-encoded). The `layout` header is `pageW,pageH,x,y,w,h` in points, measured
-/// from the page's top-left. With a `map` header (the map's path, percent-encoded), that map's
-/// key goes under it or after it, by the map's layout.
+/// One map of a PDF request: its PNG, where it sits on the page, and its path.
+type Part<'a> = (&'a [u8], PdfLayout, Option<String>);
+
+/// The maps of a PDF request: the body is their PNGs end to end, `sizes` their byte lengths
+/// (absent: one PNG, the whole body), `layout` each one's `pageW,pageH,x,y,w,h` in points from
+/// the page's top-left and `map` each one's path (percent-encoded, empty for none), both
+/// `;`-separated.
+fn split_sheets<'a>(
+    body: &'a [u8],
+    sizes: Option<&str>,
+    layouts: &str,
+    maps: Option<&str>,
+) -> Result<Vec<Part<'a>>, String> {
+    let sizes: Vec<usize> = match sizes {
+        Some(s) => s
+            .split(',')
+            .map(|n| n.trim().parse().map_err(|_| "bad sizes header".to_string()))
+            .collect::<Result<_, _>>()?,
+        None => vec![body.len()],
+    };
+    let layouts: Vec<&str> = layouts.split(';').collect();
+    let maps: Vec<&str> = maps.map(|m| m.split(';').collect()).unwrap_or_default();
+    if layouts.len() != sizes.len() || (!maps.is_empty() && maps.len() != sizes.len()) {
+        return Err("the sizes, layout and map headers disagree".into());
+    }
+    if sizes.iter().sum::<usize>() != body.len() {
+        return Err("the sizes don't add up to the body".into());
+    }
+    let mut at = 0;
+    let mut out = Vec::new();
+    for (i, size) in sizes.iter().enumerate() {
+        let map = match maps.get(i) {
+            Some(m) if !m.is_empty() => Some(percent_decode(m)?),
+            _ => None,
+        };
+        out.push((&body[at..at + size], PdfLayout::parse(layouts[i])?, map));
+        at += size;
+    }
+    Ok(out)
+}
+
+/// Builds the PDF from the request's maps (see [`split_sheets`]), each with its key by its
+/// layout, and writes it to the path in the `path` header (percent-encoded).
 #[tauri::command]
 pub fn export_write_pdf(
     request: tauri::ipc::Request<'_>,
     document: tauri::State<'_, DocumentHost>,
 ) -> Result<(), String> {
-    let tauri::ipc::InvokeBody::Raw(png) = request.body() else {
-        return Err("expected the PNG as raw bytes".into());
+    let tauri::ipc::InvokeBody::Raw(body) = request.body() else {
+        return Err("expected the PNGs as raw bytes".into());
     };
-    let header = |name: &str| {
-        request
-            .headers()
-            .get(name)
-            .and_then(|v| v.to_str().ok())
-            .ok_or_else(|| format!("missing {name} header"))
-    };
-    let layout = PdfLayout::parse(header("layout")?)?;
-    let (key, map_layout) = match request.headers().get("map").and_then(|v| v.to_str().ok()) {
-        Some(map) => document.sheet(&percent_decode(map)?),
-        None => (None, MapLayout::MapTop),
-    };
-    let pdf = build_pdf(&[MapSheet {
-        png,
-        layout,
-        key: key.as_ref(),
-        map_layout,
-    }])?;
-    write_file(Path::new(&percent_decode(header("path")?)?), "pdf", &pdf).map(|_| ())
+    let header = |name: &str| request.headers().get(name).and_then(|v| v.to_str().ok());
+    let need = |name: &str| header(name).ok_or_else(|| format!("missing {name} header"));
+    let parts = split_sheets(body, header("sizes"), need("layout")?, header("map"))?;
+    let keyed: Vec<_> = parts
+        .iter()
+        .map(|(_, _, map)| match map {
+            Some(m) => document.sheet(m),
+            None => (None, MapLayout::MapTop),
+        })
+        .collect();
+    let sheets: Vec<MapSheet<'_>> = parts
+        .iter()
+        .zip(&keyed)
+        .map(|((png, layout, _), (key, map_layout))| MapSheet {
+            png,
+            layout: *layout,
+            key: key.as_ref(),
+            map_layout: *map_layout,
+        })
+        .collect();
+    let pdf = build_pdf(&sheets)?;
+    write_file(Path::new(&percent_decode(need("path")?)?), "pdf", &pdf).map(|_| ())
 }
 
 #[cfg(test)]
@@ -167,5 +209,27 @@ mod tests {
         assert_eq!(std::fs::read(&written).unwrap(), vec![1, 2, 3]);
         assert!(write_file(&dir.join("missing").join("x.png"), "png", &[1]).is_err());
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn a_request_splits_into_its_maps() {
+        let body = b"aaabbbbb";
+        let l = "419.53,595.28,28.346,28.346,362.835,255.118";
+        let parts = split_sheets(
+            body,
+            Some("3,5"),
+            &format!("{l};{l}"),
+            Some("%2Fmaps%2Ffen;"),
+        )
+        .unwrap();
+        assert_eq!(parts.len(), 2);
+        assert_eq!(parts[0].0, b"aaa");
+        assert_eq!(parts[1].0, b"bbbbb");
+        assert_eq!(parts[0].2.as_deref(), Some("/maps/fen"));
+        assert_eq!(parts[1].2, None);
+        // one map: the whole body, no sizes header
+        assert_eq!(split_sheets(body, None, l, None).unwrap()[0].0, body);
+        assert!(split_sheets(body, Some("3,4"), &format!("{l};{l}"), None).is_err());
+        assert!(split_sheets(body, Some("3,5"), l, None).is_err());
     }
 }
