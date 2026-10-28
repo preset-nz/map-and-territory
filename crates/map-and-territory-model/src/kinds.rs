@@ -16,6 +16,10 @@ pub const ASPECTS: &[&str] = &["square", "4:3", "16:10", "16:9"];
 pub const ORIENTATIONS: &[&str] = &["pointy", "flat"];
 pub const PAGE_SIZES: &[&str] = &["a5", "a4"];
 pub const PAGE_ORIENTATIONS: &[&str] = &["portrait", "landscape"];
+/// The campaign's page when nothing is stored: A5 portrait with a 10 mm margin.
+pub const DEFAULT_PAGE_SIZE: &str = "a5";
+pub const DEFAULT_PAGE_ORIENTATION: &str = "portrait";
+pub const DEFAULT_PAGE_MARGIN_MM: f64 = 10.0;
 pub const LINE_STYLES: &[&str] = &["solid", "dashed", "dotted", "dash-dot"];
 /// The 2025 `BaseTerrainType`.
 pub const BASE_TYPES: &[&str] = &["water", "plains", "forest", "hills", "mountains"];
@@ -276,20 +280,20 @@ pub fn declare(k: &mut Kinds) {
                 "Description",
                 "Notes about the campaign, such as its setting or premise.",
             )
-            .choice("pageSize", PAGE_SIZES, "a5")
+            .choice("pageSize", PAGE_SIZES, DEFAULT_PAGE_SIZE)
             .described(
                 "Page size",
                 "The paper every map in the campaign is exported onto. A4 is A5 enlarged, so the map looks the same.",
             )
             .choice_labels(&[("a5", "A5"), ("a4", "A4")])
-            .choice("pageOrientation", PAGE_ORIENTATIONS, "portrait")
+            .choice("pageOrientation", PAGE_ORIENTATIONS, DEFAULT_PAGE_ORIENTATION)
             .described(
                 "Page orientation",
                 "Whether the page is taller than it is wide, or wider than it is tall.",
             )
             .choice_labels(&[("portrait", "Portrait"), ("landscape", "Landscape")])
             .value(
-                ValueSpec::float("pageMargin", 0.0..=40.0, 10.0)
+                ValueSpec::float("pageMargin", 0.0..=40.0, DEFAULT_PAGE_MARGIN_MM)
                     .described(
                         "Page margin",
                         "The plain white border around the map on the exported page.",

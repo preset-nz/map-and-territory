@@ -4,9 +4,9 @@
 //! that order, counted across the map's numbered locations layers by the frame projection, so
 //! it is never stored and reordering renumbers.
 //!
-//! The key ([`key`]) lists a map's places by number for an export's second page. The frame
-//! projection numbers them the same way for the window (`locationNumbers`, `frame.ts`): keep
-//! the two in step.
+//! The key ([`key`]) lists a map's places by number for a print ([`Key::printable`] leaves
+//! out the hidden). The frame projection numbers them the same way for the window
+//! (`locationNumbers`, `frame.ts`): keep the two in step.
 //!
 //! Commands: `locations.add` puts a location on a hex; `locations.hex` grows a location into
 //! a hex or shrinks it out of one, so a place can cover an area; `locations.move` shifts all
@@ -50,6 +50,13 @@ pub struct Key {
     /// The map's name, for the page's heading.
     pub map: String,
     pub entries: Vec<KeyEntry>,
+}
+
+impl Key {
+    /// The places a print shows, in key order: hidden ones are the owner's secrets and stay out.
+    pub fn printable(&self) -> impl Iterator<Item = &KeyEntry> {
+        self.entries.iter().filter(|e| !e.hidden)
+    }
 }
 
 fn text(n: &Node<'_>, key: &str) -> String {

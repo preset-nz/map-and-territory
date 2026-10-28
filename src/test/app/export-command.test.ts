@@ -1,11 +1,5 @@
 import { EXPORT_CAMPAIGN_PDF, EXPORT_PDF, EXPORT_PNG, exportBindings } from '@/app/export/bindings';
-import {
-  type ExportDeps,
-  exportCampaign,
-  exportFileName,
-  exportMap,
-  pdfPlacement,
-} from '@/app/export/command';
+import { type ExportDeps, exportCampaign, exportFileName, exportMap } from '@/app/export/command';
 import { crc32 } from '@/app/export/png';
 
 const u32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
@@ -26,19 +20,13 @@ const PNG = new Uint8Array([
   ...chunk('IEND', []),
 ]).buffer;
 
-const PAGE = {
-  size: 'a5' as const,
-  pageMm: { w: 148, h: 210 },
-  mapMm: { x: 10, y: 10, w: 128, h: 90 },
-};
-
 function deps(over: Partial<ExportDeps> = {}) {
   const d = {
     mapName: 'Ashfall',
     mapPath: '/maps/ashfall' as string | null,
     documentPath: vi.fn(async () => '/Users/g/Campaigns/doom.campaign' as string | null),
     chooseFile: vi.fn(async () => '/Users/g/Campaigns/Ashfall.png' as string | null),
-    render: vi.fn(async () => ({ png: PNG, size: { w: 1, h: 1 }, clamped: false, page: PAGE })),
+    render: vi.fn(async () => ({ png: PNG, size: { w: 1, h: 1 }, clamped: false })),
     writePdf: vi.fn(async () => {}),
     writeFile: vi.fn(async () => {}),
     notify: vi.fn(),
@@ -105,7 +93,6 @@ describe('Export ▸ Map as PNG…', () => {
         png: PNG,
         size: { w: 8192, h: 5000 },
         clamped: true,
-        page: PAGE,
       })),
     });
     expect(await exportMap('png', d)).toBe('saved');
@@ -129,26 +116,29 @@ describe('Export ▸ Map as PNG…', () => {
 });
 
 describe('Export ▸ PDF…', () => {
-  it('asks for a .pdf, then hands Rust the PNG and the layout in points', async () => {
+  it('asks for a .pdf, then hands Rust the PNG and the map’s path', async () => {
     const d = deps({
       chooseFile: vi.fn(async () => '/Users/g/Campaigns/Ashfall.pdf' as string | null),
     });
     expect(await exportMap('pdf', d)).toBe('saved');
     expect(d.chooseFile).toHaveBeenCalledWith('Ashfall.pdf', '/Users/g/Campaigns', 'pdf');
     expect(d.writeFile).not.toHaveBeenCalled();
-    const [path, [{ png, placement, mapPath: map }]] = d.writePdf.mock.calls[0] as unknown as [
+    const [path, [{ png, mapPath: map }]] = d.writePdf.mock.calls[0] as unknown as [
       string,
-      { png: Uint8Array; placement: ReturnType<typeof pdfPlacement>; mapPath: string }[],
+      { png: Uint8Array; mapPath: string }[],
     ];
     expect(path).toBe('/Users/g/Campaigns/Ashfall.pdf');
-    // Rust puts this map's key after it
+    // Rust lays this map's page and key out from the document
     expect(map).toBe('/maps/ashfall');
     expect(png.byteLength).toBe(PNG.byteLength);
-    expect(placement.pagePt.w).toBeCloseTo(419.53, 2);
-    expect(placement.pagePt.h).toBeCloseTo(595.28, 2);
-    expect(placement.mapPt.x).toBeCloseTo(28.346, 3);
-    expect(placement.mapPt.w).toBeCloseTo(362.835, 3);
-    expect(d.notify).toHaveBeenCalledWith('Exported A5 PDF.', 'info');
+    expect(d.notify).toHaveBeenCalledWith('Exported PDF.', 'info');
+  });
+
+  it('fails without a map path, since Rust has nothing to lay out', async () => {
+    const d = deps({ mapPath: null });
+    expect(await exportMap('pdf', d)).toBe('failed');
+    expect(d.writePdf).not.toHaveBeenCalled();
+    expect(d.notify).toHaveBeenCalledWith(expect.stringContaining('no map'), 'error');
   });
 
   it('writes nothing and draws nothing when the dialog is cancelled', async () => {
@@ -171,8 +161,8 @@ describe('Export ▸ PDF…', () => {
 });
 
 describe('Export ▸ Campaign as PDF…', () => {
-  const page = { png: PNG, size: { w: 1, h: 1 }, clamped: false, page: PAGE };
-  const campaign = (maps: { page: typeof page; mapPath: string }[]) => ({
+  const drawn = { png: PNG, size: { w: 1, h: 1 }, clamped: false };
+  const campaign = (maps: (typeof drawn & { mapPath: string })[]) => ({
     campaignName: 'Doom of the Fen',
     documentPath: vi.fn(async () => '/Users/g/Campaigns/doom.campaign' as string | null),
     chooseFile: vi.fn(async () => '/Users/g/Campaigns/Doom.pdf' as string | null),
@@ -183,8 +173,8 @@ describe('Export ▸ Campaign as PDF…', () => {
 
   it('hands Rust every map in order, each with its path, as one PDF', async () => {
     const d = campaign([
-      { page, mapPath: '/maps/fen' },
-      { page, mapPath: '/maps/orlo' },
+      { ...drawn, mapPath: '/maps/fen' },
+      { ...drawn, mapPath: '/maps/orlo' },
     ]);
     expect(await exportCampaign(d)).toBe('saved');
     expect(d.chooseFile).toHaveBeenCalledWith('Doom of the Fen.pdf', '/Users/g/Campaigns', 'pdf');

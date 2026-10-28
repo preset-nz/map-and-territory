@@ -1,6 +1,5 @@
 // Epic 07 story 3: the map at print size, through the same backend and adapters.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { layoutPage } from '@/app/export/layout';
 import {
   exportActiveMap,
   exportFrame,
@@ -330,19 +329,20 @@ describe('export through the render service', () => {
 
   it('posts the whole frame and resolves with the PNG bytes', async () => {
     const svc = start();
-    const layout = layoutPage({ size: 'a5', orientation: 'portrait', marginMm: 10, aspect: 1.6 });
-    const done = await renderMapForExport(svc, frame(), LOGICAL, layout);
+    // what Rust gives a 16:10 map on A5 portrait with 10 mm margins
+    const mapPx = { w: 1512, h: 945 };
+    const done = await renderMapForExport(svc, frame(), LOGICAL, mapPx);
     const sent = FakeWorker.last!.posted.find((m) => m.type === 'export');
     expect(sent).toMatchObject({
       logical: LOGICAL,
-      out: { w: layout.mapPx.w, h: layout.mapPx.h },
+      out: mapPx,
     });
     if (sent?.type !== 'export') throw new Error('no export posted');
     expect(sent.frame.camera).toEqual({ x: 0, y: 0, zoom: 1 });
     expect(sent.frame.layers).toHaveLength(3);
-    expect(done.size).toEqual({ w: layout.mapPx.w, h: layout.mapPx.h });
+    expect(done.size).toEqual(mapPx);
     expect(done.clamped).toBe(false);
-    expect(new Uint8Array(done.png)[0]).toBe(layout.mapPx.w % 256);
+    expect(new Uint8Array(done.png)[0]).toBe(mapPx.w % 256);
     svc.destroy();
   });
 
@@ -360,7 +360,8 @@ describe('export through the render service', () => {
 
 describe('export cost at A4 300 dpi (mock context: geometry and adapter work only)', () => {
   it('measures', () => {
-    const layout = layoutPage({ size: 'a4', orientation: 'portrait', marginMm: 10, aspect: 1.6 });
+    // A4 portrait, 16:10, 10 mm margins, as Rust lays it out
+    const mapPx = { w: 2244, h: 1403 };
     const logical = { w: 1100, h: 687.5 };
     const grid = (over: Record<string, unknown>) =>
       frame({
@@ -376,9 +377,9 @@ describe('export cost at A4 300 dpi (mock context: geometry and adapter work onl
       });
     const time = (f: SceneFrame) => {
       const backend = new Canvas2DBackend();
-      const { ctx } = recordingCtx({ width: layout.mapPx.w, height: layout.mapPx.h });
+      const { ctx } = recordingCtx({ width: mapPx.w, height: mapPx.h });
       const t0 = performance.now();
-      backend.renderExport(ctx, f, logical, layout.mapPx);
+      backend.renderExport(ctx, f, logical, mapPx);
       return performance.now() - t0;
     };
     const plain = time(grid({}));
@@ -386,7 +387,7 @@ describe('export cost at A4 300 dpi (mock context: geometry and adapter work onl
     // EXPORT_COST=1 vitest run src/test/render/export.test.ts prints the numbers
     if (process.env.EXPORT_COST) {
       process.stderr.write(
-        `[export cost] A4 portrait 16:10 map ${layout.mapPx.w}x${layout.mapPx.h} px from ${logical.w}x${logical.h}: plain grid ${plain.toFixed(1)} ms, width+ink noise ${noisy.toFixed(1)} ms (mock ctx)\n`,
+        `[export cost] A4 portrait 16:10 map ${mapPx.w}x${mapPx.h} px from ${logical.w}x${logical.h}: plain grid ${plain.toFixed(1)} ms, width+ink noise ${noisy.toFixed(1)} ms (mock ctx)\n`,
       );
     }
     expect(plain).toBeGreaterThan(0);
@@ -394,33 +395,54 @@ describe('export cost at A4 300 dpi (mock context: geometry and adapter work onl
 });
 
 describe('exporting the active map', () => {
-  it('draws it at its rectangle on the campaign page', async () => {
-    const campaign = {
-      id: 'c',
-      type: 'campaign',
-      values: { pageSize: 'a4', pageOrientation: 'landscape', pageMargin: 15 },
-    };
-    const rows = {
-      node: () => undefined,
-      nodeAt: (p: string) => (p === '/campaign/campaign' ? campaign : undefined),
-    };
-    expect(await exportActiveMap(rows)).toBeNull();
+  const rows = (path: string | undefined) => ({
+    node: (id: string) => (id === 'm1' ? { id, type: 'map', path } : undefined),
+    nodeAt: () => undefined,
+  });
+  const sheet = {
+    pagePt: { w: 595.28, h: 841.89 },
+    mapPt: { x: 28.35, y: 28.35, w: 538.58, h: 336.61 },
+    mapPx: { w: 2244, h: 1403 },
+  };
+
+  it('draws it at the pixel size Rust gives for its path', async () => {
+    const sheetOf = vi.fn(async () => sheet);
+    expect(await exportActiveMap(rows('/maps/fen'), sheetOf)).toBeNull();
+    const exportPng = vi.fn(async () => new ArrayBuffer(1));
+    const prepare = vi.fn(async () => {});
+    setMapExporter({
+      target: { exportPng },
+      current: () => ({ mapId: 'm1', frame: frame(), logical: LOGICAL }),
+      of: () => null,
+      prepare,
+    });
+    try {
+      const done = await exportActiveMap(rows('/maps/fen'), sheetOf);
+      expect(sheetOf).toHaveBeenCalledWith('/maps/fen');
+      expect(prepare).toHaveBeenCalledTimes(1);
+      expect(exportPng).toHaveBeenCalledWith(expect.anything(), LOGICAL, sheet.mapPx);
+      expect(done?.size).toEqual(sheet.mapPx);
+      expect(done?.clamped).toBe(false);
+      // no path, nothing for Rust to lay out
+      expect(await exportActiveMap(rows(undefined), sheetOf)).toBeNull();
+    } finally {
+      setMapExporter(null);
+    }
+  });
+
+  it('draws smaller and says so when the page asks for more than the limit', async () => {
+    const big = { ...sheet, mapPx: { w: 16000, h: 10000 } };
     const exportPng = vi.fn(async () => new ArrayBuffer(1));
     setMapExporter({
       target: { exportPng },
-      current: () => ({ frame: frame(), logical: LOGICAL }),
+      current: () => ({ mapId: 'm1', frame: frame(), logical: LOGICAL }),
+      of: () => null,
+      prepare: async () => {},
     });
     try {
-      const done = await exportActiveMap(rows);
-      const layout = layoutPage({
-        size: 'a4',
-        orientation: 'landscape',
-        marginMm: 15,
-        aspect: 1.6,
-      });
-      const mapPx = { w: layout.mapPx.w, h: layout.mapPx.h };
-      expect(exportPng).toHaveBeenCalledWith(expect.anything(), LOGICAL, mapPx);
-      expect(done?.size).toEqual(mapPx);
+      const done = await exportActiveMap(rows('/maps/fen'), async () => big);
+      expect(done?.clamped).toBe(true);
+      expect(done?.size).toEqual({ w: 8192, h: 5120 });
     } finally {
       setMapExporter(null);
     }

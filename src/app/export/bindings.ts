@@ -8,7 +8,13 @@ import { CAMPAIGN_PATH, type RowSource } from '../scene/frame';
 import { displayName } from '../scene/tree';
 import { useActiveMapId } from '../selection';
 import { type ExportFormat, exportCampaign, exportMap } from './command';
-import { chooseExportFile, currentDocumentPath, writeExportFile, writeExportPdf } from './native';
+import {
+  chooseExportFile,
+  currentDocumentPath,
+  exportSheet,
+  writeExportFile,
+  writeExportPdf,
+} from './native';
 import { exportActiveMap, exportCampaignMaps } from './render';
 
 export const EXPORT_PNG = 'file.export-map-png';
@@ -41,7 +47,7 @@ export function useExportBindings(): Record<string, Binding> {
           campaignName: typeof name === 'string' ? name : null,
           documentPath: currentDocumentPath,
           chooseFile: chooseExportFile,
-          render: () => exportCampaignMaps(rows),
+          render: () => exportCampaignMaps(rows, exportSheet),
           writePdf: writeExportPdf,
           notify: notice.show,
         }).catch((e) => console.error('[export]', e));
@@ -53,7 +59,7 @@ export function useExportBindings(): Record<string, Binding> {
         mapPath: (row as { path?: string } | undefined)?.path ?? null,
         documentPath: currentDocumentPath,
         chooseFile: chooseExportFile,
-        render: () => exportActiveMap(rows),
+        render: () => exportActiveMap(rows, exportSheet),
         writeFile: writeExportFile,
         writePdf: writeExportPdf,
         notify: notice.show,

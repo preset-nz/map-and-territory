@@ -1,12 +1,14 @@
 //! Export's native half (epic 07): the Save dialog and the file write. The webview draws the
 //! PNG and hands the bytes over; it has no fs plugin, so nothing else can write to disk.
 
+use map_and_territory_model::print::Sheet;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::document::DocumentHost;
-use crate::pdf::{build_pdf, MapLayout, MapSheet, PdfLayout};
+use crate::pdf::build_pdf;
 
 /// `path` with `ext` added when the user typed a name without an extension.
 fn with_ext(path: PathBuf, ext: &str) -> PathBuf {
@@ -89,49 +91,54 @@ pub fn export_write_file(request: tauri::ipc::Request<'_>) -> Result<(), String>
     write_file(Path::new(&percent_decode(header)?), "png", bytes).map(|_| ())
 }
 
-/// One map of a PDF request: its PNG, where it sits on the page, and its path.
-type Part<'a> = (&'a [u8], PdfLayout, Option<String>);
+/// One entry of a PDF request's manifest: a map's path and the byte length of its PNG.
+#[derive(Debug, Deserialize)]
+struct ManifestEntry {
+    map: String,
+    size: usize,
+}
 
-/// The maps of a PDF request: the body is their PNGs end to end, `sizes` their byte lengths
-/// (absent: one PNG, the whole body), `layout` each one's `pageW,pageH,x,y,w,h` in points from
-/// the page's top-left and `map` each one's path (percent-encoded, empty for none), both
-/// `;`-separated.
-fn split_sheets<'a>(
-    body: &'a [u8],
-    sizes: Option<&str>,
-    layouts: &str,
-    maps: Option<&str>,
-) -> Result<Vec<Part<'a>>, String> {
-    let sizes: Vec<usize> = match sizes {
-        Some(s) => s
-            .split(',')
-            .map(|n| n.trim().parse().map_err(|_| "bad sizes header".to_string()))
-            .collect::<Result<_, _>>()?,
-        None => vec![body.len()],
-    };
-    let layouts: Vec<&str> = layouts.split(';').collect();
-    let maps: Vec<&str> = maps.map(|m| m.split(';').collect()).unwrap_or_default();
-    if layouts.len() != sizes.len() || (!maps.is_empty() && maps.len() != sizes.len()) {
-        return Err("the sizes, layout and map headers disagree".into());
-    }
-    if sizes.iter().sum::<usize>() != body.len() {
+/// The maps of a PDF request: the body is their PNGs end to end and the manifest (JSON, an
+/// array of `{ map, size }` in the same order) says whose each is and how long.
+fn split_manifest<'a>(body: &'a [u8], manifest: &str) -> Result<Vec<(&'a [u8], String)>, String> {
+    let entries: Vec<ManifestEntry> =
+        serde_json::from_str(manifest).map_err(|e| format!("bad manifest header: {e}"))?;
+    let total = entries
+        .iter()
+        .try_fold(0usize, |n, e| n.checked_add(e.size))
+        .ok_or("the sizes don't add up to the body")?;
+    if total != body.len() {
         return Err("the sizes don't add up to the body".into());
     }
     let mut at = 0;
-    let mut out = Vec::new();
-    for (i, size) in sizes.iter().enumerate() {
-        let map = match maps.get(i) {
-            Some(m) if !m.is_empty() => Some(percent_decode(m)?),
-            _ => None,
-        };
-        out.push((&body[at..at + size], PdfLayout::parse(layouts[i])?, map));
-        at += size;
-    }
-    Ok(out)
+    Ok(entries
+        .into_iter()
+        .map(|e| {
+            let png = &body[at..at + e.size];
+            at += e.size;
+            (png, e.map)
+        })
+        .collect())
 }
 
-/// Builds the PDF from the request's maps (see [`split_sheets`]), each with its key by its
-/// layout, and writes it to the path in the `path` header (percent-encoded).
+/// Lays each map out from the document; a map that isn't there is an error.
+fn sheets_of(
+    parts: Vec<(&[u8], String)>,
+    sheet: impl Fn(&str) -> Option<Sheet>,
+) -> Result<Vec<(&[u8], Sheet)>, String> {
+    parts
+        .into_iter()
+        .map(|(png, map)| {
+            sheet(&map)
+                .map(|s| (png, s))
+                .ok_or_else(|| format!("there is no map at {map}"))
+        })
+        .collect()
+}
+
+/// Builds the PDF from the request's maps (see [`split_manifest`]), each laid out from the
+/// document with its key, and writes it to the path in the `path` header (percent-encoded).
+/// The webview only draws the PNGs; the page is Rust's.
 #[tauri::command]
 pub fn export_write_pdf(
     request: tauri::ipc::Request<'_>,
@@ -140,28 +147,75 @@ pub fn export_write_pdf(
     let tauri::ipc::InvokeBody::Raw(body) = request.body() else {
         return Err("expected the PNGs as raw bytes".into());
     };
-    let header = |name: &str| request.headers().get(name).and_then(|v| v.to_str().ok());
-    let need = |name: &str| header(name).ok_or_else(|| format!("missing {name} header"));
-    let parts = split_sheets(body, header("sizes"), need("layout")?, header("map"))?;
-    let keyed: Vec<_> = parts
-        .iter()
-        .map(|(_, _, map)| match map {
-            Some(m) => document.sheet(m),
-            None => (None, MapLayout::Top(1)),
-        })
-        .collect();
-    let sheets: Vec<MapSheet<'_>> = parts
-        .iter()
-        .zip(&keyed)
-        .map(|((png, layout, _), (key, map_layout))| MapSheet {
-            png,
-            layout: *layout,
-            key: key.as_ref(),
-            map_layout: *map_layout,
-        })
-        .collect();
+    let header = |name: &str| {
+        request
+            .headers()
+            .get(name)
+            .and_then(|v| v.to_str().ok())
+            .ok_or_else(|| format!("missing {name} header"))
+    };
+    let parts = split_manifest(body, &percent_decode(header("manifest")?)?)?;
+    let laid = sheets_of(parts, |map| document.sheet(map))?;
+    let sheets: Vec<(&[u8], &Sheet)> = laid.iter().map(|(png, s)| (*png, s)).collect();
     let pdf = build_pdf(&sheets)?;
-    write_file(Path::new(&percent_decode(need("path")?)?), "pdf", &pdf).map(|_| ())
+    write_file(Path::new(&percent_decode(header("path")?)?), "pdf", &pdf).map(|_| ())
+}
+
+/// A map's place on its page, for the webview to size its drawing by: the page and the map's
+/// rectangle in points from the page's top-left, and the map's size in pixels at 300 dpi.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SheetSize {
+    page_pt: Size,
+    map_pt: Region,
+    map_px: Size,
+}
+
+#[derive(Debug, Serialize)]
+struct Size {
+    w: f64,
+    h: f64,
+}
+
+#[derive(Debug, Serialize)]
+struct Region {
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+}
+
+impl From<&Sheet> for SheetSize {
+    fn from(s: &Sheet) -> Self {
+        Self {
+            page_pt: Size {
+                w: s.page.0,
+                h: s.page.1,
+            },
+            map_pt: Region {
+                x: s.map.x,
+                y: s.map.y,
+                w: s.map.w,
+                h: s.map.h,
+            },
+            map_px: Size {
+                w: f64::from(s.map_px.0),
+                h: f64::from(s.map_px.1),
+            },
+        }
+    }
+}
+
+/// How big to draw the map at `map` for an export: its place on the campaign's page.
+#[tauri::command]
+pub fn export_sheet(
+    map: String,
+    document: tauri::State<'_, DocumentHost>,
+) -> Result<SheetSize, String> {
+    document
+        .sheet(&map)
+        .map(|s| SheetSize::from(&s))
+        .ok_or_else(|| format!("there is no map at {map}"))
 }
 
 #[cfg(test)]
@@ -212,24 +266,50 @@ mod tests {
     }
 
     #[test]
-    fn a_request_splits_into_its_maps() {
+    fn a_manifest_splits_the_body_into_its_maps() {
         let body = b"aaabbbbb";
-        let l = "419.53,595.28,28.346,28.346,362.835,255.118";
-        let parts = split_sheets(
+        let parts = split_manifest(
             body,
-            Some("3,5"),
-            &format!("{l};{l}"),
-            Some("%2Fmaps%2Ffen;"),
+            r#"[{"map":"/maps/fen","size":3},{"map":"/maps/orlo","size":5}]"#,
         )
         .unwrap();
         assert_eq!(parts.len(), 2);
-        assert_eq!(parts[0].0, b"aaa");
-        assert_eq!(parts[1].0, b"bbbbb");
-        assert_eq!(parts[0].2.as_deref(), Some("/maps/fen"));
-        assert_eq!(parts[1].2, None);
-        // one map: the whole body, no sizes header
-        assert_eq!(split_sheets(body, None, l, None).unwrap()[0].0, body);
-        assert!(split_sheets(body, Some("3,4"), &format!("{l};{l}"), None).is_err());
-        assert!(split_sheets(body, Some("3,5"), l, None).is_err());
+        assert_eq!(parts[0], (&b"aaa"[..], "/maps/fen".to_string()));
+        assert_eq!(parts[1], (&b"bbbbb"[..], "/maps/orlo".to_string()));
+        // the sizes must add up to the body exactly
+        assert!(split_manifest(body, r#"[{"map":"/m","size":3}]"#).is_err());
+        assert!(split_manifest(body, r#"[{"map":"/m","size":9}]"#).is_err());
+        assert!(split_manifest(
+            body,
+            r#"[{"map":"/m","size":18446744073709551615},{"map":"/n","size":9}]"#
+        )
+        .is_err());
+        // nonsense is an error, and an empty manifest is an empty body
+        assert!(split_manifest(body, "not json").is_err());
+        assert!(split_manifest(body, r#"[{"map":"/m"}]"#).is_err());
+        assert!(split_manifest(b"", "[]").unwrap().is_empty());
+    }
+
+    #[test]
+    fn a_map_missing_from_the_document_is_an_error() {
+        use map_and_territory_model::print::{lay_out, MapLayout, PageSpec};
+        let there = |map: &str| {
+            (map == "/maps/fen")
+                .then(|| lay_out(PageSpec::default(), 1.6, MapLayout::default(), None))
+        };
+        let ok = sheets_of(vec![(&b"a"[..], "/maps/fen".into())], there).unwrap();
+        assert_eq!(ok.len(), 1);
+        let err = sheets_of(vec![(&b"a"[..], "/maps/gone".into())], there).unwrap_err();
+        assert!(err.contains("/maps/gone"), "{err}");
+    }
+
+    #[test]
+    fn the_sheet_size_is_camel_case_json() {
+        use map_and_territory_model::print::{lay_out, MapLayout, PageSpec};
+        let s = lay_out(PageSpec::default(), 1.6, MapLayout::default(), None);
+        let v = serde_json::to_value(SheetSize::from(&s)).unwrap();
+        assert_eq!(v["mapPx"]["w"], 1512.0);
+        assert!(v["pagePt"]["w"].as_f64().unwrap() > 419.0);
+        assert!(v["mapPt"]["x"].is_number() && v["mapPt"]["h"].is_number());
     }
 }

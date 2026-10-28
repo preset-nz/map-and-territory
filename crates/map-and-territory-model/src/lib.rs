@@ -14,6 +14,7 @@ mod kinds;
 pub mod locations;
 mod outline;
 mod palette;
+pub mod print;
 mod settings_2025;
 pub mod texture;
 mod voxels;
@@ -34,6 +35,8 @@ mod locations_tests;
 mod outline_tests;
 #[cfg(test)]
 mod palette_tests;
+#[cfg(test)]
+mod print_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

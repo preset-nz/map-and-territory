@@ -58,6 +58,7 @@ pub fn run() {
             export::export_choose_file,
             export::export_write_file,
             export::export_write_pdf,
+            export::export_sheet,
             // Not `pom_new`, `pom_open` or `pom_save_as`: app-kit replaces and saves the
             // document, so a replacement made any other way would skip its title, recents
             // and close guard.

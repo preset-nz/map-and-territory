@@ -1,12 +1,10 @@
 // The map at print size (epic 07 story 3): the active map drawn by the render worker into a
-// buffer as big as its rectangle on the page. The page layout is story 2's; the PNG and PDF
-// writers are stories 4 and 5.
+// buffer as big as its rectangle on the page. Rust lays the page out (`export_sheet`, epic 33
+// story 3); this only draws to the size it gives.
 import type { LocationsState } from '@/layers/adapters/locations';
 import { type PaperAspect, paperSize } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
-import { readCampaignPage } from '../scene/campaign-page';
 import { MAPS_PATH, type RowSource } from '../scene/frame';
-import { layoutPage, mapAlign, type PageLayout, type PageSize, paperAspectRatio } from './layout';
 
 /** The longest side the export draws, in pixels. A4 at 300 dpi is about 2480 × 3508. */
 export const MAX_EXPORT_SIDE = 8192;
@@ -28,11 +26,17 @@ export interface ExportedMap {
   clamped: boolean;
 }
 
-/** An export with where it sits on the page, for the PDF. */
-export interface ExportedPage extends ExportedMap {
-  /** The page's size name and its physical size and the map's rectangle on it, in mm. */
-  page: { size: PageSize; pageMm: PageLayout['pageMm']; mapMm: PageLayout['mapMm'] };
+/** A map's place on its page as Rust lays it out: points from the page's top-left, and the pixel
+ * size to draw the map at (300 dpi). */
+export interface SheetSize {
+  pagePt: { w: number; h: number };
+  mapPt: { x: number; y: number; w: number; h: number };
+  mapPx: { w: number; h: number };
 }
+
+/** Asks Rust for a map's sheet by the map's path (`export_sheet`); injected so no Tauri API is
+ * imported here. */
+export type SheetOf = (mapPath: string) => Promise<SheetSize>;
 
 /** The map rectangle's pixel size, scaled down uniformly if a side is over `max`. */
 export function exportSize(
@@ -51,7 +55,7 @@ export function exportSize(
 }
 
 /**
- * Draws `frame` at the map rectangle's pixel size. `logical` is the map's paper size in paper
+ * Draws `frame` at the map rectangle's pixel size, `mapPx` from Rust. `logical` is the map's paper size in paper
  * px (story 6): the export is the paper scaled to the page, so the hex count is the screen's
  * at any window size and lines, noise and textures scale with the page. The camera is set to 1×.
  */
@@ -59,9 +63,9 @@ export async function renderMapForExport(
   target: ExportTarget,
   frame: SceneFrame,
   logical: { w: number; h: number },
-  layout: Pick<PageLayout, 'mapPx'>,
+  mapPx: { w: number; h: number },
 ): Promise<ExportedMap> {
-  const { size, clamped } = exportSize(layout.mapPx);
+  const { size, clamped } = exportSize(mapPx);
   const atFit: SceneFrame = { ...frame, camera: { x: 0, y: 0, zoom: 1 } };
   const png = await target.exportPng(atFit, logical, size);
   return { png, size, clamped };
@@ -126,8 +130,13 @@ export function mapExporter(): MapExporter | null {
  * The active map drawn at its size on the campaign's page, or null with no canvas or no map.
  * The export commands call this: the PNG writes it alone, the PDF places it on the page.
  */
-export async function exportActiveMap(rows: RowSource): Promise<ExportedPage | null> {
-  return exportOne(rows, exporter?.current() ?? null);
+export async function exportActiveMap(
+  rows: RowSource,
+  sheetOf: SheetOf,
+): Promise<ExportedMap | null> {
+  const current = exporter?.current() ?? null;
+  const path = current ? mapPathOf(rows, current.mapId) : null;
+  return current && path ? exportOne(sheetOf, current, path) : null;
 }
 
 /**
@@ -137,35 +146,30 @@ export async function exportActiveMap(rows: RowSource): Promise<ExportedPage | n
  */
 export async function exportCampaignMaps(
   rows: RowSource,
-): Promise<{ page: ExportedPage; mapPath: string }[]> {
-  const out: { page: ExportedPage; mapPath: string }[] = [];
+  sheetOf: SheetOf,
+): Promise<(ExportedMap & { mapPath: string })[]> {
+  const out: (ExportedMap & { mapPath: string })[] = [];
   for (const id of rows.nodeAt(MAPS_PATH)?.orders?.maps ?? []) {
-    const path = (rows.node(id) as { path?: string } | undefined)?.path;
+    const path = mapPathOf(rows, id);
     const current = exporter?.of(id) ?? null;
     if (!path || !current) continue;
-    // a map that isn't on screen may not have its textures in the worker yet
-    await exporter?.prepare(current.frame);
-    const page = await exportOne(rows, current);
-    if (page) out.push({ page, mapPath: path });
+    const exported = await exportOne(sheetOf, current, path);
+    if (exported) out.push({ ...exported, mapPath: path });
   }
   return out;
 }
 
-async function exportOne(rows: RowSource, current: Drawable | null): Promise<ExportedPage | null> {
-  if (!exporter || !current) return null;
-  const page = readCampaignPage(rows);
-  const layout = layoutPage({
-    size: page.size,
-    orientation: page.orientation,
-    marginMm: page.marginMm,
-    aspect: paperAspectRatio(current.frame.paper.aspect),
-    align: mapAlign(rows.node(current.mapId)?.values?.layout),
-  });
-  const exported = await renderMapForExport(
-    exporter.target,
-    current.frame,
-    current.logical,
-    layout,
-  );
-  return { ...exported, page: { size: page.size, pageMm: layout.pageMm, mapMm: layout.mapMm } };
+const mapPathOf = (rows: RowSource, id: string): string | null =>
+  (rows.node(id) as { path?: string } | undefined)?.path ?? null;
+
+async function exportOne(
+  sheetOf: SheetOf,
+  current: Drawable,
+  path: string,
+): Promise<ExportedMap | null> {
+  if (!exporter) return null;
+  // a map that isn't on screen may not have its textures in the worker yet
+  await exporter.prepare(current.frame);
+  const { mapPx } = await sheetOf(path);
+  return renderMapForExport(exporter.target, current.frame, current.logical, mapPx);
 }
