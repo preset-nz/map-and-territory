@@ -37,6 +37,8 @@ pub struct KeyEntry {
     /// The category's name ("Shrine").
     pub category: String,
     pub description: String,
+    /// Marked hidden, or in a layer that is switched off: the window may show it, a print
+    /// leaves it out.
     pub hidden: bool,
 }
 
@@ -67,6 +69,8 @@ pub fn key(d: &Doc, map: &str) -> Option<Key> {
         .filter(|n| n.type_name() == "locations")
         .collect();
     let numbered = |l: &Node<'_>| !matches!(l.value("numbered"), Some(Value::Bool(false)));
+    let off =
+        |n: &Node<'_>, key: &str, on: bool| matches!(n.value(key), Some(Value::Bool(b)) if b != on);
     let mut next = 1;
     let mut entries = Vec::new();
     for pass in [true, false] {
@@ -84,7 +88,7 @@ pub fn key(d: &Doc, map: &str) -> Option<Key> {
                         .find(|(id, _)| *id == category)
                         .map_or(category.clone(), |(_, label)| (*label).to_string()),
                     description: text(&place, "description"),
-                    hidden: matches!(place.value("hidden"), Some(Value::Bool(true))),
+                    hidden: off(&place, "hidden", false) || off(layer, "visible", true),
                 });
             }
         }

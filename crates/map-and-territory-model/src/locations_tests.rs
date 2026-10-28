@@ -273,4 +273,14 @@ fn the_key_numbers_from_the_top_layer_and_lists_the_unnumbered_last() {
     );
     assert_eq!(k.entries[1].description, "Held by the Vane.");
     assert!(key(&d, LAYER).is_none());
+
+    // a layer switched off keeps its numbers but hides its places from a print
+    d.run(
+        "value.set",
+        &json!({ "at": top, "key": "visible", "value": false }),
+    )
+    .unwrap();
+    let k = key(&d, MAP).unwrap();
+    assert_eq!((k.entries[0].number, k.entries[0].hidden), (Some(1), true));
+    assert!(!k.entries[1].hidden);
 }
