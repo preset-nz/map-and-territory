@@ -7,7 +7,7 @@ use serde_json::json;
 use super::kinds::{ASPECTS, MAP_LAYOUTS};
 use super::locations::{Key, KeyEntry};
 use super::print::{
-    lay_out, map_stands_up, mm_to_pt, sheet, text_width, wrap, MapLayout, PageSize, PageSpec, Sheet,
+    lay_out, mm_to_pt, sheet, text_width, wrap, MapLayout, PageSize, PageSpec, Sheet,
 };
 use super::{MapAndTerritory, CAMPAIGN};
 
@@ -410,42 +410,15 @@ fn the_page_the_paper_and_the_layout_come_from_the_document() {
 }
 
 #[test]
-fn a_map_alone_turns_with_the_page_and_a_map_with_its_key_lies_across_it() {
+fn a_portrait_paper_turns_the_aspect_over() {
     let mut d = doc();
     let paper = format!("{MAP}/paper");
-    // the campaign's page is portrait by default; the map's layout is map-top
-    let [_, _, w, h] = map_mm(&sheet(&d, MAP).unwrap());
-    near(w / h, 1.6);
-    set(&mut d, MAP, "layout", json!("map-full"));
-    // 10:16 on A5 inside 10 mm margins (128 x 190): height-limited
-    let [_, _, w, h] = map_mm(&sheet(&d, MAP).unwrap());
+    set(&mut d, &paper, "orientation", json!("portrait"));
+    let s = sheet(&d, MAP).unwrap();
+    // 10:16 on A5 inside 10 mm margins (128 x 190): height-limited, 118.75 wide
+    let [_, _, w, h] = map_mm(&s);
     near(w / h, 0.625);
     near(h, 190.0);
-    // turning the campaign's page lays it down again, with nothing set on the map
-    set(
-        &mut d,
-        "/campaign/campaign",
-        "pageOrientation",
-        json!("landscape"),
-    );
-    let [_, _, w, h] = map_mm(&sheet(&d, MAP).unwrap());
-    near(w / h, 1.6);
-    assert!(map_stands_up(
-        MapLayout::Alone,
-        &page(PageSize::A5, false, 10.0)
-    ));
-    assert!(!map_stands_up(
-        MapLayout::Top(1),
-        &page(PageSize::A5, false, 10.0)
-    ));
-    assert!(!map_stands_up(
-        MapLayout::Bottom,
-        &page(PageSize::A5, false, 10.0)
-    ));
-    assert!(!map_stands_up(
-        MapLayout::Alone,
-        &page(PageSize::A5, true, 10.0)
-    ));
     for aspect in ASPECTS {
         set(&mut d, &paper, "aspect", json!(aspect));
         assert!(sheet(&d, MAP).is_some());

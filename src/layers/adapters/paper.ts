@@ -4,6 +4,7 @@ import type { LayerAdapter } from '@/layers/types';
 export interface PaperState {
   color: string; // hex
   aspect: string;
+  orientation?: 'landscape' | 'portrait';
   /** The image's path as written (epic 21); the bitmap arrives through `env.textures`. */
   texture?: string;
   /** `normal` shows the image alone, `multiply` mixes it with the paper colour. */
@@ -33,7 +34,7 @@ export const PaperAdapter: LayerAdapter<PaperState> = {
   },
   getInvalidationKey(state) {
     const scale = clampScale(state.textureScale).toFixed(3);
-    return `paper:${state.aspect}:${state.color}:${state.texture ?? '-'}:${state.textureBlend ?? 'multiply'}:${state.textureFit ?? 'cover'}:${scale}`;
+    return `paper:${state.aspect}:${state.orientation ?? 'landscape'}:${state.color}:${state.texture ?? '-'}:${state.textureBlend ?? 'multiply'}:${state.textureFit ?? 'cover'}:${scale}`;
   },
 };
 

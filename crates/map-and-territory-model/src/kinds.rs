@@ -289,7 +289,7 @@ pub fn declare(k: &mut Kinds) {
             .choice("pageOrientation", PAGE_ORIENTATIONS, DEFAULT_PAGE_ORIENTATION)
             .described(
                 "Page orientation",
-                "Whether the page is taller than it is wide, or wider than it is tall. A map alone on its page turns with it; a map with its key lies across the page.",
+                "Whether the page is taller than it is wide, or wider than it is tall.",
             )
             .choice_labels(&[("portrait", "Portrait"), ("landscape", "Landscape")])
             .value(
@@ -367,6 +367,9 @@ pub fn declare(k: &mut Kinds) {
             .choice("aspect", ASPECTS, "16:10")
             .described("Aspect", "The shape of the sheet, as width to height.")
             .choice_labels(&[("square", "Square"), ("4:3", "4:3"), ("16:10", "16:10"), ("16:9", "16:9")])
+            .choice("orientation", &["landscape", "portrait"], "landscape")
+            .described("Orientation", "Lying down, wider than tall, or standing up, taller than wide. A square has none.")
+            .choice_labels(&[("landscape", "Landscape"), ("portrait", "Portrait")])
             .colour("color", WHITE)
             .described("Colour", "The colour of the paper.")
             .choice("textureBlend", &["normal", "multiply"], "multiply")
