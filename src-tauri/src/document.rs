@@ -125,6 +125,12 @@ impl DocumentHost {
         std::fs::read(&path).map_err(|e| format!("can't read {}: {e}", path.display()))
     }
 
+    /// The key of the map at `map` for an export, or None when there is no map there.
+    pub fn key(&self, map: &str) -> Option<map_and_territory_model::locations::Key> {
+        self.pom
+            .read(|d| map_and_territory_model::locations::key(d, map))
+    }
+
     /// Runs `edit.undo` or `edit.redo` through the host, so the commit reaches the webview's
     /// mirror. Nothing to step is not an error.
     fn step<R: Runtime>(&self, app: &AppHandle<R>, undo: bool) -> Result<(), String> {

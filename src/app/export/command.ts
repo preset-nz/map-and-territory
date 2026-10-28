@@ -26,6 +26,8 @@ export function pdfPlacement({ pageMm, mapMm }: ExportedPage['page']): PdfPlacem
 export interface ExportDeps {
   /** The suggested file name's stem: the map's name. */
   mapName: string | null;
+  /** The map's path, so Rust can put its key after it in a PDF (epic 28). */
+  mapPath: string | null;
   /** The campaign file's path, or null while Untitled. */
   documentPath: () => Promise<string | null>;
   /** The Save dialog: the chosen path, or null when cancelled. */
@@ -36,8 +38,13 @@ export interface ExportDeps {
   ) => Promise<string | null>;
   render: () => Promise<ExportedPage | null>;
   writeFile: (path: string, bytes: Uint8Array) => Promise<void>;
-  /** Rust builds the PDF around the PNG and writes it. */
-  writePdf: (path: string, png: Uint8Array, placement: PdfPlacement) => Promise<void>;
+  /** Rust builds the PDF around the PNG, with the map's key after it, and writes it. */
+  writePdf: (
+    path: string,
+    png: Uint8Array,
+    placement: PdfPlacement,
+    mapPath: string | null,
+  ) => Promise<void>;
   /** Status-bar message. */
   notify: (text: string, kind: 'info' | 'error') => void;
 }
@@ -75,7 +82,12 @@ export async function exportMap(format: ExportFormat, deps: ExportDeps): Promise
     }
     if (format === 'pdf') {
       // The PNG goes in as drawn: the PDF places its pixels, so there is no pHYs to stamp.
-      await deps.writePdf(path, new Uint8Array(exported.png), pdfPlacement(exported.page));
+      await deps.writePdf(
+        path,
+        new Uint8Array(exported.png),
+        pdfPlacement(exported.page),
+        deps.mapPath,
+      );
       const { size } = exported.page;
       deps.notify(
         exported.clamped

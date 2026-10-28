@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
+use crate::document::DocumentHost;
 use crate::pdf::{build_pdf, PdfLayout};
 
 /// `path` with `ext` added when the user typed a name without an extension.
@@ -88,11 +89,15 @@ pub fn export_write_file(request: tauri::ipc::Request<'_>) -> Result<(), String>
     write_file(Path::new(&percent_decode(header)?), "png", bytes).map(|_| ())
 }
 
-/// Builds a one-page PDF from the request body (the PNG) and writes it to the path in the
-/// `path` header (percent-encoded). The `layout` header is `pageW,pageH,x,y,w,h` in points,
-/// measured from the page's top-left.
+/// Builds the PDF from the request body (the PNG) and writes it to the path in the `path`
+/// header (percent-encoded). The `layout` header is `pageW,pageH,x,y,w,h` in points, measured
+/// from the page's top-left. With a `map` header (the map's path, percent-encoded), that map's
+/// key follows on its own pages.
 #[tauri::command]
-pub fn export_write_pdf(request: tauri::ipc::Request<'_>) -> Result<(), String> {
+pub fn export_write_pdf(
+    request: tauri::ipc::Request<'_>,
+    document: tauri::State<'_, DocumentHost>,
+) -> Result<(), String> {
     let tauri::ipc::InvokeBody::Raw(png) = request.body() else {
         return Err("expected the PNG as raw bytes".into());
     };
@@ -104,7 +109,11 @@ pub fn export_write_pdf(request: tauri::ipc::Request<'_>) -> Result<(), String> 
             .ok_or_else(|| format!("missing {name} header"))
     };
     let layout = PdfLayout::parse(header("layout")?)?;
-    let pdf = build_pdf(png, &layout)?;
+    let key = match request.headers().get("map").and_then(|v| v.to_str().ok()) {
+        Some(map) => document.key(&percent_decode(map)?),
+        None => None,
+    };
+    let pdf = build_pdf(png, &layout, key.as_ref())?;
     write_file(Path::new(&percent_decode(header("path")?)?), "pdf", &pdf).map(|_| ())
 }
 

@@ -1,11 +1,17 @@
-//! A minimal one-page PDF for the export (epic 07 story 5): a white page of the given size in
-//! points with one image placed at a rectangle. Hand-written, no PDF crate: the file is a
-//! catalogue, a page tree, a page, a content stream and one image XObject.
+//! A minimal PDF for the export (epic 07 story 5): a white page of the given size in points
+//! with one image placed at a rectangle. Hand-written, no PDF crate: the file is a catalogue,
+//! a page tree, a page, a content stream and one image XObject.
+//!
+//! A map with places gets the key after it (epic 28 story 4): each place's number, name,
+//! category and description, set in Helvetica (one of PDF's standard fonts, so nothing is
+//! embedded) on pages of the same size. Hidden places are left out, as from the map. A plain
+//! page until the campaign booklet restyles it.
 //!
 //! The image is the exported PNG decoded and composited onto white, then stored as
 //! `/FlateDecode` RGB at its own pixel size, so the page shows it at the 300 dpi it was drawn at.
 
 use flate2::{write::ZlibEncoder, Compression};
+use map_and_territory_model::locations::Key;
 use std::io::{Cursor, Write};
 
 /// Where the image goes on the page, in points measured from the page's top-left corner (the
@@ -102,9 +108,148 @@ fn deflate(bytes: &[u8]) -> Result<Vec<u8>, String> {
 /// map's rectangle, as the screen's paper edge is, so the margins measure the same.
 const BORDER_PT: f64 = 0.3 * 72.0 / 25.4;
 
-/// A one-page PDF: white, `layout.page_w × page_h` points, `png` placed at the layout's
-/// rectangle with a thin black border.
-pub fn build_pdf(png: &[u8], layout: &PdfLayout) -> Result<Vec<u8>, String> {
+/// The key's sizes, in points.
+const KEY_TITLE: f64 = 16.0;
+const KEY_NAME: f64 = 11.0;
+const KEY_TEXT: f64 = 9.5;
+/// Space between places, in points.
+const KEY_GAP: f64 = 7.0;
+
+/// A string as a PDF literal in WinAnsi: Latin-1 as itself, curly quotes and dashes as their
+/// WinAnsi codes, anything else as `?`; `(`, `)` and `\` escaped, high bytes in octal.
+fn pdf_string(text: &str) -> String {
+    let mut out = String::from("(");
+    for c in text.chars() {
+        let b: u8 = match c {
+            '\u{2018}' => 0x91,
+            '\u{2019}' => 0x92,
+            '\u{201c}' => 0x93,
+            '\u{201d}' => 0x94,
+            '\u{2013}' => 0x96,
+            '\u{2014}' => 0x97,
+            '\u{2026}' => 0x85,
+            '\u{2022}' => 0x95,
+            c if (' '..='~').contains(&c) || ('\u{a0}'..='\u{ff}').contains(&c) => c as u8,
+            _ => b'?',
+        };
+        match b {
+            b'(' | b')' | b'\\' => {
+                out.push('\\');
+                out.push(b as char);
+            }
+            0x20..=0x7e => out.push(b as char),
+            _ => out.push_str(&format!("\\{b:03o}")),
+        }
+    }
+    out.push(')');
+    out
+}
+
+/// About how wide `text` sets in Helvetica at `size` points: close enough to wrap by.
+fn text_width(text: &str, size: f64) -> f64 {
+    let em: f64 = text
+        .chars()
+        .map(|c| match c {
+            'i' | 'j' | 'l' | '.' | ',' | '\'' | '!' | ':' | ';' | '|' | 'I' => 0.24,
+            'f' | 't' | 'r' | ' ' | '(' | ')' | '-' => 0.33,
+            'm' | 'w' | 'M' | 'W' => 0.85,
+            'A'..='Z' => 0.68,
+            _ => 0.55,
+        })
+        .sum();
+    em * size
+}
+
+/// `text` broken into lines no wider than `width` at `size`, at spaces.
+fn wrap(text: &str, size: f64, width: f64) -> Vec<String> {
+    let mut lines = Vec::new();
+    for para in text.lines() {
+        let mut line = String::new();
+        for word in para.split_whitespace() {
+            let next = if line.is_empty() {
+                word.to_string()
+            } else {
+                format!("{line} {word}")
+            };
+            if !line.is_empty() && text_width(&next, size) > width {
+                lines.push(std::mem::replace(&mut line, word.to_string()));
+            } else {
+                line = next;
+            }
+        }
+        lines.push(line);
+    }
+    lines
+}
+
+/// The key's pages as content streams: a heading, then each printed place, a new page when
+/// the next one would cross the bottom margin. Empty when no place prints.
+fn key_pages(key: &Key, layout: &PdfLayout) -> Vec<String> {
+    let entries: Vec<_> = key.entries.iter().filter(|e| !e.hidden).collect();
+    if entries.is_empty() {
+        return Vec::new();
+    }
+    // the map's own margins, so the key lines up with it
+    let margin = layout.x.max(18.0);
+    let width = layout.page_w - 2.0 * margin;
+    let (top, bottom) = (layout.page_h - margin, margin);
+    let mut pages = Vec::new();
+    let mut page = String::new();
+    let mut y = top;
+    let line = |page: &mut String, font: &str, size: f64, x: f64, y: f64, text: &str| {
+        page.push_str(&format!(
+            "BT /{font} {} Tf {} {} Td {} Tj ET\n",
+            num(size),
+            num(x),
+            num(y),
+            pdf_string(text)
+        ));
+    };
+    let title = if key.map.trim().is_empty() {
+        "Key".to_string()
+    } else {
+        format!("Key to {}", key.map.trim())
+    };
+    y -= KEY_TITLE;
+    line(&mut page, "F2", KEY_TITLE, margin, y, &title);
+    y -= KEY_TITLE * 0.8;
+    let indent = text_width("000 ", KEY_NAME);
+    for e in entries {
+        let body = wrap(e.description.trim(), KEY_TEXT, width - indent);
+        let body: Vec<&String> = body.iter().filter(|l| !l.is_empty()).collect();
+        let height = KEY_GAP + KEY_NAME * 1.25 + body.len() as f64 * KEY_TEXT * 1.3;
+        if y - height < bottom && !page.is_empty() && y < top - KEY_TITLE * 2.0 {
+            pages.push(std::mem::take(&mut page));
+            y = top;
+        }
+        y -= KEY_GAP + KEY_NAME;
+        if let Some(n) = e.number {
+            line(&mut page, "F2", KEY_NAME, margin, y, &n.to_string());
+        }
+        let name = if e.name.trim().is_empty() {
+            "Untitled"
+        } else {
+            e.name.trim()
+        };
+        line(&mut page, "F2", KEY_NAME, margin + indent, y, name);
+        // bold sets about a tenth wider than the estimate; the category in grey after it
+        let after = margin + indent + text_width(name, KEY_NAME) * 1.1 + KEY_NAME * 0.6;
+        page.push_str("0.4 g\n");
+        line(&mut page, "F1", KEY_TEXT, after, y, &e.category);
+        page.push_str("0 g\n");
+        y -= KEY_NAME * 0.25;
+        for l in body {
+            y -= KEY_TEXT * 1.3;
+            line(&mut page, "F1", KEY_TEXT, margin + indent, y, l);
+        }
+    }
+    pages.push(page);
+    pages
+}
+
+/// The PDF: white, `layout.page_w × page_h` points, `png` placed at the layout's rectangle
+/// with a thin black border, then the key's pages when `key` has places to print.
+pub fn build_pdf(png: &[u8], layout: &PdfLayout, key: Option<&Key>) -> Result<Vec<u8>, String> {
     let (iw, ih, rgb) = decode_rgb(png)?;
     let image = deflate(&rgb)?;
     // PDF's y axis is bottom-up: the rectangle's bottom edge is page height minus its lower edge.
@@ -139,10 +284,19 @@ pub fn build_pdf(png: &[u8], layout: &PdfLayout) -> Result<Vec<u8>, String> {
         }
         out.extend(b"\nendobj\n");
     };
+    let key_pages = key.map(|k| key_pages(k, layout)).unwrap_or_default();
+    // objects 6 and 7 are the fonts, then each key page and its content
+    let kids: Vec<String> = std::iter::once("3 0 R".to_string())
+        .chain((0..key_pages.len()).map(|i| format!("{} 0 R", 8 + 2 * i)))
+        .collect();
     object(&mut out, "<< /Type /Catalog /Pages 2 0 R >>".into(), None);
     object(
         &mut out,
-        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".into(),
+        format!(
+            "<< /Type /Pages /Kids [{}] /Count {} >>",
+            kids.join(" "),
+            kids.len()
+        ),
         None,
     );
     object(
@@ -169,6 +323,35 @@ pub fn build_pdf(png: &[u8], layout: &PdfLayout) -> Result<Vec<u8>, String> {
         ),
         Some(&image),
     );
+    if !key_pages.is_empty() {
+        for font in ["Helvetica", "Helvetica-Bold"] {
+            object(
+                &mut out,
+                format!(
+                    "<< /Type /Font /Subtype /Type1 /BaseFont /{font} /Encoding /WinAnsiEncoding >>"
+                ),
+                None,
+            );
+        }
+    }
+    for (i, content) in key_pages.iter().enumerate() {
+        object(
+            &mut out,
+            format!(
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {} {}] \
+                 /Resources << /Font << /F1 6 0 R /F2 7 0 R >> >> /Contents {} 0 R >>",
+                num(layout.page_w),
+                num(layout.page_h),
+                9 + 2 * i
+            ),
+            None,
+        );
+        object(
+            &mut out,
+            format!("<< /Length {} >>", content.len()),
+            Some(content.as_bytes()),
+        );
+    }
 
     let xref_at = out.len();
     out.extend(format!("xref\n0 {}\n", offsets.len() + 1).bytes());
@@ -189,6 +372,7 @@ pub fn build_pdf(png: &[u8], layout: &PdfLayout) -> Result<Vec<u8>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use map_and_territory_model::locations::KeyEntry;
 
     /// A 2×1 RGBA PNG: an opaque red pixel and a fully transparent one.
     fn tiny_png() -> Vec<u8> {
@@ -235,7 +419,7 @@ mod tests {
 
     #[test]
     fn header_media_box_and_placement() {
-        let pdf = build_pdf(&tiny_png(), &layout()).unwrap();
+        let pdf = build_pdf(&tiny_png(), &layout(), None).unwrap();
         let s = text(&pdf);
         assert!(s.starts_with("%PDF-1.4\n"));
         assert!(s.ends_with("%%EOF\n"));
@@ -263,12 +447,13 @@ mod tests {
     #[ignore = "writes the test PDF to $OUT_PDF"]
     fn write_a_pdf() {
         let out = std::env::var("OUT_PDF").expect("OUT_PDF");
-        std::fs::write(out, build_pdf(&tiny_png(), &layout()).unwrap()).unwrap();
+        let pdf = build_pdf(&tiny_png(), &layout(), Some(&the_key())).unwrap();
+        std::fs::write(out, pdf).unwrap();
     }
 
     #[test]
     fn a_black_border_sits_inside_the_map_after_the_image() {
-        let pdf = build_pdf(&tiny_png(), &layout()).unwrap();
+        let pdf = build_pdf(&tiny_png(), &layout(), None).unwrap();
         let s = text(&pdf);
         let image_at = s.find("/Im0 Do").unwrap();
         let rule_at = s.find("0 0 0 RG\n").expect("a black stroke");
@@ -303,7 +488,7 @@ mod tests {
 
     #[test]
     fn xref_offsets_point_at_their_objects_and_the_trailer_is_valid() {
-        let pdf = build_pdf(&tiny_png(), &layout()).unwrap();
+        let pdf = build_pdf(&tiny_png(), &layout(), None).unwrap();
         let s = text(&pdf);
         let start: usize = s
             .rsplit("startxref\n")
@@ -334,7 +519,7 @@ mod tests {
         assert_eq!((w, h), (2, 1));
         assert_eq!(rgb, vec![255, 0, 0, 255, 255, 255]);
         // the stream round-trips through flate
-        let pdf = build_pdf(&tiny_png(), &layout()).unwrap();
+        let pdf = build_pdf(&tiny_png(), &layout(), None).unwrap();
         let key = b"stream\n";
         let image_obj = pdf
             .windows(15)
@@ -366,6 +551,98 @@ mod tests {
 
     #[test]
     fn bad_png_is_an_error() {
-        assert!(build_pdf(b"nope", &layout()).is_err());
+        assert!(build_pdf(b"nope", &layout(), None).is_err());
+    }
+
+    fn the_key() -> Key {
+        let entry = |number, name: &str, hidden| KeyEntry {
+            number,
+            name: name.into(),
+            category: "Landmark".into(),
+            description: "Held by the Vane since the flood (they say).".into(),
+            hidden,
+        };
+        Key {
+            map: "Sallow Fen".into(),
+            entries: vec![
+                entry(Some(1), "Reedwall Keep", false),
+                entry(Some(2), "Sunken Chapel", true),
+                entry(Some(3), "The Weeping Well", false),
+                entry(None, "Gallows Ford", false),
+            ],
+        }
+    }
+
+    fn page_count(s: &str) -> usize {
+        let at = s.find("/Count ").unwrap() + "/Count ".len();
+        s[at..].split(' ').next().unwrap().parse().unwrap()
+    }
+
+    #[test]
+    fn the_key_follows_the_map_on_a_second_page_in_order_without_the_hidden() {
+        let pdf = build_pdf(&tiny_png(), &layout(), Some(&the_key())).unwrap();
+        let s = text(&pdf);
+        assert_eq!(page_count(&s), 2);
+        assert!(s.contains("/Kids [3 0 R 8 0 R]"));
+        let at = |t: &str| {
+            s.find(&format!("({t}) Tj"))
+                .unwrap_or_else(|| panic!("{t}"))
+        };
+        assert!(at("Key to Sallow Fen") < at("Reedwall Keep"));
+        assert!(at("Reedwall Keep") < at("The Weeping Well"));
+        assert!(at("The Weeping Well") < at("Gallows Ford"));
+        assert!(!s.contains("Sunken Chapel"));
+        // the parentheses in the description are escaped
+        assert!(s.contains("\\(they say\\)."));
+        // no key without places to print
+        let none = Key {
+            map: "Empty".into(),
+            entries: vec![],
+        };
+        let s = text(&build_pdf(&tiny_png(), &layout(), Some(&none)).unwrap());
+        assert_eq!(page_count(&s), 1);
+    }
+
+    #[test]
+    fn a_long_key_runs_on_to_more_pages_and_the_xref_still_holds() {
+        let mut key = the_key();
+        key.entries = (1..=60)
+            .map(|n| KeyEntry {
+                number: Some(n),
+                name: format!("Place {n}"),
+                category: "Ruin".into(),
+                description: "A long line about what waits there, ".repeat(4),
+                hidden: false,
+            })
+            .collect();
+        let pdf = build_pdf(&tiny_png(), &layout(), Some(&key)).unwrap();
+        let s = text(&pdf);
+        let pages = page_count(&s);
+        assert!(pages > 3, "{pages} pages");
+        assert!(s.contains("(Place 60) Tj"));
+        let start: usize = s
+            .rsplit("startxref\n")
+            .next()
+            .unwrap()
+            .lines()
+            .next()
+            .unwrap()
+            .parse()
+            .unwrap();
+        let objects = 7 + 2 * (pages - 1);
+        assert!(s[start..].starts_with(&format!("xref\n0 {}\n", objects + 1)));
+        for (i, row) in s[start..].lines().skip(3).take(objects).enumerate() {
+            let at: usize = row[..10].parse().unwrap();
+            assert!(s[at..].starts_with(&format!("{} 0 obj\n", i + 1)));
+        }
+    }
+
+    #[test]
+    fn key_text_is_winansi_with_curly_quotes_and_unknowns_as_marks() {
+        assert_eq!(pdf_string("Rook\u{2019}s (old)"), "(Rook\\222s \\(old\\))");
+        assert_eq!(pdf_string("caf\u{e9} \u{4e2d}"), "(caf\\351 ?)");
+        let lines = wrap("one two three four", 10.0, 40.0);
+        assert_eq!(lines, ["one two", "three", "four"]);
+        assert!(lines.iter().all(|l| text_width(l, 10.0) <= 40.0));
     }
 }

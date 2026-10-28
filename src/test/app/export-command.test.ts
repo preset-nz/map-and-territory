@@ -29,6 +29,7 @@ const PAGE = {
 function deps(over: Partial<ExportDeps> = {}) {
   const d = {
     mapName: 'Ashfall',
+    mapPath: '/maps/ashfall' as string | null,
     documentPath: vi.fn(async () => '/Users/g/Campaigns/doom.campaign' as string | null),
     chooseFile: vi.fn(async () => '/Users/g/Campaigns/Ashfall.png' as string | null),
     render: vi.fn(async () => ({ png: PNG, size: { w: 1, h: 1 }, clamped: false, page: PAGE })),
@@ -127,12 +128,15 @@ describe('Export ▸ PDF…', () => {
     expect(await exportMap('pdf', d)).toBe('saved');
     expect(d.chooseFile).toHaveBeenCalledWith('Ashfall.pdf', '/Users/g/Campaigns', 'pdf');
     expect(d.writeFile).not.toHaveBeenCalled();
-    const [path, png, placement] = d.writePdf.mock.calls[0] as unknown as [
+    const [path, png, placement, map] = d.writePdf.mock.calls[0] as unknown as [
       string,
       Uint8Array,
       ReturnType<typeof pdfPlacement>,
+      string,
     ];
     expect(path).toBe('/Users/g/Campaigns/Ashfall.pdf');
+    // Rust puts this map's key after it
+    expect(map).toBe('/maps/ashfall');
     expect(png.byteLength).toBe(PNG.byteLength);
     expect(placement.pagePt.w).toBeCloseTo(419.53, 2);
     expect(placement.pagePt.h).toBeCloseTo(595.28, 2);

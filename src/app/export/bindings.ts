@@ -35,6 +35,7 @@ export function useExportBindings(): Record<string, Binding> {
       const row = mapId ? rows.node(mapId) : undefined;
       exportMap(format, {
         mapName: row ? displayName(row as Parameters<typeof displayName>[0]) : null,
+        mapPath: (row as { path?: string } | undefined)?.path ?? null,
         documentPath: currentDocumentPath,
         chooseFile: chooseExportFile,
         render: () => exportActiveMap(rows),

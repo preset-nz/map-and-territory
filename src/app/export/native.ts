@@ -18,16 +18,20 @@ export async function writeExportFile(path: string, bytes: Uint8Array): Promise<
 }
 
 /**
- * Has Rust build the one-page PDF around the PNG and write it to `path`. The layout header is
- * `pageW,pageH,x,y,w,h` in points from the page's top-left (src-tauri/src/pdf.rs).
+ * Has Rust build the PDF around the PNG and write it to `path`. The layout header is
+ * `pageW,pageH,x,y,w,h` in points from the page's top-left (src-tauri/src/pdf.rs); the map
+ * header names the map whose key follows it.
  */
 export async function writeExportPdf(
   path: string,
   png: Uint8Array,
   { pagePt, mapPt }: PdfPlacement,
+  mapPath: string | null,
 ): Promise<void> {
   const layout = [pagePt.w, pagePt.h, mapPt.x, mapPt.y, mapPt.w, mapPt.h].join(',');
-  await invoke('export_write_pdf', png, { headers: { path: encodeURIComponent(path), layout } });
+  const headers: Record<string, string> = { path: encodeURIComponent(path), layout };
+  if (mapPath) headers.map = encodeURIComponent(mapPath);
+  await invoke('export_write_pdf', png, { headers });
 }
 
 /** The campaign file's path, or null while Untitled. */
