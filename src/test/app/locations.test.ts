@@ -3,6 +3,7 @@ import {
   type FrameRow,
   type FrameSchema,
   locationNumbers,
+  MARKS,
   type RowSource,
 } from '@/app/scene/frame';
 import { activeMapId } from '@/app/selection';
@@ -132,6 +133,23 @@ describe('location numbers', () => {
     expect(state()).toBe(first);
     rows.a1 = { ...rows.a1, values: { ...rows.a1.values, name: 'Reedwall' } };
     expect(state()).not.toBe(first);
+  });
+
+  it('draws the areas in the layer’s place and the names after the grid', () => {
+    const rows = doc();
+    rows.a = { ...rows.a, values: { ...rows.a.values, visible: false } };
+    const builder = createFrameBuilder(schema);
+    const frame = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
+    expect(frame.layers.map((l) => l.id)).toEqual(['p', 'a', 'b', 'g', `a${MARKS}`, `b${MARKS}`]);
+    const passes = frame.layers.map((l) => (l.state as { pass?: string }).pass);
+    expect(passes).toEqual([undefined, 'areas', 'areas', undefined, 'marks', 'marks']);
+    // a hidden layer hides both halves; the halves are kept from frame to frame
+    expect(frame.layers.filter((l) => l.id.startsWith('a')).map((l) => l.visible)).toEqual([
+      false,
+      false,
+    ]);
+    const again = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
+    expect(again.layers[4].state).toBe(frame.layers[4].state);
   });
 });
 

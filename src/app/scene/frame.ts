@@ -318,11 +318,14 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   /**
    * A locations layer's adapter state (epic 28): its values plus each place in its `locations`
    * order, numbered from `first` when the layer is numbered, with the map's face, the grid's ink
-   * and the paper's colour. Kept while the row, its locations and those are unchanged.
+   * and the paper's colour. Two states: `areas` (the tints and edges, at the layer's place in
+   * the stack) and `marks` (markers and names, drawn after the grid so no line crosses a name).
+   * Kept while the row, its locations and those are unchanged.
    */
+  type LocationsPasses = { areas: Record<string, unknown>; marks: Record<string, unknown> };
   const locationsStates = new WeakMap<
     FrameRow,
-    { key: string; children: FrameRow[]; state: Record<string, unknown> }
+    { key: string; children: FrameRow[]; state: LocationsPasses }
   >();
   const locationsState = (
     rows: RowSource,
@@ -331,7 +334,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     first: number,
     ink: string,
     paper: string,
-  ): Record<string, unknown> => {
+  ): LocationsPasses => {
     const children = locationRows(rows, row);
     const base = stateOf(row);
     const face = sheetStyle(base.face, map.values?.face, 'condensed');
@@ -360,7 +363,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         hidden: v.hidden === true,
       };
     });
-    const state = { ...base, locations, face, ink, paper };
+    const both = { ...base, locations, face, ink, paper };
+    const state = { areas: { ...both, pass: 'areas' }, marks: { ...both, pass: 'marks' } };
     locationsStates.set(row, { key, children, state });
     return state;
   };
@@ -383,9 +387,18 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         (paperRow ? (stateOf(paperRow).color as string | undefined) : undefined) ??
         DEFAULT_PAPER.color;
       const numbers = locationNumbers(rows, order);
+      // each locations layer's markers and names, drawn after the grid (epic 28)
+      const marks: SceneLayer[] = [];
       for (const id of order) {
         const row = rows.node(id);
         if (!row) continue;
+        if (row.type === 'locations') {
+          const passes = locationsState(rows, row, map, numbers.get(id) ?? 1, ink, paperColour);
+          const visible = passes.areas.visible !== false;
+          layers.push({ id, type: row.type, visible, state: passes.areas });
+          marks.push({ id: `${id}${MARKS}`, type: row.type, visible, state: passes.marks });
+          continue;
+        }
         let state =
           row.type === 'freeform'
             ? freeformState(rows, row)
@@ -393,9 +406,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
               ? paperState(row)
               : row.type === 'image'
                 ? imageState(row)
-                : row.type === 'locations'
-                  ? locationsState(rows, row, map, numbers.get(id) ?? 1, ink, paperColour)
-                  : stateOf(row);
+                : stateOf(row);
         if (row.type === 'outline' && preview?.layerId === id) {
           // tool state rides on a copy, so the row's memoised state stays clean
           const paths = state.paths as { id: string; closed: boolean }[];
@@ -414,6 +425,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         }
         layers.push({ id, type: row.type, visible: state.visible !== false, state });
       }
+      layers.push(...marks);
       // Furniture after the grid, so no grid line crosses it (map furniture §1). One array: the
       // backend draws it in order and knows nothing of the two orders.
       for (const id of map.orders?.furniture ?? []) {
@@ -426,6 +438,9 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     },
   };
 }
+
+/** The suffix on the id of a locations layer's second scene layer, its markers and names. */
+export const MARKS = '#marks';
 
 /** A locations layer's places, in its `locations` order. */
 function locationRows(rows: RowSource, layer: FrameRow): FrameRow[] {
