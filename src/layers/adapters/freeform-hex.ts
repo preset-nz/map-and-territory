@@ -1,5 +1,6 @@
 import { hexPath, parseAxialKey } from '@/layers/hex-utils';
 import type { LayerAdapter } from '@/layers/types';
+import { fnv1a } from '@/lib/fnv';
 import { corners, toPoint } from '@/lib/hex/layout';
 import { resolveTerrainFill } from '@/palettes/terrain-fill';
 import type { MapPalette } from '@/palettes/types';
@@ -171,9 +172,13 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     ctx.restore();
   },
   getInvalidationKey(state) {
-    const count = Object.keys(state.cells || {}).length;
-    // lightweight key: count + opacity + last key for cheap change detection
-    const lastKey = Object.keys(state.cells || {}).slice(-1)[0] || '-';
+    // every cell's place, terrain and colour, in key order so equal content gives one key; the
+    // host memoises a key per state object, so this runs once per edit
+    const entries = Object.entries(state.cells || {}).sort(([a], [b]) =>
+      a < b ? -1 : a > b ? 1 : 0,
+    );
+    const count = entries.length;
+    const cells = fnv1a(entries.flatMap(([k, c]) => [k, c.terrainId ?? '', c.color ?? '']));
     const mode = state.renderMode ?? 'paint';
     const textureId = state.texture ?? '-';
     const invert = state.textureFillInvert ? 1 : 0;
@@ -183,7 +188,7 @@ export const FreeformAdapter: LayerAdapter<FreeformState> = {
     const rotation = Number(state.textureRotation ?? 0).toFixed(2);
     const tiling = state.textureTiling ?? 'stretch';
     const overlay = state.textureOverlayMode ?? 'normal';
-    return `freeform:${count}:${state.opacity ?? 1}:${lastKey}:${mode}:${overlay}:${textureId}:${invert}:${offsetX}:${offsetY}:${scale}:${rotation}:${tiling}`;
+    return `freeform:${count}:${state.opacity ?? 1}:${cells}:${mode}:${overlay}:${textureId}:${invert}:${offsetX}:${offsetY}:${scale}:${rotation}:${tiling}`;
   },
 };
 

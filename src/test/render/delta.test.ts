@@ -8,28 +8,39 @@ const frame = (over: Partial<SceneFrame> = {}): SceneFrame => ({
   paper: { aspect: '16:10', color: '#fff' },
   camera: { x: 0, y: 0, zoom: 1 },
   layers: [
-    { id: 'a', type: 'paper', visible: true, state: { n: 1 } },
-    { id: 'b', type: 'freeform', visible: true, state: { n: 2 } },
+    { id: 'a', type: 'paper', visible: true, state: { color: '#fff', aspect: '16:10' } },
+    { id: 'b', type: 'image', visible: true, state: { file: 'a.png' } },
   ],
   palette: { terrain: {}, grid: { line: '#000' } } as never,
   ...over,
 });
 
 describe('delta frames', () => {
-  it('sends everything first, then only changed state', () => {
+  it('sends everything first, then only state whose key changed', () => {
     const enc = createDeltaEncoder();
     const f = frame();
     const first = enc.encode(f);
     expect(first?.layers.every((l) => 'state' in l)).toBe(true);
     expect(first?.palette).toBe(f.palette);
 
-    const b2 = { n: 3 };
+    const b2 = { file: 'b.png' };
     const second = enc.encode(
       frame({ layers: [f.layers[0], { ...f.layers[1], state: b2 }], palette: f.palette }),
     );
     expect('state' in (second?.layers[0] ?? {})).toBe(false);
     expect(second?.layers[1].state).toBe(b2);
     expect(second && 'palette' in second && second.palette !== undefined).toBe(false);
+  });
+
+  it('does not send a state replaced by an equal copy, and skips the frame', () => {
+    const enc = createDeltaEncoder();
+    const f = frame();
+    enc.encode(f);
+    const copy = frame({
+      layers: f.layers.map((l) => ({ ...l, state: { ...(l.state as object) } })),
+      palette: f.palette,
+    });
+    expect(enc.encode(copy)).toBeNull();
   });
 
   it('skips a frame that would draw the same', () => {

@@ -1,4 +1,5 @@
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
+import { fnv1a } from '@/lib/fnv';
 import type { Layout, Point } from '@/lib/hex';
 import { cornerPoint, interpolateCorners } from '@/lib/outline/geometry';
 import type { OutlineCorner, OutlinePath, OutlineState } from '@/lib/outline/types';
@@ -59,9 +60,8 @@ function buildLayout(env: RenderEnv): Layout {
 }
 
 function pathKey(path: OutlinePath): string {
-  const last = path.corners[path.corners.length - 1];
-  const lastKey = last ? `${last.hex.q},${last.hex.r},${last.corner}` : '-';
-  return `${path.id}:${path.corners.length}:${path.closed ? 1 : 0}:${lastKey}`;
+  const corners = fnv1a(path.corners.map((c) => `${c.hex.q},${c.hex.r},${c.corner}`));
+  return `${path.id}:${path.corners.length}:${path.closed ? 1 : 0}:${corners}`;
 }
 
 export const OutlineAdapter: LayerAdapter<OutlineState> = {

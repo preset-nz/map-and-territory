@@ -33,7 +33,7 @@ function redraw() {
 
 /**
  * The faces into this worker's `fonts` (epic 23). Text measured before they arrive is measured
- * in the fallback, so when they land the cached prefix is dropped and the frame drawn again.
+ * in the fallback, so when they land the frame is drawn again from layer 0.
  * The report goes back to the page once, as the probe for whether WKWebView's worker has
  * `fonts` at all.
  */
@@ -42,7 +42,7 @@ function startFaces() {
     .then((report) => {
       post({ type: 'faces', ...report });
       if (report.loaded.length > 0) {
-        backend?.dropCache();
+        backend?.resourcesChanged();
         redraw();
       }
     })

@@ -1,7 +1,9 @@
-// Delta frames: the main thread posts a layer's state only when its state object changed,
-// and nothing at all when the frame would draw the same pixels. The frame builder keeps a
-// layer's `state` object while its rows are unchanged, so identity is the change test.
+// Delta frames: the main thread posts a layer's state only when its invalidation key changed
+// (`layerKey`, README decision 3), never because the state object did, and nothing at all when
+// the frame would draw the same pixels. The decoder keeps the newest state it was sent, so a
+// layer whose key held draws from the state already there.
 import type { MapPalette } from '@/palettes/types';
+import { layerKey } from './keys';
 import type { Camera, PaperSpec, SceneFrame, SceneLayer, WireFrame, WireLayer } from './types';
 
 const sameCamera = (a: Camera, b: Camera) => a.x === b.x && a.y === b.y && a.zoom === b.zoom;
@@ -13,13 +15,13 @@ export interface DeltaEncoder {
 }
 
 export function createDeltaEncoder(): DeltaEncoder {
-  let states = new Map<string, unknown>();
+  let keys = new Map<string, string>();
   let palette: MapPalette | undefined;
   let last: SceneFrame | null = null;
   let havePalette = false;
   return {
     encode(frame) {
-      const next = new Map<string, unknown>();
+      const next = new Map<string, string>();
       let changed =
         !last ||
         last.size.w !== frame.size.w ||
@@ -29,9 +31,10 @@ export function createDeltaEncoder(): DeltaEncoder {
         !sameCamera(last.camera, frame.camera) ||
         last.layers.length !== frame.layers.length;
       const layers: WireLayer[] = frame.layers.map((l, i) => {
-        next.set(l.id, l.state);
+        const key = layerKey(l.type, l.state);
+        next.set(l.id, `${l.type}\u0000${key}`);
         const wire: WireLayer = { id: l.id, type: l.type, visible: l.visible };
-        if (!states.has(l.id) || states.get(l.id) !== l.state) {
+        if (keys.get(l.id) !== `${l.type}\u0000${key}`) {
           wire.state = l.state;
           changed = true;
         }
@@ -55,7 +58,7 @@ export function createDeltaEncoder(): DeltaEncoder {
         changed = true;
       }
       if (!changed) return null;
-      states = next;
+      keys = next;
       last = frame;
       return wire;
     },

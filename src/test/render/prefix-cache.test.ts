@@ -2,16 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { PrefixPlanner } from '@/render/prefixCache';
 import type { SceneFrame } from '@/render/types';
 
-const states = [{ n: 0 }, { n: 1 }, { n: 2 }, { n: 3 }];
+// real layer types, so the keys are the adapters': each state draws differently
+const states = [0, 1, 2, 3].map((n) => ({ file: `f${n}.png` }));
 const frame = (over: Partial<SceneFrame> = {}, layers = states): SceneFrame => ({
   size: { w: 10, h: 10 },
   pixelRatio: 1,
   paper: { aspect: '16:10', color: '#fff' },
   camera: { x: 0, y: 0, zoom: 1 },
-  layers: layers.map((state, i) => ({ id: `l${i}`, type: 't', visible: true, state })),
+  layers: layers.map((state, i) => ({ id: `l${i}`, type: 'image', visible: true, state })),
   ...over,
 });
-const edited = (k: number) => states.map((s, i) => (i === k ? { ...s } : s));
+const edited = (k: number) => states.map((s, i) => (i === k ? { file: `edited${k}.png` } : s));
 
 describe('PrefixPlanner', () => {
   it('draws everything first and snapshots below the changed layer', () => {
@@ -66,12 +67,28 @@ describe('PrefixPlanner', () => {
     expect(p.plan(withGrid(24)).reuse).toBe(0);
   });
 
-  it('keeps the top layer out of the cache and survives drop()', () => {
+  it('keeps the top layer out of the cache', () => {
     const p = new PrefixPlanner();
     p.plan(frame());
     expect(p.plan(frame({}, edited(3)))).toEqual({ reuse: 0, snapshotAt: 3 });
+  });
+
+  it('reuses the prefix when a state is replaced by an equal copy', () => {
+    const p = new PrefixPlanner();
+    p.plan(frame());
+    p.plan(frame({}, edited(2)));
     p.snapshotTaken();
-    p.drop();
-    expect(p.plan(frame({}, edited(3))).reuse).toBe(0);
+    const copies = edited(2).map((s) => ({ ...s }));
+    expect(p.plan(frame({}, copies)).reuse).toBe(2);
+  });
+
+  it('draws whole when a resource arrives, though no layer changed', () => {
+    const p = new PrefixPlanner();
+    p.plan(frame(), 0);
+    p.plan(frame({}, edited(2)), 0);
+    p.snapshotTaken();
+    expect(p.plan(frame({}, edited(2)), 0).reuse).toBe(2);
+    p.snapshotTaken();
+    expect(p.plan(frame({}, edited(2)), 1).reuse).toBe(0);
   });
 });

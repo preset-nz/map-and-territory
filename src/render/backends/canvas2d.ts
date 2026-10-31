@@ -19,6 +19,8 @@ export class Canvas2DBackend implements RenderBackend {
   useCache = true;
   // decoded images layers refer to, the most recently set last
   private textures = new Map<string, ImageBitmap>();
+  // bumped when a texture or the faces arrive: the planner redraws from layer 0 on a change
+  private resources = 0;
 
   // Overloads to satisfy RenderBackend and also support main-thread HTMLCanvasElement
   init(canvas: OffscreenCanvas, pixelRatio: number): void;
@@ -71,12 +73,12 @@ export class Canvas2DBackend implements RenderBackend {
       this.textures.get(oldest)?.close?.();
       this.textures.delete(oldest);
     }
-    this.planner.drop(); // a layer's pixels changed, its state did not
+    this.resourcesChanged(); // a layer's pixels changed, its key did not
   }
 
-  /** Forget the cached prefix: something a layer draws changed without its state changing. */
-  dropCache() {
-    this.planner.drop();
+  /** Something layers draw from arrived (a texture, the faces): the next frame draws whole. */
+  resourcesChanged() {
+    this.resources++;
   }
 
   render(frame: SceneFrame) {
@@ -122,7 +124,7 @@ export class Canvas2DBackend implements RenderBackend {
     };
 
     const plan = this.useCache
-      ? this.planner.plan(frame)
+      ? this.planner.plan(frame, this.resources)
       : ({ reuse: 0, snapshotAt: null } as const);
     if (plan.reuse > 0 && this.prefix) {
       ctx.save();

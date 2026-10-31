@@ -247,7 +247,7 @@ export const HexgridAdapter: LayerAdapter<HexgridState> = {
   getInvalidationKey(state) {
     const s = state;
     const colorKey = s.usePaletteColor ? 'palette' : s.color;
-    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 1}:${s.lineWidth ?? 1}:${s.hairline ?? false}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}:${s.seed ?? 'grid'}:${s.misregistration ?? 0}:${s.cornerJitter ?? 0}:${s.widthNoise ?? 0}:${s.noiseScale ?? 24}:${s.joinCorners ?? true}:${s.inkNoise ?? 0}:${s.inkScale ?? 40}`;
+    return `hexgrid:${s.size}:${s.orientation}:${colorKey}:${s.alpha ?? 0.25}:${s.lineWidth ?? 1}:${s.hairline ?? false}:${s.lineStyle ?? 'solid'}:${s.dashLength ?? 4}:${s.gapLength ?? 2}:${s.seed ?? 'grid'}:${s.misregistration ?? 0}:${s.cornerJitter ?? 0}:${s.widthNoise ?? 0}:${s.noiseScale ?? 24}:${s.joinCorners ?? true}:${s.inkNoise ?? 0}:${s.inkScale ?? 40}`;
   },
 };
 

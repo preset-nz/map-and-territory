@@ -1,21 +1,25 @@
 // Prefix cache planning (epic 12 story 5). The backend keeps one bitmap: the composite of
-// layers [0, p). A layer is unchanged when its id, type, visibility and state object are
-// the same ones, which the delta decoder guarantees for unchanged rows. This module only
-// decides; the backend owns the bitmap.
+// layers [0, p). A layer is unchanged when its id, type, visibility and invalidation key
+// are the same (README decision 3). Resources a layer draws from that arrive later (a texture,
+// the faces) are counted in the frame's globals, so one landing redraws from layer 0. This
+// module only decides; the backend owns the bitmap.
 import { gridEnv } from './grid-env';
+import { layerKey } from './keys';
 import type { SceneFrame } from './types';
 
 interface Entry {
   id: string;
   type: string;
   visible: boolean;
-  state: unknown;
+  key: string;
 }
 
 // The grid's size and orientation come from the hexgrid layer, the top one, but every layer
 // below draws on them; so they belong to the whole frame, not to that one layer.
 type Global = Pick<SceneFrame, 'size' | 'pixelRatio' | 'paper' | 'camera' | 'palette'> & {
   grid: ReturnType<typeof gridEnv>;
+  /** Counts textures and faces that arrived; the backend's. */
+  resources: number;
 };
 
 export interface PrefixPlan {
@@ -26,7 +30,7 @@ export interface PrefixPlan {
 }
 
 const sameEntry = (a: Entry, b: Entry) =>
-  a.id === b.id && a.type === b.type && a.visible === b.visible && a.state === b.state;
+  a.id === b.id && a.type === b.type && a.visible === b.visible && a.key === b.key;
 
 const sameGlobal = (a: Global, b: Global) =>
   a.size.w === b.size.w &&
@@ -38,16 +42,18 @@ const sameGlobal = (a: Global, b: Global) =>
   a.camera.y === b.camera.y &&
   a.camera.zoom === b.camera.zoom &&
   a.palette === b.palette &&
+  a.resources === b.resources &&
   a.grid?.size === b.grid?.size &&
   a.grid?.orientation === b.grid?.orientation;
 
-const globalOf = (f: SceneFrame): Global => ({
+const globalOf = (f: SceneFrame, resources: number): Global => ({
   size: { ...f.size },
   pixelRatio: f.pixelRatio,
   paper: { ...f.paper },
   camera: { ...f.camera },
   palette: f.palette,
   grid: gridEnv(f),
+  resources,
 });
 
 export class PrefixPlanner {
@@ -55,13 +61,13 @@ export class PrefixPlanner {
   private cache: { p: number; global: Global; entries: Entry[] } | null = null;
   private pending: { p: number; global: Global; entries: Entry[] } | null = null;
 
-  plan(frame: SceneFrame): PrefixPlan {
-    const global = globalOf(frame);
+  plan(frame: SceneFrame, resources = 0): PrefixPlan {
+    const global = globalOf(frame, resources);
     const entries: Entry[] = frame.layers.map((l) => ({
       id: l.id,
       type: l.type,
       visible: l.visible,
-      state: l.state,
+      key: layerKey(l.type, l.state),
     }));
     const n = entries.length;
 
@@ -99,13 +105,6 @@ export class PrefixPlanner {
   /** The backend took the snapshot the last plan asked for. */
   snapshotTaken() {
     if (this.pending) this.cache = this.pending;
-    this.pending = null;
-  }
-
-  /** The cached bitmap is no longer trustworthy (a texture finished loading, a resize). */
-  drop() {
-    this.cache = null;
-    this.prev = null;
     this.pending = null;
   }
 }

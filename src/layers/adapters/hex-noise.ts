@@ -89,7 +89,7 @@ export const HexNoiseAdapter: LayerAdapter<HexNoiseState> = {
   },
   // Note: main renderers draw this layer explicitly; adapter kept for parity/future bridge
   getInvalidationKey(state) {
-    return `hexnoise:${state.mode ?? ''}:${state.terrain ?? ''}:${state.seed ?? ''}:${state.frequency ?? ''}:${state.offsetX ?? ''}:${state.offsetY ?? ''}:${state.intensity ?? ''}:${state.gamma ?? ''}:${state.min ?? ''}:${state.max ?? ''}`;
+    return `hexnoise:${state.mode ?? ''}:${state.terrain ?? ''}:${state.seed ?? ''}:${state.frequency ?? ''}:${state.offsetX ?? ''}:${state.offsetY ?? ''}:${state.intensity ?? ''}:${state.gamma ?? ''}:${state.min ?? ''}:${state.max ?? ''}:${state.paintColor ?? ''}`;
   },
   serialize(state) {
     // Do not persist derived/cache fields like paintColor
