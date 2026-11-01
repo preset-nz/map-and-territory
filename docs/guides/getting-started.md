@@ -42,27 +42,35 @@ Use a second freeform layer for anything you may want to hide or move on its own
 
 Select **Hex Grid**. It always draws on top of the terrain.
 
-- **Hex size** sets how coarse the map is. Pointy-top or flat-top is **Orientation**. Choose both before you paint much, since they change where every hex sits.
+- **Hex size** sets how coarse the map is. Pointy-top or flat-top is **Orientation**. Choose both before you paint much, since they change where every hex sits. On A5, large hexes and broad stretches of one terrain read better than fine detail.
 - **Line strength** is how solid the lines are, and **Line width** how heavy. **Hairline** draws the thinnest line the output allows: one pixel of the 300 dpi export.
 - **Width noise**, **Ink noise**, **Corner jitter** and **Misregistration** make the grid look printed rather than ruled: a line that swells and thins, patchy ink, corners that wander, a grid printed out of register. Small amounts show on A5.
+
+![Close up of a printed grid: plain and painted hexes, a river and a dashed edge drawn with outline layers](img/grid-closeup.webp)
 
 ## Title and compass
 
 Choose **Layer ▸ Add Title**. It prints the map's name in a ruled box in the top left, over the grid. Rename the map and the title follows. Type in its **Title** field to print something else on this map only, and add a **Subtitle** or **Credit** line under it. **Frame** picks the box: Rule, Double, or Plate for a solid block of ink.
 
-Choose **Layer ▸ Add Compass** for a compass in the top right. **Style** picks the drawing, from a plain Mark to a Rose. **North** turns it for a map drawn at an angle.
+Choose **Layer ▸ Add Compass** for a compass in the top right. **Style** picks the drawing, from a plain Mark to a Rose. **North** turns it for a map drawn at an angle, and **Anchor** moves it to another corner.
 
 The map's own **Face** and **Hand** (select the map) set the lettering and the line of every title and compass on it. Set Hand to Drawn or Scratched and the whole sheet looks hand-lettered.
+
+![The Sallow Fen: a double-ruled title in the top left, an arrow compass anchored bottom right](img/title-compass.webp)
 
 ## Places
 
 Press **6** for **Add Location** and click a hex. A Locations layer appears with the first click, and the place gets the number 1. Select the place in the scene panel to give it a **Name** and a **Note**, the short line printed under the name. The **Description** is for the key.
+
+![Three numbered places, each with its name and note](img/places.webp)
 
 The location tools share one toolbar button. **Move Location** drags a place to another hex, and **Delete Location** removes the one you click. Places number themselves from the top of the scene panel down. Turn on **Hidden** for a secret: it shows faint in the window, and the printed page leaves it out without renumbering the rest.
 
 ## Print it
 
 Choose **File ▸ Export ▸ Map as PDF…** and save. The PDF is one A5 page: the map at the top and its key below, every place numbered with its name and description. The map's **Layout** moves the key: under the map, in two or three columns, above it, or on pages of its own.
+
+![The printed A5 page: the map, and its key with each place's description](img/printed-page.webp)
 
 Print at actual size (100%, not "fit to page") so the hexes and line weights come out as drawn. A4 is A5 enlarged, so set the campaign's Page size to A4 to print the same page bigger.
 
