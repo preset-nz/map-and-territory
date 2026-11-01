@@ -12,11 +12,16 @@ export interface PaperSpec {
   color: string;
 }
 
+/** A pass a layer kind declares (`drawOverGrid`): drawn above the grid, not at the layer's place. */
+export type LayerPass = 'over-grid';
+
 export interface SceneLayer<State = unknown> {
   id: string;
   type: LayerTypeId;
   visible: boolean;
   state: State;
+  /** Unset for the layer's own place in the stack; one layer has at most one entry per pass. */
+  pass?: LayerPass;
 }
 
 import type { MapPalette } from '@/palettes/types';
@@ -37,6 +42,7 @@ export interface WireLayer {
   type: string;
   visible: boolean;
   state?: unknown;
+  pass?: LayerPass;
 }
 
 /** `palette`: absent means unchanged, `null` means none. */

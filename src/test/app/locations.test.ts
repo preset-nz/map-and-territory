@@ -2,7 +2,6 @@ import {
   createFrameBuilder,
   type FrameRow,
   type FrameSchema,
-  MARKS,
   type RowSource,
 } from '@/app/scene/frame';
 import { activeMapId } from '@/app/selection';
@@ -93,7 +92,7 @@ describe('location numbers', () => {
     const numbers = (projection: unknown) =>
       createFrameBuilder(schema)
         .build(source(rows, projection), 'm', { w: 800, h: 600 }, 1)
-        .layers.filter((l) => l.type === 'locations' && !l.id.endsWith(MARKS))
+        .layers.filter((l) => l.type === 'locations' && !l.pass)
         .flatMap((l) => (l.state as { locations: PlacedLocation[] }).locations)
         .map((p) => [p.id, p.number]);
     expect(numbers({ numbers: { a1: 7, a2: 8, b1: 9 } })).toEqual([
@@ -157,14 +156,20 @@ describe('location numbers', () => {
     rows.a = { ...rows.a, values: { ...rows.a.values, visible: false } };
     const builder = createFrameBuilder(schema);
     const frame = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
-    expect(frame.layers.map((l) => l.id)).toEqual(['p', 'a', 'b', 'g', `a${MARKS}`, `b${MARKS}`]);
-    const passes = frame.layers.map((l) => (l.state as { pass?: string }).pass);
-    expect(passes).toEqual([undefined, 'areas', 'areas', undefined, 'marks', 'marks']);
-    // a hidden layer hides both halves; the halves are kept from frame to frame
-    expect(frame.layers.filter((l) => l.id.startsWith('a')).map((l) => l.visible)).toEqual([
-      false,
-      false,
+    expect(frame.layers.map((l) => l.id)).toEqual(['p', 'a', 'b', 'g', 'a', 'b']);
+    expect(frame.layers.map((l) => l.pass)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'over-grid',
+      'over-grid',
     ]);
+    expect(frame.layers.some((l) => l.id.includes('#'))).toBe(false);
+    // both entries of a layer share one state object
+    expect(frame.layers[4].state).toBe(frame.layers[1].state);
+    // a hidden layer hides both halves; the halves are kept from frame to frame
+    expect(frame.layers.filter((l) => l.id === 'a').map((l) => l.visible)).toEqual([false, false]);
     const again = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
     expect(again.layers[4].state).toBe(frame.layers[4].state);
   });

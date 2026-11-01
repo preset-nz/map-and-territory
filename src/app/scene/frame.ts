@@ -3,6 +3,7 @@
 // projects/map-and-territory/design/object-model.md, "The mirror and the SceneFrame".
 import { MUTED_INK_ALPHA } from '@/layers/adapters/cartouche';
 import type { LocationMarker, PlacedLocation } from '@/layers/adapters/locations';
+import { BUILTIN_LAYER_TYPES } from '@/layers/builtin';
 import { DefaultPalette } from '@/palettes/defaults';
 import type { MapPalette, TerrainCategory } from '@/palettes/types';
 import type { PaperSpec, SceneFrame, SceneLayer } from '@/render/types';
@@ -335,14 +336,13 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   /**
    * A locations layer's adapter state (epic 28): its values plus each place in its `locations`
    * order, each with its number from the projection (Rust's; none in a layer that isn't
-   * numbered), with the map's face, the grid's ink and the paper's colour. Two states: `areas` (the tints and edges, at the layer's place in
-   * the stack) and `marks` (markers and names, drawn after the grid so no line crosses a name).
-   * Kept while the row, its locations and those are unchanged.
+   * numbered), with the map's face, the grid's ink and the paper's colour. One state: the
+   * adapter's `drawMain` draws its areas at the layer's place, `drawOverGrid` its markers and
+   * names (see `OVER_GRID`). Kept while the row, its locations and those are unchanged.
    */
-  type LocationsPasses = { areas: Record<string, unknown>; marks: Record<string, unknown> };
   const locationsStates = new WeakMap<
     FrameRow,
-    { key: string; children: FrameRow[]; state: LocationsPasses }
+    { key: string; children: FrameRow[]; state: Record<string, unknown> }
   >();
   const locationsState = (
     rows: RowSource,
@@ -351,7 +351,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     numbers: Record<string, number> | undefined,
     ink: string,
     paper: string,
-  ): LocationsPasses => {
+  ): Record<string, unknown> => {
     const children = locationRows(rows, row);
     const base = stateOf(row);
     const face = sheetStyle(base.face, map.values?.face, 'condensed');
@@ -380,8 +380,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         size: typeof v.size === 'number' ? v.size : 1,
       };
     });
-    const both = { ...base, locations, face, ink, paper };
-    const state = { areas: { ...both, pass: 'areas' }, marks: { ...both, pass: 'marks' } };
+    const state = { ...base, locations, face, ink, paper };
     locationsStates.set(row, { key, children, state });
     return state;
   };
@@ -404,16 +403,17 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         (paperRow ? (stateOf(paperRow).color as string | undefined) : undefined) ??
         DEFAULT_PAPER.color;
       const derived = projectionOf(rows);
-      // each locations layer's markers and names, drawn after the grid (epic 28)
-      const marks: SceneLayer[] = [];
+      // the second entry of each layer whose kind declares `drawOverGrid` (epic 28)
+      const overGrid: SceneLayer[] = [];
       for (const id of order) {
         const row = rows.node(id);
         if (!row) continue;
         if (row.type === 'locations') {
-          const passes = locationsState(rows, row, map, derived.numbers, ink, paperColour);
-          const visible = passes.areas.visible !== false;
-          layers.push({ id, type: row.type, visible, state: passes.areas });
-          marks.push({ id: `${id}${MARKS}`, type: row.type, visible, state: passes.marks });
+          const state = locationsState(rows, row, map, derived.numbers, ink, paperColour);
+          const visible = state.visible !== false;
+          const entry: SceneLayer = { id, type: row.type, visible, state };
+          layers.push(entry);
+          if (OVER_GRID.has(row.type)) overGrid.push({ ...entry, pass: 'over-grid' });
           continue;
         }
         let state =
@@ -441,9 +441,11 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
             color: (state.color as string) ?? DEFAULT_PAPER.color,
           };
         }
-        layers.push({ id, type: row.type, visible: state.visible !== false, state });
+        const entry: SceneLayer = { id, type: row.type, visible: state.visible !== false, state };
+        layers.push(entry);
+        if (OVER_GRID.has(row.type)) overGrid.push({ ...entry, pass: 'over-grid' });
       }
-      layers.push(...marks);
+      layers.push(...overGrid);
       // Furniture after the grid, so no grid line crosses it (map furniture §1). One array: the
       // backend draws it in order and knows nothing of the two orders.
       for (const id of map.orders?.furniture ?? []) {
@@ -457,8 +459,10 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   };
 }
 
-/** The suffix on the id of a locations layer's second scene layer, its markers and names. */
-export const MARKS = '#marks';
+/** Layer kinds that declare a pass above the grid (`LayerAdapter.drawOverGrid`). */
+const OVER_GRID = new Set(
+  BUILTIN_LAYER_TYPES.filter((t) => t.adapter.drawOverGrid).map((t) => t.id),
+);
 
 /** A locations layer's places, in its `locations` order. */
 function locationRows(rows: RowSource, layer: FrameRow): FrameRow[] {

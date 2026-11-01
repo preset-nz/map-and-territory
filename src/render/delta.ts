@@ -3,7 +3,7 @@
 // the frame would draw the same pixels. The decoder keeps the newest state it was sent, so a
 // layer whose key held draws from the state already there.
 import type { MapPalette } from '@/palettes/types';
-import { layerKey } from './keys';
+import { layerKey, slotOf } from './keys';
 import type { Camera, PaperSpec, SceneFrame, SceneLayer, WireFrame, WireLayer } from './types';
 
 const sameCamera = (a: Camera, b: Camera) => a.x === b.x && a.y === b.y && a.zoom === b.zoom;
@@ -32,14 +32,22 @@ export function createDeltaEncoder(): DeltaEncoder {
         last.layers.length !== frame.layers.length;
       const layers: WireLayer[] = frame.layers.map((l, i) => {
         const key = layerKey(l.type, l.state);
-        next.set(l.id, `${l.type}\u0000${key}`);
+        const slot = slotOf(l);
+        next.set(slot, `${l.type}\u0000${key}`);
         const wire: WireLayer = { id: l.id, type: l.type, visible: l.visible };
-        if (keys.get(l.id) !== `${l.type}\u0000${key}`) {
+        if (l.pass) wire.pass = l.pass;
+        if (keys.get(slot) !== `${l.type}\u0000${key}`) {
           wire.state = l.state;
           changed = true;
         }
         const was = last?.layers[i];
-        if (!was || was.id !== l.id || was.type !== l.type || was.visible !== l.visible) {
+        if (
+          !was ||
+          was.id !== l.id ||
+          was.pass !== l.pass ||
+          was.type !== l.type ||
+          was.visible !== l.visible
+        ) {
           changed = true;
         }
         return wire;
@@ -77,9 +85,12 @@ export function createDeltaDecoder(): DeltaDecoder {
     decode(wire) {
       const next = new Map<string, unknown>();
       const layers: SceneLayer[] = wire.layers.map((l) => {
-        const state = 'state' in l ? l.state : states.get(l.id);
-        next.set(l.id, state);
-        return { id: l.id, type: l.type, visible: l.visible, state };
+        const slot = slotOf(l);
+        const state = 'state' in l ? l.state : states.get(slot);
+        next.set(slot, state);
+        const layer: SceneLayer = { id: l.id, type: l.type, visible: l.visible, state };
+        if (l.pass) layer.pass = l.pass;
+        return layer;
       });
       states = next; // ids that disappeared are dropped
       if (wire.palette !== undefined) palette = wire.palette ?? undefined;

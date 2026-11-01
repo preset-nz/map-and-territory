@@ -202,7 +202,6 @@ const CASES: Record<string, Case> = {
   locations: {
     base: {
       locations: [place],
-      pass: 'marks',
       showLabels: true,
       labelStyle: 'plain',
       size: 1,
@@ -211,7 +210,6 @@ const CASES: Record<string, Case> = {
       paper: '#fafafa',
     },
     changes: [
-      { pass: 'areas' },
       { showLabels: false },
       { labelStyle: 'glow' },
       { size: 2 },

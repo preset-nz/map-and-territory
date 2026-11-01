@@ -91,4 +91,21 @@ describe('PrefixPlanner', () => {
     p.snapshotTaken();
     expect(p.plan(frame({}, edited(2)), 1).reuse).toBe(0);
   });
+
+  it('tells a layer’s over-grid entry from its own place', () => {
+    const p = new PrefixPlanner();
+    const loc = { locations: [] };
+    const base = frame({}, states);
+    const at = (pass?: 'over-grid') =>
+      frame({
+        layers: [
+          ...base.layers,
+          { id: 'x', type: 'locations', visible: true, state: loc, ...(pass ? { pass } : {}) },
+        ],
+      });
+    p.plan(at());
+    p.snapshotTaken();
+    // the same id and state, but as the over-grid entry: not the same layer
+    expect(p.plan(at('over-grid')).snapshotAt).toBe(4);
+  });
 });

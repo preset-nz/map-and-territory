@@ -218,7 +218,7 @@ export class Canvas2DBackend implements RenderBackend {
       if (index === snapshotAt) this.snapshot(ctx, device);
       if (!l.visible) continue;
       const type = getLayerType(l.type);
-      const draw = type?.adapter?.drawMain;
+      const draw = l.pass === 'over-grid' ? type?.adapter?.drawOverGrid : type?.adapter?.drawMain;
       if (typeof draw !== 'function') continue;
       const comp = layerComposite(l.state);
       if (!comp) {

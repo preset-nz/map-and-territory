@@ -1,15 +1,16 @@
 // Prefix cache planning (epic 12 story 5). The backend keeps one bitmap: the composite of
-// layers [0, p). A layer is unchanged when its id, type, visibility and invalidation key
+// layers [0, p). A layer is unchanged when its id, pass, type, visibility and invalidation key
 // are the same (README decision 3). Resources a layer draws from that arrive later (a texture,
 // the faces) are counted in the frame's globals, so one landing redraws from layer 0. This
 // module only decides; the backend owns the bitmap.
 import { gridEnv } from './grid-env';
 import { layerKey } from './keys';
-import type { SceneFrame } from './types';
+import type { LayerPass, SceneFrame } from './types';
 
 interface Entry {
   id: string;
   type: string;
+  pass?: LayerPass;
   visible: boolean;
   key: string;
 }
@@ -30,7 +31,11 @@ export interface PrefixPlan {
 }
 
 const sameEntry = (a: Entry, b: Entry) =>
-  a.id === b.id && a.type === b.type && a.visible === b.visible && a.key === b.key;
+  a.id === b.id &&
+  a.pass === b.pass &&
+  a.type === b.type &&
+  a.visible === b.visible &&
+  a.key === b.key;
 
 const sameGlobal = (a: Global, b: Global) =>
   a.size.w === b.size.w &&
@@ -66,6 +71,7 @@ export class PrefixPlanner {
     const entries: Entry[] = frame.layers.map((l) => ({
       id: l.id,
       type: l.type,
+      pass: l.pass,
       visible: l.visible,
       key: layerKey(l.type, l.state),
     }));

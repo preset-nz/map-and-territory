@@ -81,4 +81,30 @@ describe('delta frames', () => {
     // `a` returned after being dropped, so its state is sent again
     expect(dec.decode(enc.encode(h) as never)).toEqual(h);
   });
+
+  it('tells a layer’s two entries apart by pass, with the pass on the wire and no suffixed id', () => {
+    const enc = createDeltaEncoder();
+    const dec = createDeltaDecoder();
+    const state = { locations: [] };
+    const layers = [
+      { id: 'a', type: 'paper', visible: true, state: { color: '#fff', aspect: '16:10' } },
+      { id: 'loc', type: 'locations', visible: true, state },
+      { id: 'loc', type: 'locations', visible: true, state, pass: 'over-grid' as const },
+    ];
+    const first = enc.encode(frame({ layers }));
+    expect(first?.layers.map((l) => [l.id, l.pass])).toEqual([
+      ['a', undefined],
+      ['loc', undefined],
+      ['loc', 'over-grid'],
+    ]);
+    expect(first?.layers.every((l) => 'state' in l)).toBe(true);
+    expect(dec.decode(first as never).layers[2]).toMatchObject({ id: 'loc', pass: 'over-grid' });
+    // equal content: nothing to send; the second entry's state is still there after a change below
+    const changed = layers.map((l, i) => (i === 0 ? { ...l, visible: false } : l));
+    const next = enc.encode(frame({ layers: changed }));
+    expect(next?.layers.some((l) => 'state' in l)).toBe(false);
+    const whole = dec.decode(next as never);
+    expect(whole.layers[2].state).toBe(state);
+    expect(whole.layers[1].state).toBe(state);
+  });
 });

@@ -108,9 +108,11 @@ const state: LocationsState = {
   ],
 };
 
+/** Both passes, as the host draws them: the areas at the layer's place, then the marks. */
 function draw(s: LocationsState = state) {
   const ctx = new MockContext();
   LocationsAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, s, env);
+  LocationsAdapter.drawOverGrid?.(ctx as unknown as CanvasRenderingContext2D, s, env);
   return ctx;
 }
 
@@ -188,9 +190,11 @@ describe('the locations adapter', () => {
     expect(name?.x).toBeCloseTo(four?.x ?? 0);
     expect(name?.y).toBeGreaterThan(four?.y ?? 0);
     // the areas half draws the tint and no words; the marks half the words and no tint
-    const areas = draw({ ...mire, pass: 'areas' });
+    const areas = new MockContext();
+    LocationsAdapter.drawMain?.(areas as unknown as CanvasRenderingContext2D, mire, env);
     expect([areas.texts.length, areas.fills.includes(AREA_TINT)]).toEqual([0, true]);
-    const marks = draw({ ...mire, pass: 'marks' });
+    const marks = new MockContext();
+    LocationsAdapter.drawOverGrid?.(marks as unknown as CanvasRenderingContext2D, mire, env);
     expect(marks.fills).not.toContain(AREA_TINT);
     expect(marks.texts.map((t) => t.text)).toEqual(['4', 'The Mire']);
   });

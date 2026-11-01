@@ -27,6 +27,10 @@ export interface LayerAdapter<State = unknown> {
   title: string;
   // Draw into main viewport canvas
   drawMain?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
+  // A second drawing of the same layer, above the grid: the host draws it after the last layer
+  // of the map's order (the grid) and before furniture, as its own scene layer with the same
+  // state (`pass: 'over-grid'`). `drawMain` then draws only what belongs at the layer's own place.
+  drawOverGrid?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
   // Optional scene/overview rendering
   drawSceneView?: (ctx: CanvasRenderingContext2D, state: State, env: RenderEnv) => void;
   // Optional hit testing for selection tools

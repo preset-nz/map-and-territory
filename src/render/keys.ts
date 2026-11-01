@@ -35,3 +35,7 @@ export function layerKey(type: string, state: unknown): string {
   }
   return key;
 }
+
+/** What tells a layer's entries apart in the delta and planner maps: its id and pass. Never on the wire. */
+export const slotOf = (l: { id: string; pass?: string }): string =>
+  l.pass ? `${l.id}:${l.pass}` : l.id;

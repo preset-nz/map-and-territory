@@ -3,9 +3,9 @@
 // projection resolves numbers, the face, the ink and the paper; the adapter draws what it is
 // given. Hidden places draw faint with a dashed ring (the window only, until player copies).
 // A place on more than one hex is an area: a tint over its hexes inside a dashed edge, with
-// its marker and name at their middle. The projection draws the layer in two halves: the
-// areas at its place in the stack, the markers and names after the grid, so no grid line or
-// tint crosses a name.
+// its marker and name at their middle. The layer draws in two passes: `drawMain` the
+// areas at its place in the stack, `drawOverGrid` the markers and names after the grid, so no
+// grid line or tint crosses a name.
 import type { LayerAdapter, RenderEnv } from '@/layers/types';
 import { corners, fromPoint, toPoint } from '@/lib/hex/layout';
 import type { Axial, Layout, Point } from '@/lib/hex/types';
@@ -31,12 +31,6 @@ export interface PlacedLocation {
 
 export interface LocationsState {
   locations?: PlacedLocation[];
-  /**
-   * Which half to draw: the areas' tints and edges at the layer's place in the stack, or the
-   * markers and names after the grid (the projection makes one scene layer of each). Unset
-   * draws both.
-   */
-  pass?: 'areas' | 'marks';
   showLabels?: boolean;
   labelStyle?: LabelStyle;
   /** How big markers and names are against the hex; 1 when unset. */
@@ -171,23 +165,29 @@ function anchorOf(hexes: readonly Axial[], layout: Layout): Point {
   };
 }
 
+const placesOf = (state: LocationsState) =>
+  (state.locations ?? []).filter((loc) => loc.hexes.length > 0);
+
 export const LocationsAdapter: LayerAdapter<LocationsState> = {
   title: 'Locations',
   drawMain(ctx, state, env) {
     const layout = layoutOf(env);
     const ink = state.ink || '#000000';
-    const paper = state.paper || '#ffffff';
-    const face = state.face ?? 'condensed';
-    const caps = faceCaps(face);
-    const places = (state.locations ?? []).filter((loc) => loc.hexes.length > 0);
-    for (const loc of state.pass === 'marks' ? [] : places) {
+    for (const loc of placesOf(state)) {
       if (loc.hexes.length < 2) continue;
       ctx.save();
       if (loc.hidden) ctx.globalAlpha *= HIDDEN_ALPHA;
       drawArea(ctx, loc.hexes, layout, ink);
       ctx.restore();
     }
-    for (const loc of state.pass === 'areas' ? [] : places) {
+  },
+  drawOverGrid(ctx, state, env) {
+    const layout = layoutOf(env);
+    const ink = state.ink || '#000000';
+    const paper = state.paper || '#ffffff';
+    const face = state.face ?? 'condensed';
+    const caps = faceCaps(face);
+    for (const loc of placesOf(state)) {
       const area = loc.hexes.length > 1;
       const c = anchorOf(loc.hexes, layout);
       // markers and names scale with the hex, the layer's size and the place's own
@@ -269,7 +269,6 @@ export const LocationsAdapter: LayerAdapter<LocationsState> = {
   getInvalidationKey(s) {
     return JSON.stringify([
       'locations',
-      s.pass ?? '',
       s.locations ?? [],
       s.showLabels !== false,
       s.labelStyle ?? 'plain',
