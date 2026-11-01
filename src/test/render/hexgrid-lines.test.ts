@@ -667,6 +667,9 @@ describe('hexgrid invalidation key, story 3', () => {
   });
 });
 
+/** The timing reports measure, they don't gate: a slow CI runner takes over 5 s for them. */
+const REPORT_TIMEOUT = 60_000;
+
 describe('width noise timing', () => {
   /** A mock context that does the work of a path without a canvas behind it. */
   const timed = (w: number, h: number, over: Partial<HexgridState>) => {
@@ -693,26 +696,30 @@ describe('width noise timing', () => {
     HexgridAdapter.drawMain?.(c, state(over), e);
     return performance.now() - t;
   };
-  it('reports geometry-only times (no canvas in the test runner)', () => {
-    const rows: string[] = [];
-    for (const [w, h, size] of [
-      [1600, 1000, 24],
-      [4000, 3000, 8],
-    ] as const) {
-      timed(w, h, { size }); // warm up
-      const best = (over: Partial<HexgridState>) =>
-        Math.min(...Array.from({ length: 5 }, () => timed(w, h, { size, ...over })));
-      const solid = best({});
-      const on = best({ widthNoise: 1, joinCorners: true });
-      const off = best({ widthNoise: 1, joinCorners: false });
-      const jit = best({ widthNoise: 1, cornerJitter: 4, misregistration: 4 });
-      rows.push(
-        `${w}x${h} size ${size}: solid ${solid.toFixed(1)} ms, width noise join ${on.toFixed(1)} ms, no join ${off.toFixed(1)} ms, with jitter ${jit.toFixed(1)} ms`,
-      );
-    }
-    console.info(rows.join('\n'));
-    expect(rows.length).toBe(2);
-  });
+  it(
+    'reports geometry-only times (no canvas in the test runner)',
+    () => {
+      const rows: string[] = [];
+      for (const [w, h, size] of [
+        [1600, 1000, 24],
+        [4000, 3000, 8],
+      ] as const) {
+        timed(w, h, { size }); // warm up
+        const best = (over: Partial<HexgridState>) =>
+          Math.min(...Array.from({ length: 5 }, () => timed(w, h, { size, ...over })));
+        const solid = best({});
+        const on = best({ widthNoise: 1, joinCorners: true });
+        const off = best({ widthNoise: 1, joinCorners: false });
+        const jit = best({ widthNoise: 1, cornerJitter: 4, misregistration: 4 });
+        rows.push(
+          `${w}x${h} size ${size}: solid ${solid.toFixed(1)} ms, width noise join ${on.toFixed(1)} ms, no join ${off.toFixed(1)} ms, with jitter ${jit.toFixed(1)} ms`,
+        );
+      }
+      console.info(rows.join('\n'));
+      expect(rows.length).toBe(2);
+    },
+    REPORT_TIMEOUT,
+  );
 });
 
 // ---- story 4: ink noise ----
@@ -995,61 +1002,65 @@ describe('hexgrid invalidation key, story 4', () => {
 
 describe('ink noise timing', () => {
   withFakeCanvas();
-  it('reports the mask build and the per-frame cost (no rasterising)', () => {
-    const rows: string[] = [];
-    const best = (n: number, f: () => void) =>
-      Math.min(
-        ...Array.from({ length: n }, () => {
-          const t = performance.now();
-          f();
-          return performance.now() - t;
+  it(
+    'reports the mask build and the per-frame cost (no rasterising)',
+    () => {
+      const rows: string[] = [];
+      const best = (n: number, f: () => void) =>
+        Math.min(
+          ...Array.from({ length: n }, () => {
+            const t = performance.now();
+            f();
+            return performance.now() - t;
+          }),
+        );
+      for (const [w, h, size] of [
+        [1600, 1000, 24],
+        [4000, 3000, 8],
+      ] as const) {
+        const over = { size, inkNoise: 1, inkScale: 40 };
+        const frame = () => {
+          const c = inkCtx(w, h);
+          HexgridAdapter.drawMain?.(c, state(over), env(w, h));
+        };
+        const cold = best(3, () => {
+          resetInkMask();
+          frame();
+        });
+        frame();
+        const warm = best(5, frame);
+        const plain = best(5, () => HexgridAdapter.drawMain?.(ctx(), state({ size }), env(w, h)));
+        const params = {
+          seed: 'grid',
+          amount: 1,
+          scale: 40,
+          size: { w, h },
+          origin: { x: w / 2, y: h / 2 },
+          shift: { x: 0, y: 0 },
+        };
+        const build = best(3, () => {
+          buildBlotch(params);
+          buildGrain('grid', 1);
+        });
+        rows.push(
+          `${w}x${h} size ${size}: mask build ${build.toFixed(1)} ms, cold frame ${cold.toFixed(1)} ms, warm frame ${warm.toFixed(1)} ms, story 3 plain ${plain.toFixed(1)} ms`,
+        );
+      }
+      // the worst mask: the smallest patches on the biggest paper (the sample cap applies)
+      const worst = best(3, () =>
+        buildBlotch({
+          seed: 'grid',
+          amount: 1,
+          scale: 4,
+          size: { w: 4000, h: 3000 },
+          origin: { x: 2000, y: 1500 },
+          shift: { x: 0, y: 0 },
         }),
       );
-    for (const [w, h, size] of [
-      [1600, 1000, 24],
-      [4000, 3000, 8],
-    ] as const) {
-      const over = { size, inkNoise: 1, inkScale: 40 };
-      const frame = () => {
-        const c = inkCtx(w, h);
-        HexgridAdapter.drawMain?.(c, state(over), env(w, h));
-      };
-      const cold = best(3, () => {
-        resetInkMask();
-        frame();
-      });
-      frame();
-      const warm = best(5, frame);
-      const plain = best(5, () => HexgridAdapter.drawMain?.(ctx(), state({ size }), env(w, h)));
-      const params = {
-        seed: 'grid',
-        amount: 1,
-        scale: 40,
-        size: { w, h },
-        origin: { x: w / 2, y: h / 2 },
-        shift: { x: 0, y: 0 },
-      };
-      const build = best(3, () => {
-        buildBlotch(params);
-        buildGrain('grid', 1);
-      });
-      rows.push(
-        `${w}x${h} size ${size}: mask build ${build.toFixed(1)} ms, cold frame ${cold.toFixed(1)} ms, warm frame ${warm.toFixed(1)} ms, story 3 plain ${plain.toFixed(1)} ms`,
-      );
-    }
-    // the worst mask: the smallest patches on the biggest paper (the sample cap applies)
-    const worst = best(3, () =>
-      buildBlotch({
-        seed: 'grid',
-        amount: 1,
-        scale: 4,
-        size: { w: 4000, h: 3000 },
-        origin: { x: 2000, y: 1500 },
-        shift: { x: 0, y: 0 },
-      }),
-    );
-    rows.push(`4000x3000 ink scale 4 (capped samples): mask build ${worst.toFixed(1)} ms`);
-    console.info(rows.join('\n'));
-    expect(rows.length).toBe(3);
-  });
+      rows.push(`4000x3000 ink scale 4 (capped samples): mask build ${worst.toFixed(1)} ms`);
+      console.info(rows.join('\n'));
+      expect(rows.length).toBe(3);
+    },
+    REPORT_TIMEOUT,
+  );
 });
