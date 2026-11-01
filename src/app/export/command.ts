@@ -1,14 +1,10 @@
 // File ▸ Export ▸ Map as PNG… (epic 07 story 4) and Map as PDF… (story 5): choose a file, draw
-// the active map, then write it as a PNG with 300 dpi stamped in, or place it in a PDF.
+// the active map, then write it as a PNG with the sheet's dpi stamped in, or place it in a PDF.
 // Campaign as PDF… (epic 32 story 2) draws every map and writes them as one PDF. Rust lays
 // the pages out (epic 33 story 3); the flow here only draws and hands over.
 // The steps are injected so the flow is tested without a window; `native.ts` supplies the real ones.
 import { setPngDpi } from './png';
 import type { ExportedMap } from './render';
-
-/** The resolution a map is drawn at: Rust sizes the drawing by it (`PRINT_DPI`), and the PNG
- * says so. */
-export const EXPORT_DPI = 300;
 
 export type ExportFormat = 'png' | 'pdf';
 
@@ -77,18 +73,18 @@ export async function exportMap(format: ExportFormat, deps: ExportDeps): Promise
       await deps.writePdf(path, [{ png: new Uint8Array(exported.png), mapPath: deps.mapPath }]);
       deps.notify(
         exported.clamped
-          ? `Exported PDF. The map was larger than the export limit, so it is below ${EXPORT_DPI} dpi.`
+          ? `Exported PDF. The map was larger than the export limit, so it is below ${exported.dpi} dpi.`
           : 'Exported PDF.',
         exported.clamped ? 'error' : 'info',
       );
       return 'saved';
     }
-    await deps.writeFile(path, setPngDpi(exported.png, EXPORT_DPI));
+    await deps.writeFile(path, setPngDpi(exported.png, exported.dpi));
     const { w, h } = exported.size;
     deps.notify(
       exported.clamped
         ? `Exported ${w} × ${h} px. The map was larger than the export limit, so it was drawn smaller than its size on the page.`
-        : `Exported ${w} × ${h} px at ${EXPORT_DPI} dpi.`,
+        : `Exported ${w} × ${h} px at ${exported.dpi} dpi.`,
       exported.clamped ? 'error' : 'info',
     );
     return 'saved';
@@ -125,11 +121,11 @@ export async function exportCampaign(deps: CampaignExportDeps): Promise<ExportRe
       path,
       maps.map(({ png, mapPath }) => ({ png: new Uint8Array(png), mapPath })),
     );
-    const clamped = maps.some((m) => m.clamped);
+    const clamped = maps.find((m) => m.clamped);
     const count = maps.length === 1 ? '1 map' : `${maps.length} maps`;
     deps.notify(
       clamped
-        ? `Exported ${count} as PDF. A map was larger than the export limit, so it is below ${EXPORT_DPI} dpi.`
+        ? `Exported ${count} as PDF. A map was larger than the export limit, so it is below ${clamped.dpi} dpi.`
         : `Exported ${count} as PDF.`,
       clamped ? 'error' : 'info',
     );

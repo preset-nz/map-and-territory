@@ -66,14 +66,10 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
         schema = mirror.schema;
         builder = createFrameBuilder(schema);
       }
-      lastFrame = builder.build(
-        mirror,
-        activeMapId(selection.get(), mirror),
-        size,
-        dpr,
-        outlineDraft.get(),
-        camera.get(),
-      );
+      lastFrame = builder.build(mirror, activeMapId(selection.get(), mirror), size, dpr, {
+        preview: outlineDraft.get(),
+        camera: camera.get(),
+      });
       // the camera is clamped to the paper, in paper px: its size follows the aspect alone
       camera.setPaper(paperView(size, lastFrame.paper.aspect as PaperAspect).size);
       textures.want(lastFrame);
@@ -91,7 +87,7 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
       of(mapId) {
         if (lastSize.w < 1 || lastSize.h < 1) return null;
         const size = { w: lastSize.w, h: lastSize.h };
-        const frame = builder.build(mirror, mapId, size, lastSize.dpr);
+        const frame = builder.build(mirror, mapId, size, lastSize.dpr, { print: true });
         if (frame.layers.length === 0) return null;
         return { mapId, ...exportFrame(frame) };
       },

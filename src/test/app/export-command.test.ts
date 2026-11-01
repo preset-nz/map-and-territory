@@ -1,6 +1,6 @@
 import { EXPORT_CAMPAIGN_PDF, EXPORT_PDF, EXPORT_PNG, exportBindings } from '@/app/export/bindings';
 import { type ExportDeps, exportCampaign, exportFileName, exportMap } from '@/app/export/command';
-import { crc32 } from '@/app/export/png';
+import { crc32, pixelsPerMetre } from '@/app/export/png';
 
 const u32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
 const chunk = (type: string, data: number[]) => {
@@ -26,7 +26,7 @@ function deps(over: Partial<ExportDeps> = {}) {
     mapPath: '/maps/ashfall' as string | null,
     documentPath: vi.fn(async () => '/Users/g/Campaigns/doom.campaign' as string | null),
     chooseFile: vi.fn(async () => '/Users/g/Campaigns/Ashfall.png' as string | null),
-    render: vi.fn(async () => ({ png: PNG, size: { w: 1, h: 1 }, clamped: false })),
+    render: vi.fn(async () => ({ png: PNG, size: { w: 1, h: 1 }, dpi: 300, clamped: false })),
     writePdf: vi.fn(async () => {}),
     writeFile: vi.fn(async () => {}),
     notify: vi.fn(),
@@ -71,6 +71,18 @@ describe('Export ▸ Map as PNG…', () => {
     expect(path).toBe('/Users/g/Campaigns/Ashfall.png');
     expect(new TextDecoder('latin1').decode(bytes)).toContain('pHYs');
     expect(d.notify).toHaveBeenCalledWith(expect.stringContaining('300 dpi'), 'info');
+  });
+
+  it('stamps the sheet’s dpi, not a constant of its own', async () => {
+    const d = deps({
+      render: vi.fn(async () => ({ png: PNG, size: { w: 1, h: 1 }, dpi: 150, clamped: false })),
+    });
+    await exportMap('png', d);
+    const [, bytes] = d.writeFile.mock.calls[0] as unknown as [string, Uint8Array];
+    const at = new TextDecoder('latin1').decode(bytes).indexOf('pHYs');
+    const view = new DataView(bytes.buffer, bytes.byteOffset + at + 4);
+    expect(view.getUint32(0)).toBe(pixelsPerMetre(150));
+    expect(d.notify).toHaveBeenCalledWith(expect.stringContaining('150 dpi'), 'info');
   });
 
   it('starts in no folder for an Untitled campaign', async () => {
@@ -161,7 +173,7 @@ describe('Export ▸ PDF…', () => {
 });
 
 describe('Export ▸ Campaign as PDF…', () => {
-  const drawn = { png: PNG, size: { w: 1, h: 1 }, clamped: false };
+  const drawn = { png: PNG, size: { w: 1, h: 1 }, dpi: 300, clamped: false };
   const campaign = (maps: (typeof drawn & { mapPath: string })[]) => ({
     campaignName: 'Doom of the Fen',
     documentPath: vi.fn(async () => '/Users/g/Campaigns/doom.campaign' as string | null),

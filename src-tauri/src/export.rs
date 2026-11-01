@@ -1,7 +1,7 @@
 //! Export's native half (epic 07): the Save dialog and the file write. The webview draws the
 //! PNG and hands the bytes over; it has no fs plugin, so nothing else can write to disk.
 
-use map_and_territory_model::print::Sheet;
+use map_and_territory_model::print::{Sheet, PRINT_DPI};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Runtime};
@@ -169,6 +169,8 @@ pub struct SheetSize {
     page_pt: Size,
     map_pt: Region,
     map_px: Size,
+    /// The resolution `map_px` is for: `PRINT_DPI`.
+    dpi: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -202,6 +204,7 @@ impl From<&Sheet> for SheetSize {
                 w: f64::from(s.map_px.0),
                 h: f64::from(s.map_px.1),
             },
+            dpi: PRINT_DPI,
         }
     }
 }
@@ -309,6 +312,7 @@ mod tests {
         let s = lay_out(PageSpec::default(), 1.6, MapLayout::default(), None);
         let v = serde_json::to_value(SheetSize::from(&s)).unwrap();
         assert_eq!(v["mapPx"]["w"], 1512.0);
+        assert_eq!(v["dpi"], PRINT_DPI);
         assert!(v["pagePt"]["w"].as_f64().unwrap() > 419.0);
         assert!(v["mapPt"]["x"].is_number() && v["mapPt"]["h"].is_number());
     }

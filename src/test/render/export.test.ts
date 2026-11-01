@@ -208,32 +208,6 @@ describe('export independent of the window', () => {
     expect(exportFrame(frame()).frame.camera).toEqual({ x: 0, y: 0, zoom: 1 });
   });
 
-  it('leaves hidden places out, keeping the others’ numbers', () => {
-    const place = (id: string, number: number, hidden: boolean) => ({
-      id,
-      name: id,
-      hexes: [{ q: 0, r: number }],
-      number,
-      marker: 'number',
-      hidden,
-    });
-    const f = frame();
-    const layer = {
-      ...f.layers[0],
-      id: 'loc',
-      type: 'locations',
-      state: {
-        locations: [place('keep', 1, false), place('chapel', 2, true), place('ford', 3, false)],
-      },
-    };
-    const out = exportFrame({ ...f, layers: [...f.layers, layer] }).frame.layers.at(-1);
-    const left = (out?.state as { locations?: { id: string; number: number }[] })?.locations ?? [];
-    expect(left.map((l) => [l.id, l.number])).toEqual([
-      ['keep', 1],
-      ['ford', 3],
-    ]);
-  });
-
   it('draws the same calls from two window sizes and pixel ratios', () => {
     const draw = (f: SceneFrame) => {
       const { frame: atFit, logical } = exportFrame(f);
@@ -331,7 +305,7 @@ describe('export through the render service', () => {
     const svc = start();
     // what Rust gives a 16:10 map on A5 portrait with 10 mm margins
     const mapPx = { w: 1512, h: 945 };
-    const done = await renderMapForExport(svc, frame(), LOGICAL, mapPx);
+    const done = await renderMapForExport(svc, exportFrame(frame()).frame, LOGICAL, mapPx, 300);
     const sent = FakeWorker.last!.posted.find((m) => m.type === 'export');
     expect(sent).toMatchObject({
       logical: LOGICAL,
@@ -342,6 +316,7 @@ describe('export through the render service', () => {
     expect(sent.frame.layers).toHaveLength(3);
     expect(done.size).toEqual(mapPx);
     expect(done.clamped).toBe(false);
+    expect(done.dpi).toBe(300);
     expect(new Uint8Array(done.png)[0]).toBe(mapPx.w % 256);
     svc.destroy();
   });
@@ -403,6 +378,7 @@ describe('exporting the active map', () => {
     pagePt: { w: 595.28, h: 841.89 },
     mapPt: { x: 28.35, y: 28.35, w: 538.58, h: 336.61 },
     mapPx: { w: 2244, h: 1403 },
+    dpi: 300,
   };
 
   it('draws it at the pixel size Rust gives for its path', async () => {
@@ -423,6 +399,7 @@ describe('exporting the active map', () => {
       expect(exportPng).toHaveBeenCalledWith(expect.anything(), LOGICAL, sheet.mapPx);
       expect(done?.size).toEqual(sheet.mapPx);
       expect(done?.clamped).toBe(false);
+      expect(done?.dpi).toBe(sheet.dpi);
       // no path, nothing for Rust to lay out
       expect(await exportActiveMap(rows(undefined), sheetOf)).toBeNull();
     } finally {

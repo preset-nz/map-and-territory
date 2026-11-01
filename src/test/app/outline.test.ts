@@ -92,9 +92,7 @@ describe('the outline layer in the frame', () => {
     expect(state.paths[0]!.corners[0]!.hex).toEqual({ q: 1, r: 2 });
 
     const drawing = b.build(source, 'm', size, 1, {
-      layerId: 'o',
-      active: true,
-      hover: at(1, 2, 4),
+      preview: { layerId: 'o', active: true, hover: at(1, 2, 4) },
     });
     const withPreview = drawing.layers[0]!.state as { activePathId: string; hoverCorner: unknown };
     expect(withPreview.activePathId).toBe('path-0');

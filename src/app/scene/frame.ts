@@ -173,14 +173,24 @@ export interface OutlinePreview {
   hover: { hex: { q: number; r: number }; corner: number } | null;
 }
 
+/** What a frame is for, beyond the map and the window. */
+export interface BuildOptions {
+  /** The outline tool's preview. */
+  preview?: OutlinePreview;
+  /** The window's camera; the identity without one. */
+  camera?: Camera;
+  /** Build for print: places whose stored `hidden` is true are left out (their numbers stay on
+   * the others), as they are the owner's secrets (epic 28). */
+  print?: boolean;
+}
+
 export interface FrameBuilder {
   build(
     rows: RowSource,
     mapId: string | null,
     size: { w: number; h: number },
     pixelRatio: number,
-    preview?: OutlinePreview,
-    camera?: Camera,
+    options?: BuildOptions,
   ): SceneFrame;
 }
 
@@ -386,7 +396,8 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
   };
 
   return {
-    build(rows, mapId, size, pixelRatio, preview, camera = IDENTITY_CAMERA) {
+    build(rows, mapId, size, pixelRatio, options = {}) {
+      const { preview, camera = IDENTITY_CAMERA, print = false } = options;
       const map = mapId ? rows.node(mapId) : undefined;
       if (!map) {
         return { size, pixelRatio, paper: DEFAULT_PAPER, camera, layers: [] };
@@ -409,7 +420,9 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
         const row = rows.node(id);
         if (!row) continue;
         if (row.type === 'locations') {
-          const state = locationsState(rows, row, map, derived.numbers, ink, paperColour);
+          const whole = locationsState(rows, row, map, derived.numbers, ink, paperColour);
+          // built once: both entries (the areas and the over-grid marks) share this object
+          const state = print ? withoutHiddenPlaces(whole) : whole;
           const visible = state.visible !== false;
           const entry: SceneLayer = { id, type: row.type, visible, state };
           layers.push(entry);
@@ -457,6 +470,13 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
       return { size, pixelRatio, paper, camera, layers, palette };
     },
   };
+}
+
+/** A locations state without its hidden places. The rest keep their numbers. */
+function withoutHiddenPlaces(state: Record<string, unknown>): Record<string, unknown> {
+  const all = state.locations as PlacedLocation[];
+  const shown = all.filter((l) => !l.hidden);
+  return shown.length === all.length ? state : { ...state, locations: shown };
 }
 
 /** Layer kinds that declare a pass above the grid (`LayerAdapter.drawOverGrid`). */

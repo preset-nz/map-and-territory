@@ -1,7 +1,6 @@
 // The map at print size (epic 07 story 3): the active map drawn by the render worker into a
 // buffer as big as its rectangle on the page. Rust lays the page out (`export_sheet`, epic 33
 // story 3); this only draws to the size it gives.
-import type { LocationsState } from '@/layers/adapters/locations';
 import { type PaperAspect, paperSize } from '@/render/geometry';
 import type { SceneFrame } from '@/render/types';
 import { MAPS_PATH, type RowSource } from '../scene/frame';
@@ -22,16 +21,19 @@ export interface ExportedMap {
   png: ArrayBuffer;
   /** The PNG's size in pixels. */
   size: { w: number; h: number };
+  /** The resolution the sheet asks for (Rust's `PRINT_DPI`): the PNG's pHYs says so. */
+  dpi: number;
   /** True when the map rectangle was larger than MAX_EXPORT_SIDE and was drawn smaller. */
   clamped: boolean;
 }
 
-/** A map's place on its page as Rust lays it out: points from the page's top-left, and the pixel
- * size to draw the map at (300 dpi). */
+/** A map's place on its page as Rust lays it out: points from the page's top-left, the pixel
+ * size to draw the map at and the dpi that size is for. */
 export interface SheetSize {
   pagePt: { w: number; h: number };
   mapPt: { x: number; y: number; w: number; h: number };
   mapPx: { w: number; h: number };
+  dpi: number;
 }
 
 /** Asks Rust for a map's sheet by the map's path (`export_sheet`); injected so no Tauri API is
@@ -64,11 +66,11 @@ export async function renderMapForExport(
   frame: SceneFrame,
   logical: { w: number; h: number },
   mapPx: { w: number; h: number },
+  dpi: number,
 ): Promise<ExportedMap> {
   const { size, clamped } = exportSize(mapPx);
-  const atFit: SceneFrame = { ...frame, camera: { x: 0, y: 0, zoom: 1 } };
-  const png = await target.exportPng(atFit, logical, size);
-  return { png, size, clamped };
+  const png = await target.exportPng(frame, logical, size);
+  return { png, size, dpi, clamped };
 }
 
 /**
@@ -92,26 +94,16 @@ export interface MapExporter {
   target: ExportTarget;
 }
 
-/** A layer with its hidden places left out: they are the owner's secrets (epic 28). */
-function withoutHidden(layer: SceneFrame['layers'][number]): SceneFrame['layers'][number] {
-  if (layer.type !== 'locations') return layer;
-  const state = layer.state as LocationsState;
-  const locations = (state.locations ?? []).filter((l) => !l.hidden);
-  return locations.length === state.locations?.length
-    ? layer
-    : { ...layer, state: { ...state, locations } };
-}
-
 /**
- * What an export of `frame` draws: the frame at Fit, on the map's paper size, not the window's,
- * without the hidden places. Their numbers stay, so the printed ones match the window's.
+ * What an export of `frame` draws: the frame at Fit, on the map's paper size, not the window's.
+ * The frame comes from the builder with `print: true`, so it has no hidden places.
  */
 export function exportFrame(frame: SceneFrame): {
   frame: SceneFrame;
   logical: { w: number; h: number };
 } {
   return {
-    frame: { ...frame, camera: { x: 0, y: 0, zoom: 1 }, layers: frame.layers.map(withoutHidden) },
+    frame: { ...frame, camera: { x: 0, y: 0, zoom: 1 } },
     logical: paperSize(frame.paper.aspect as PaperAspect),
   };
 }
@@ -170,6 +162,6 @@ async function exportOne(
   if (!exporter) return null;
   // a map that isn't on screen may not have its textures in the worker yet
   await exporter.prepare(current.frame);
-  const { mapPx } = await sheetOf(path);
-  return renderMapForExport(exporter.target, current.frame, current.logical, mapPx);
+  const { mapPx, dpi } = await sheetOf(path);
+  return renderMapForExport(exporter.target, current.frame, current.logical, mapPx, dpi);
 }

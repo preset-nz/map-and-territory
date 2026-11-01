@@ -173,6 +173,27 @@ describe('location numbers', () => {
     const again = builder.build(source(rows), 'm', { w: 800, h: 600 }, 1);
     expect(again.layers[4].state).toBe(frame.layers[4].state);
   });
+
+  it('leaves hidden places out of a print frame, in both entries, keeping the numbers', () => {
+    const builder = createFrameBuilder(schema);
+    const size = { w: 800, h: 600 };
+    const ids = (s: unknown) =>
+      (s as { locations: { id: string; number: number }[] }).locations.map((l) => [l.id, l.number]);
+    const window = builder.build(source(doc()), 'm', size, 1);
+    expect(ids(window.layers[1].state)).toEqual([
+      ['a1', 2],
+      ['a2', 3],
+    ]);
+    const print = builder.build(source(doc()), 'm', size, 1, { print: true });
+    const entries = print.layers.filter((l) => l.id === 'a');
+    expect(entries).toHaveLength(2);
+    expect(ids(entries[0].state)).toEqual([['a1', 2]]);
+    // the areas and the marks share the one filtered state
+    expect(entries[1].state).toBe(entries[0].state);
+    expect(ids(print.layers.find((l) => l.id === 'b')?.state)).toEqual([['b1', 1]]);
+    // the window's frame is untouched by a print build
+    expect(ids(builder.build(source(doc()), 'm', size, 1).layers[1].state)).toHaveLength(2);
+  });
 });
 
 describe('the location tool', () => {
