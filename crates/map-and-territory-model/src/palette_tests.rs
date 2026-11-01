@@ -86,7 +86,7 @@ fn use_makes_a_theme_and_points_the_map_at_it() {
     use_preset(&mut d, &map, "Space Opera");
     assert_eq!(themes(&d), ["/themes/doom-forge", "/themes/space-opera"]);
     assert_eq!(follows(&d, &map).as_deref(), Some("/themes/space-opera"));
-    assert_eq!(d.tree().undo_label(), Some("Use Palette"));
+    assert_eq!(d.tree().undo_label(), Some("Use Setting"));
 }
 
 #[test]

@@ -29,4 +29,4 @@ A setting is the world a map is drawn in: its terrains and their colours. The te
 
 The strip under the inspector shows the active map's setting: a swatch for each terrain, its name and type on hover, and its other colours in a row below. Click a terrain to paint with it.
 
-The app ships with nine ready-made settings to start from.
+The app ships with nine ready-made settings to start from. To pick one, select the campaign and choose it in the **Setting** field. Maps follow the campaign's setting. To draw one map in another, select the map and choose a different setting in its **Setting** field. Choose the first entry, **Campaign's**, to follow the campaign again. Each choice is one step in Edit ▸ Undo.

@@ -22,7 +22,7 @@ The page itself belongs to the campaign. Select **Untitled Campaign** at the top
 
 Choose **Layer ▸ Add Freeform Layer**. Freeform is the layer you paint by hand: each hex takes the colour of one terrain.
 
-The terrains are in the setting strip under the inspector. A new campaign uses the Doom Forge setting: Blood Mires, Bone Fields, Ash Thickets, Iron Graves and Doom Crags. Hover a swatch for its name, and click one to paint with it.
+The terrains are in the setting strip under the inspector. A new campaign uses the Doom Forge setting: Blood Mires, Bone Fields, Ash Thickets, Iron Graves and Doom Crags. Hover a swatch for its name, and click one to paint with it. To use another setting, select the campaign and pick it in the **Setting** field.
 
 ![The setting strip with Blood Mires picked](img/setting-strip.webp)
 

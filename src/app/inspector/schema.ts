@@ -73,6 +73,49 @@ const FILE_REFS: Record<string, FileRef> = {
   },
 };
 
+/**
+ * A reference to a setting (a theme node), drawn as a `select` named by the setting. The names
+ * come from the model's `palette.catalogue`, passed to `schemaFor`; only the words live here.
+ * Keyed `type.key`.
+ */
+const SETTING_REFS: Record<string, { help: string; after: string; follows: boolean }> = {
+  'campaign.palette': {
+    help: 'The setting every map follows unless it picks its own.',
+    after: 'description',
+    follows: false,
+  },
+  'map.palette': {
+    help: 'The setting this map draws with: its terrains and colours.',
+    after: 'description',
+    follows: true,
+  },
+};
+
+/** The select's value for a map that follows the campaign's setting. */
+export const FOLLOW = '__follow__';
+
+/** Whether a type's reference is a setting field, and whether it can follow the campaign. */
+export function settingRef(type: string, key: string): { follows: boolean } | undefined {
+  return SETTING_REFS[`${type}.${key}`];
+}
+
+/** The mirror, as far as a setting's name needs it: the theme node's `name`. */
+export interface ThemeNames {
+  node(id: string): { values?: Record<string, unknown> } | undefined;
+}
+
+/** The select's options for a setting field; a map's lead with the follow entry. */
+export function settingOptions(
+  names: readonly string[],
+  follows: boolean,
+  campaignSetting: string | null,
+): { value: string; label: string }[] {
+  const own = names.map((n) => ({ value: n, label: n }));
+  if (!follows) return own;
+  const label = campaignSetting ? `Campaign's (${campaignSetting})` : "Campaign's";
+  return [{ value: FOLLOW, label }, ...own];
+}
+
 /** Whether a type's reference is a file field, and the command a change to it runs. */
 export function fileRefCommand(type: string, key: string): string | undefined {
   return FILE_REFS[`${type}.${key}`]?.command;
@@ -229,8 +272,25 @@ export function schemaFor(
   values: readonly ValueInfo[],
   refs: readonly string[] = [],
   type = '',
+  settings: readonly string[] = [],
+  campaignSetting: (ctx: unknown) => string | null = () => null,
 ): PropertySchema {
   const rows: FieldDef[] = [];
+  const settingFields = settings.length
+    ? refs.flatMap((key) => {
+        const ref = SETTING_REFS[`${type}.${key}`];
+        if (!ref) return [];
+        const field: FieldDef = {
+          kind: 'select',
+          id: key,
+          path: key,
+          label: 'Setting',
+          help: ref.help,
+          optionsProvider: (ctx) => settingOptions(settings, ref.follows, campaignSetting(ctx)),
+        };
+        return [{ field, after: ref.after }];
+      })
+    : [];
   const fileFields = refs.flatMap((key) => {
     const ref = FILE_REFS[`${type}.${key}`];
     if (!ref) return [];
@@ -246,6 +306,7 @@ export function schemaFor(
     return [{ field, after: ref.after }];
   });
   const place = (after: string) => {
+    for (const f of settingFields.filter((f) => f.after === after)) rows.push(f.field);
     for (const f of fileFields.filter((f) => f.after === after)) rows.push(f.field);
   };
   for (const v of values) {
@@ -254,7 +315,7 @@ export function schemaFor(
     if (f) rows.push(f);
     place(v.key);
   }
-  for (const f of fileFields) {
+  for (const f of [...settingFields, ...fileFields]) {
     if (!rows.includes(f.field)) rows.push(f.field);
   }
   for (const f of rows) {
@@ -289,15 +350,22 @@ export function readValues(
   return out;
 }
 
-/** A node's file references as the panel's values: the path as written, or null when unset. */
+/** A node's references as the panel's values: a file's path as written, a setting's name; null when unset (a map's setting then reads as following the campaign). */
 export function readRefs(
-  refs: Record<string, { file?: string }> | undefined,
+  refs: Record<string, { file?: string; node?: string }> | undefined,
   keys: readonly string[],
   type: string,
+  rows?: ThemeNames,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const key of keys) {
     if (FILE_REFS[`${type}.${key}`]) out[key] = refs?.[key]?.file ?? null;
+    const setting = SETTING_REFS[`${type}.${key}`];
+    if (setting) {
+      const id = refs?.[key]?.node;
+      const name = id ? rows?.node(id)?.values?.name : undefined;
+      out[key] = typeof name === 'string' ? name : setting.follows ? FOLLOW : null;
+    }
   }
   return out;
 }

@@ -88,3 +88,68 @@ describe('the compass style in the inspector scope', () => {
     });
   });
 });
+
+describe('the setting field in the inspector scope', () => {
+  const names = ['Doom Forge', 'Sunken Realm'];
+  const themes: Record<string, unknown> = {
+    t1: { values: { name: 'Doom Forge' } },
+    t2: { values: { name: 'Sunken Realm' } },
+  };
+
+  function settingSetup(type: 'map' | 'campaign', palette?: { node: string }) {
+    const channel = { run: vi.fn(async () => 'nothing') } as unknown as Channel;
+    const mirror = {
+      node: (id: string) => themes[id] ?? { path: `/${type}`, values: {}, refs: { palette } },
+      nodeAt: () => ({ refs: { palette: { node: 't1' } } }),
+    } as unknown as Mirror;
+    const scope = scopeOf(type, [{ key: 'description', kind: 'text' }], ['palette'], names);
+    return { scope, ctx: { channel, mirror }, channel };
+  }
+
+  it('reads the name of the theme the reference points at', () => {
+    const { scope, ctx } = settingSetup('map', { node: 't2' });
+    expect(scope.read({ id: 'm' }, ctx)).toMatchObject({ palette: 'Sunken Realm' });
+  });
+
+  it('reads a map without a reference as following the campaign', () => {
+    const { scope, ctx } = settingSetup('map');
+    expect(scope.read({ id: 'm' }, ctx)).toMatchObject({ palette: '__follow__' });
+  });
+
+  it("offers the catalogue's names, a map's led by the follow entry naming the campaign's", () => {
+    const { scope, ctx } = settingSetup('map');
+    const field = scope.schema.groups[0]?.rows.find((r) => 'id' in r && r.id === 'palette') as {
+      label: string;
+      optionsProvider: (c: unknown) => { value: string; label: string }[];
+    };
+    expect(field.label).toBe('Setting');
+    expect(field.optionsProvider(ctx).map((o) => o.label)).toEqual([
+      "Campaign's (Doom Forge)",
+      'Doom Forge',
+      'Sunken Realm',
+    ]);
+    const campaign = settingSetup('campaign').scope.schema.groups[0]?.rows.find(
+      (r) => 'id' in r && r.id === 'palette',
+    ) as typeof field;
+    expect(campaign.optionsProvider(ctx).map((o) => o.label)).toEqual(names);
+  });
+
+  it('places the field after Description', () => {
+    const { scope } = settingSetup('campaign');
+    expect(scope.schema.groups[0]?.rows.map((r) => (r as { id: string }).id)).toEqual([
+      'description',
+      'palette',
+    ]);
+  });
+
+  it('runs palette.use with the name, and with no preset to follow', async () => {
+    const { scope, ctx, channel } = settingSetup('map', { node: 't1' });
+    await scope.write?.('palette', 'Sunken Realm', { id: 'm' }, ctx);
+    expect(channel.run).toHaveBeenLastCalledWith('palette.use', {
+      at: '/map',
+      preset: 'Sunken Realm',
+    });
+    await scope.write?.('palette', '__follow__', { id: 'm' }, ctx);
+    expect(channel.run).toHaveBeenLastCalledWith('palette.use', { at: '/map' });
+  });
+});

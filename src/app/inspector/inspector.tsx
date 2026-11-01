@@ -10,18 +10,20 @@ import {
   type Scope,
 } from '@preset.nz/facets';
 import { type Channel, type Mirror, useMirror, useNode } from '@preset.nz/pom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useChannel } from '../document';
 import { setDocumentFolder } from '../files';
 import { CAMPAIGN_PATH } from '../scene/frame';
 import { selection } from '../selection';
 import {
+  FOLLOW,
   fileRefCommand,
   labelOf,
   messageOf,
   readRefs,
   readValues,
   schemaFor,
+  settingRef,
   type ValueInfo,
   valueCommand,
   writeValue,
@@ -47,24 +49,72 @@ const infoOf = (mirror: Mirror, type: string): ValueInfo[] =>
 const refsOf = (mirror: Mirror, type: string): string[] =>
   mirror.schema.types.find((t) => t.name === type)?.refs ?? [];
 
+/** The names of the built-in settings, from the model's catalogue; fetched once. */
+let catalogue: Promise<string[]> | null = null;
+function settingNames(channel: Channel): Promise<string[]> {
+  catalogue ??= channel
+    .run('palette.catalogue')
+    .then((ran) => {
+      // a text outcome comes back as `{ text }` (pom's `Ran`)
+      if (typeof ran !== 'object' || !('text' in ran)) throw new Error('no catalogue text');
+      return (JSON.parse(ran.text) as { name: string }[]).map((s) => s.name);
+    })
+    .catch((e) => {
+      console.error('[inspector] palette.catalogue refused', e);
+      catalogue = null;
+      return [];
+    });
+  return catalogue;
+}
+
+/** The setting names, once the catalogue is in; empty until then. */
+function useSettingNames(channel: Channel): string[] {
+  const [names, setNames] = useState<string[]>([]);
+  useEffect(() => {
+    let live = true;
+    settingNames(channel).then((n) => live && setNames(n));
+    return () => {
+      live = false;
+    };
+  }, [channel]);
+  return names;
+}
+
+/** The name of the setting the campaign uses, through the mirror. */
+function campaignSettingName(ctx: unknown): string | null {
+  const mirror = (ctx as Ctx | undefined)?.mirror;
+  const id = mirror?.nodeAt(CAMPAIGN_PATH)?.refs?.palette?.node;
+  const name = id ? mirror?.node(id)?.values?.name : undefined;
+  return typeof name === 'string' ? name : null;
+}
+
 const tokens = new Map<string, Promise<number>>();
 
 export function scopeOf(
   type: string,
   info: ValueInfo[],
   refs: string[],
+  settings: string[] = [],
 ): Scope<Target, Record<string, unknown>> {
   const byKey = new Map(info.map((v) => [v.key, v]));
   const pathOf = (id: string, ctx: Ctx) => ctx.mirror.node(id)?.path;
   return {
-    schema: schemaFor(info, refs, type),
+    schema: schemaFor(info, refs, type, settings, campaignSettingName),
     read: (t, ctx: Ctx) => {
       const node = ctx.mirror.node(t.id);
-      return { ...readValues(node?.values, info), ...readRefs(node?.refs, refs, type) };
+      return { ...readValues(node?.values, info), ...readRefs(node?.refs, refs, type, ctx.mirror) };
     },
     write: (key, value, t, ctx: Ctx) => {
       const at = pathOf(t.id, ctx);
       if (!at) return;
+      if (settingRef(type, key)) {
+        // A setting field: the model makes or reuses the theme; follow clears a map's reference.
+        const args = value === FOLLOW || !value ? { at } : { at, preset: value };
+        ctx.channel
+          .run('palette.use', args)
+          .catch((e) => console.error('[inspector] palette.use refused', e));
+        return;
+      }
       const command = fileRefCommand(type, key);
       if (command) {
         // A file field: the command checks the file, and its refusal (not an image, too
@@ -117,14 +167,16 @@ export function Inspector() {
     [mirror, channel, documentPath],
   );
 
+  const settings = useSettingNames(channel);
+
   const type = row?.type;
   const registered = useMemo(() => {
     if (!type) return null;
     const info = infoOf(mirror, type);
     if (info.length === 0) return null;
-    registerScope(scopeKey(type), scopeOf(type, info, refsOf(mirror, type)));
+    registerScope(scopeKey(type), scopeOf(type, info, refsOf(mirror, type), settings));
     return type;
-  }, [mirror, type, mirror.schema]);
+  }, [mirror, type, mirror.schema, settings]);
 
   if (!id || !row || !registered) {
     return <p className="p-3 text-sm text-muted-foreground">Nothing selected.</p>;

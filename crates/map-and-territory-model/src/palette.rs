@@ -243,7 +243,7 @@ fn catalogue_json() -> Json {
 pub fn declare(c: &mut Commands<MapAndTerritory>) {
     c.add(
         "palette.use",
-        |_| "Use Palette".into(),
+        |_| "Use Setting".into(),
         |d: &Doc, p: &Json| payload::<UseArgs>(p).is_ok_and(|a| plan(d, &a).is_ok()),
         |d: &mut Doc, p: &Json| {
             let a: UseArgs = payload(p)?;
@@ -254,7 +254,7 @@ pub fn declare(c: &mut Commands<MapAndTerritory>) {
                 _ => None,
             };
             let commit = d
-                .edit("Use Palette", |tx| match plan {
+                .edit("Use Setting", |tx| match plan {
                     Use::Theme(id) => tx.set_ref(a.at.as_str(), REF, Ref::here(id)),
                     Use::Preset(s) => {
                         let id = match reuse {
