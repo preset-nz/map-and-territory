@@ -58,7 +58,7 @@ module.exports = {
         'The renderer gets a SceneFrame and nothing else: layers, render and lib import ' +
         'neither @preset.nz/pom nor the app module that builds frames from it (object-model doc).',
       from: { path: '^src/(layers|render|lib)/' },
-      to: { path: ['@preset\\.nz/pom', 'packages/rhizome/', '^src/app/'] },
+      to: { path: ['@preset\\.nz/pom', '^src/app/'] },
     },
     {
       name: 'documents-only-through-pom',
@@ -73,8 +73,7 @@ module.exports = {
     },
   ],
   options: {
-    // A package taken by path resolves outside node_modules; it is checked in its own repo.
-    doNotFollow: { path: ['node_modules', '^(\\.\\./)+packages/'] },
+    doNotFollow: { path: ['node_modules'] },
     exclude: { path: '^src/test/' },
     // swc parses TypeScript itself; dependency-cruiser has no TypeScript 7 support yet
     // (a cruise with the tsc parser silently sees 0 modules).

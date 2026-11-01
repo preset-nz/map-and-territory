@@ -19,14 +19,14 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 # The family's menu bar, Undo titles and relaunch restore.
-preset-app-kit = "0.1.4"
+preset-app-kit = "0.1.5"
 # The campaign's kinds and commands, in their own Tauri-free crate.
 map-and-territory-model = { path = "../crates/map-and-territory-model" }
 # The document tree: rhizome and POM from crates.io. The Tauri half (rhizome-pom-tauri)
 # is the document host's transport.
-rhizome-core = "0.1.7"
-rhizome-pom = "0.1.7"
-rhizome-pom-tauri = "0.1.7"
+rhizome-core = "0.1.8"
+rhizome-pom = "0.1.8"
+rhizome-pom-tauri = "0.1.8"
 # The Save dialog for exports; app-kit registers the plugin.
 tauri-plugin-dialog = "2"
 # The PDF export: decode the PNG, deflate the page image (src/pdf.rs).
