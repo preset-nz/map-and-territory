@@ -26,14 +26,13 @@ Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour
 | Minimum | 0 to 1 | 0 | Hexes whose noise is below this are left empty. |
 | Maximum | 0 to 1 | 1 | Hexes whose noise is above this are left empty. |
 | Mode | Shape (`shape`), Paint (`paint`) | Shape (`shape`) | Shape fills hexes with grey for use as a mask; paint fills them with terrain colour. |
-| Terrain | Water (`water`), Plains (`plains`), Forest (`forest`), Hills (`hills`), Mountains (`mountains`) | Plains (`plains`) | The kind of terrain painted in paint mode. |
-| Setting terrain | text | empty | The id of one terrain in the setting to paint with, in place of the kind above. |
+| Terrain | text | empty | The setting's terrain painted in paint mode; empty paints its first. |
 <!-- generated:end -->
 
 ## Using it
 
 Hex Noise fills hexes from smooth random noise. On a hexmap it's a quick way to rough out a landmass, a forest or a stretch of hills that you can then work over by hand.
 
-Add one from the Layer menu. The same Seed always gives the same pattern, so change the seed until the shape looks right. Frequency sets how big the patches are, and Minimum and Maximum cut the noise off to leave gaps. In shape mode the hexes are filled with grey; in paint mode they are filled with the colour of the terrain you pick, taken from the setting.
+Add one from the Layer menu. The same Seed always gives the same pattern, so change the seed until the shape looks right. Frequency sets how big the patches are, and Minimum and Maximum cut the noise off to leave gaps. In shape mode the hexes are filled with grey; in paint mode they are filled with the colour of a terrain from the setting. Select the layer and click a terrain in the setting strip under the inspector to pick it; until you do, it paints the setting's first terrain.
 
 Tip: for an island, raise Minimum so only the high ground is filled and the rest stays empty.

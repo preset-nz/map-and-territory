@@ -115,8 +115,8 @@ pub const LOCATION_CATEGORY_LABELS: &[(&str, &str)] = &[
     ("other", "Other"),
 ];
 
-pub const CARTOUCHE: LayerKind = LayerKind {
-    id: "cartouche",
+pub const TITLE: LayerKind = LayerKind {
+    id: "title",
     base: "Title",
 };
 pub const COMPASS: LayerKind = LayerKind {
@@ -124,7 +124,7 @@ pub const COMPASS: LayerKind = LayerKind {
     base: "Compass",
 };
 /// Every furniture kind: each lives in a map's `furniture`, never in `layers`.
-pub const FURNITURE_KINDS: [&LayerKind; 2] = [&CARTOUCHE, &COMPASS];
+pub const FURNITURE_KINDS: [&LayerKind; 2] = [&TITLE, &COMPASS];
 
 /// The compass styles in the MVP (epic 24); the rest of disco-02 come later.
 pub const COMPASS_STYLES: &[&str] = &["mark", "arrow", "cross", "rose"];
@@ -572,17 +572,8 @@ pub fn declare(k: &mut Kinds) {
             .choice("mode", &["shape", "paint"], "shape")
             .described("Mode", "Shape fills hexes with grey for use as a mask; paint fills them with terrain colour.")
             .choice_labels(&[("shape", "Shape"), ("paint", "Paint")])
-            .choice("terrain", BASE_TYPES, "plains")
-            .described("Terrain", "The kind of terrain painted in paint mode.")
-            .choice_labels(&[
-                ("water", "Water"),
-                ("plains", "Plains"),
-                ("forest", "Forest"),
-                ("hills", "Hills"),
-                ("mountains", "Mountains"),
-            ])
-            .text("terrainId", "")
-            .described("Setting terrain", "The id of one terrain in the setting to paint with, in place of the kind above."),
+            .text("terrain", "")
+            .described("Terrain", "The setting's terrain painted in paint mode; empty paints its first."),
     );
     // The texture is a file reference kept as written (family requirement "No embedded
     // assets"); the rest are the 2025 texture-fill settings.
@@ -685,7 +676,7 @@ pub fn declare(k: &mut Kinds) {
     // The title cartouche (epic 23 story 1, disco-03). Draws in the grid's ink on the paper's
     // colour, which the frame projection resolves; no colour of its own (map furniture §3).
     k.kind(
-        furniture(CARTOUCHE.id, CARTOUCHE.base)
+        furniture(TITLE.id, TITLE.base)
             .label("Title")
             .summary("The map's title in a box, with an optional subtitle and credit line, printed over the grid.")
             .category("furniture")

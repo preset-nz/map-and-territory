@@ -60,20 +60,6 @@
       }
     },
     {
-      "path": "/maps/map/cartouche",
-      "id": "0000000000000000000000000R",
-      "type": "cartouche",
-      "values": {
-        "credit": "Surveyed in the year 1347",
-        "face": "serif",
-        "frame": "double",
-        "inset": 28.0,
-        "name": "Title 01",
-        "subtitle": "Marches of the Drowned Bishop",
-        "titleSize": 46.0
-      }
-    },
-    {
       "path": "/maps/map/compass",
       "id": "0000000000000000000000000S",
       "type": "compass",
@@ -705,6 +691,20 @@
       }
     },
     {
+      "path": "/maps/map/title",
+      "id": "0000000000000000000000000R",
+      "type": "title",
+      "values": {
+        "credit": "Surveyed in the year 1347",
+        "face": "serif",
+        "frame": "double",
+        "inset": 28.0,
+        "name": "Title 01",
+        "subtitle": "Marches of the Drowned Bishop",
+        "titleSize": 46.0
+      }
+    },
+    {
       "path": "/maps/map-2",
       "id": "0000000000000000000000000T",
       "type": "map",
@@ -715,37 +715,22 @@
       },
       "orders": {
         "furniture": [
-          "0000000000000000000000000V",
-          "0000000000000000000000000W"
+          "0000000000000000000000001A",
+          "0000000000000000000000000V"
         ],
         "layers": [
-          "0000000000000000000000001A",
-          "0000000000000000000000000X",
-          "00000000000000000000000018",
           "00000000000000000000000019",
-          "00000000000000000000000013",
-          "00000000000000000000000012"
+          "0000000000000000000000000W",
+          "00000000000000000000000017",
+          "00000000000000000000000018",
+          "00000000000000000000000012",
+          "00000000000000000000000011"
         ]
       }
     },
     {
-      "path": "/maps/map-2/cartouche",
-      "id": "0000000000000000000000000V",
-      "type": "cartouche",
-      "values": {
-        "credit": "Surveyed in the year 1347",
-        "face": "map",
-        "frame": "plate",
-        "inset": 28.0,
-        "name": "Title 01",
-        "subtitle": "Marches of the Drowned Bishop",
-        "title": "The Sallow Fen",
-        "titleSize": 46.0
-      }
-    },
-    {
       "path": "/maps/map-2/compass",
-      "id": "0000000000000000000000000W",
+      "id": "0000000000000000000000000V",
       "type": "compass",
       "values": {
         "anchor": "bottom-right",
@@ -756,7 +741,7 @@
     },
     {
       "path": "/maps/map-2/freeform",
-      "id": "0000000000000000000000000X",
+      "id": "0000000000000000000000000W",
       "type": "freeform",
       "values": {
         "name": "Terrain",
@@ -764,16 +749,16 @@
       },
       "orders": {
         "chunks": [
+          "0000000000000000000000000X",
           "0000000000000000000000000Y",
           "0000000000000000000000000Z",
-          "00000000000000000000000010",
-          "00000000000000000000000011"
+          "00000000000000000000000010"
         ]
       }
     },
     {
       "path": "/maps/map-2/freeform/-1_-1",
-      "id": "0000000000000000000000000Y",
+      "id": "0000000000000000000000000X",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -800,7 +785,7 @@
     },
     {
       "path": "/maps/map-2/freeform/-1_0",
-      "id": "0000000000000000000000000Z",
+      "id": "0000000000000000000000000Y",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -824,7 +809,7 @@
     },
     {
       "path": "/maps/map-2/freeform/0_-1",
-      "id": "00000000000000000000000010",
+      "id": "0000000000000000000000000Z",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -851,7 +836,7 @@
     },
     {
       "path": "/maps/map-2/freeform/0_0",
-      "id": "00000000000000000000000011",
+      "id": "00000000000000000000000010",
       "type": "chunk",
       "values": {
         "voxels": {
@@ -878,7 +863,7 @@
     },
     {
       "path": "/maps/map-2/hexgrid",
-      "id": "00000000000000000000000012",
+      "id": "00000000000000000000000011",
       "type": "hexgrid",
       "values": {
         "alpha": 0.45,
@@ -891,23 +876,23 @@
     },
     {
       "path": "/maps/map-2/locations",
-      "id": "00000000000000000000000013",
+      "id": "00000000000000000000000012",
       "type": "locations",
       "values": {
         "name": "Locations"
       },
       "orders": {
         "locations": [
+          "00000000000000000000000013",
           "00000000000000000000000014",
           "00000000000000000000000015",
-          "00000000000000000000000016",
-          "00000000000000000000000017"
+          "00000000000000000000000016"
         ]
       }
     },
     {
       "path": "/maps/map-2/locations/location",
-      "id": "00000000000000000000000014",
+      "id": "00000000000000000000000013",
       "type": "location",
       "values": {
         "category": "stronghold",
@@ -922,7 +907,7 @@
     },
     {
       "path": "/maps/map-2/locations/location-2",
-      "id": "00000000000000000000000015",
+      "id": "00000000000000000000000014",
       "type": "location",
       "values": {
         "category": "landmark",
@@ -937,7 +922,7 @@
     },
     {
       "path": "/maps/map-2/locations/location-3",
-      "id": "00000000000000000000000016",
+      "id": "00000000000000000000000015",
       "type": "location",
       "values": {
         "category": "landmark",
@@ -952,7 +937,7 @@
     },
     {
       "path": "/maps/map-2/locations/location-4",
-      "id": "00000000000000000000000017",
+      "id": "00000000000000000000000016",
       "type": "location",
       "values": {
         "category": "shrine",
@@ -968,7 +953,7 @@
     },
     {
       "path": "/maps/map-2/outline",
-      "id": "00000000000000000000000018",
+      "id": "00000000000000000000000017",
       "type": "outline",
       "values": {
         "name": "Edge of the Fen",
@@ -1130,7 +1115,7 @@
     },
     {
       "path": "/maps/map-2/outline-2",
-      "id": "00000000000000000000000019",
+      "id": "00000000000000000000000018",
       "type": "outline",
       "values": {
         "name": "Old Road",
@@ -1363,7 +1348,7 @@
     },
     {
       "path": "/maps/map-2/paper",
-      "id": "0000000000000000000000001A",
+      "id": "00000000000000000000000019",
       "type": "paper",
       "values": {
         "color": [
@@ -1372,6 +1357,21 @@
           0.8941176470588236,
           1.0
         ]
+      }
+    },
+    {
+      "path": "/maps/map-2/title",
+      "id": "0000000000000000000000001A",
+      "type": "title",
+      "values": {
+        "credit": "Surveyed in the year 1347",
+        "face": "map",
+        "frame": "plate",
+        "inset": 28.0,
+        "name": "Title 01",
+        "subtitle": "Marches of the Drowned Bishop",
+        "title": "The Sallow Fen",
+        "titleSize": 46.0
       }
     },
     {

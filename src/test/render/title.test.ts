@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CartoucheAdapter,
-  type CartoucheState,
   DOUBLE_GAP,
   INNER_RULE,
   LINE_GAP,
@@ -11,7 +9,9 @@ import {
   PAD_Y,
   RULE_WIDTH,
   SUBTITLE_SCALE,
-} from '@/layers/adapters/cartouche';
+  TitleAdapter,
+  type TitleState,
+} from '@/layers/adapters/title';
 import type { RenderEnv } from '@/layers/types';
 
 // The mock measures every character as half the font's px size: enough to place the box. Real
@@ -106,7 +106,7 @@ const env: RenderEnv = {
   camera: { x: 0, y: 0, zoom: 1 },
 };
 
-const base: CartoucheState = {
+const base: TitleState = {
   title: '',
   subtitle: '',
   credit: '',
@@ -123,13 +123,9 @@ const base: CartoucheState = {
   paper: '#eeeeee',
 };
 
-function draw(state: Partial<CartoucheState>) {
+function draw(state: Partial<TitleState>) {
   const ctx = new MockContext();
-  CartoucheAdapter.drawMain?.(
-    ctx as unknown as CanvasRenderingContext2D,
-    { ...base, ...state },
-    env,
-  );
+  TitleAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, { ...base, ...state }, env);
   return ctx;
 }
 
@@ -137,7 +133,7 @@ function draw(state: Partial<CartoucheState>) {
 const BOX_W = 210 + 2 * PAD_X * 30;
 const BOX_H = 2 * PAD_Y * 30 + 30 * LINE_HEIGHT;
 
-describe('the cartouche adapter', () => {
+describe('the title adapter', () => {
   it('draws the backing plate, then the rule, then the title', () => {
     const ctx = draw({});
     expect(ctx.fills).toEqual([{ x: 24, y: 24, w: BOX_W, h: BOX_H, style: '#eeeeee' }]);
@@ -146,7 +142,7 @@ describe('the cartouche adapter', () => {
   });
 
   it('puts the box at its anchor, inset in from the paper edges', () => {
-    const at = (anchor: CartoucheState['anchor'], inset = 24) => draw({ anchor, inset }).fills[0];
+    const at = (anchor: TitleState['anchor'], inset = 24) => draw({ anchor, inset }).fills[0];
     expect(at('top-left')).toMatchObject({ x: 24, y: 24 });
     expect(at('top-left', 0)).toMatchObject({ x: 0, y: 0 });
     expect(at('bottom-right')).toMatchObject({ x: 1200 - 24 - BOX_W, y: 750 - 24 - BOX_H });
@@ -209,10 +205,9 @@ describe('the cartouche adapter', () => {
   });
 
   it('changes its key with every value it draws', () => {
-    const key = (s: Partial<CartoucheState>) =>
-      CartoucheAdapter.getInvalidationKey({ ...base, ...s });
+    const key = (s: Partial<TitleState>) => TitleAdapter.getInvalidationKey({ ...base, ...s });
     const k = key({});
-    const changes: Partial<CartoucheState>[] = [
+    const changes: Partial<TitleState>[] = [
       { resolvedTitle: 'Drowned Marches' },
       { subtitle: 'Sub' },
       { credit: 'Credit' },
@@ -273,8 +268,8 @@ describe('the plate frame', () => {
   });
 });
 
-describe('the cartouche by hand', () => {
-  const pts = (s: Partial<CartoucheState>) => draw(s).paths.map((p) => p.pts);
+describe('the title by hand', () => {
+  const pts = (s: Partial<TitleState>) => draw(s).paths.map((p) => p.pts);
 
   it('draws clean as exact rects and upright lines', () => {
     const ctx = draw({ hand: 'clean' });

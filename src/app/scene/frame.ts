@@ -1,8 +1,9 @@
 // The projection from the document to the renderer: mirror rows in, a SceneFrame out.
 // Pure, so it is tested without a window. Object model: guidance
 // projects/map-and-territory/design/object-model.md, "The mirror and the SceneFrame".
-import { MUTED_INK_ALPHA } from '@/layers/adapters/cartouche';
+
 import type { LocationMarker, PlacedLocation } from '@/layers/adapters/locations';
+import { MUTED_INK_ALPHA } from '@/layers/adapters/title';
 import { BUILTIN_LAYER_TYPES } from '@/layers/builtin';
 import { DefaultPalette } from '@/palettes/defaults';
 import type { MapPalette, TerrainCategory } from '@/palettes/types';
@@ -253,6 +254,27 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     return state;
   };
 
+  /**
+   * A hex noise layer's adapter state: in paint mode its `terrain` (a setting terrain id, empty
+   * for the setting's first) as the base type the palette paints, as a stroke paints a cell
+   * until cells hold ids (epic 26). Kept while the row and that base type are unchanged.
+   */
+  const noiseStates = new WeakMap<
+    FrameRow,
+    { base: string | undefined; state: Record<string, unknown> }
+  >();
+  const noiseState = (rows: RowSource, map: FrameRow, row: FrameRow): Record<string, unknown> => {
+    const own = stateOf(row);
+    if (own.mode !== 'paint') return own;
+    const swatches = mapTerrains(rows, map.id);
+    const base = (swatches.find((t) => t.id === own.terrain) ?? swatches[0])?.baseType;
+    const known = noiseStates.get(row);
+    if (known && known.base === base) return known.state;
+    const state = base ? { ...own, terrain: base } : own;
+    noiseStates.set(row, { base, state });
+    return state;
+  };
+
   /** The paper's adapter state: its values plus the texture's path, kept per row. */
   const paperStates = new WeakMap<FrameRow, Record<string, unknown>>();
   const paperState = (row: FrameRow): Record<string, unknown> => {
@@ -320,8 +342,7 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
     paper: string,
   ): Record<string, unknown> => {
     const base = stateOf(row);
-    const resolved =
-      row.type === 'cartouche' ? resolveTitle(base.title, map.values?.name) : undefined;
+    const resolved = row.type === 'title' ? resolveTitle(base.title, map.values?.name) : undefined;
     const titleInk = resolved?.muted ? withAlpha(ink, MUTED_INK_ALPHA) : ink;
     const labels = row.type === 'compass' ? resolveCompassLabels(base) : undefined;
     const face = sheetStyle(base.face, map.values?.face, 'condensed');
@@ -434,9 +455,11 @@ export function createFrameBuilder(schema: FrameSchema | null | undefined): Fram
             ? freeformState(rows, row)
             : row.type === 'paper'
               ? paperState(row)
-              : row.type === 'image'
-                ? imageState(row)
-                : stateOf(row);
+              : row.type === 'hex-noise'
+                ? noiseState(rows, map, row)
+                : row.type === 'image'
+                  ? imageState(row)
+                  : stateOf(row);
         if (row.type === 'outline' && preview?.layerId === id) {
           // tool state rides on a copy, so the row's memoised state stays clean
           const paths = state.paths as { id: string; closed: boolean }[];

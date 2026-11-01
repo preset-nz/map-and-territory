@@ -29,7 +29,7 @@ const KIND_TITLE: Record<string, string> = {
   map: 'Map',
   page: 'Page',
   campaign: 'Campaign',
-  cartouche: 'Title',
+  title: 'Title',
   compass: 'Compass',
 };
 
@@ -117,7 +117,7 @@ export function useSceneBindings(): Record<string, Binding> {
       // furniture always lands on top of the map's `furniture`, whatever is selected
       'layer.add-title': {
         enabled: s.mapPath !== null,
-        run: () => s.mapPath && run('node.add', { parent: s.mapPath, type: 'cartouche' }),
+        run: () => s.mapPath && run('node.add', { parent: s.mapPath, type: 'title' }),
       },
       'layer.add-compass': {
         enabled: s.mapPath !== null,

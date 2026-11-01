@@ -90,11 +90,11 @@ const withTitles = (): Row[] =>
         : r,
     )
     .concat([
-      row('t1', '/maps/map/cartouche', 'cartouche', {
+      row('t1', '/maps/map/title', 'title', {
         parent: 'm',
         values: { name: 'Title 01', visible: true },
       }),
-      row('t2', '/maps/map/cartouche-2', 'cartouche', {
+      row('t2', '/maps/map/title-2', 'title', {
         parent: 'm',
         values: { name: 'Title 02', visible: true },
       }),
@@ -196,7 +196,7 @@ describe('scene command state', () => {
 
   it('never moves a title or adds a layer above it, and calls it a Title', () => {
     const s = sceneCommandState({ kind: 'layer', id: 't1' }, source(withTitles()));
-    expect(s.target).toEqual({ path: '/maps/map/cartouche', title: 'Title', anchor: false });
+    expect(s.target).toEqual({ path: '/maps/map/title', title: 'Title', anchor: false });
     expect(s.mapPath).toBe('/maps/map');
     expect(s.layerPath).toBeNull();
     expect(s.canMove).toEqual({ forward: false, backward: false });

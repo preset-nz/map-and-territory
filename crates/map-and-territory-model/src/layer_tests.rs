@@ -367,6 +367,24 @@ fn duplicating_a_map_keeps_its_layers_in_order() {
 }
 
 #[test]
+fn hex_noise_terrain_is_one_text_value_set_as_set_terrain() {
+    let mut d = doc_with_map();
+    let n = add(&mut d, "hex-noise");
+    let node = d.tree().at(n.as_str()).unwrap();
+    assert_eq!(node.value("terrain"), Some(Value::Text(String::new())));
+    assert!(node.value("terrainId").is_none());
+    run(
+        &mut d,
+        "value.set",
+        json!({ "at": n, "key": "terrain", "value": "marsh" }),
+    )
+    .unwrap();
+    assert_eq!(d.tree().undo_label(), Some("Set Terrain"));
+    let node = d.tree().at(n.as_str()).unwrap();
+    assert_eq!(node.value("terrain"), Some(Value::Text("marsh".into())));
+}
+
+#[test]
 fn rename_is_a_labelled_value_set() {
     let mut d = doc_with_map();
     let a = add(&mut d, "outline");

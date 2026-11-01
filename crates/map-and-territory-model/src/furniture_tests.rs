@@ -58,12 +58,12 @@ fn a_new_map_has_no_furniture_and_a_title_is_appended_to_it() {
     let mut d = doc_with_map();
     assert!(order(&d, "furniture").is_empty());
 
-    add(&mut d, "cartouche").unwrap();
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
+    add(&mut d, "title").unwrap();
     let furniture = order(&d, "furniture");
     assert_eq!(
         furniture,
-        [format!("{MAP}/cartouche"), format!("{MAP}/cartouche-2")]
+        [format!("{MAP}/title"), format!("{MAP}/title-2")]
     );
     // neither is in `layers`, which still ends at the grid
     assert_eq!(
@@ -78,13 +78,13 @@ fn a_new_map_has_no_furniture_and_a_title_is_appended_to_it() {
 #[test]
 fn add_title_is_one_undo_step_named_add_title() {
     let mut d = doc_with_map();
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
     assert_eq!(d.tree().undo_label(), Some("Add Title"));
     d.undo().unwrap();
-    assert!(d.tree().at(&*format!("{MAP}/cartouche")).is_none());
+    assert!(d.tree().at(&*format!("{MAP}/title")).is_none());
     assert!(order(&d, "furniture").is_empty());
     d.redo().unwrap();
-    assert_eq!(order(&d, "furniture"), [format!("{MAP}/cartouche")]);
+    assert_eq!(order(&d, "furniture"), [format!("{MAP}/title")]);
 }
 
 #[test]
@@ -93,22 +93,22 @@ fn a_title_goes_under_a_map_and_on_top_of_the_furniture() {
     assert!(run(
         &mut d,
         "node.add",
-        json!({ "parent": "/maps", "type": "cartouche" })
+        json!({ "parent": "/maps", "type": "title" })
     )
     .is_err());
     // `above` places a layer; furniture always lands last
     let r = run(
         &mut d,
         "node.add",
-        json!({ "parent": MAP, "type": "cartouche", "above": format!("{MAP}/paper") }),
+        json!({ "parent": MAP, "type": "title", "above": format!("{MAP}/paper") }),
     );
     assert!(r.is_err());
     // and a layer can't be added above a title
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
     let r = run(
         &mut d,
         "node.add",
-        json!({ "parent": MAP, "type": "freeform", "above": format!("{MAP}/cartouche") }),
+        json!({ "parent": MAP, "type": "freeform", "above": format!("{MAP}/title") }),
     );
     assert!(r.is_err());
 }
@@ -116,12 +116,12 @@ fn a_title_goes_under_a_map_and_on_top_of_the_furniture() {
 #[test]
 fn the_map_check_keeps_furniture_out_of_layers_and_layers_out_of_furniture() {
     let mut d = doc_with_map();
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
     add(&mut d, "freeform").unwrap();
     let map = id(&d, MAP);
     let paper = id(&d, &format!("{MAP}/paper"));
     let grid = id(&d, &format!("{MAP}/hexgrid"));
-    let title = id(&d, &format!("{MAP}/cartouche"));
+    let title = id(&d, &format!("{MAP}/title"));
     let layer = id(&d, &format!("{MAP}/freeform"));
 
     // a title between the anchors, under the grid
@@ -137,7 +137,7 @@ fn the_map_check_keeps_furniture_out_of_layers_and_layers_out_of_furniture() {
     assert!(r.is_err(), "an anchor can't go in furniture");
 
     // the refused edits left both orders as they were
-    assert_eq!(order(&d, "furniture"), [format!("{MAP}/cartouche")]);
+    assert_eq!(order(&d, "furniture"), [format!("{MAP}/title")]);
     assert_eq!(
         order(&d, "layers"),
         [
@@ -151,8 +151,8 @@ fn the_map_check_keeps_furniture_out_of_layers_and_layers_out_of_furniture() {
 #[test]
 fn the_layer_moves_refuse_a_title_and_leave_the_furniture_alone() {
     let mut d = doc_with_map();
-    add(&mut d, "cartouche").unwrap();
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
+    add(&mut d, "title").unwrap();
     add(&mut d, "freeform").unwrap();
     add(&mut d, "hex-noise").unwrap();
     let furniture = order(&d, "furniture");
@@ -162,7 +162,7 @@ fn the_layer_moves_refuse_a_title_and_leave_the_furniture_alone() {
         "edit.move-to-front",
         "edit.move-to-back",
     ] {
-        let title = format!("{MAP}/cartouche");
+        let title = format!("{MAP}/title");
         assert!(run(&mut d, m, json!({ "at": title })).is_err(), "{m}");
     }
     let layers = order(&d, "layers");
@@ -184,7 +184,7 @@ fn the_layer_moves_refuse_a_title_and_leave_the_furniture_alone() {
 fn duplicating_a_layer_or_a_title_keeps_each_in_its_own_order() {
     let mut d = doc_with_map();
     add(&mut d, "freeform").unwrap();
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
 
     run(
         &mut d,
@@ -202,29 +202,29 @@ fn duplicating_a_layer_or_a_title_keeps_each_in_its_own_order() {
             format!("{MAP}/hexgrid")
         ]
     );
-    assert_eq!(order(&d, "furniture"), [format!("{MAP}/cartouche")]);
+    assert_eq!(order(&d, "furniture"), [format!("{MAP}/title")]);
 
     run(
         &mut d,
         "edit.duplicate",
-        json!({ "at": format!("{MAP}/cartouche") }),
+        json!({ "at": format!("{MAP}/title") }),
     )
     .unwrap();
     assert_eq!(
         order(&d, "furniture"),
-        [format!("{MAP}/cartouche"), format!("{MAP}/cartouche-2")]
+        [format!("{MAP}/title"), format!("{MAP}/title-2")]
     );
     assert_eq!(order(&d, "layers").len(), 4, "no title went under the grid");
     // one step each
     d.undo().unwrap();
-    assert_eq!(order(&d, "furniture"), [format!("{MAP}/cartouche")]);
+    assert_eq!(order(&d, "furniture"), [format!("{MAP}/title")]);
 }
 
 #[test]
 fn a_title_hides_and_deletes_like_a_layer() {
     let mut d = doc_with_map();
-    add(&mut d, "cartouche").unwrap();
-    let at = format!("{MAP}/cartouche");
+    add(&mut d, "title").unwrap();
+    let at = format!("{MAP}/title");
     run(
         &mut d,
         "node.set-visible",
@@ -237,10 +237,10 @@ fn a_title_hides_and_deletes_like_a_layer() {
 }
 
 #[test]
-fn the_cartouche_has_its_defaults_and_ranges() {
+fn the_title_has_its_defaults_and_ranges() {
     let mut d = doc_with_map();
-    add(&mut d, "cartouche").unwrap();
-    let at = format!("{MAP}/cartouche");
+    add(&mut d, "title").unwrap();
+    let at = format!("{MAP}/title");
     let n = d.tree().at(at.as_str()).unwrap();
     let text = |s: &str| Some(Value::Text(s.into()));
     let choice = |s: &str| Some(Value::Choice(s.into()));
@@ -328,8 +328,8 @@ fn a_campaign_saved_before_furniture_opens_with_none_and_takes_a_title() {
     let (mut d, report) = Document::<MapAndTerritory>::open(store, "/old.campaign").unwrap();
     assert!(report.issues.is_empty(), "{:?}", report.issues);
     assert!(order(&d, "furniture").is_empty());
-    add(&mut d, "cartouche").unwrap();
-    assert_eq!(order(&d, "furniture"), [format!("{MAP}/cartouche")]);
+    add(&mut d, "title").unwrap();
+    assert_eq!(order(&d, "furniture"), [format!("{MAP}/title")]);
 }
 
 #[test]
@@ -352,7 +352,7 @@ fn the_orlo_campaign_opens_with_no_furniture() {
 fn duplicating_a_map_copies_its_title_into_the_copy_s_furniture() {
     let mut d = doc_with_map();
     add(&mut d, "freeform").unwrap();
-    add(&mut d, "cartouche").unwrap();
+    add(&mut d, "title").unwrap();
     run(&mut d, "edit.duplicate", json!({ "at": MAP })).unwrap();
     let copy = d.tree().at("/maps/map-2").expect("the copy");
     let types = |order: &str| -> Vec<String> {
@@ -362,11 +362,11 @@ fn duplicating_a_map_copies_its_title_into_the_copy_s_furniture() {
             .collect()
     };
     assert_eq!(types("layers"), ["paper", "freeform", "hexgrid"]);
-    assert_eq!(types("furniture"), ["cartouche"]);
+    assert_eq!(types("furniture"), ["title"]);
     // the copy's title is its own node, not the original's
     assert_eq!(
         copy.order("furniture")[0].path().to_string(),
-        "/maps/map-2/cartouche"
+        "/maps/map-2/title"
     );
-    assert_eq!(order(&d, "furniture"), [format!("{MAP}/cartouche")]);
+    assert_eq!(order(&d, "furniture"), [format!("{MAP}/title")]);
 }

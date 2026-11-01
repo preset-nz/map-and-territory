@@ -1,4 +1,3 @@
-import { CartoucheType } from '@/layers/adapters/cartouche';
 import { CompassType } from '@/layers/adapters/compass';
 import { FreeformType } from '@/layers/adapters/freeform-hex';
 import { HexNoiseType } from '@/layers/adapters/hex-noise';
@@ -7,6 +6,7 @@ import { ImageType } from '@/layers/adapters/image';
 import { LocationsType } from '@/layers/adapters/locations';
 import { OutlineType } from '@/layers/adapters/outline';
 import { PaperType } from '@/layers/adapters/paper';
+import { TitleType } from '@/layers/adapters/title';
 import { registerLayerType } from '@/layers/registry';
 import type { LayerType } from '@/layers/types';
 
@@ -22,7 +22,7 @@ export const BUILTIN_LAYER_TYPES = [
   OutlineType,
   ImageType,
   LocationsType,
-  CartoucheType,
+  TitleType,
   CompassType,
 ] as unknown as LayerType[];
 

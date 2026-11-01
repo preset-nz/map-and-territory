@@ -344,7 +344,7 @@ fn build(d: &mut Doc) {
     }
 
     // Step 14: the title, double-ruled in the serif, with its subtitle and credit
-    let title = furniture(d, &m, "cartouche");
+    let title = furniture(d, &m, "title");
     set(d, &title, "frame", json!("double"));
     set(d, &title, "face", json!("serif"));
     set(
@@ -432,7 +432,7 @@ fn the_fen_builds_through_commands() {
             .iter()
             .map(|n| n.type_name().to_string())
             .collect();
-        assert_eq!(furniture, ["cartouche", "compass"]);
+        assert_eq!(furniture, ["title", "compass"]);
         // the grimdark copy keeps its own four places
         let places = m.order("layers")[4];
         assert_eq!(places.order("locations").len(), 4);

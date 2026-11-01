@@ -58,14 +58,6 @@
       }
     },
     {
-      "path": "/maps/map/cartouche",
-      "id": "0000000000000000000000000P",
-      "type": "cartouche",
-      "values": {
-        "name": "Title 01"
-      }
-    },
-    {
       "path": "/maps/map/compass",
       "id": "0000000000000000000000000Q",
       "type": "compass",
@@ -492,6 +484,14 @@
       "path": "/maps/map/paper",
       "id": "0000000000000000000000000A",
       "type": "paper"
+    },
+    {
+      "path": "/maps/map/title",
+      "id": "0000000000000000000000000P",
+      "type": "title",
+      "values": {
+        "name": "Title 01"
+      }
     },
     {
       "path": "/pages",

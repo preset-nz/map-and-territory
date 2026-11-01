@@ -60,8 +60,8 @@ function doc(): Rows {
     },
     t: {
       id: 't',
-      type: 'cartouche',
-      path: '/maps/map/cartouche',
+      type: 'title',
+      path: '/maps/map/title',
       values: { title: '', visible: true, frame: 'rule' },
     },
   };
@@ -70,7 +70,7 @@ function doc(): Rows {
 const SIZE = { w: 800, h: 600 };
 const build = (rows: Rows, b = createFrameBuilder(schema)) => b.build(source(rows), 'm', SIZE, 1);
 const title = (rows: Rows, b?: ReturnType<typeof createFrameBuilder>) =>
-  build(rows, b).layers.find((l) => l.type === 'cartouche')?.state as Record<string, unknown>;
+  build(rows, b).layers.find((l) => l.type === 'title')?.state as Record<string, unknown>;
 
 describe('furniture in the frame', () => {
   it('comes after the grid, which stays last of the layers', () => {
@@ -238,5 +238,27 @@ describe('the compass words', () => {
     expect(state()).toBe(s);
     rows.k = { ...rows.k, values: { ...rows.k.values, labelN: '' } };
     expect(state().resolvedLabels).toEqual(['N', '', '', '']);
+  });
+});
+
+describe('a hex noise layer in the frame', () => {
+  const noise = (terrain: string, mode = 'paint') => {
+    const rows = doc();
+    rows.n = { id: 'n', type: 'hex-noise', path: '/maps/map/hex-noise', values: { mode, terrain } };
+    rows.m = { ...rows.m, orders: { ...rows.m.orders, layers: ['p', 'n', 'f', 'g'] } };
+    return build(rows).layers.find((l) => l.id === 'n')?.state as Record<string, unknown>;
+  };
+
+  it('paints the base type of the setting terrain it names', () => {
+    expect(noise('hills').terrain).toBe('hills');
+  });
+
+  it('paints the setting’s first terrain when it names none, or one that is gone', () => {
+    expect(noise('').terrain).toBe('water');
+    expect(noise('gone').terrain).toBe('water');
+  });
+
+  it('leaves shape mode alone', () => {
+    expect(noise('hills', 'shape').terrain).toBe('hills');
   });
 });

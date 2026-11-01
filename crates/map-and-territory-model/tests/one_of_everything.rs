@@ -136,7 +136,7 @@ fn build(d: &mut Doc) {
         }
     }
 
-    run(d, "node.add", json!({ "parent": m, "type": "cartouche" }));
+    run(d, "node.add", json!({ "parent": m, "type": "title" }));
     run(d, "node.add", json!({ "parent": m, "type": "compass" }));
     let compass = newest(d, &m, "furniture");
     run(
@@ -330,7 +330,7 @@ fn it_holds_one_of_each_kind() {
             "hexgrid"
         ]
     );
-    assert_eq!(kinds("furniture"), ["cartouche", "compass"]);
+    assert_eq!(kinds("furniture"), ["title", "compass"]);
 }
 
 #[test]

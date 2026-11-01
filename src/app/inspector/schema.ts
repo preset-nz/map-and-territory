@@ -84,7 +84,7 @@ export function fileRefCommand(type: string, key: string): string | undefined {
  * source rather than showing the map's name itself.
  */
 const PLACEHOLDERS: Record<string, string> = {
-  'cartouche.title': "The map's name",
+  'title.title': "The map's name",
   'compass.labelN': 'N',
   'compass.labelE': 'E',
   'compass.labelS': 'S',
@@ -108,6 +108,12 @@ const VALUE_COMMANDS: Record<string, string> = {
 export function valueCommand(type: string, key: string): string | undefined {
   return VALUE_COMMANDS[`${type}.${key}`];
 }
+
+/**
+ * Values with no field in the panel because the setting strip sets them, keyed `type.key`: a
+ * hex noise layer's terrain is picked from the setting's swatches, not typed.
+ */
+const STRIP_VALUES = new Set(['hex-noise.terrain']);
 
 /** A compass's words for E, S and W: only a cardinal set on a style that points four ways. */
 const COMPASS_SIDE_WORDS = new Set(['labelE', 'labelS', 'labelW']);
@@ -243,6 +249,7 @@ export function schemaFor(
     for (const f of fileFields.filter((f) => f.after === after)) rows.push(f.field);
   };
   for (const v of values) {
+    if (STRIP_VALUES.has(`${type}.${v.key}`)) continue;
     const f = fieldFor(v);
     if (f) rows.push(f);
     place(v.key);

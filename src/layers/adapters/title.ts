@@ -49,7 +49,7 @@ export type Anchor =
   | 'bottom-centre'
   | 'bottom-right';
 
-export interface CartoucheState {
+export interface TitleState {
   title?: string;
   subtitle?: string;
   credit?: string;
@@ -87,7 +87,7 @@ interface Line {
   tracking: number;
 }
 
-export interface CartoucheBox {
+export interface TitleBox {
   x: number;
   y: number;
   w: number;
@@ -98,18 +98,18 @@ type Measure = Pick<CanvasRenderingContext2D, 'font' | 'measureText'>;
 
 const DEFAULT_SIZE = 30;
 
-const sizeOf = (s: CartoucheState) =>
+const sizeOf = (s: TitleState) =>
   Number.isFinite(s.titleSize) && (s.titleSize as number) > 0
     ? (s.titleSize as number)
     : DEFAULT_SIZE;
 
-const frameOf = (s: CartoucheState): Frame => s.frame ?? 'rule';
+const frameOf = (s: TitleState): Frame => s.frame ?? 'rule';
 
 /**
- * The lines the cartouche prints, top to bottom; blank subtitle and credit are left out. On a
+ * The lines the title prints, top to bottom; blank subtitle and credit are left out. On a
  * plate they are reversed out in the paper's colour.
  */
-export function linesOf(s: CartoucheState): Line[] {
+export function linesOf(s: TitleState): Line[] {
   const size = sizeOf(s);
   const plate = frameOf(s) === 'plate';
   const ink = plate ? s.paper || '#ffffff' : s.ink || '#000000';
@@ -168,16 +168,16 @@ function widths(ctx: Measure, lines: Line[]): number[] {
 }
 
 /** What a double frame's inner rule takes from each side, beyond the padding. */
-const frameRoom = (s: CartoucheState, size: number) =>
+const frameRoom = (s: TitleState, size: number) =>
   frameOf(s) === 'double' ? (DOUBLE_GAP + INNER_RULE * RULE_WIDTH) * size : 0;
 
 /** The box: the longest line plus padding, at `anchor`, `inset` in from the paper's edges. */
 export function boxOf(
-  s: CartoucheState,
+  s: TitleState,
   lineWidths: number[],
   lines: Line[],
   paper: { w: number; h: number },
-): CartoucheBox {
+): TitleBox {
   const size = sizeOf(s);
   const room = 2 * frameRoom(s, size);
   const w = Math.max(0, ...lineWidths) + 2 * PAD_X * size + room;
@@ -196,14 +196,7 @@ export function boxOf(
 type Ctx = CanvasRenderingContext2D;
 
 /** A ruled box `inset` in from `box`'s edges at `width`: one rect when clean, four strokes by hand. */
-function ruleBox(
-  ctx: Ctx,
-  box: CartoucheBox,
-  inset: number,
-  width: number,
-  hand: Hand,
-  seed: string,
-) {
+function ruleBox(ctx: Ctx, box: TitleBox, inset: number, width: number, hand: Hand, seed: string) {
   const x = box.x + inset;
   const y = box.y + inset;
   const w = box.w - 2 * inset;
@@ -230,7 +223,7 @@ function fillBox(ctx: Ctx, x: number, y: number, w: number, h: number, hand: Han
 }
 
 /** The frame (map furniture §5): a rule, a double rule, or a solid plate. */
-function drawFrame(ctx: Ctx, s: CartoucheState, box: CartoucheBox, size: number) {
+function drawFrame(ctx: Ctx, s: TitleState, box: TitleBox, size: number) {
   const frame = frameOf(s);
   const hand = handOf(s.hand);
   const seed = s.seed ?? 'cartouche';
@@ -251,7 +244,7 @@ function drawFrame(ctx: Ctx, s: CartoucheState, box: CartoucheBox, size: number)
   }
 }
 
-export const CartoucheAdapter: LayerAdapter<CartoucheState> = {
+export const TitleAdapter: LayerAdapter<TitleState> = {
   title: 'Title',
   drawMain(ctx, state, env: RenderEnv) {
     const lines = linesOf(state);
@@ -302,7 +295,7 @@ export const CartoucheAdapter: LayerAdapter<CartoucheState> = {
   },
   getInvalidationKey(s) {
     return [
-      'cartouche',
+      'title',
       s.resolvedTitle ?? '',
       s.subtitle ?? '',
       s.credit ?? '',
@@ -325,8 +318,8 @@ export const CartoucheAdapter: LayerAdapter<CartoucheState> = {
   },
 };
 
-export const CartoucheType = {
-  id: 'cartouche',
+export const TitleType = {
+  id: 'title',
   title: 'Title',
   defaultState: {
     title: '',
@@ -340,6 +333,6 @@ export const CartoucheType = {
     backing: true,
     face: 'map',
     hand: 'map',
-  } satisfies CartoucheState,
-  adapter: CartoucheAdapter,
+  } satisfies TitleState,
+  adapter: TitleAdapter,
 } as const;

@@ -174,8 +174,6 @@ describe('Alignment with master grid', () => {
           max: 1,
           mode: 'shape',
           terrain: 'plains',
-          terrainId: undefined,
-          paintColor: undefined,
         };
         HexNoiseAdapter.drawMain?.(ctx as unknown as CanvasRenderingContext2D, state, env);
         expect(ctx.filled.length).toBeGreaterThan(0);

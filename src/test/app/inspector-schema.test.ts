@@ -75,7 +75,7 @@ describe('the inspector schema', () => {
         },
       ],
       [],
-      'cartouche',
+      'title',
     ).groups[0]?.rows as { id: string; placeholder?: string; options?: unknown }[];
     expect(rows.map((r) => [r.id, r.placeholder])).toEqual([
       ['name', undefined],
@@ -90,6 +90,19 @@ describe('the inspector schema', () => {
     // another kind's `title` has none
     const other = schemaFor([{ key: 'title', kind: 'text' }], [], 'map').groups[0]?.rows[0];
     expect((other as { placeholder?: string }).placeholder).toBeUndefined();
+  });
+
+  it('leaves a hex noise layer’s terrain to the setting strip', () => {
+    const values = [
+      { key: 'mode', kind: 'choice', choices: ['shape', 'paint'] },
+      { key: 'terrain', kind: 'text' },
+    ];
+    const rows = schemaFor(values, [], 'hex-noise').groups[0]?.rows ?? [];
+    expect(rows.map((r) => r.id)).toEqual(['mode']);
+    expect(schemaFor(values, [], 'map').groups[0]?.rows.map((r) => r.id)).toEqual([
+      'mode',
+      'terrain',
+    ]);
   });
 
   it('round-trips a colour between rhizome and CSS', () => {
@@ -315,7 +328,7 @@ describe('the inspector schema', () => {
     // the campaign's check holds the page count, so both booklet values pad through the command
     expect(valueCommand('campaign', 'booklet')).toBe('booklet.set');
     expect(valueCommand('campaign', 'doubleSided')).toBe('booklet.set');
-    expect(valueCommand('cartouche', 'style')).toBeUndefined();
+    expect(valueCommand('title', 'style')).toBeUndefined();
   });
 
   it("greys a compass's words it won't print, and shows each word's letter as its placeholder", () => {

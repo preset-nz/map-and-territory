@@ -1,6 +1,6 @@
 ---
 title: Title
-node: cartouche
+node: title
 group: furniture
 category: furniture
 summary: The map's title in a box, with an optional subtitle and credit line, printed over the grid.

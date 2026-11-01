@@ -39,12 +39,12 @@ const TITLES: Record<string, string> = {
   freeform: 'Freeform',
   outline: 'Outline',
   page: 'Page',
-  cartouche: 'Title',
+  title: 'Title',
   compass: 'Compass',
 };
 
 /** Furniture kinds: in the map's `furniture`, drawn after `layers` (map furniture §1). */
-export const FURNITURE_KINDS = new Set(['cartouche', 'compass']);
+export const FURNITURE_KINDS = new Set(['title', 'compass']);
 
 const ANCHORS = new Set(['paper', 'hexgrid']);
 

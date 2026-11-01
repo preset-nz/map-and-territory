@@ -99,7 +99,6 @@ const CASES: Record<string, Case> = {
       max: 1,
       mode: 'paint',
       terrain: 'plains',
-      paintColor: '#aaaaaa',
     },
     changes: [
       { seed: 'other' },
@@ -112,7 +111,6 @@ const CASES: Record<string, Case> = {
       { max: 0.8 },
       { mode: 'shape' },
       { terrain: 'hills' },
-      { paintColor: '#bbbbbb' },
     ],
   },
   freeform: {
@@ -228,7 +226,7 @@ const CASES: Record<string, Case> = {
       { locations: [{ ...place, size: 2 }] },
     ],
   },
-  cartouche: {
+  title: {
     base: {
       resolvedTitle: 'Marches',
       subtitle: '',

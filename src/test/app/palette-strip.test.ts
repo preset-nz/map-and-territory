@@ -1,4 +1,4 @@
-import { pickedSwatch } from '@/app/inspector/palette-strip';
+import { noiseTarget, pickedSwatch } from '@/app/inspector/palette-strip';
 import { mapRoles, mapTerrains, type RowSource } from '@/app/scene/frame';
 
 const RED = [1, 0, 0, 1];
@@ -111,5 +111,38 @@ describe('the setting’s other colours', () => {
     expect(mapRoles(rows(), 'm')).toEqual([
       { key: 'gridLine', label: 'Grid line', fill: '#333333' },
     ]);
+  });
+});
+
+describe('the swatch a hex noise layer paints', () => {
+  const all = [
+    { id: 'n', type: 'hex-noise', path: '/maps/map/hex-noise', values: { terrain: 'void' } },
+    { id: 'o', type: 'hex-noise', path: '/maps/map/hex-noise-2', values: { terrain: '' } },
+    { id: 'f', type: 'freeform', path: '/maps/map/freeform' },
+  ];
+  const source: RowSource = {
+    node: (id) => all.find((r) => r.id === id),
+    nodeAt: (p) => all.find((r) => r.path === p),
+  };
+  const swatches = mapTerrains(
+    rows([
+      { id: 'acid', baseType: 'water', name: 'Acid Pools', colour: RED },
+      { id: 'void', baseType: 'water', name: 'Void Depths', colour: BLUE },
+    ]),
+    'm',
+  );
+
+  it('is the terrain it names, and the setting’s first when it names none', () => {
+    expect(noiseTarget({ kind: 'layer', id: 'n' }, source, swatches)).toEqual({
+      path: '/maps/map/hex-noise',
+      id: 'void',
+    });
+    expect(noiseTarget({ kind: 'layer', id: 'o' }, source, swatches)?.id).toBe('acid');
+  });
+
+  it('is nothing for any other selection, which sets the brush', () => {
+    expect(noiseTarget({ kind: 'layer', id: 'f' }, source, swatches)).toBeNull();
+    expect(noiseTarget({ kind: 'map', id: 'm' }, source, swatches)).toBeNull();
+    expect(noiseTarget({ kind: 'none' }, source, swatches)).toBeNull();
   });
 });
