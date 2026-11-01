@@ -2,6 +2,7 @@ packages:
   - .
 
 allowBuilds:
+  '@swc/core': false
   '@tailwindcss/oxide': true
   esbuild: true
   lefthook: true

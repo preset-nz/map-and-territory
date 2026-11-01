@@ -28,7 +28,7 @@ sha256 = "6221600602541754de809962b17d7281275b08f1c28b4757c07664d8cfe5df98"
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "63edbb12a3f9baac3c922ad7d66d4f41c8bc104a3a4dde4bbf0fdc9ccabc80c8"
+sha256 = "ac3131f70e5aec5420706da2b2a3289ac3bed98eb311b0cd9fc123db01f589f2"
 
 [[inputs]]
 path = "src-tauri/Cargo.toml"
@@ -3580,6 +3580,14 @@ scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "@acemir/cssom"
+version = "0.9.32"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "@adobe/css-tools"
 version = "4.4.4"
 source = "registry"
@@ -3589,7 +3597,23 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "@asamuzakjp/css-color"
-version = "3.2.0"
+version = "4.1.2"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@asamuzakjp/dom-selector"
+version = "6.8.1"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@asamuzakjp/nwsapi"
+version = "2.3.9"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -3837,7 +3861,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "@csstools/color-helpers"
-version = "5.1.0"
+version = "6.1.2"
 source = "registry"
 declared = "MIT-0"
 scope = "dev"
@@ -3845,7 +3869,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "@csstools/css-calc"
-version = "2.1.4"
+version = "3.4.3"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -3853,7 +3877,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "@csstools/css-color-parser"
-version = "3.1.0"
+version = "4.2.7"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -3861,15 +3885,23 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "@csstools/css-parser-algorithms"
-version = "3.0.5"
+version = "4.0.2"
 source = "registry"
 declared = "MIT"
 scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "@csstools/css-syntax-patches-for-csstree"
+version = "1.1.16"
+source = "registry"
+declared = "MIT-0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "@csstools/css-tokenizer"
-version = "3.0.4"
+version = "4.0.2"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -4078,6 +4110,14 @@ scope = "dev"
 ecosystem = "pnpm"
 name = "@esbuild/win32-x64"
 version = "0.28.2"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@exodus/bytes"
+version = "1.16.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -4400,6 +4440,126 @@ name = "@standard-schema/spec"
 version = "1.1.0"
 source = "registry"
 declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-darwin-arm64"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-darwin-x64"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-arm-gnueabihf"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-arm64-gnu"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-arm64-musl"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-ppc64-gnu"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-s390x-gnu"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-x64-gnu"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-linux-x64-musl"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-win32-arm64-msvc"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-win32-ia32-msvc"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/core-win32-x64-msvc"
+version = "1.16.21"
+source = "registry"
+declared = "Apache-2.0 AND MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/counter"
+version = "0.1.3"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@swc/types"
+version = "0.1.28"
+source = "registry"
+declared = "Apache-2.0"
 scope = "dev"
 
 [[packages]]
@@ -4748,6 +4908,166 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "@typescript/typescript-aix-ppc64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-darwin-arm64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-darwin-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-freebsd-arm64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-freebsd-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-arm"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-arm64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-loong64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-mips64el"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-ppc64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-riscv64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-s390x"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-linux-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-netbsd-arm64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-netbsd-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-openbsd-arm64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-openbsd-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-sunos-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-win32-arm64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@typescript/typescript-win32-x64"
+version = "7.0.2"
+source = "registry"
+declared = "Apache-2.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "@vitejs/plugin-react"
 version = "5.2.0"
 source = "registry"
@@ -4924,6 +5244,14 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "bidi-js"
+version = "1.1.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "browserslist"
 version = "4.29.3"
 source = "registry"
@@ -4996,6 +5324,14 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "css-tree"
+version = "3.2.1"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "css.escape"
 version = "1.5.1"
 source = "registry"
@@ -5005,7 +5341,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "cssstyle"
-version = "4.6.0"
+version = "5.3.7"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -5021,7 +5357,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "data-urls"
-version = "5.0.0"
+version = "6.0.1"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -5101,7 +5437,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "entities"
-version = "6.0.1"
+version = "8.1.0"
 source = "registry"
 declared = "BSD-2-Clause"
 scope = "dev"
@@ -5221,7 +5557,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "html-encoding-sniffer"
-version = "4.0.0"
+version = "6.0.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -5246,14 +5582,6 @@ scope = "dev"
 ecosystem = "pnpm"
 name = "https-proxy-agent"
 version = "7.0.6"
-source = "registry"
-declared = "MIT"
-scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "iconv-lite"
-version = "0.6.3"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -5373,7 +5701,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "jsdom"
-version = "26.1.0"
+version = "27.4.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -5589,9 +5917,9 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "lru-cache"
-version = "10.4.3"
+version = "11.5.3"
 source = "registry"
-declared = "ISC"
+declared = "BlueOak-1.0.0"
 scope = "dev"
 
 [[packages]]
@@ -5636,6 +5964,14 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "mdn-data"
+version = "2.27.1"
+source = "registry"
+declared = "CC0-1.0"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "min-indent"
 version = "1.0.1"
 source = "registry"
@@ -5676,14 +6012,6 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "nwsapi"
-version = "2.2.21"
-source = "registry"
-declared = "MIT"
-scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "obug"
 version = "2.2.1"
 source = "registry"
@@ -5693,7 +6021,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "parse5"
-version = "7.3.0"
+version = "8.0.1"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -5820,6 +6148,14 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "require-from-string"
+version = "2.0.2"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "resolve"
 version = "1.22.13"
 source = "registry"
@@ -5836,24 +6172,8 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
-name = "rrweb-cssom"
-version = "0.8.0"
-source = "registry"
-declared = "MIT"
-scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
 name = "safe-regex"
 version = "2.1.1"
-source = "registry"
-declared = "MIT"
-scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "safer-buffer"
-version = "2.1.2"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -6029,7 +6349,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "tldts"
-version = "6.1.86"
+version = "7.4.19"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -6037,7 +6357,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "tldts-core"
-version = "6.1.86"
+version = "7.4.20"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -6045,7 +6365,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "tough-cookie"
-version = "5.1.2"
+version = "6.0.2"
 source = "registry"
 declared = "BSD-3-Clause"
 scope = "dev"
@@ -6053,7 +6373,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "tr46"
-version = "5.1.1"
+version = "6.0.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"
@@ -6077,7 +6397,7 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "typescript"
-version = "5.9.3"
+version = "7.0.2"
 source = "registry"
 declared = "Apache-2.0"
 scope = "dev"
@@ -6141,17 +6461,9 @@ scope = "dev"
 [[packages]]
 ecosystem = "pnpm"
 name = "webidl-conversions"
-version = "7.0.0"
+version = "8.0.1"
 source = "registry"
 declared = "BSD-2-Clause"
-scope = "dev"
-
-[[packages]]
-ecosystem = "pnpm"
-name = "whatwg-encoding"
-version = "3.1.1"
-source = "registry"
-declared = "MIT"
 scope = "dev"
 
 [[packages]]
@@ -6164,8 +6476,16 @@ scope = "dev"
 
 [[packages]]
 ecosystem = "pnpm"
+name = "whatwg-mimetype"
+version = "5.0.0"
+source = "registry"
+declared = "MIT"
+scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
 name = "whatwg-url"
-version = "14.2.0"
+version = "15.1.0"
 source = "registry"
 declared = "MIT"
 scope = "dev"

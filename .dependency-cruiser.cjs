@@ -74,8 +74,11 @@ module.exports = {
   ],
   options: {
     // A package taken by path resolves outside node_modules; it is checked in its own repo.
-    doNotFollow: { path: ['node_modules', '^\\.\\./\\.\\./packages/'] },
+    doNotFollow: { path: ['node_modules', '^(\\.\\./)+packages/'] },
     exclude: { path: '^src/test/' },
+    // swc parses TypeScript itself; dependency-cruiser has no TypeScript 7 support yet
+    // (a cruise with the tsc parser silently sees 0 modules).
+    parser: 'swc',
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.json' },
     enhancedResolveOptions: {
