@@ -45,3 +45,19 @@ Labels picks which directions are named, and the four words print something else
 Size sets how wide the compass is, disc and all, and Points how far the points reach inside the disc: smaller leaves a wide margin of paper inside the ring, 1 runs the tips to the ring, and more runs them past it. The words follow the points in. North turns the compass clockwise, for a map drawn turned to its road or coast. The points turn and the words move with them, but stay upright, and the compass stays where it is. Condensed and Marker set the words in capitals.
 
 Face and Hand start on Map, as a title's do: change the map to Scratched and the compass is scratched in with it. Drawn and Scratched wobble every line of the points, and both halves of a point follow the same wobble down its middle. The ring is drawn in the same hand; the disc stays clean. The words keep clear of the lines however far a hand makes them stray.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Style set to Mark, Arrow, Cross and Rose, each at its own Anchor.](img/compass-styles.webp)
+
+*Style set to Mark, Arrow, Cross and Rose, each at its own Anchor.*
+
+![Two Roses: North at 0 on the left, and at 40 on the right. The points turn clockwise and the labels stay upright.](img/compass-north.webp)
+
+*Two Roses: North at 0 on the left, and at 40 on the right. The points turn clockwise and the labels stay upright.*
+
+![A Cross with Hand set to Clean, Drawn and Scratched.](img/compass-hands.webp)
+
+*A Cross with Hand set to Clean, Drawn and Scratched.*
+<!-- examples:end -->

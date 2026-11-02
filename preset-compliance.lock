@@ -19,11 +19,11 @@ sha256 = "667237e510d98adcd84dcbd75d43a46512ec0c8c3616cb163acc2f8ddc19040d"
 [[inputs]]
 path = "docs/gen/Cargo.lock"
 ecosystem = "cargo"
-sha256 = "18fccfe27e6aea8559deedfdc36bec654734acf2f5248aaf3c8fe1d683e07b1e"
+sha256 = "1192c26c61c5fb0d150a54582ea23c826620a6a0c2df25037b96c1a5b9fdf61d"
 
 [[inputs]]
 path = "docs/gen/Cargo.toml"
-sha256 = "c2c7cd293edd19b07570b15a30278db3b045c0aab80831b6c261cf521f005075"
+sha256 = "b589ee492210cd9895eb32fd4e44dc8a3e52fe576250946ff9c6c84f97904be1"
 
 [[inputs]]
 path = "pnpm-lock.yaml"

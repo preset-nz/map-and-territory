@@ -51,3 +51,31 @@ export async function currentDocumentPath(): Promise<string | null> {
   const state = await invoke<{ path: string | null }>('app_kit_document');
   return state.path;
 }
+
+/** What `just examples` asks of a debug launch (src-tauri/src/examples.rs). */
+export interface ExamplesJob {
+  campaign: string;
+  out: string;
+  entries: {
+    page: string;
+    map: string;
+    image: string;
+    caption: string;
+    crop?: { x: number; y: number; w: number; h: number };
+  }[];
+}
+
+/** The examples job of this launch, or null: always null in a release build. */
+export function examplesJob(): Promise<ExamplesJob | null> {
+  return invoke<ExamplesJob | null>('examples_job');
+}
+
+/** Writes a PNG to `<out>/<name>.png` of the job. */
+export async function examplesWrite(name: string, bytes: Uint8Array): Promise<void> {
+  await invoke('examples_write', bytes, { headers: { name } });
+}
+
+/** Ends the run: exit 0, or 1 when `failed`. */
+export async function examplesDone(failed: boolean): Promise<void> {
+  await invoke('examples_done', { failed });
+}

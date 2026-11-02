@@ -1,0 +1,56 @@
+[
+  {
+    "caption": "Style set to Mark, Arrow, Cross and Rose, each at its own Anchor.",
+    "image": "compass-styles",
+    "map": "Styles",
+    "page": "compass"
+  },
+  {
+    "caption": "Two Roses: North at 0 on the left, and at 40 on the right. The points turn clockwise and the labels stay upright.",
+    "crop": {
+      "h": 0.32,
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    "image": "compass-north",
+    "map": "Turned",
+    "page": "compass"
+  },
+  {
+    "caption": "A Cross with Hand set to Clean, Drawn and Scratched.",
+    "crop": {
+      "h": 0.32,
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0
+    },
+    "image": "compass-hands",
+    "map": "Hands",
+    "page": "compass"
+  },
+  {
+    "caption": "Frame set to None, Rule, Double and Plate.",
+    "image": "title-frames",
+    "map": "Frames",
+    "page": "title"
+  },
+  {
+    "caption": "Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.",
+    "image": "title-faces",
+    "map": "Faces",
+    "page": "title"
+  },
+  {
+    "caption": "The grid with Hex size 40 and everything else at its default.",
+    "image": "hexgrid-clean",
+    "map": "Clean",
+    "page": "hexgrid"
+  },
+  {
+    "caption": "Line width 2, Misregistration 3, Corner jitter 2, Width noise 0.6 and Ink noise 0.4: a grid inked by hand.",
+    "image": "hexgrid-rough",
+    "map": "Rough",
+    "page": "hexgrid"
+  }
+]

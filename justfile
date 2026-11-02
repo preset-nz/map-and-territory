@@ -30,7 +30,33 @@ run:
 docs:
     cargo run -q --manifest-path docs/gen/Cargo.toml
 
-# Fails if a page is missing, stale or orphaned, or a kind has no summary.
+# The pictures on the node pages (docs/nodes/img/*.webp): the example campaigns are written
+# by a Rust test (tests/examples.rs), each is opened in a debug build of the app, which draws
+# its maps through the export path and quits, and cwebp shrinks them. Then `just docs`
+# writes each page's Examples block. `cwebp` is a dev tool (brew install webp), not a
+# dependency. Needs a logged-in session, as `smoke` does; quit `just run` first. Shares
+# `smoke`'s target dir.
+[group('docs')]
+examples:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    command -v cwebp >/dev/null || { echo "cwebp is missing: brew install webp" >&2; exit 1; }
+    command -v timeout >/dev/null || { echo "timeout is missing: brew install coreutils" >&2; exit 1; }
+    EXAMPLES=all cargo test -q -p map-and-territory-model --test examples
+    CARGO_TARGET_DIR="{{justfile_directory()}}/target/smoke" pnpm tauri build --debug --bundles app
+    bin="{{justfile_directory()}}/target/smoke/debug/bundle/macos/Map & Territory.app/Contents/MacOS/map-and-territory"
+    out="{{justfile_directory()}}/target/examples"
+    rm -rf "$out"; mkdir -p "$out" docs/nodes/img
+    for campaign in docs/examples/*.campaign; do
+        MT_EXAMPLE="{{justfile_directory()}}/$campaign" MT_EXAMPLE_OUT="$out" timeout 120 "$bin"
+    done
+    for png in "$out"/*.png; do
+        cwebp -quiet -q 85 -m 6 "$png" -o "docs/nodes/img/$(basename "$png" .png).webp"
+    done
+    just docs
+
+# Fails if a page is missing, stale or orphaned, a kind has no summary, or an Examples block
+# is stale or names an image that isn't in docs/nodes/img/.
 [group('docs')]
 docs-check:
     cargo run -q --manifest-path docs/gen/Cargo.toml -- --check

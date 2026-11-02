@@ -4,6 +4,7 @@ import { useChildren, useMirror } from '@preset.nz/pom';
 import { useEffect, useMemo, useRef } from 'react';
 import { CanvasHost } from './app/canvas-host';
 import { useExportBindings } from './app/export/bindings';
+import { runExamples } from './app/export/examples';
 import { AppFrame, useInspectorPanel, useScenePanel } from './app/frame';
 import { Inspector } from './app/inspector/inspector';
 import { PaletteStrip } from './app/inspector/palette-strip';
@@ -90,6 +91,10 @@ export default function App() {
   const mirror = useMirror();
   useEffect(() => {
     mirror.start().catch((error) => console.error('[document] could not connect', error));
+  }, [mirror]);
+  // `just examples` (debug launches only): draws the pictures for the node pages, then exits.
+  useEffect(() => {
+    runExamples(mirror as unknown as Parameters<typeof runExamples>[0]);
   }, [mirror]);
   useSelectNewMapsAndLayers();
 

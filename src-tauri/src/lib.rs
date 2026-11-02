@@ -4,10 +4,12 @@
 //! Settings is off until there is a real preference.
 
 mod document;
+mod examples;
 mod export;
 mod menu;
 mod pdf;
 
+use preset_app_kit::Document as _;
 use tauri::Manager;
 
 /// A freeform layer's texture file, as raw bytes (no JSON round trip).
@@ -31,6 +33,13 @@ pub fn run() {
             // host with `app.state`, so it is managed before the menu is installed.
             let (document, transport) = document::DocumentHost::launch()?;
             document.refresh_on_change(app.handle().clone());
+            // `just examples` (debug builds only): the campaign opens before the webview
+            // connects, so the mirror's first read is that campaign.
+            let examples = examples::Examples::from_env()?;
+            if let Some(campaign) = examples.campaign() {
+                document.open(app.handle(), campaign)?;
+            }
+            app.manage(examples);
             app.manage(document);
             app.manage(transport);
             // The product name from tauri.conf.json, never a literal.
@@ -59,6 +68,9 @@ pub fn run() {
             export::export_write_file,
             export::export_write_pdf,
             export::export_sheet,
+            examples::examples_job,
+            examples::examples_write,
+            examples::examples_done,
             // Not `pom_new`, `pom_open` or `pom_save_as`: app-kit replaces and saves the
             // document, so a replacement made any other way would skip its title, recents
             // and close guard.

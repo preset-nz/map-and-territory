@@ -81,6 +81,7 @@ dependencies = [
  "preset-docs",
  "rhizome-core",
  "rhizome-pom",
+ "serde_json",
 ]
 
 [[package]]

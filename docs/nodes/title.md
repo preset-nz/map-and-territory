@@ -39,3 +39,15 @@ Titles list above the layers in the scene panel, and they always draw on top of 
 Double draws a second, finer rule inside the first: the survey-office look. Plate fills the box with solid ink and prints the lines in the paper's colour, so the title reads like a zine cover.
 
 Face and Hand start on Map, so every title follows the map's own Face and Hand: change the map to Scratched and every title left on Map is scratched in with it. Pick a face or hand on a title to keep it as it is. Drawn redraws the frame as if with a pen and leans each line a little; Scratched wobbles it more, goes over every line twice and leans the lines further. Each title wobbles its own way, the same way every time it draws and exports, and a duplicated title wobbles differently. The backing stays clean.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Frame set to None, Rule, Double and Plate.](img/title-frames.webp)
+
+*Frame set to None, Rule, Double and Plate.*
+
+![Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.](img/title-faces.webp)
+
+*Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.*
+<!-- examples:end -->
