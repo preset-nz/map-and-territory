@@ -27,21 +27,46 @@ async function untilReady(rows: Source, timeoutMs = 60_000): Promise<void> {
   }
 }
 
-/** `png` cropped to `entry.crop` (fractions) and scaled to EXAMPLE_WIDTH wide. */
+/** The source rows to draw, top to bottom: all of `h`, or the parts above and below `cut`. */
+export function bands(h: number, cut?: Entry['cut']): { y: number; h: number }[] {
+  if (!cut) return [{ y: 0, h }];
+  const top = Math.round(cut.y * h);
+  const bottom = Math.round((cut.y + cut.h) * h);
+  return [
+    { y: 0, h: top },
+    { y: bottom, h: h - bottom },
+  ];
+}
+
+/** `png` with `entry.cut` taken out, cropped to `entry.crop` (fractions) and scaled to
+ * EXAMPLE_WIDTH wide. */
 async function framed(png: ArrayBuffer, entry: Entry): Promise<Uint8Array> {
   const bitmap = await createImageBitmap(new Blob([png], { type: 'image/png' }));
+  // the cut first, at full size, onto its own canvas; the crop and scale then work on that
+  const parts = bands(bitmap.height, entry.cut);
+  const joined = new OffscreenCanvas(
+    bitmap.width,
+    parts.reduce((n, b) => n + b.h, 0),
+  );
+  const jctx = joined.getContext('2d');
+  if (!jctx) throw new Error('no 2d context');
+  let at = 0;
+  for (const b of parts) {
+    jctx.drawImage(bitmap, 0, b.y, bitmap.width, b.h, 0, at, bitmap.width, b.h);
+    at += b.h;
+  }
+  bitmap.close();
   const c = entry.crop ?? { x: 0, y: 0, w: 1, h: 1 };
-  const sx = Math.round(c.x * bitmap.width);
-  const sy = Math.round(c.y * bitmap.height);
-  const sw = Math.round(c.w * bitmap.width);
-  const sh = Math.round(c.h * bitmap.height);
+  const sx = Math.round(c.x * joined.width);
+  const sy = Math.round(c.y * joined.height);
+  const sw = Math.round(c.w * joined.width);
+  const sh = Math.round(c.h * joined.height);
   const canvas = new OffscreenCanvas(EXAMPLE_WIDTH, Math.round((EXAMPLE_WIDTH * sh) / sw));
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('no 2d context');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
+  ctx.drawImage(joined, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   const blob = await canvas.convertToBlob({ type: 'image/png' });
   return new Uint8Array(await blob.arrayBuffer());
 }

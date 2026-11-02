@@ -4,9 +4,10 @@
 //! writes the images.
 //!
 //! The campaigns are `docs/examples/<page>.campaign` and the list of pictures is
-//! `docs/examples/examples.json`: `[{page, map, image, caption, crop}]`, where `map` is the
+//! `docs/examples/examples.json`: `[{page, map, image, caption, crop, cut}]`, where `map` is the
 //! map's name in that campaign, `image` the file stem, `caption` the italic line under the
-//! picture and `crop` an optional `{x, y, w, h}` in fractions of the exported map. Both sit
+//! picture, `crop` an optional `{x, y, w, h}` in fractions of the exported map, and `cut` an
+//! optional `{y, h}` band, in fractions of its height, taken out of the middle. Both sit
 //! outside `docs/nodes/`, so the site's sync never publishes the campaigns.
 //!
 //! `EXAMPLES=all` writes them again (`just examples` does); without it a stale file fails.
@@ -30,6 +31,20 @@ struct Example {
     caption: &'static str,
     /// `{x, y, w, h}` in fractions of the exported map, or none for all of it.
     crop: Option<[f64; 4]>,
+    /// `[y, h]`: a band taken out of the middle, in fractions of the map's height, so the
+    /// corners close up. Made by [`cut`], which keeps the grid's lines meeting.
+    cut: Option<[f64; 2]>,
+}
+
+/// A map's paper in paper px: 16:10 on a 1200 px long side (`paperSize`, `src/render/geometry.ts`).
+const PAPER_H: f64 = 750.0;
+/// One period of the pointy grid at Hex size 40: two rows of 1.5 × 40 px.
+const GRID_PERIOD: f64 = 120.0;
+
+/// The band from `top` px down, `periods` grid periods tall: a whole number of periods, so the
+/// hexes above and below the seam join as if nothing was taken out.
+fn cut(top: f64, periods: f64) -> Option<[f64; 2]> {
+    Some([top / PAPER_H, periods * GRID_PERIOD / PAPER_H])
 }
 
 impl Example {
@@ -42,6 +57,9 @@ impl Example {
         });
         if let Some([x, y, w, h]) = self.crop {
             e["crop"] = json!({ "x": x, "y": y, "w": w, "h": h });
+        }
+        if let Some([y, h]) = self.cut {
+            e["cut"] = json!({ "y": y, "h": h });
         }
         e
     }
@@ -135,6 +153,7 @@ fn compass_page(d: &mut Doc) -> Vec<Example> {
             image: "compass-styles",
             caption: "Style set to Mark, Arrow, Cross and Rose, each at its own Anchor.",
             crop: None,
+            cut: cut(195.0, 3.0),
         },
         Example {
             page: "compass",
@@ -142,6 +161,7 @@ fn compass_page(d: &mut Doc) -> Vec<Example> {
             image: "compass-north",
             caption: "Two Roses: North at 0 on the left, and at 40 on the right. The points turn clockwise and the labels stay upright.",
             crop: Some([0.0, 0.0, 1.0, 0.32]),
+            cut: None,
         },
         Example {
             page: "compass",
@@ -149,6 +169,7 @@ fn compass_page(d: &mut Doc) -> Vec<Example> {
             image: "compass-hands",
             caption: "A Cross with Hand set to Clean, Drawn and Scratched.",
             crop: Some([0.0, 0.0, 1.0, 0.32]),
+            cut: None,
         },
     ]
 }
@@ -203,6 +224,7 @@ fn title_page(d: &mut Doc) -> Vec<Example> {
             image: "title-frames",
             caption: "Frame set to None, Rule, Double and Plate.",
             crop: None,
+            cut: cut(135.0, 4.0),
         },
         Example {
             page: "title",
@@ -210,6 +232,7 @@ fn title_page(d: &mut Doc) -> Vec<Example> {
             image: "title-faces",
             caption: "Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.",
             crop: None,
+            cut: cut(135.0, 4.0),
         },
     ]
 }
@@ -235,6 +258,7 @@ fn hexgrid_page(d: &mut Doc) -> Vec<Example> {
             image: "hexgrid-clean",
             caption: "The grid with Hex size 40 and everything else at its default.",
             crop: None,
+            cut: None,
         },
         Example {
             page: "hexgrid",
@@ -242,6 +266,7 @@ fn hexgrid_page(d: &mut Doc) -> Vec<Example> {
             image: "hexgrid-rough",
             caption: "Line width 2, Misregistration 3, Corner jitter 2, Width noise 0.6 and Ink noise 0.4: a grid inked by hand.",
             crop: None,
+            cut: None,
         },
     ]
 }

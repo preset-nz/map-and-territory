@@ -62,6 +62,8 @@ export interface ExamplesJob {
     image: string;
     caption: string;
     crop?: { x: number; y: number; w: number; h: number };
+    /** A band taken out of the middle, in fractions of the map's height. */
+    cut?: { y: number; h: number };
   }[];
 }
 

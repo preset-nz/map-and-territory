@@ -1,6 +1,10 @@
 [
   {
     "caption": "Style set to Mark, Arrow, Cross and Rose, each at its own Anchor.",
+    "cut": {
+      "h": 0.48,
+      "y": 0.26
+    },
     "image": "compass-styles",
     "map": "Styles",
     "page": "compass"
@@ -31,12 +35,20 @@
   },
   {
     "caption": "Frame set to None, Rule, Double and Plate.",
+    "cut": {
+      "h": 0.64,
+      "y": 0.18
+    },
     "image": "title-frames",
     "map": "Frames",
     "page": "title"
   },
   {
     "caption": "Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.",
+    "cut": {
+      "h": 0.64,
+      "y": 0.18
+    },
     "image": "title-faces",
     "map": "Faces",
     "page": "title"
