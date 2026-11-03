@@ -30,3 +30,13 @@ A setting is the world a map is drawn in: its terrains and their colours. The te
 The strip under the inspector shows the active map's setting: a swatch for each terrain, its name and type on hover, and its other colours in a row below. Click a terrain to paint with it.
 
 The app ships with nine ready-made settings to start from. To pick one, select the campaign and choose it in the **Setting** field. Maps follow the campaign's setting. To draw one map in another, select the map and choose a different setting in its **Setting** field. Choose the first entry, **Campaign's**, to follow the campaign again. Each choice is one step in Edit ▸ Undo.
+
+The nine are Doom Forge, Space Opera, Event Horizon, Gloomy Garden, Excess Throne, Data Nexus, Street Level, Brittle Empire and Hostile Waters. Eight have five terrains, one each for water, plains, forest, hills and mountains; Hostile Waters has ten, all water. Each has a grid line colour. Doom Forge has Blood Mires (a dark red water), Bone Fields (pale grey plains), Ash Thickets, Iron Graves and Doom Crags; its grid line is #333333. Brittle Empire has Salt Marshes, Burnt Plains, Withered Groves, Crumbling Estates and Fallen Citadels, in mostly tans and browns; its grid line is #2a1a15.
+
+On a zine page the setting is the colour of the printed map. It reaches three places. Freeform layers and Hex Noise layers in Paint mode paint terrain in the setting's colours. The hex grid draws its lines in the setting's grid line colour while its Setting colour is on. Titles, compasses and location names print in the grid's ink, so the grid line colour is their colour too. The Paper layer's Colour is the paper's own and does not change with the setting.
+
+## Recipes
+
+**Clean booklet.** Set Brittle Empire on the campaign. Its terrains are mostly tans and browns, and its grid line is a dark brown to match. Leave the maps on Campaign's.
+
+**Grimdark zine.** Set Doom Forge on the campaign. Blood Mires, Bone Fields and Ash Thickets give red, pale grey and grey ground, with Doom Crags in yellow for the peaks. Give one map a different setting, such as Hostile Waters, by selecting the map and choosing it in its Setting field, so a flooded level reads as another place.

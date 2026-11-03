@@ -26,11 +26,19 @@ References: `palette`.
 
 ## Using it
 
-A map is one sheet of the campaign: a region, a dungeon level, a town. Each map holds a paper at the bottom, a hex grid on top, and any layers you add between them. Add a new one from the Map menu.
+A map is one sheet of the campaign: a region, a dungeon level, a town. On a zine page it is the picture the reader turns to: one map is printed on one page, with its key of numbered places. Each map holds a paper at the bottom, a hex grid on top, and any layers you add between them. Map ▸ New Map adds one.
 
-Give maps plain names so the list reads like your session notes. If a map should look different from the rest, give it its own setting; otherwise leave it to follow the campaign's.
+Give maps plain names so the list reads like your session notes. A Title layer whose Title is blank prints the map's name, and a map with no name prints "Untitled map" in a faded ink. If a map should look different from the rest, select it and choose a different Setting; the first entry, Campaign's, follows the campaign again.
 
-Face and Hand are the map's sheet style: every title on the map left on Map letters itself in the map's face and is drawn in its hand, so one change restyles the whole sheet.
+Layout puts the map on its page and the key where you choose: below the map, below it in two or three columns, above it, or with the map alone and the key on pages of its own. The map keeps its shape, and the page's size, orientation and margin come from the campaign. A long key runs on to more pages.
+
+Face and Hand are the map's sheet style: every title and compass on the map left on Map letters itself in the map's face and is drawn in its hand, so one change restyles the whole sheet. A locations layer follows the map's Face but has no Hand. Layers such as Outline, Hex Grid and Image have neither, and keep the look you gave them.
+
+## Recipes
+
+**Clean map.** Face Condensed, Hand Clean, Layout Map on top, key below. Leave the Setting on Campaign's, with a muted setting such as Brittle Empire on the campaign.
+
+**Grimdark map.** Setting Doom Forge, Face Blackletter, Hand Scratched, Layout Map on top, key in two columns. The titles and the compass letter themselves in blackletter and are scratched in; the key keeps the map to the top of the page and spreads its entries across two columns.
 
 ## Examples
 

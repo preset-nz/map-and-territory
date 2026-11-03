@@ -27,9 +27,19 @@ Lines drawn along hex edges, for coasts, borders and roads.
 
 ## Using it
 
-Outline draws lines along the edges of the hexes, following the grid. Use it for coastlines, borders, rivers and roads.
+Outline draws lines along the edges of the hexes, following the grid. On a zine page it carries the lines that are not terrain: a coast, a border, a river, a road.
 
-Add one from the Layer menu and use the Outline tool (key 5) to click out a path along hex corners. Stroke colour, width and pattern apply to every line on the layer, so keep roads and borders on separate Outline layers if they should look different. Roughness bends the corners off the grid a little, for a hand-drawn line.
+Layer ▸ Add Outline Layer adds a layer, and the Outline tool (key 5) draws on it. Click a hex corner to start a line, then click further corners to extend it along the grid. Click the first corner again to close the line into a loop, or click the last corner again to end it; the following click starts a new line. Each click is one step in Edit ▸ Undo, so Undo takes a corner back.
+
+Stroke colour, Stroke width and Stroke pattern apply to every line on the layer, so keep roads and borders on separate Outline layers if they should look different. Stroke colour starts as a pale cream that disappears on white paper; set a dark ink before you draw. Stroke width runs from 1 to 12 px. Dashed and Dotted use marks of a fixed length, whatever the width.
+
+Roughness moves each corner off the grid by up to a fifth of a hex at 1, in a direction fixed by the corner, so the line keeps its shape every time it draws. The line stays a run of straight segments between the moved corners. Outline keeps its own colour and roughness: changing the setting, or the map's Face and Hand, leaves it as it is.
+
+## Recipes
+
+**Clean map.** Stroke colour #1a1a1a, Stroke width 2, Stroke pattern Solid, Roughness 0. Put borders on a second layer with Stroke pattern Dashed, so the coast and the border can be hidden separately.
+
+**Grimdark map.** Stroke colour #2a1a15, Stroke width 4, Roughness 0.8, which moves a corner by up to about 4 px at the default Hex size of 24. Add a second layer for tracks and rivers with Stroke pattern Dotted, Stroke width 3, Roughness 1.
 
 ## Examples
 

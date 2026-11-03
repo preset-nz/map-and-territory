@@ -41,6 +41,16 @@ Double draws a second, finer rule inside the first: the survey-office look. Plat
 
 Face and Hand start on Map, so every title follows the map's own Face and Hand: change the map to Scratched and every title left on Map is scratched in with it. Pick a face or hand on a title to keep it as it is. Drawn redraws the frame as if with a pen and leans each line a little; Scratched wobbles it more, goes over every line twice and leans the lines further. Each title wobbles its own way, the same way every time it draws and exports, and a duplicated title wobbles differently. The backing stays clean.
 
+## Recipes
+
+On a zine page the title names the map for the reader: the region, a level, a town. Subtitle and Credit add a second and third line when the page wants a place name and a surveyor.
+
+**Clean map.** Frame Rule, Align Centre, Title size 30, Anchor Top left, Inset 24, Backing on. Leave Face and Hand on Map, with the map's Face set to Condensed and Hand to Clean. Put the region in Subtitle and a date or a name in Credit.
+
+**Grimdark map.** Frame Plate, Align Left, Title size 44, Anchor Bottom left, Backing on. Set the map's Face to Blackletter and Hand to Scratched. The plate fills with the grid's ink and the words reverse out of it in the paper's colour, scratched in with the frame.
+
+**What follows the map.** With Title blank the title prints the map's name, so renaming the map renames the title. Face and Hand follow the map's while they stay on Map. The ink is the grid's, and the plate or backing is the Paper layer's Colour.
+
 ## Examples
 
 <!-- examples:begin — `just examples` rewrites this block; write outside it -->

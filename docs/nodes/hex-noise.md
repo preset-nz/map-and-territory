@@ -32,11 +32,19 @@ Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour
 
 ## Using it
 
-Hex Noise fills hexes from smooth random noise. On a hexmap it's a quick way to rough out a landmass, a forest or a stretch of hills that you can then work over by hand.
+Hex Noise fills hexes from smooth random noise. On a zine page it is the quick way to rough out a landmass, a forest or a stretch of hills, which you then work over with the Freeform tools. Layer ▸ Add Hex Noise Layer adds one to the active map.
 
-Add one from the Layer menu. The same Seed always gives the same pattern, so change the seed until the shape looks right. Frequency sets how big the patches are, and Minimum and Maximum cut the noise off to leave gaps. In shape mode the hexes are filled with grey; in paint mode they are filled with the colour of a terrain from the setting. Select the layer and click a terrain in the setting strip under the inspector to pick it; until you do, it paints the setting's first terrain.
+Seed is the text the noise grows from. The same Seed always gives the same pattern, so change the text until the shape looks right. Frequency sets the size of the patches: a low value gives a few broad masses, a high one a scatter of small ones. Offset X and Offset Y slide the pattern across the map without changing its shape, which moves a good coastline to where you want it. Minimum and Maximum cut the noise off: hexes with a value below Minimum or above Maximum are left empty. Gamma bends the values before the cut; above 1 it pushes them down, so fewer hexes clear a given Minimum.
+
+Mode picks what the hexes are filled with. In Shape mode each is a grey from black to white by its noise value, and Intensity dims it; 0 is black. In Paint mode each takes the colour of a terrain from the setting. Select the layer and click a terrain in the strip under the inspector to pick it; until you do, it paints the setting's first terrain. Paint mode follows the setting: choose a different Setting for the campaign or the map and the layer repaints in the new colours. Shape mode uses no setting, and Hex Noise has no Face or Hand to follow.
 
 Tip: for an island, raise Minimum so only the high ground is filled and the rest stays empty.
+
+## Recipes
+
+**Clean map.** Mode Paint, Frequency 0.08, Minimum 0.45, Maximum 1, Opacity 1. A few broad islands, each edge on whole hexes, in the terrain colour you picked. Change Seed until the coast suits the page.
+
+**Grimdark map.** Mode Paint, Frequency 0.3, Minimum 0.35, Maximum 0.8, Opacity 0.6, Blend Multiply, with a dark terrain such as Blood Mires from Doom Forge. The patches are small, and the hexes where the noise runs high are left empty, so the ground looks pitted. Multiply darkens whatever lies beneath instead of covering it.
 
 ## Examples
 

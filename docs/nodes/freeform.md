@@ -34,11 +34,19 @@ References: `texture`.
 
 Freeform is the layer you paint by hand. Each painted hex takes the colour of a terrain from the setting, so it's where most of a map's land, water and settlement ends up.
 
-Add one from the Layer menu, then use the Paint, Erase and Fill tools (keys 1, 2 and 3) on the map. Use a separate Freeform layer for each kind of thing you may want to hide or reorder later, such as coastline, roads and settlements.
+Add one from the Layer menu, then use the Paint, Erase and Fill tools (keys 1, 2 and 3) on the map. Use a separate Freeform layer for each kind of thing you may want to hide or reorder on its own, such as coastline, roads and settlements.
 
 Texture fill shows an image through the painted hexes. Set Render mode to Texture fill, then choose the image in Texture: type or paste a path, pick from the list of recent ones, use the browse button, or drop the file from the Finder onto the field. The layer keeps the path as you wrote it; a relative path is found from the folder the campaign is saved in. PNG, JPEG and WebP work, up to 16 MB and 4096 pixels on a side. The Texture controls stay greyed out while the layer paints.
 
 If the image has moved or been renamed, the field says Missing and the layer draws no texture. Put the file back and return to the window, and the texture comes back without reopening the campaign.
+
+Which terrain a stroke paints is picked in the strip under the inspector, which shows the active map's setting. The colours come from that setting, so choosing a different Setting for the map or the campaign repaints every Freeform layer drawn from it. Freeform has no Face or Hand, and the map's do not reach it.
+
+## Recipes
+
+**Clean map.** Render mode Paint, Opacity 1, Blend Normal, with one layer each for land, water and settlement. Each terrain stays a flat, even colour, and any layer can be hidden on its own.
+
+**Grimdark map.** Add a layer above the land with Render mode Texture fill, a scan of soot or rough paper as the Texture, Texture tiling Repeat, Texture scale 0.5, Texture rotation 30 and Mix with terrain Multiply. The texture shows through the painted hexes, mixed with their terrain colour. Turn on Invert fill to put the grime everywhere except the painted hexes; Mix with terrain does nothing there.
 
 ## Examples
 

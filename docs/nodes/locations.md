@@ -32,6 +32,16 @@ Layer ▸ Add Locations Layer adds a layer for named places: keeps, wells, fords
 
 Places are numbered for the key, top of the scene panel first, and the numbers run on across every numbered locations layer on the map, so a "Towns" layer and a "Secrets" layer share one count. Turn Numbered off for a layer whose places should keep their names but take no number. Export ▸ Map as PDF… and Campaign as PDF… print the key with the map, under it or on pages of its own by the map's Layout: each place's number, name, category and description, the unnumbered ones last and the hidden ones left out. Marker sets how each place shows: its number in a ring, a dot, or only its name. The names print in the grid's ink, in the map's face unless you pick one. Name style sets how they sit on the map: plain, outlined in the paper's colour, over a soft glow of the paper's colour so they read over dark ground, or on a small paper label.
 
+## Recipes
+
+On a zine page this layer is the numbered marks on the map and the key that goes with them, so the reader can match a number on the page to a line of text.
+
+**Clean map.** Marker Number, Names on, Name style Plain, Size 1, Numbered on, Face Map with the map's Face on Condensed. Small numbered rings in the grid's ink, with plain names beside them.
+
+**Grimdark map.** Marker Number, Names on, Name style Glow, Size 1.2, Face Map with the map's Face on Blackletter. Glow puts a soft halo of the paper's colour behind each name, so it reads over dark terrain. Add a second layer called Secrets, with Numbered off, to keep unnumbered places that you still want named on the map.
+
+**What follows the map.** Face follows the map's Face while it stays on Map. Names and numbers print in the hex grid's ink, and Outline, Glow and Label take the Paper layer's Colour. Locations have no Hand.
+
 ## Examples
 
 <!-- examples:begin — `just examples` rewrites this block; write outside it -->

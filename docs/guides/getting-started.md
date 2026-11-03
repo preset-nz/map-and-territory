@@ -78,7 +78,7 @@ Save the campaign with **File ▸ Save** (Cmd-S). **Export ▸ Map as PNG…** (
 
 ## Further
 
-- **File ▸ Export ▸ Campaign as PDF…** prints every map in one file. The [campaign](campaign.md)'s **Booklet** lays them out as a booklet with a [cover, pages and a back](page.md).
+- **File ▸ Export ▸ Campaign as PDF…** prints every map in one file, each on its own sheet. The [campaign](campaign.md)'s **Booklet** holds a [cover, pages and a back](page.md) in the campaign; the PDF doesn't print them as a booklet.
 - [Hex Noise](hex-noise.md) fills a map from noise, as a starting landmass to paint over.
 - [Outline](outline.md) draws borders and coasts along hex edges.
 - Each node page lists every control with its range and default.
