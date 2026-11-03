@@ -4,6 +4,7 @@ node: outline
 group: layer
 category: lines
 summary: Lines drawn along hex edges, for coasts, borders and roads.
+thumbnail: img/outline-thumb.webp
 ---
 
 # Outline
@@ -29,3 +30,11 @@ Lines drawn along hex edges, for coasts, borders and roads.
 Outline draws lines along the edges of the hexes, following the grid. Use it for coastlines, borders, rivers and roads.
 
 Add one from the Layer menu and use the Outline tool (key 5) to click out a path along hex corners. Stroke colour, width and pattern apply to every line on the layer, so keep roads and borders on separate Outline layers if they should look different. Roughness bends the corners off the grid a little, for a hand-drawn line.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Three layers with Stroke pattern Solid, Dashed and Dotted, Stroke width 3; the Dotted one also at Roughness 1.](img/outline-patterns.webp)
+
+*Three layers with Stroke pattern Solid, Dashed and Dotted, Stroke width 3; the Dotted one also at Roughness 1.*
+<!-- examples:end -->

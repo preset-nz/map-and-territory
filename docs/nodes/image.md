@@ -4,6 +4,7 @@ node: image
 group: layer
 category: painting
 summary: A picture from a file laid over the map, for stains, paper grain or a scanned drawing.
+thumbnail: img/image-thumb.webp
 ---
 
 # Image
@@ -29,3 +30,11 @@ References: `file`.
 ## Using it
 
 Add one from the Layer menu. The picture is chosen by its path and stays a file on disk, so keep it beside the campaign or give its full path. It sits above the paper and below the hex grid, so the grid stays clean on top. Drawing the picture arrives in a later story.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![An Image of an ink-splat scan with Blend set to Multiply, over painted terrain: the ink stains the map.](img/image-stain.webp)
+
+*An Image of an ink-splat scan with Blend set to Multiply, over painted terrain: the ink stains the map.*
+<!-- examples:end -->

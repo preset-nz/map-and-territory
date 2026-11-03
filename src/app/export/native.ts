@@ -58,12 +58,16 @@ export interface ExamplesJob {
   out: string;
   entries: {
     page: string;
-    map: string;
+    /** One map's name, or `maps` for several drawn side by side. */
+    map?: string;
+    maps?: string[];
     image: string;
     caption: string;
     crop?: { x: number; y: number; w: number; h: number };
     /** A band taken out of the middle, in fractions of the map's height. */
     cut?: { y: number; h: number };
+    /** The page's thumbnail: a square of side `w` x the first map's width, as fractions. */
+    thumb?: { x: number; y: number; w: number };
   }[];
 }
 

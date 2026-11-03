@@ -4,6 +4,7 @@ node: compass
 group: furniture
 category: furniture
 summary: A compass that shows where north is, printed over the grid.
+thumbnail: img/compass-thumb.webp
 ---
 
 # Compass

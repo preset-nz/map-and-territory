@@ -4,6 +4,7 @@ node: hex-noise
 group: layer
 category: generator
 summary: Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour.
+thumbnail: img/hex-noise-thumb.webp
 ---
 
 # Hex Noise
@@ -36,3 +37,15 @@ Hex Noise fills hexes from smooth random noise. On a hexmap it's a quick way to 
 Add one from the Layer menu. The same Seed always gives the same pattern, so change the seed until the shape looks right. Frequency sets how big the patches are, and Minimum and Maximum cut the noise off to leave gaps. In shape mode the hexes are filled with grey; in paint mode they are filled with the colour of a terrain from the setting. Select the layer and click a terrain in the setting strip under the inspector to pick it; until you do, it paints the setting's first terrain.
 
 Tip: for an island, raise Minimum so only the high ground is filled and the rest stays empty.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Mode set to Shape, Frequency 0.15 and Minimum 0.45: a grey landmass.](img/hex-noise-shape.webp)
+
+*Mode set to Shape, Frequency 0.15 and Minimum 0.45: a grey landmass.*
+
+![A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.](img/hex-noise-paint.webp)
+
+*A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.*
+<!-- examples:end -->

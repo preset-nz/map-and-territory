@@ -4,6 +4,7 @@ node: map
 group: document
 category: document
 summary: "One hexmap in the campaign: a paper, a hex grid and the layers between them."
+thumbnail: img/map-thumb.webp
 ---
 
 # Map
@@ -30,3 +31,11 @@ A map is one sheet of the campaign: a region, a dungeon level, a town. Each map 
 Give maps plain names so the list reads like your session notes. If a map should look different from the rest, give it its own setting; otherwise leave it to follow the campaign's.
 
 Face and Hand are the map's sheet style: every title on the map left on Map letters itself in the map's face and is drawn in its hand, so one change restyles the whole sheet.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.](img/map-shapes.webp)
+
+*Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.*
+<!-- examples:end -->

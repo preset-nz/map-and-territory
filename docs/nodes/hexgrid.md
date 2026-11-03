@@ -4,6 +4,7 @@ node: hexgrid
 group: layer
 category: grid
 summary: The hex grid drawn over the map, and the grid every other layer is laid out on.
+thumbnail: img/hexgrid-thumb.webp
 ---
 
 # Hex Grid

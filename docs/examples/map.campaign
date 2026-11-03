@@ -1,0 +1,390 @@
+{
+  "rhizome": 1,
+  "nodes": [
+    {
+      "path": "/",
+      "id": "00000000000000000000000001",
+      "type": "root"
+    },
+    {
+      "path": "/campaign",
+      "id": "00000000000000000000000003",
+      "type": "category"
+    },
+    {
+      "path": "/campaign/campaign",
+      "id": "00000000000000000000000007",
+      "type": "campaign",
+      "values": {
+        "name": "Untitled Campaign"
+      },
+      "refs": {
+        "palette": {
+          "node": "00000000000000000000000008",
+          "path": "/themes/doom-forge"
+        }
+      }
+    },
+    {
+      "path": "/maps",
+      "id": "00000000000000000000000004",
+      "type": "category",
+      "orders": {
+        "maps": [
+          "00000000000000000000000009",
+          "0000000000000000000000000D",
+          "0000000000000000000000000H",
+          "0000000000000000000000000N"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map",
+      "id": "00000000000000000000000009",
+      "type": "map",
+      "values": {
+        "layout": "map-full",
+        "name": "Square"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000C"
+        ],
+        "layers": [
+          "0000000000000000000000000A",
+          "0000000000000000000000000B"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map/hexgrid",
+      "id": "0000000000000000000000000B",
+      "type": "hexgrid",
+      "values": {
+        "alpha": 0.45,
+        "size": 80.0
+      }
+    },
+    {
+      "path": "/maps/map/paper",
+      "id": "0000000000000000000000000A",
+      "type": "paper",
+      "values": {
+        "aspect": "square",
+        "color": [
+          0.8470588235294118,
+          0.788235294117647,
+          0.6588235294117647,
+          1.0
+        ],
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/maps/map/title",
+      "id": "0000000000000000000000000C",
+      "type": "title",
+      "values": {
+        "anchor": "top-left",
+        "name": "Title 01",
+        "title": "Square",
+        "titleSize": 72.0
+      }
+    },
+    {
+      "path": "/maps/map-2",
+      "id": "0000000000000000000000000D",
+      "type": "map",
+      "values": {
+        "layout": "map-full",
+        "name": "4:3"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000G"
+        ],
+        "layers": [
+          "0000000000000000000000000E",
+          "0000000000000000000000000F"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-2/hexgrid",
+      "id": "0000000000000000000000000F",
+      "type": "hexgrid",
+      "values": {
+        "alpha": 0.45,
+        "size": 80.0
+      }
+    },
+    {
+      "path": "/maps/map-2/paper",
+      "id": "0000000000000000000000000E",
+      "type": "paper",
+      "values": {
+        "aspect": "4:3",
+        "color": [
+          0.8470588235294118,
+          0.788235294117647,
+          0.6588235294117647,
+          1.0
+        ],
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/maps/map-2/title",
+      "id": "0000000000000000000000000G",
+      "type": "title",
+      "values": {
+        "anchor": "top-left",
+        "name": "Title 01",
+        "title": "4:3",
+        "titleSize": 72.0
+      }
+    },
+    {
+      "path": "/maps/map-3",
+      "id": "0000000000000000000000000H",
+      "type": "map",
+      "values": {
+        "layout": "map-full",
+        "name": "16:10"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000M"
+        ],
+        "layers": [
+          "0000000000000000000000000J",
+          "0000000000000000000000000K"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-3/hexgrid",
+      "id": "0000000000000000000000000K",
+      "type": "hexgrid",
+      "values": {
+        "alpha": 0.45,
+        "size": 80.0
+      }
+    },
+    {
+      "path": "/maps/map-3/paper",
+      "id": "0000000000000000000000000J",
+      "type": "paper",
+      "values": {
+        "aspect": "16:10",
+        "color": [
+          0.8470588235294118,
+          0.788235294117647,
+          0.6588235294117647,
+          1.0
+        ],
+        "orientation": "landscape"
+      }
+    },
+    {
+      "path": "/maps/map-3/title",
+      "id": "0000000000000000000000000M",
+      "type": "title",
+      "values": {
+        "anchor": "top-left",
+        "name": "Title 01",
+        "title": "16:10",
+        "titleSize": 72.0
+      }
+    },
+    {
+      "path": "/maps/map-4",
+      "id": "0000000000000000000000000N",
+      "type": "map",
+      "values": {
+        "layout": "map-full",
+        "name": "16:9 Portrait"
+      },
+      "orders": {
+        "furniture": [
+          "0000000000000000000000000R"
+        ],
+        "layers": [
+          "0000000000000000000000000P",
+          "0000000000000000000000000Q"
+        ]
+      }
+    },
+    {
+      "path": "/maps/map-4/hexgrid",
+      "id": "0000000000000000000000000Q",
+      "type": "hexgrid",
+      "values": {
+        "alpha": 0.45,
+        "size": 80.0
+      }
+    },
+    {
+      "path": "/maps/map-4/paper",
+      "id": "0000000000000000000000000P",
+      "type": "paper",
+      "values": {
+        "aspect": "16:9",
+        "color": [
+          0.8470588235294118,
+          0.788235294117647,
+          0.6588235294117647,
+          1.0
+        ],
+        "orientation": "portrait"
+      }
+    },
+    {
+      "path": "/maps/map-4/title",
+      "id": "0000000000000000000000000R",
+      "type": "title",
+      "values": {
+        "anchor": "top-left",
+        "name": "Title 01",
+        "title": "16:9 Portrait",
+        "titleSize": 72.0
+      }
+    },
+    {
+      "path": "/pages",
+      "id": "00000000000000000000000005",
+      "type": "category"
+    },
+    {
+      "path": "/presets",
+      "id": "00000000000000000000000002",
+      "type": "category"
+    },
+    {
+      "path": "/themes",
+      "id": "00000000000000000000000006",
+      "type": "category"
+    },
+    {
+      "path": "/themes/doom-forge",
+      "id": "00000000000000000000000008",
+      "type": "palette",
+      "values": {
+        "accent": [
+          0.047058823529411764,
+          0.047058823529411764,
+          0.047058823529411764,
+          1.0
+        ],
+        "background": [
+          0.9725490196078431,
+          0.9725490196078431,
+          1.0,
+          1.0
+        ],
+        "description": "Apocalyptic metal and dying embers",
+        "gridLine": [
+          0.2,
+          0.2,
+          0.2,
+          1.0
+        ],
+        "name": "Doom Forge",
+        "primary": [
+          1.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "secondary": [
+          1.0,
+          0.0784313725490196,
+          0.5764705882352941,
+          1.0
+        ],
+        "terrains": [
+          {
+            "baseType": "water",
+            "colour": [
+              0.5450980392156862,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "description": "Stagnant pools of corrupted water",
+            "id": "blood-mires",
+            "name": "Blood Mires",
+            "traits": [
+              "corrupted",
+              "local"
+            ]
+          },
+          {
+            "baseType": "plains",
+            "colour": [
+              0.8470588235294118,
+              0.8470588235294118,
+              0.8470588235294118,
+              1.0
+            ],
+            "description": "Vast plains littered with ancient bones",
+            "id": "bone-fields",
+            "name": "Bone Fields",
+            "traits": [
+              "ruined",
+              "sprawling"
+            ]
+          },
+          {
+            "baseType": "forest",
+            "colour": [
+              0.4117647058823529,
+              0.4117647058823529,
+              0.4117647058823529,
+              1.0
+            ],
+            "description": "Skeletal trees in perpetual smolder",
+            "id": "ash-thickets",
+            "name": "Ash Thickets",
+            "traits": [
+              "burning",
+              "sparse"
+            ]
+          },
+          {
+            "baseType": "hills",
+            "colour": [
+              0.047058823529411764,
+              0.047058823529411764,
+              0.047058823529411764,
+              1.0
+            ],
+            "description": "Hills of twisted metal and machinery",
+            "id": "iron-graves",
+            "name": "Iron Graves",
+            "traits": [
+              "artificial",
+              "ruined"
+            ]
+          },
+          {
+            "baseType": "mountains",
+            "colour": [
+              1.0,
+              1.0,
+              0.0,
+              1.0
+            ],
+            "description": "Jagged peaks wreathed in flame",
+            "id": "doom-crags",
+            "name": "Doom Crags",
+            "traits": [
+              "unstable",
+              "burning"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

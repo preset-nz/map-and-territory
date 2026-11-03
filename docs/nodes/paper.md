@@ -4,6 +4,7 @@ node: paper
 group: layer
 category: background
 summary: "The sheet the map is drawn on: a flat colour at the bottom of every map."
+thumbnail: img/paper-thumb.webp
 ---
 
 # Paper
@@ -30,3 +31,15 @@ Paper is the bottom layer of every map. It's one flat colour that fills the shee
 Pick a colour that suits the look you want, such as an off-white for a parchment feel. Aspect sets the shape of the sheet: square, 4:3 or 16:10. The sheet is always 1200 pixels on its long side, whatever the window, so a larger window shows the same map larger rather than more of it.
 
 An image can go over the colour: choose a Texture, such as a scan of old paper. Mix with paper says how it sits on the colour. Multiply lets the colour show through the light parts of the image, so a white scan takes on the paper colour. Image only shows the image as it is. Texture fit sets how it fills the sheet: cover fills it and crops the edges, fit keeps the whole image inside, and repeat tiles it. Texture scale makes the image larger or smaller. The campaign stores the image's path, not the image, so keep the file where it is. If the file goes missing, the paper shows just its colour until it comes back.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Colour set to #e9ece4, #d8c9a8 and #2b2a28.](img/paper-colours.webp)
+
+*Colour set to #e9ece4, #d8c9a8 and #2b2a28.*
+
+![Colour #d8c9a8 with a Texture of a lace-and-grime scan, Mix with paper Multiply and Texture fit Cover.](img/paper-texture.webp)
+
+*Colour #d8c9a8 with a Texture of a lace-and-grime scan, Mix with paper Multiply and Texture fit Cover.*
+<!-- examples:end -->

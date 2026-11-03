@@ -8,7 +8,9 @@ title: Map & Territory nodes
 
 ## Background
 
-- [Paper](paper.md): The sheet the map is drawn on: a flat colour at the bottom of every map.
+| | Node | What it does |
+|---|---|---|
+| ![Paper](img/paper-thumb.webp) | [Paper](paper.md) | The sheet the map is drawn on: a flat colour at the bottom of every map. |
 
 ## Colour
 
@@ -16,30 +18,42 @@ title: Map & Territory nodes
 
 ## Document
 
-- [Campaign](campaign.md): The whole document: its maps, its settings and the notes that go with them.
-- [Map](map.md): One hexmap in the campaign: a paper, a hex grid and the layers between them.
-- [Page](page.md): One page of a booklet: the cover, the back, or a page between that may show a map.
+| | Node | What it does |
+|---|---|---|
+|  | [Campaign](campaign.md) | The whole document: its maps, its settings and the notes that go with them. |
+| ![Map](img/map-thumb.webp) | [Map](map.md) | One hexmap in the campaign: a paper, a hex grid and the layers between them. |
+|  | [Page](page.md) | One page of a booklet: the cover, the back, or a page between that may show a map. |
 
 ## Furniture
 
-- [Compass](compass.md): A compass that shows where north is, printed over the grid.
-- [Title](title.md): The map's title in a box, with an optional subtitle and credit line, printed over the grid.
+| | Node | What it does |
+|---|---|---|
+| ![Compass](img/compass-thumb.webp) | [Compass](compass.md) | A compass that shows where north is, printed over the grid. |
+| ![Title](img/title-thumb.webp) | [Title](title.md) | The map's title in a box, with an optional subtitle and credit line, printed over the grid. |
 
 ## Generator
 
-- [Hex Noise](hex-noise.md): Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour.
+| | Node | What it does |
+|---|---|---|
+| ![Hex Noise](img/hex-noise-thumb.webp) | [Hex Noise](hex-noise.md) | Fills hexes from smooth noise, as greys to shape a landmass or as terrain colour. |
 
 ## Grid
 
-- [Hex Grid](hexgrid.md): The hex grid drawn over the map, and the grid every other layer is laid out on.
+| | Node | What it does |
+|---|---|---|
+| ![Hex Grid](img/hexgrid-thumb.webp) | [Hex Grid](hexgrid.md) | The hex grid drawn over the map, and the grid every other layer is laid out on. |
 
 ## Lines
 
-- [Outline](outline.md): Lines drawn along hex edges, for coasts, borders and roads.
+| | Node | What it does |
+|---|---|---|
+| ![Outline](img/outline-thumb.webp) | [Outline](outline.md) | Lines drawn along hex edges, for coasts, borders and roads. |
 
 ## Markers
 
-- [Locations](locations.md): Named places on the map, numbered for the key: keeps, wells, fords, lairs.
+| | Node | What it does |
+|---|---|---|
+| ![Locations](img/locations-thumb.webp) | [Locations](locations.md) | Named places on the map, numbered for the key: keeps, wells, fords, lairs. |
 
 ## Object
 
@@ -47,5 +61,7 @@ title: Map & Territory nodes
 
 ## Painting
 
-- [Freeform](freeform.md): Hexes you paint by hand, each filled with a terrain from the setting.
-- [Image](image.md): A picture from a file laid over the map, for stains, paper grain or a scanned drawing.
+| | Node | What it does |
+|---|---|---|
+| ![Freeform](img/freeform-thumb.webp) | [Freeform](freeform.md) | Hexes you paint by hand, each filled with a terrain from the setting. |
+| ![Image](img/image-thumb.webp) | [Image](image.md) | A picture from a file laid over the map, for stains, paper grain or a scanned drawing. |

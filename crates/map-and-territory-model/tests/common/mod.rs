@@ -53,3 +53,52 @@ pub fn check_or_write_at(path: &Path, write: bool, text: &str, how: &str) {
         path.display()
     );
 }
+
+/// The Sallow Fen's drawing: 19 by 13 hexes, pointy-top, odd rows shifted right.
+pub const COLS: i64 = 19;
+pub const ROWS: i64 = 13;
+/// The drawing's centre hex, which the app puts at the middle of the paper. An even row, so
+/// the odd-row shift carries over.
+pub const C0: i64 = COLS / 2;
+pub const R0: i64 = (ROWS / 2) & !1;
+
+/// The examples page's terrain field: which Doom Forge terrain a drawing point holds. A cell
+/// holds a terrain's base type, as the brush paints it, and the palette colours it: water is
+/// Blood Mires, plains Bone Fields, forest Ash Thickets, hills Iron Graves, mountains Doom Crags.
+pub fn terrain_at(x: f64, y: f64) -> &'static str {
+    let v = (x * 0.011).sin() + (y * 0.016).cos() + 0.6 * ((x - y) * 0.006).sin();
+    if v < -1.1 {
+        "water"
+    } else if v < 0.3 {
+        "plains"
+    } else if v < 1.0 {
+        "forest"
+    } else if v < 1.6 {
+        "hills"
+    } else {
+        "mountains"
+    }
+}
+
+/// A drawing hex (column, row) as the app's axial hex.
+pub fn axial(col: i64, row: i64) -> (i64, i64) {
+    let (c, r) = (col - C0, row - R0);
+    (c - (r - (r & 1)) / 2, r)
+}
+
+/// The painted hexes of the drawing, the border hex on every side included: `freeform.paint`'s
+/// cells, each the terrain `terrain_at` gives at its centre (radius 24, so a step of √3 × 24).
+pub fn terrain_cells() -> Vec<serde_json::Value> {
+    const RADIUS: f64 = 24.0;
+    const STEP: f64 = 41.569_219_381_653_05;
+    let mut cells = Vec::new();
+    for row in -1..=ROWS {
+        for col in -1..=COLS {
+            let x = col as f64 * STEP + if row % 2 != 0 { STEP / 2.0 } else { 0.0 };
+            let y = row as f64 * 1.5 * RADIUS;
+            let (q, r) = axial(col, row);
+            cells.push(serde_json::json!({ "q": q, "r": r, "terrainId": terrain_at(x, y) }));
+        }
+    }
+    cells
+}

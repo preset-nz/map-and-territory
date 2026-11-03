@@ -4,6 +4,7 @@ node: freeform
 group: layer
 category: painting
 summary: Hexes you paint by hand, each filled with a terrain from the setting.
+thumbnail: img/freeform-thumb.webp
 ---
 
 # Freeform
@@ -38,3 +39,15 @@ Add one from the Layer menu, then use the Paint, Erase and Fill tools (keys 1, 2
 Texture fill shows an image through the painted hexes. Set Render mode to Texture fill, then choose the image in Texture: type or paste a path, pick from the list of recent ones, use the browse button, or drop the file from the Finder onto the field. The layer keeps the path as you wrote it; a relative path is found from the folder the campaign is saved in. PNG, JPEG and WebP work, up to 16 MB and 4096 pixels on a side. The Texture controls stay greyed out while the layer paints.
 
 If the image has moved or been renamed, the field says Missing and the layer draws no texture. Put the file back and return to the window, and the texture comes back without reopening the campaign.
+
+## Examples
+
+<!-- examples:begin — `just examples` rewrites this block; write outside it -->
+![Painted hexes at Opacity 0.6: each takes the colour of its terrain.](img/freeform-paint.webp)
+
+*Painted hexes at Opacity 0.6: each takes the colour of its terrain.*
+
+![Render mode set to Texture fill, with a Texture of teal lace: it shows through every hex but the plains.](img/freeform-texture.webp)
+
+*Render mode set to Texture fill, with a Texture of teal lace: it shows through every hex but the plains.*
+<!-- examples:end -->

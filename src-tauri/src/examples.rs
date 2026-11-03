@@ -18,7 +18,7 @@ use tauri::{AppHandle, Runtime};
 pub struct Job {
     campaign: PathBuf,
     out: PathBuf,
-    /// The manifest's entries for this campaign's page: `{page, map, image, caption, crop?}`.
+    /// The manifest's entries for this campaign's page: `{page, map | maps, image, caption, crop?, cut?, thumb?}`.
     entries: Vec<Json>,
 }
 

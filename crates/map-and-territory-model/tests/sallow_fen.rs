@@ -18,6 +18,7 @@ mod common;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
+use common::{axial, terrain_cells, C0, COLS, R0, ROWS};
 use map_and_territory_model::MapAndTerritory;
 use rhizome_core::IdSource;
 use rhizome_pom::{Document, FileStore, MemoryStore};
@@ -29,40 +30,10 @@ type Doc = Document<MapAndTerritory>;
 /// 456 px (its PNG is drawn at twice that).
 const RADIUS: f64 = 24.0;
 const STEP: f64 = 41.569_219_381_653_05; // √3 × 24
-const COLS: i64 = 19;
-const ROWS: i64 = 13;
 const WIDTH: f64 = 760.0;
 const HEIGHT: f64 = 456.0;
-/// The drawing's centre hex, which the app puts at the middle of the paper. An even row, so
-/// the odd-row shift carries over.
-const C0: i64 = COLS / 2;
-const R0: i64 = (ROWS / 2) & !1;
 /// The app's paper is 1200 px wide; at this size the drawing's 760 px fit across it.
 const GRID_SIZE: f64 = 38.0;
-
-/// The examples page's terrain field: which Doom Forge terrain a drawing point holds. A cell
-/// holds a terrain's base type, as the brush paints it, and the palette colours it: water is
-/// Blood Mires, plains Bone Fields, forest Ash Thickets, hills Iron Graves, mountains Doom Crags.
-fn terrain_at(x: f64, y: f64) -> &'static str {
-    let v = (x * 0.011).sin() + (y * 0.016).cos() + 0.6 * ((x - y) * 0.006).sin();
-    if v < -1.1 {
-        "water"
-    } else if v < 0.3 {
-        "plains"
-    } else if v < 1.0 {
-        "forest"
-    } else if v < 1.6 {
-        "hills"
-    } else {
-        "mountains"
-    }
-}
-
-/// A drawing hex (column, row) as the app's axial hex.
-fn axial(col: i64, row: i64) -> (i64, i64) {
-    let (c, r) = (col - C0, row - R0);
-    (c - (r - (r & 1)) / 2, r)
-}
 
 /// An axial hex's centre in drawing px.
 fn centre(q: i64, r: i64) -> (f64, f64) {
@@ -275,15 +246,7 @@ fn build(d: &mut Doc) {
     // over the paper at about 0.55, so the layer does too.
     let terrain = layer(d, &m, "freeform", "Terrain");
     set(d, &terrain, "opacity", json!(0.6));
-    let mut cells = Vec::new();
-    for row in -1..=ROWS {
-        for col in -1..=COLS {
-            let x = col as f64 * STEP + if row % 2 != 0 { STEP / 2.0 } else { 0.0 };
-            let y = row as f64 * 1.5 * RADIUS;
-            let (q, r) = axial(col, row);
-            cells.push(json!({ "q": q, "r": r, "terrainId": terrain_at(x, y) }));
-        }
-    }
+    let cells = terrain_cells();
     run(
         d,
         "freeform.paint",

@@ -7,7 +7,12 @@
     },
     "image": "compass-styles",
     "map": "Styles",
-    "page": "compass"
+    "page": "compass",
+    "thumb": {
+      "w": 0.15,
+      "x": 0.8375,
+      "y": 0.7467
+    }
   },
   {
     "caption": "Two Roses: North at 0 on the left, and at 40 on the right. The points turn clockwise and the labels stay upright.",
@@ -41,7 +46,12 @@
     },
     "image": "title-frames",
     "map": "Frames",
-    "page": "title"
+    "page": "title",
+    "thumb": {
+      "w": 0.22,
+      "x": 0.7775,
+      "y": 0.648
+    }
   },
   {
     "caption": "Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.",
@@ -63,6 +73,130 @@
     "caption": "Line width 2, Misregistration 3, Corner jitter 2, Width noise 0.6 and Ink noise 0.4: a grid inked by hand.",
     "image": "hexgrid-rough",
     "map": "Rough",
-    "page": "hexgrid"
+    "page": "hexgrid",
+    "thumb": {
+      "w": 0.3,
+      "x": 0.35,
+      "y": 0.2
+    }
+  },
+  {
+    "caption": "Colour set to #e9ece4, #d8c9a8 and #2b2a28.",
+    "crop": {
+      "h": 0.5,
+      "w": 0.5,
+      "x": 0.25,
+      "y": 0.25
+    },
+    "image": "paper-colours",
+    "maps": ["Pale", "Parchment", "Dark"],
+    "page": "paper"
+  },
+  {
+    "caption": "Colour #d8c9a8 with a Texture of a lace-and-grime scan, Mix with paper Multiply and Texture fit Cover.",
+    "image": "paper-texture",
+    "map": "Texture",
+    "page": "paper",
+    "thumb": {
+      "w": 0.4,
+      "x": 0.3,
+      "y": 0.2
+    }
+  },
+  {
+    "caption": "Mode set to Shape, Frequency 0.15 and Minimum 0.45: a grey landmass.",
+    "image": "hex-noise-shape",
+    "map": "Shape",
+    "page": "hex-noise",
+    "thumb": {
+      "w": 0.4,
+      "x": 0.3,
+      "y": 0.2
+    }
+  },
+  {
+    "caption": "A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.",
+    "image": "hex-noise-paint",
+    "map": "Paint",
+    "page": "hex-noise"
+  },
+  {
+    "caption": "Painted hexes at Opacity 0.6: each takes the colour of its terrain.",
+    "image": "freeform-paint",
+    "map": "Paint",
+    "page": "freeform",
+    "thumb": {
+      "w": 0.4,
+      "x": 0.3,
+      "y": 0.2
+    }
+  },
+  {
+    "caption": "Render mode set to Texture fill, with a Texture of teal lace: it shows through every hex but the plains.",
+    "image": "freeform-texture",
+    "map": "Texture",
+    "page": "freeform"
+  },
+  {
+    "caption": "Three layers with Stroke pattern Solid, Dashed and Dotted, Stroke width 3; the Dotted one also at Roughness 1.",
+    "image": "outline-patterns",
+    "map": "Patterns",
+    "page": "outline",
+    "thumb": {
+      "w": 0.4,
+      "x": 0.3,
+      "y": 0.08
+    }
+  },
+  {
+    "caption": "An Image of an ink-splat scan with Blend set to Multiply, over painted terrain: the ink stains the map.",
+    "image": "image-stain",
+    "map": "Stain",
+    "page": "image",
+    "thumb": {
+      "w": 0.4,
+      "x": 0.3,
+      "y": 0.2
+    }
+  },
+  {
+    "caption": "Three layers with Marker set to Number, Dot and None, each with three places.",
+    "crop": {
+      "h": 0.4,
+      "w": 0.8,
+      "x": 0.1,
+      "y": 0.3
+    },
+    "image": "locations-markers",
+    "map": "Markers",
+    "page": "locations",
+    "thumb": {
+      "w": 0.4,
+      "x": 0.25,
+      "y": 0.22
+    }
+  },
+  {
+    "caption": "Name style set to Plain, Outline, Glow and Label, over painted forest.",
+    "crop": {
+      "h": 0.4,
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.3
+    },
+    "image": "locations-names",
+    "map": "Names",
+    "page": "locations"
+  },
+  {
+    "caption": "Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.",
+    "image": "map-shapes",
+    "maps": ["Square", "4:3", "16:10", "16:9 Portrait"],
+    "page": "map",
+    "thumb": {
+      "w": 0.6,
+      "x": 0.0,
+      "y": 0.0
+    }
   }
 ]
