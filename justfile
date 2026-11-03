@@ -132,6 +132,9 @@ package: build
     set -euo pipefail
     product=$(node -p "require('./src-tauri/tauri.conf.json').productName")
     version=$(node -p "require('./package.json').version")
+    # GitHub turns spaces in an asset's name into dots, which breaks SHA256SUMS
+    # and Proforma's pattern: the zip is Map-and-Territory-v<version>.zip.
+    zip="$(echo "$product" | sed 's/ & /-and-/g; s/ /-/g')-v${version}.zip"
     outdir="dist-friends-build"
     rm -rf "$outdir"
     mkdir -p "$outdir"
@@ -143,12 +146,12 @@ package: build
     # ditto, not zip, for the .app: plain zip drops the metadata the
     # signature depends on, which is another way to get "app is damaged".
     (cd "$outdir" && \
-        ditto -c -k --keepParent "${product}.app" "${product}-v${version}.zip" && \
-        zip -q "${product}-v${version}.zip" README.txt LICENSE THIRD-PARTY-NOTICES.txt)
+        ditto -c -k --keepParent "${product}.app" "$zip" && \
+        zip -q "$zip" README.txt LICENSE THIRD-PARTY-NOTICES.txt)
     # A SHA-256 beside the zip, so a download can be checked against the
     # sum published on the app page. Family requirement, 2026-11-03.
-    (cd "$outdir" && shasum -a 256 "${product}-v${version}.zip" > SHA256SUMS)
-    echo "Packaged: $outdir/${product}-v${version}.zip (sum in $outdir/SHA256SUMS)"
+    (cd "$outdir" && shasum -a 256 "$zip" > SHA256SUMS)
+    echo "Packaged: $outdir/$zip (sum in $outdir/SHA256SUMS)"
 
 # `release` runs it first.
 # Every dependency update the lockfiles' ranges allow, and a licence rescan
