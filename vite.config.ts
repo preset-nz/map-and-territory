@@ -36,7 +36,8 @@ export default defineConfig({
     host: host || false,
     hmr: host ? { protocol: 'ws', host, port: 1481 } : undefined,
     watch: {
-      ignored: ['**/src-tauri/**'],
+      // docs/ and crates/ change under `just examples` and `just docs`; neither is the webview's
+      ignored: ['**/src-tauri/**', '**/docs/**', '**/crates/**', '**/target/**'],
     },
   },
 });

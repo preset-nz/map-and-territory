@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("./");
 /* @preset.nz packages ship unbuilt source into node_modules, which Tailwind
    never scans on its own. Without these lines their classes are missing from the build. */
 @source "../node_modules/@preset.nz/ux-kit/src";
