@@ -107,12 +107,69 @@ licences:
 
 [group('build')]
 build:
+    #!/usr/bin/env bash
+    set -euo pipefail
     pnpm tauri build
+    # Reseal the ad-hoc signature over the whole bundle. Oblique found
+    # tauri-bundler's signature can fail `codesign --verify`, which a
+    # downloaded copy shows as "app is damaged" (Oblique Epic 14).
+    product=$(node -p "require('./src-tauri/tauri.conf.json').productName")
+    app="target/release/bundle/macos/${product}.app"
+    # Finder draws a .campaign file with the app's icon only when the document
+    # type names an icon file, and Tauri's fileAssociations has no field for
+    # one. A partial src-tauri/Info.plist would replace the declarations
+    # rather than merge into them, so the keys go in here, before the reseal.
+    plist="$app/Contents/Info.plist"
+    plutil -replace 'CFBundleDocumentTypes.0.CFBundleTypeIconFile' -string icon.icns "$plist"
+    plutil -replace 'UTExportedTypeDeclarations.0.UTTypeIconFile' -string icon.icns "$plist"
+    codesign --deep --force --sign - "$app"
 
-# Version, changelog, commit and tag from the conventional commits since the last
-# tag (knope.toml). Pushing stays by hand.
+# Shard's recipe.
+# The download: the .app, README, LICENSE and third-party notices, zipped, with its SHA-256
+[group('build')]
+package: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    product=$(node -p "require('./src-tauri/tauri.conf.json').productName")
+    version=$(node -p "require('./package.json').version")
+    outdir="dist-friends-build"
+    rm -rf "$outdir"
+    mkdir -p "$outdir"
+    cp -R "target/release/bundle/macos/${product}.app" "$outdir/"
+    sed "s/{{"{{"}}PRODUCT_NAME{{"}}"}}/${product}/g" packaging/friends-build-README.txt > "$outdir/README.txt"
+    cp LICENSE "$outdir/"
+    # Every shipped package's licence text, from the licence lock.
+    preset-compliance notices --title "${product}: third-party notices" --out "$outdir/THIRD-PARTY-NOTICES.txt"
+    # ditto, not zip, for the .app: plain zip drops the metadata the
+    # signature depends on, which is another way to get "app is damaged".
+    (cd "$outdir" && \
+        ditto -c -k --keepParent "${product}.app" "${product}-v${version}.zip" && \
+        zip -q "${product}-v${version}.zip" README.txt LICENSE THIRD-PARTY-NOTICES.txt)
+    # A SHA-256 beside the zip, so a download can be checked against the
+    # sum published on the app page. Family requirement, 2026-11-03.
+    (cd "$outdir" && shasum -a 256 "${product}-v${version}.zip" > SHA256SUMS)
+    echo "Packaged: $outdir/${product}-v${version}.zip (sum in $outdir/SHA256SUMS)"
+
+# `release` runs it first.
+# Every dependency update the lockfiles' ranges allow, and a licence rescan
+[group('build')]
+update:
+    pnpm update --no-save
+    cargo update
+    preset-compliance licences scan
+
+# Runs `update` first, and stops if that moved anything. Pushing stays by hand.
+# Version, changelog, commit and tag from the conventional commits since the last tag (knope.toml)
 [group('build')]
 release:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just update
+    if [ -n "$(git status --porcelain)" ]; then
+        git status --short
+        echo 'Release stopped: commit the dependency updates first (just check, then chore(deps)).' >&2
+        exit 1
+    fi
     knope release
 
 # What `release` would do, without touching anything.

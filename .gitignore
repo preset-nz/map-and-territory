@@ -21,6 +21,7 @@ node_modules/
 out/
 build/
 dist/
+/dist-friends-build/
 
 # Testing and coverage
 coverage/
