@@ -347,6 +347,7 @@ class Demo:
         self.size = 24.0  # the map's Hex size, as far as the mapping knows
         self.fen = Fen()
         self.tool = "Select"
+        self.terrain = None
 
     # -- tree ----------------------------------------------------------------------------------
 
@@ -637,7 +638,8 @@ class Demo:
         self.island(*first, ms=140, pace=True)
         hold(1.5)
         with self.take.wait("Painting the fen"):
-            for island in rest:
+            # one terrain after another, so each swatch is picked once
+            for island in sorted(rest, key=lambda i: list(SWATCH).index(i[0]) - (i[0] == first[0]) * 9):
                 self.island(*island, ms=70)
         if self.tool != "Paint":
             self.tool_key(18, "1", "Paint")
@@ -646,7 +648,9 @@ class Demo:
     def island(self, terrain, cells, inner, ms: int, pace: bool = False) -> None:
         """The island in one flowing stroke (or one per separate part); with an inside, only its
         rim, then one Fill click inside it."""
-        self.swatch(SWATCH[terrain])
+        if self.terrain != terrain:  # a swatch already picked stays picked
+            self.swatch(SWATCH[terrain])
+            self.terrain = terrain
         if self.tool != "Paint":
             self.tool_key(18, "1", "Paint")
         filled = inner if len(inner) >= 2 else set()
