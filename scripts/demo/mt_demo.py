@@ -46,6 +46,10 @@ from demokit.take import Take  # noqa: E402
 from demokit.tools import Tools  # noqa: E402
 
 BIN = DEMOKIT.parent / "target" / "demo"
+# ui's pace (demo-kit ui.swift): a quicker glide to each control and quicker typing than its
+# defaults, for a take of about two minutes (Georg, 2026-11-04)
+os.environ.setdefault("DEMO_GLIDE_MS", "260")
+os.environ.setdefault("DEMO_TYPE_MS", "28")
 PROCESS = "map-and-territory"
 BUNDLE_ID = "nz.preset.map-and-territory"
 BUNDLE = ROOT / "target" / "release" / "bundle" / "macos" / "Map & Territory.app"
@@ -53,7 +57,7 @@ RENDERS = pathlib.Path.home() / "rhizomatic-preset" / "renders"
 DESKTOP = pathlib.Path.home() / "Desktop" / "Claude" / "m-and-t-demo"
 PLATE = "436d75"  # the app's accent: studio-site's .accent--map-territory
 
-HOLD = 1.0  # scales every hold that paces the video; --rehearse shortens it
+HOLD = 0.4  # scales every hold that paces the video; --rehearse shortens it
 
 # -- the map ---------------------------------------------------------------------------------
 # The take rebuilds the guide's Sallow Fen by hand: the map is read from its fixture, the
@@ -236,10 +240,17 @@ def turns(corners) -> list:
 NOTES = {
     "Reedwall Keep": "Bishop's men, twelve spears",
     "The Weeping Well": "Water that tastes of salt",
-    "Gallows Ford": "Knee-deep at low water",
+    "Gallows Ford": "Knee-deep in spring",  # Georg's, in his tweak of the take
 }
 # The compass turned, as for a map drawn at an angle (Georg, 2026-11-04).
 COMPASS_NORTH = 18
+
+
+# A faint print over the terrain (Georg's tweak of the take, 2026-11-04): his urchin drawing,
+# kept outside the repo, on an image layer at Blend Multiply.
+TEXTURE = RENDERS / "mt-demo-urchin.jpeg"
+TEXTURE_OPACITY = 0.17
+TEXTURE_SCALE = 1.65
 
 
 # Hexes near the paper's four corners, for the mapping check (at Hex size 38).
@@ -673,6 +684,22 @@ class Demo:
             self.click_hex(*inside)
             hold(1 if pace else 0.2)
 
+    def step_04b_texture(self) -> None:
+        """An image layer on the paper, before the terrain: the freeform layer added next lands
+        above it, so the print shows only on bare paper (Georg, 2026-11-04)."""
+        self.take.chapter("A texture on the paper")
+        self.menu("Layer", "Add Image Layer")
+        poll("the Image row", lambda: self.scene_row("Image"))
+        hold(0.6)
+        self.set_text("Name", "Texture")
+        self.tools.click("Choose File…")
+        self.tools.open_panel(TEXTURE)
+        poll("the texture on the layer", lambda: self.find(TEXTURE.name), timeout=20)
+        self.choose("Blend", "Multiply")
+        self.slide("Opacity", TEXTURE_OPACITY)
+        self.slide("Scale", (TEXTURE_SCALE - 0.05) / 7.95)  # 0.05..8
+        hold(1.5)
+
     def step_05_grid(self) -> None:
         """The grid inked by hand, at the fixture's values."""
         self.take.chapter("The grid")
@@ -693,26 +720,31 @@ class Demo:
         """The Edge of the Fen and the Old Road, corner by corner with the Outline tool."""
         self.take.chapter("Edges")
         for n, o in enumerate(self.fen.outlines):
-            self.menu("Layer", "Add Outline Layer")
-            poll("the new Outline row", lambda: self.count_rows("Outline") >= n + 1)
-            hold(0.6)
-            self.set_text("Name", o["name"])
-            if o.get("strokeColor"):
-                self.set_text("Hex", hex_colour(o["strokeColor"]))
-            self.slide("Stroke width", (o.get("strokeWidth", 4) - 1) / 11)  # 1..12
-            if o.get("strokePattern"):
-                self.choose("Stroke pattern", o["strokePattern"].capitalize())
-            self.tool_key(23, "5", "Outline")
-            self.fit()
-            # the fixture's lines run past the paper's edge; a click there misses the map
-            on = [c for c in o["paths"][0]["corners"] if self.on_paper(c["q"], c["r"], c["corner"])]
-            clicks = turns(on)
-            for c in clicks:
-                self.tools.ui("click", *self.corner_xy(*c))
-                hold(0.35)
-            # the last corner again ends the path
-            self.tools.ui("click", *self.corner_xy(*clicks[-1]))
+            # the first line at a viewer's pace; the second, the same moves again, sped up
+            with self.take.wait(f"Drawing the {o['name'].removeprefix('The ')}") if n else _nothing():
+                self.outline(n, o)
             hold(1.5)
+
+    def outline(self, n: int, o: dict) -> None:
+        self.menu("Layer", "Add Outline Layer")
+        poll("the new Outline row", lambda: self.count_rows("Outline") >= n + 1)
+        hold(0.6)
+        self.set_text("Name", o["name"])
+        if o.get("strokeColor"):
+            self.set_text("Hex", hex_colour(o["strokeColor"]))
+        self.slide("Stroke width", (o.get("strokeWidth", 4) - 1) / 11)  # 1..12
+        if o.get("strokePattern"):
+            self.choose("Stroke pattern", o["strokePattern"].capitalize())
+        self.tool_key(23, "5", "Outline")
+        self.fit()
+        # the fixture's lines run past the paper's edge; a click there misses the map
+        on = [c for c in o["paths"][0]["corners"] if self.on_paper(c["q"], c["r"], c["corner"])]
+        clicks = turns(on)
+        for c in clicks:
+            self.tools.ui("click", *self.corner_xy(*c))
+            hold(0.35)
+        # the last corner again ends the path
+        self.tools.ui("click", *self.corner_xy(*clicks[-1]))
 
     def step_07_title_compass(self) -> None:
         self.take.chapter("Title and compass")
@@ -847,6 +879,7 @@ def run_steps(demo: Demo, pdf: pathlib.Path, png: pathlib.Path) -> float:
     demo.step_01_untitled()
     demo.step_02_new_map()
     demo.step_03_rename()
+    demo.step_04b_texture()
     demo.step_04_terrain()
     demo.step_05_grid()
     demo.step_06_outlines()
@@ -880,6 +913,8 @@ def main() -> None:
         finish(out, take, title, description, png)
         return
 
+    if not TEXTURE.exists():
+        raise SystemExit(f"the take's texture isn't at {TEXTURE}")
     if not (BIN / "ax").exists():
         raise SystemExit(f"{BIN} has no tools: run `just demo` (it builds them) or `just -f ../../packages/demo-kit/justfile build`")
     if running() and not a.kill:
