@@ -179,3 +179,9 @@ release:
 [group('build')]
 release-preview:
     knope release --dry-run
+
+# Records the demo video from the release bundle (takes the screen and pointer): --rehearse, --recut, --kill, --dev, --build
+[group('demo')]
+demo *args:
+    just -f ../../packages/demo-kit/justfile build
+    python3 scripts/demo/mt_demo.py {{args}}
