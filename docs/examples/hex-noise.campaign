@@ -117,11 +117,12 @@
       "id": "0000000000000000000000000H",
       "type": "hex-noise",
       "values": {
-        "frequency": 0.15,
-        "min": 0.45,
+        "frequency": 0.25,
+        "min": 0.55,
         "mode": "paint",
         "name": "Forest",
         "opacity": 0.5,
+        "seed": "forest",
         "terrain": "blood-mires"
       }
     },

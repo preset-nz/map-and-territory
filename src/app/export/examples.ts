@@ -7,6 +7,7 @@
 import type { RowSource } from '../scene/frame';
 import { type ExamplesJob, examplesDone, examplesJob, examplesWrite, exportSheet } from './native';
 import { exportCampaignMaps, mapExporter } from './render';
+import { layoutRows } from './rows';
 
 /** The width every example is drawn at. */
 export const EXAMPLE_WIDTH = 1200;
@@ -54,7 +55,15 @@ function context(c: OffscreenCanvas): OffscreenCanvasRenderingContext2D {
   return ctx;
 }
 
-type Piece = { source: OffscreenCanvas; x: number; y: number; w: number; h: number };
+type Piece = {
+  source: OffscreenCanvas;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** The long side of the whole exported map this piece is part of. */
+  long: number;
+};
 
 /** `png` with `entry.cut` taken out, and the part of it `entry.crop` (fractions) keeps. */
 async function cropped(png: ArrayBuffer, entry: Entry): Promise<Piece> {
@@ -71,6 +80,7 @@ async function cropped(png: ArrayBuffer, entry: Entry): Promise<Piece> {
     jctx.drawImage(bitmap, 0, b.y, bitmap.width, b.h, 0, at, bitmap.width, b.h);
     at += b.h;
   }
+  const long = Math.max(bitmap.width, bitmap.height);
   bitmap.close();
   const c = entry.crop ?? { x: 0, y: 0, w: 1, h: 1 };
   return {
@@ -79,6 +89,7 @@ async function cropped(png: ArrayBuffer, entry: Entry): Promise<Piece> {
     y: Math.round(c.y * joined.height),
     w: Math.round(c.w * joined.width),
     h: Math.round(c.h * joined.height),
+    long,
   };
 }
 
@@ -100,6 +111,25 @@ function row(pieces: Piece[]): OffscreenCanvas {
   return out;
 }
 
+/** The rows of pieces laid out by `layoutRows`. The page puts each map at its own print scale,
+ * so a portrait sheet exports larger than a landscape one; each piece is scaled so its whole
+ * map's long side is EXAMPLE_WIDTH, which is one hex scale throughout (every map's paper has
+ * the same long side in paper px). */
+function gridPiece(grid: Piece[][]): Piece {
+  const fit = (p: Piece) => EXAMPLE_WIDTH / p.long;
+  const { width, height, placed } = layoutRows(
+    grid.map((r) => r.map((p) => ({ w: Math.round(p.w * fit(p)), h: Math.round(p.h * fit(p)) }))),
+    GAP,
+  );
+  const out = new OffscreenCanvas(width, height);
+  const ctx = context(out);
+  for (const p of placed) {
+    const piece = (grid[p.row] as Piece[])[p.col] as Piece;
+    ctx.drawImage(piece.source, piece.x, piece.y, piece.w, piece.h, p.x, p.y, p.w, p.h);
+  }
+  return { source: out, x: 0, y: 0, w: width, h: height, long: width };
+}
+
 async function png(canvas: OffscreenCanvas): Promise<Uint8Array> {
   const blob = await canvas.convertToBlob({ type: 'image/png' });
   return new Uint8Array(await blob.arrayBuffer());
@@ -107,9 +137,9 @@ async function png(canvas: OffscreenCanvas): Promise<Uint8Array> {
 
 /** The piece, or the row of them, scaled to EXAMPLE_WIDTH wide. One piece is drawn straight
  * from its source, in one resample. */
-function scaled(pieces: Piece[]): OffscreenCanvas {
+function scaled(pieces: Piece[], whole?: Piece): OffscreenCanvas {
   const [only] = pieces;
-  const piece: Piece = only && pieces.length === 1 ? only : rowPiece(pieces);
+  const piece: Piece = whole ?? (only && pieces.length === 1 ? only : rowPiece(pieces));
   const canvas = new OffscreenCanvas(
     EXAMPLE_WIDTH,
     Math.round((EXAMPLE_WIDTH * piece.h) / piece.w),
@@ -130,7 +160,7 @@ function scaled(pieces: Piece[]): OffscreenCanvas {
 
 function rowPiece(pieces: Piece[]): Piece {
   const source = row(pieces);
-  return { source, x: 0, y: 0, w: source.width, h: source.height };
+  return { source, x: 0, y: 0, w: source.width, h: source.height, long: source.width };
 }
 
 /** The square `thumb` names, from the whole export of the entry's first map, at 128 px. */
@@ -161,13 +191,24 @@ async function runJob(rows: Source, job: ExamplesJob): Promise<void> {
   const maps = await exportCampaignMaps(rows, exportSheet);
   const nameOf = (path: string) => (rows.nodeAt(path)?.values?.name as string | undefined) ?? '';
   for (const entry of job.entries) {
-    const hits = (entry.maps ?? [entry.map ?? '']).map((name) => {
+    const names = entry.rows ? entry.rows.flat() : (entry.maps ?? [entry.map ?? '']);
+    const hits = names.map((name) => {
       const hit = maps.find((m) => nameOf(m.mapPath) === name);
       if (!hit) throw new Error(`${job.campaign} has no drawable map named ${name}`);
       return hit;
     });
     const pieces = await Promise.all(hits.map((h) => cropped(h.png, entry)));
-    await examplesWrite(entry.image, await png(scaled(pieces)));
+    let whole: Piece | undefined;
+    if (entry.rows) {
+      let at = 0;
+      const grid = entry.rows.map((r) => {
+        const row = pieces.slice(at, at + r.length);
+        at += r.length;
+        return row;
+      });
+      whole = gridPiece(grid);
+    }
+    await examplesWrite(entry.image, await png(scaled(pieces, whole)));
     const first = hits[0];
     if (entry.thumb && first) {
       await examplesWrite(`${entry.page}-thumb`, await thumbnail(first.png, entry.thumb));

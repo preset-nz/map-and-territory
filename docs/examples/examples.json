@@ -115,7 +115,7 @@
     }
   },
   {
-    "caption": "A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.",
+    "caption": "A second layer with Seed forest, Frequency 0.25, Minimum 0.55, Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.",
     "image": "hex-noise-paint",
     "map": "Paint",
     "page": "hex-noise"
@@ -189,10 +189,10 @@
     "page": "locations"
   },
   {
-    "caption": "Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.",
+    "caption": "Aspect set to Square, 16:9, 4:3 and 16:10, the 16:9 with Orientation Portrait.",
     "image": "map-shapes",
-    "maps": ["Square", "4:3", "16:10", "16:9 Portrait"],
     "page": "map",
+    "rows": [["Square", "16:9 Portrait"], ["4:3", "16:10"]],
     "thumb": {
       "w": 0.6,
       "x": 0.0,

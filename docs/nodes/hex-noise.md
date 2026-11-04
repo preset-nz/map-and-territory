@@ -53,7 +53,7 @@ Tip: for an island, raise Minimum so only the high ground is filled and the rest
 
 *Mode set to Shape, Frequency 0.15 and Minimum 0.45: a grey landmass.*
 
-![A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.](img/hex-noise-paint.webp)
+![A second layer with Seed forest, Frequency 0.25, Minimum 0.55, Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.](img/hex-noise-paint.webp)
 
-*A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.*
+*A second layer with Seed forest, Frequency 0.25, Minimum 0.55, Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.*
 <!-- examples:end -->

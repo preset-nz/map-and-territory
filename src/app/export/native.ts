@@ -61,6 +61,8 @@ export interface ExamplesJob {
     /** One map's name, or `maps` for several drawn side by side. */
     map?: string;
     maps?: string[];
+    /** Maps in rows, all at one scale (`layoutRows`), in place of `map` and `maps`. */
+    rows?: string[][];
     image: string;
     caption: string;
     crop?: { x: number; y: number; w: number; h: number };

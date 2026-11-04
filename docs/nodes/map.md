@@ -43,7 +43,7 @@ Face and Hand are the map's sheet style: every title and compass on the map left
 ## Examples
 
 <!-- examples:begin — `just examples` rewrites this block; write outside it -->
-![Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.](img/map-shapes.webp)
+![Aspect set to Square, 16:9, 4:3 and 16:10, the 16:9 with Orientation Portrait.](img/map-shapes.webp)
 
-*Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.*
+*Aspect set to Square, 16:9, 4:3 and 16:10, the 16:9 with Orientation Portrait.*
 <!-- examples:end -->

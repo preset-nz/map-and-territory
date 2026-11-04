@@ -4,9 +4,11 @@
 //! writes the images.
 //!
 //! The campaigns are `docs/examples/<page>.campaign` and the list of pictures is
-//! `docs/examples/examples.json`: `[{page, map | maps, image, caption, crop, cut, thumb}]`,
+//! `docs/examples/examples.json`: `[{page, map | maps | rows, image, caption, crop, cut, thumb}]`,
 //! where `map` is the map's name in that campaign (or `maps`, several names drawn side by side,
-//! each cut and cropped alike, scaled to one height with a 24 px gap), `image` the file stem,
+//! each cut and cropped alike, scaled to one height with a 24 px gap, or `rows`, lists of names
+//! in rows, each map scaled to a long side of 1200 px, the same hex scale for all, each row
+//! centred, 24 px between pieces and rows), `image` the file stem,
 //! `caption` the italic line under the picture, `crop` an optional `{x, y, w, h}` in fractions
 //! of the exported map, `cut` an optional `{y, h}` band, in fractions of its height, taken out
 //! of the middle, and `thumb` an optional `{x, y, w}`: the square of side `w` x the width of
@@ -34,6 +36,8 @@ struct Example {
     map: &'static str,
     /// Several maps side by side, in place of `map`.
     maps: &'static [&'static str],
+    /// Rows of maps at one scale, in place of `map` and `maps`.
+    rows: &'static [&'static [&'static str]],
     image: &'static str,
     caption: &'static str,
     /// `{x, y, w, h}` in fractions of the exported map, or none for all of it.
@@ -56,6 +60,7 @@ fn ex(
         page,
         map,
         maps: &[],
+        rows: &[],
         image,
         caption,
         crop: None,
@@ -82,10 +87,12 @@ impl Example {
             "image": self.image,
             "caption": self.caption,
         });
-        if self.maps.is_empty() {
-            e["map"] = json!(self.map);
-        } else {
+        if !self.rows.is_empty() {
+            e["rows"] = json!(self.rows);
+        } else if !self.maps.is_empty() {
             e["maps"] = json!(self.maps);
+        } else {
+            e["map"] = json!(self.map);
         }
         if let Some([x, y, w]) = self.thumb {
             e["thumb"] = json!({ "x": x, "y": y, "w": w });
@@ -186,6 +193,7 @@ fn compass_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "compass",
             map: "Styles",
             maps: &[],
+        rows: &[],
             image: "compass-styles",
             caption: "Style set to Mark, Arrow, Cross and Rose, each at its own Anchor.",
             crop: None,
@@ -196,6 +204,7 @@ fn compass_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "compass",
             map: "Turned",
             maps: &[],
+        rows: &[],
             image: "compass-north",
             caption: "Two Roses: North at 0 on the left, and at 40 on the right. The points turn clockwise and the labels stay upright.",
             crop: Some([0.0, 0.0, 1.0, 0.32]),
@@ -206,6 +215,7 @@ fn compass_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "compass",
             map: "Hands",
             maps: &[],
+        rows: &[],
             image: "compass-hands",
             caption: "A Cross with Hand set to Clean, Drawn and Scratched.",
             crop: Some([0.0, 0.0, 1.0, 0.32]),
@@ -263,6 +273,7 @@ fn title_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "title",
             map: "Frames",
             maps: &[],
+            rows: &[],
             image: "title-frames",
             caption: "Frame set to None, Rule, Double and Plate.",
             crop: None,
@@ -273,6 +284,7 @@ fn title_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "title",
             map: "Faces",
             maps: &[],
+            rows: &[],
             image: "title-faces",
             caption: "Face set to Condensed, Serif, Blackletter and Marker, with a Subtitle.",
             crop: None,
@@ -301,6 +313,7 @@ fn hexgrid_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "hexgrid",
             map: "Clean",
             maps: &[],
+        rows: &[],
             image: "hexgrid-clean",
             caption: "The grid with Hex size 40 and everything else at its default.",
             crop: None,
@@ -311,6 +324,7 @@ fn hexgrid_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             page: "hexgrid",
             map: "Rough",
             maps: &[],
+        rows: &[],
             image: "hexgrid-rough",
             caption: "Line width 2, Misregistration 3, Corner jitter 2, Width noise 0.6 and Ink noise 0.4: a grid inked by hand.",
             crop: None,
@@ -426,7 +440,11 @@ fn hex_noise_page(d: &mut Doc, _: &Path) -> Vec<Example> {
     let m = map(d, "Paint");
     let shape = shaped(d, &m, "Land");
     set(d, &shape, "mode", json!("shape"));
-    let paint = shaped(d, &m, "Forest");
+    // its own noise, so the patches half overlap the land instead of repainting it
+    let paint = layer(d, &m, "hex-noise", "Forest");
+    set(d, &paint, "seed", json!("forest"));
+    set(d, &paint, "frequency", json!(0.25));
+    set(d, &paint, "min", json!(0.55));
     set(d, &paint, "mode", json!("paint"));
     set(d, &paint, "terrain", json!("blood-mires"));
     set(d, &paint, "opacity", json!(0.5));
@@ -445,7 +463,7 @@ fn hex_noise_page(d: &mut Doc, _: &Path) -> Vec<Example> {
             "hex-noise",
             "Paint",
             "hex-noise-paint",
-            "A second layer with Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.",
+            "A second layer with Seed forest, Frequency 0.25, Minimum 0.55, Mode Paint, Terrain Blood Mires and Opacity 0.5, over the shape layer.",
         ),
     ]
 }
@@ -667,13 +685,13 @@ fn map_page(d: &mut Doc, _: &Path) -> Vec<Example> {
     }
 
     vec![Example {
-        maps: &["Square", "4:3", "16:10", "16:9 Portrait"],
+        rows: &[&["Square", "16:9 Portrait"], &["4:3", "16:10"]],
         thumb: Some([0.0, 0.0, 0.6]),
         ..ex(
             "map",
             "",
             "map-shapes",
-            "Aspect set to Square, 4:3, 16:10 and 16:9, the last with Orientation Portrait.",
+            "Aspect set to Square, 16:9, 4:3 and 16:10, the 16:9 with Orientation Portrait.",
         )
     }]
 }
@@ -729,29 +747,34 @@ fn saved(build: fn(&mut Doc, &Path) -> Vec<Example>) -> (String, Vec<Example>, V
     (text, examples, names)
 }
 
-/// `text` with each `maps` array on one line, as Biome formats a short list of strings, so
+/// `text` with each `maps` and `rows` array on one line, as Biome formats a short list, so
 /// `just check`'s formatter leaves the manifest alone.
 fn one_line_maps(text: &str) -> String {
     let mut out = String::new();
     let mut lines = text.lines();
     while let Some(line) = lines.next() {
-        if line.trim_end().ends_with("\"maps\": [") {
+        let head = line.trim_end();
+        if head.ends_with("\"maps\": [") || head.ends_with("\"rows\": [") {
+            let indent = line.len() - line.trim_start().len();
             let mut items = Vec::new();
             for item in lines.by_ref() {
-                if item.trim_start().starts_with(']') {
+                if item.trim_start().starts_with(']')
+                    && item.len() - item.trim_start().len() == indent
+                {
                     break;
                 }
-                items.push(item.trim().trim_end_matches(','));
+                items.push(item.trim());
             }
             let comma = if lines.clone().next().is_some() {
                 ","
             } else {
                 ""
             };
+            let joined = items.join(" ").replace("[ ", "[").replace(" ]", "]");
             out.push_str(&format!(
                 "{}[{}]{comma}\n",
-                line.trim_end().trim_end_matches('['),
-                items.join(", ")
+                head.trim_end_matches('['),
+                joined.trim_end_matches(',')
             ));
         } else {
             out.push_str(line);
@@ -793,7 +816,9 @@ fn every_picture_names_a_map_of_its_page() {
         assert!(!examples.is_empty());
         for e in &examples {
             assert_eq!(e.page, *page);
-            let wanted = if e.maps.is_empty() {
+            let wanted = if !e.rows.is_empty() {
+                e.rows.concat()
+            } else if e.maps.is_empty() {
                 vec![e.map]
             } else {
                 e.maps.to_vec()
