@@ -196,5 +196,13 @@ export function CanvasHost({ onPointer }: { onPointer?: OnPointer }) {
     };
   }, [mirror]);
 
-  return <div ref={wrapRef} className="relative h-full w-full overflow-hidden" />;
+  // Named for the demo script (`scripts/demo`), which finds the canvas by it, and for a screen reader.
+  return (
+    <div
+      ref={wrapRef}
+      role="img"
+      aria-label="Map canvas"
+      className="relative h-full w-full overflow-hidden"
+    />
+  );
 }
