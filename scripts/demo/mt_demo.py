@@ -231,6 +231,17 @@ def turns(corners) -> list:
     return out
 
 
+# The notes printed under each place's name: the guide's picture of the places
+# (docs/guides/img/places.webp); the fixture has none. Georg, 2026-11-04: "I like that".
+NOTES = {
+    "Reedwall Keep": "Bishop's men, twelve spears",
+    "The Weeping Well": "Water that tastes of salt",
+    "Gallows Ford": "Knee-deep at low water",
+}
+# The compass turned, as for a map drawn at an angle (Georg, 2026-11-04).
+COMPASS_NORTH = 18
+
+
 # Hexes near the paper's four corners, for the mapping check (at Hex size 38).
 CHECK_HEXES = [(-5, -5), (9, -4), (-9, 4), (5, 5)]
 
@@ -716,6 +727,7 @@ class Demo:
         poll("the compass's inspector", lambda: self.field("North word"))
         self.choose("Style", c.get("style", "mark").capitalize())
         self.choose("Anchor", c.get("anchor", "top-right").replace("-", " ").capitalize())
+        self.slide("North", (COMPASS_NORTH + 180) / 360)  # -180..180
         hold(2.5)
 
     def step_08_places(self) -> float:
@@ -734,6 +746,8 @@ class Demo:
             self.click_row("Location", 1)
             poll("the place's Name field", lambda: self.field("Name"))
             self.set_text("Name", p["name"])
+            if NOTES.get(p["name"]):
+                self.set_text("Note", NOTES[p["name"]])
             poll(f"{p['name']} in the scene panel", lambda: self.scene_row(p["name"]))
             hold(0.6)
         at = self.take.now()
