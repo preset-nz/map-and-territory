@@ -116,9 +116,11 @@ function row(pieces: Piece[]): OffscreenCanvas {
  * map's long side is EXAMPLE_WIDTH, which is one hex scale throughout (every map's paper has
  * the same long side in paper px). */
 function gridPiece(grid: Piece[][]): Piece {
-  const fit = (p: Piece) => EXAMPLE_WIDTH / p.long;
+  const scaleOf = (p: Piece) => EXAMPLE_WIDTH / p.long;
   const { width, height, placed } = layoutRows(
-    grid.map((r) => r.map((p) => ({ w: Math.round(p.w * fit(p)), h: Math.round(p.h * fit(p)) }))),
+    grid.map((r) =>
+      r.map((p) => ({ w: Math.round(p.w * scaleOf(p)), h: Math.round(p.h * scaleOf(p)) })),
+    ),
     GAP,
   );
   const out = new OffscreenCanvas(width, height);
