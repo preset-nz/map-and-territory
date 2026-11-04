@@ -22,7 +22,7 @@ title: Map & Territory nodes
 |---|---|---|
 |  | [Campaign](campaign.md) | The whole document: its maps, its settings and the notes that go with them. |
 | ![Map](img/map-thumb.webp) | [Map](map.md) | One hexmap in the campaign: a paper, a hex grid and the layers between them. |
-|  | [Page](page.md) | One page of a booklet: the cover, the back, or a page between that may show a map. |
+|  | [Page](page.md) | One page of a booklet: the cover, a page between or the back, any of which may show a map. |
 
 ## Furniture
 

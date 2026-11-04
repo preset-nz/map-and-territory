@@ -2,13 +2,13 @@
 title: Page
 node: page
 group: document
-summary: "One page of a booklet: the cover, the back, or a page between that may show a map."
+summary: "One page of a booklet: the cover, a page between or the back, any of which may show a map."
 ---
 
 # Page
 
 <!-- generated:begin — preset-docs rewrites this block; write outside it -->
-One page of a booklet: the cover, the back, or a page between that may show a map.
+One page of a booklet: the cover, a page between or the back, any of which may show a map.
 
 | Control | Range | Default | What it does |
 |---|---|---|---|
@@ -19,7 +19,7 @@ References: `map`.
 
 ## Using it
 
-A page belongs to a booklet. On a zine it fixes where each map sits in the running order: the cover first, the back last, and the maps on the pages between. Set the campaign's Booklet to Spine booklet or Stapled pages and it gets a cover, a page for each map in order, and a back. A spine booklet goes in fours, so Map ▸ Add Pages adds four; stapled pages add one, or two when Double-sided is on. Each page shows at most one map, and a map sits on one page only. Set Booklet back to None and the campaign is a collection of maps again; the pages stay in the file for when you choose a booklet again.
+A page belongs to a booklet. On a zine it fixes where each map sits in the running order: the cover first, the back last, and the pages between; any page can show a map. Set the campaign's Booklet to Spine booklet or Stapled pages and it gets a cover, a page for each map in order, and a back. A spine booklet goes in fours, so Map ▸ Add Pages adds four; stapled pages add one, or two when Double-sided is on. Each page shows at most one map, and a map sits on one page only. Set Booklet back to None and the campaign is a collection of maps again; the pages stay in the file for when you choose a booklet again.
 
 The scene panel lists the pages in order, with each page's map under it, and the maps on no page under Not on a page. Right-click a page and choose Map to put one of those maps on it, or No Map to take it off. Name is the only setting a page has: rename a page for the room or region it holds, since Cover and Back are the names the first and last start with.
 

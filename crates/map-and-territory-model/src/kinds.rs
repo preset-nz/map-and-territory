@@ -872,7 +872,7 @@ pub fn declare(k: &mut Kinds) {
     k.kind(
         NodeType::new("page")
             .label("Page")
-            .summary("One page of a booklet: the cover, the back, or a page between that may show a map.")
+            .summary("One page of a booklet: the cover, a page between or the back, any of which may show a map.")
             .group("document")
             .in_categories(&["pages"])
             .text("name", "Page")
