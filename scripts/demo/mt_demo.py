@@ -810,16 +810,17 @@ class Demo:
 
 
 def render_still(pdf: pathlib.Path, png: pathlib.Path) -> None:
-    """qlmanage writes <pdf name>.png into the folder it is given; it moves to `png`."""
-    tmp = png.parent / "ql"
-    shutil.rmtree(tmp, ignore_errors=True)
-    tmp.mkdir(parents=True)
-    subprocess.run(["qlmanage", "-t", "-s", "2400", "-o", str(tmp), str(pdf)], check=True, capture_output=True)
-    made = tmp / (pdf.name + ".png")
-    if not made.exists():
-        raise SystemExit(f"qlmanage made no {made}")
-    made.replace(png)
-    shutil.rmtree(tmp, ignore_errors=True)
+    """Every page of the PDF as <png stem>-<n>.png beside `png` (demo-kit's pdfpage): the map,
+    then its key on the next page (Georg, 2026-11-04: "I also liked the key")."""
+    for old in pages(png):
+        old.unlink()
+    subprocess.run([BIN / "pdfpage", str(pdf), str(png.with_suffix("")), "2400"], check=True, capture_output=True)
+    if not pages(png):
+        raise SystemExit(f"pdfpage drew no page of {pdf}")
+
+
+def pages(png: pathlib.Path) -> list[pathlib.Path]:
+    return sorted(png.parent.glob(png.stem + "-*.png"), key=lambda p: int(p.stem.rsplit("-", 1)[1]))
 
 
 # -- launching ------------------------------------------------------------------------------------
@@ -903,11 +904,11 @@ def main() -> None:
     stamp = f"{datetime.date.today():%Y%m%d}"
     out = RENDERS / f"mt-demo-{stamp}.mov"
     pdf = RENDERS / f"mt-demo-{stamp}{'-rehearsal' if a.rehearse else ''}.pdf"
-    png = RENDERS / f"mt-demo-{stamp}-end.png"
+    png = RENDERS / f"mt-demo-{stamp}-page.png"  # a stem: pages are -page-1.png, -page-2.png
 
     if a.recut:
         take = json.loads(out.with_suffix(".json").read_text())
-        if not png.exists():
+        if not pages(png):
             render_still(RENDERS / f"mt-demo-{stamp}.pdf", png)
         title, description = edit_text(take["meta"])
         finish(out, take, title, description, png)
@@ -950,7 +951,7 @@ def main() -> None:
 
 def finish(out: pathlib.Path, take: dict, title: str, description: str, png: pathlib.Path) -> None:
     edit(out, take, plate=PLATE, title=title, description=description,
-         poster_at=take.get("poster_at"), end_still=(str(png), 4))
+         poster_at=take.get("poster_at"), end_stills=[(str(p), 3.5) for p in pages(png)])
     DESKTOP.mkdir(parents=True, exist_ok=True)
     for suffix in ("-edit.mp4", "-poster.jpg"):
         shutil.copy2(out.with_name(out.stem + suffix), DESKTOP / (out.stem + suffix))
