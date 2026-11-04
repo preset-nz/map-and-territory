@@ -242,6 +242,12 @@ NOTES = {
     "The Weeping Well": "Water that tastes of salt",
     "Gallows Ford": "Knee-deep in spring",  # Georg's, in his tweak of the take
 }
+# What the key prints for each place (its Description; Georg, 2026-11-04: "fill a description").
+DESCRIPTIONS = {
+    "Reedwall Keep": "The drowned bishop's tithe-keep. Twelve spears and a captain who won't say who pays him.",
+    "The Weeping Well": "Its stones sweat salt. Drink, and dream of the sea that was here before the fen.",
+    "Gallows Ford": "Fordable when the reeds bow. The gibbet on the far bank is never empty for long.",
+}
 # The compass turned, as for a map drawn at an angle (Georg, 2026-11-04).
 COMPASS_NORTH = 18
 
@@ -784,6 +790,8 @@ class Demo:
             self.set_text("Name", p["name"])
             if NOTES.get(p["name"]):
                 self.set_text("Note", NOTES[p["name"]])
+            if DESCRIPTIONS.get(p["name"]):
+                self.set_text("Description", DESCRIPTIONS[p["name"]])
             poll(f"{p['name']} in the scene panel", lambda: self.scene_row(p["name"]))
             hold(0.6)
         at = self.take.now()
@@ -804,23 +812,35 @@ class Demo:
         hold(3)
 
     def step_10_printed_page(self, pdf: pathlib.Path, png: pathlib.Path) -> None:
-        """The PDF's page as a PNG for the edit to hold for 4 s after the last frame."""
+        """The PDF in Preview, over the app's window and the same size: the map page with the
+        pages down the side, then the key on the next page (Georg, 2026-11-04: the printed
+        page in a viewer, not a still pasted on the end)."""
         self.take.chapter("The printed page")
-        render_still(pdf, png)
+        preview = Tools(BIN, process="Preview", bundle_id="com.apple.Preview")
+        subprocess.run(["open", "-a", "Preview", str(pdf)], check=True)
+        poll("Preview's window", lambda: preview.ax_raw("window").returncode == 0, timeout=20)
+        time.sleep(0.4)
+        preview.window(*self.frame)
+        # one step under Zoom to Fit: the page clears the preset.nz mark in the lower left
+        for item in ("Thumbnails", "Single Page", "Zoom to Fit", "Zoom Out"):
+            preview.menu("View", item)
+        self.tools.key_code(115)  # Home: Preview reopens a file on the page it was left at
+        hold(4)
+        # the key: a click on the second page's thumbnail, in the sidebar's fixed layout
+        x, y = self.frame[0], self.frame[1]
+        self.tools.ui("click", x + 95, y + 248)
+        time.sleep(0.8)
+        if preview.ax_raw("find", "Page 2 of 2").returncode != 0:
+            preview.menu("Go", "Next Item")
+        hold(4.5)
+        self.preview_pdf = pdf
 
-
-def render_still(pdf: pathlib.Path, png: pathlib.Path) -> None:
-    """Every page of the PDF as <png stem>-<n>.png beside `png` (demo-kit's pdfpage): the map,
-    then its key on the next page (Georg, 2026-11-04: "I also liked the key")."""
-    for old in pages(png):
-        old.unlink()
-    subprocess.run([BIN / "pdfpage", str(pdf), str(png.with_suffix("")), "2400"], check=True, capture_output=True)
-    if not pages(png):
-        raise SystemExit(f"pdfpage drew no page of {pdf}")
-
-
-def pages(png: pathlib.Path) -> list[pathlib.Path]:
-    return sorted(png.parent.glob(png.stem + "-*.png"), key=lambda p: int(p.stem.rsplit("-", 1)[1]))
+    def close_preview(self) -> None:
+        """Preview's window for the take, closed once the recording has stopped."""
+        pdf = getattr(self, "preview_pdf", None)
+        if pdf:
+            subprocess.run(["osascript", "-e", f'tell application "Preview" to close (every window whose name contains "{pdf.stem}")'],
+                           capture_output=True)
 
 
 # -- launching ------------------------------------------------------------------------------------
@@ -908,8 +928,6 @@ def main() -> None:
 
     if a.recut:
         take = json.loads(out.with_suffix(".json").read_text())
-        if not pages(png):
-            render_still(RENDERS / f"mt-demo-{stamp}.pdf", png)
         title, description = edit_text(take["meta"])
         finish(out, take, title, description, png)
         return
@@ -937,11 +955,13 @@ def main() -> None:
             demo = Demo(tools, NullTake())
             demo.frame = tuple(frame)
             run_steps(demo, pdf, png)
+            demo.close_preview()
             return
         with Take(tools, out, frame, audio=False, meta=meta) as take:
             demo = Demo(tools, take)
             demo.frame = tuple(frame)
             poster_at = run_steps(demo, pdf, png)
+        demo.close_preview()
     doc = json.loads(out.with_suffix(".json").read_text())
     doc["poster_at"] = poster_at  # the take's seconds when the first place is named
     out.with_suffix(".json").write_text(json.dumps(doc, ensure_ascii=False, indent=1))
@@ -951,7 +971,7 @@ def main() -> None:
 
 def finish(out: pathlib.Path, take: dict, title: str, description: str, png: pathlib.Path) -> None:
     edit(out, take, plate=PLATE, title=title, description=description,
-         poster_at=take.get("poster_at"), end_stills=[(str(p), 3.5) for p in pages(png)])
+         poster_at=take.get("poster_at"))
     DESKTOP.mkdir(parents=True, exist_ok=True)
     for suffix in ("-edit.mp4", "-poster.jpg"):
         shutil.copy2(out.with_name(out.stem + suffix), DESKTOP / (out.stem + suffix))
