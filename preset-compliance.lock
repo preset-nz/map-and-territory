@@ -28,7 +28,7 @@ sha256 = "b589ee492210cd9895eb32fd4e44dc8a3e52fe576250946ff9c6c84f97904be1"
 [[inputs]]
 path = "pnpm-lock.yaml"
 ecosystem = "pnpm"
-sha256 = "753f167b83901aa97bdc03253b9722b9d77a7395d6655a51c87ddcc8a8e9705e"
+sha256 = "60f82b3ee759c692357049a21706633d4e321b99006a445b2d715ad67532c2a8"
 
 [[inputs]]
 path = "src-tauri/Cargo.toml"
@@ -4237,7 +4237,7 @@ scope = "shipped"
 [[packages]]
 ecosystem = "pnpm"
 name = "@preset.nz/facets"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -4261,7 +4261,7 @@ scope = "shipped"
 [[packages]]
 ecosystem = "pnpm"
 name = "@preset.nz/ux-kit"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry"
 declared = "MIT"
 scope = "shipped"
@@ -4737,6 +4737,22 @@ version = "4.3.3"
 source = "registry"
 declared = "MIT"
 scope = "dev"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@tanstack/react-virtual"
+version = "3.14.26"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
+
+[[packages]]
+ecosystem = "pnpm"
+name = "@tanstack/virtual-core"
+version = "3.19.11"
+source = "registry"
+declared = "MIT"
+scope = "shipped"
 
 [[packages]]
 ecosystem = "pnpm"
