@@ -1,6 +1,6 @@
 [package]
 name = "map-and-territory"
-version = "0.1.0"
+version = "0.1.1"
 description = "A preset.nz desktop app"
 authors = ["preset.nz"]
 license = "MIT"
